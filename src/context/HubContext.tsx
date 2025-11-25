@@ -1,26 +1,24 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+import type { Hub, GymnastProfile, HubMember as FullHubMember } from '../types';
 
-interface Hub {
-    id: string;
-    name: string;
-    slug: string;
-    organization_id: string;
-    settings: any;
-}
+// Partial HubMember for context (just the fields we need)
+type HubMemberContext = Pick<FullHubMember, 'role' | 'permissions'>;
 
-interface HubMember {
-    role: 'owner' | 'director' | 'admin' | 'coach' | 'parent' | 'gymnast';
-    permissions: any;
-}
+type PermissionScope = 'all' | 'own' | 'none';
 
 interface HubContextType {
     hub: Hub | null;
-    member: HubMember | null;
+    member: HubMemberContext | null;
     user: User | null;
     currentRole: string | null;
+    linkedGymnasts: GymnastProfile[];
+    levels: string[];
+    hasPermission: (feature: string) => boolean;
+    getPermissionScope: (feature: string) => PermissionScope;
+    refreshHub: () => Promise<void>;
     loading: boolean;
     error: string | null;
 }
@@ -30,64 +28,136 @@ const HubContext = createContext<HubContextType | undefined>(undefined);
 export function HubProvider({ children }: { children: React.ReactNode }) {
     const { hubId } = useParams<{ hubId: string }>();
     const [hub, setHub] = useState<Hub | null>(null);
-    const [member, setMember] = useState<HubMember | null>(null);
+    const [member, setMember] = useState<HubMemberContext | null>(null);
     const [user, setUser] = useState<User | null>(null);
+    const [linkedGymnasts, setLinkedGymnasts] = useState<GymnastProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
+    const fetchHubData = useCallback(async (showLoading = true) => {
         if (!hubId) {
             setLoading(false);
             return;
         }
 
-        async function fetchHubData() {
-            setLoading(true);
-            setError(null);
-            try {
-                // 1. Fetch Hub Details
-                const { data: hubData, error: hubError } = await supabase
-                    .from('hubs')
-                    .select('*')
-                    .eq('id', hubId)
-                    .maybeSingle();
+        if (showLoading) setLoading(true);
+        setError(null);
+        try {
+            // 1. Fetch Hub Details
+            const { data: hubData, error: hubError } = await supabase
+                .from('hubs')
+                .select('*')
+                .eq('id', hubId)
+                .maybeSingle();
 
-                if (hubError) throw hubError;
-                setHub(hubData);
+            if (hubError) throw hubError;
+            setHub(hubData);
 
-                // 2. Fetch Current User and their Member Role in this Hub
-                const { data: { user: currentUser } } = await supabase.auth.getUser();
-                setUser(currentUser);
+            // 2. Fetch Current User and their Member Role in this Hub
+            const { data: { user: currentUser } } = await supabase.auth.getUser();
+            setUser(currentUser);
 
-                if (currentUser) {
-                    const { data: memberData, error: memberError } = await supabase
-                        .from('hub_members')
-                        .select('role, permissions')
-                        .eq('hub_id', hubId)
-                        .eq('user_id', currentUser.id)
-                        .single();
+            if (currentUser) {
+                const { data: memberData, error: memberError } = await supabase
+                    .from('hub_members')
+                    .select('role, permissions')
+                    .eq('hub_id', hubId)
+                    .eq('user_id', currentUser.id)
+                    .single();
 
-                    if (memberError && memberError.code !== 'PGRST116') { // Ignore fetch error if not a member (PGRST116 is "Row not found")
-                        console.error('Error fetching member data:', memberError);
-                    }
-                    setMember(memberData);
+                if (memberError && memberError.code !== 'PGRST116') { // Ignore fetch error if not a member (PGRST116 is "Row not found")
+                    console.error('Error fetching member data:', memberError);
                 }
+                setMember(memberData);
 
-            } catch (err: any) {
-                console.error('Error fetching hub context:', err);
-                setError(err.message);
-            } finally {
-                setLoading(false);
+                // 3. Auto-link Gymnasts for parents based on guardian email
+                if (memberData && memberData.role === 'parent') {
+                    const userEmail = currentUser.email?.toLowerCase();
+                    let linked: GymnastProfile[] = [];
+
+                    if (userEmail) {
+                        // Fetch profiles where guardian email matches
+                        // We fetch all profiles for the hub and filter in memory to ensure case-insensitive matching
+                        // This is safer than trying to construct a complex JSONB query
+                        const { data: allProfiles } = await supabase
+                            .from('gymnast_profiles')
+                            .select('*')
+                            .eq('hub_id', hubId);
+
+                        if (allProfiles) {
+                            linked = allProfiles.filter(p =>
+                                p.guardian_1?.email?.toLowerCase() === userEmail ||
+                                p.guardian_2?.email?.toLowerCase() === userEmail
+                            );
+                        }
+                    }
+                    setLinkedGymnasts(linked);
+                }
             }
-        }
 
-        fetchHubData();
+        } catch (err: any) {
+            console.error('Error fetching hub context:', err);
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
     }, [hubId]);
 
+    useEffect(() => {
+        fetchHubData();
+    }, [fetchHubData]);
+
+    const refreshHub = useCallback(async () => {
+        await fetchHubData(false);
+    }, [fetchHubData]);
+
     const currentRole = member?.role || null;
+    const levels: string[] = hub?.settings?.levels || [];
+
+    const getPermissionScope = (feature: string): PermissionScope => {
+        if (!hub || !currentRole) return 'none';
+
+        // Owner and Director always have full access
+        if (currentRole === 'owner' || currentRole === 'director') return 'all';
+
+        const permissions = hub.settings?.permissions;
+
+        // Default behavior if permissions are not configured (Legacy Hubs)
+        if (!permissions) {
+            if (['admin', 'coach'].includes(currentRole)) return 'all';
+            if (currentRole === 'parent') return 'own';
+            return 'none';
+        }
+
+        // Check configured permissions
+        const rolePermissions = permissions[feature];
+        if (!rolePermissions) return 'none';
+
+        const scope = rolePermissions[currentRole];
+
+        // If scope is explicitly set, return it. Otherwise default to none.
+        return scope || 'none';
+    };
+
+    const hasPermission = (feature: string): boolean => {
+        const scope = getPermissionScope(feature);
+        return scope === 'all' || scope === 'own';
+    };
 
     return (
-        <HubContext.Provider value={{ hub, member, user, currentRole, loading, error }}>
+        <HubContext.Provider value={{
+            hub,
+            member,
+            user,
+            currentRole,
+            linkedGymnasts,
+            levels,
+            hasPermission,
+            getPermissionScope,
+            refreshHub,
+            loading,
+            error
+        }}>
             {children}
         </HubContext.Provider>
     );

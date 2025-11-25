@@ -1,23 +1,36 @@
-import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, FileStack, Settings2, LogOut, ArrowLeft, ClipboardList } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../context/AuthContext';
+import { useHub } from '../../context/HubContext';
 
 export function Sidebar() {
     const location = useLocation();
     const { hubId } = useParams();
     const { signOut } = useAuth();
+    const { hasPermission, currentRole } = useHub();
 
     const navigation = [
-        { name: 'Dashboard', href: `/hub/${hubId}`, icon: LayoutDashboard },
-        { name: 'Roster', href: `/hub/${hubId}/roster`, icon: ClipboardList },
-        { name: 'Calendar', href: `/hub/${hubId}/calendar`, icon: CalendarDays },
-        { name: 'Messages', href: `/hub/${hubId}/messages`, icon: MessageCircle },
-        { name: 'Competitions', href: `/hub/${hubId}/competitions`, icon: Trophy },
-        { name: 'Groups', href: `/hub/${hubId}/groups`, icon: Users },
-        { name: 'Documents', href: `/hub/${hubId}/documents`, icon: FileStack },
-        { name: 'Settings', href: `/hub/${hubId}/settings`, icon: Settings2 },
+        { name: 'Dashboard', href: `/hub/${hubId}`, icon: LayoutDashboard, permission: 'dashboard' },
+        { name: 'Roster', href: `/hub/${hubId}/roster`, icon: ClipboardList, permission: 'roster' },
+        { name: 'Calendar', href: `/hub/${hubId}/calendar`, icon: CalendarDays, permission: 'calendar' },
+        { name: 'Messages', href: `/hub/${hubId}/messages`, icon: MessageCircle, permission: 'messages' },
+        { name: 'Competitions', href: `/hub/${hubId}/competitions`, icon: Trophy, permission: 'competitions' },
+        { name: 'Groups', href: `/hub/${hubId}/groups`, icon: Users, permission: 'groups' },
+        { name: 'Settings', href: `/hub/${hubId}/settings`, icon: Settings2, permission: 'settings' },
     ];
+
+    const filteredNavigation = navigation.filter(item => {
+        if (item.name === 'Dashboard') return true; // Always show dashboard
+        if (item.name === 'Settings') {
+            // Only Owners, Directors, and Admins can see Hub Settings
+            return ['owner', 'director', 'admin'].includes(currentRole || '');
+        }
+        // For other items, check permissions
+        // Note: hasPermission returns true for 'own' scope as well, which is what we want
+        // (e.g. Parents can see Roster if they have 'view own' permission)
+        return hasPermission(item.permission);
+    });
 
     return (
         <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200">
@@ -37,7 +50,7 @@ export function Sidebar() {
             </div>
             <div className="flex-1 overflow-y-auto py-4">
                 <nav className="space-y-1 px-3">
-                    {navigation.map((item) => {
+                    {filteredNavigation.map((item) => {
                         const isActive = location.pathname === item.href;
                         return (
                             <Link

@@ -1,26 +1,70 @@
-import { useEffect, useState } from 'react';
-import { Plus, Search, MoreHorizontal } from 'lucide-react';
+import { useEffect, useState, useMemo, useRef } from 'react';
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, UserCog } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
-import type { HubMember } from '../types';
+import { GymnastProfileModal } from '../components/gymnast/GymnastProfileModal';
+import type { GymnastProfile } from '../types';
 
-interface Member extends Omit<HubMember, 'profiles'> {
-    profile: {
-        full_name: string;
-        email: string;
-    };
+
+
+interface DisplayMember {
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+    gymnast_id?: string;
+    level?: string;
+    guardian_name?: string;
+    guardian_phone?: string;
+    type: 'hub_member' | 'gymnast_profile';
+    full_profile?: GymnastProfile;
 }
 
 type TabType = 'All' | 'Admins' | 'Coaches' | 'Gymnasts' | 'Parents';
 
 export function Roster() {
-    const { hub } = useHub();
-    const [members, setMembers] = useState<Member[]>([]);
+    const { hub, getPermissionScope, linkedGymnasts, user, currentRole } = useHub();
+    const [members, setMembers] = useState<DisplayMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<TabType>('All');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [selectedGymnast, setSelectedGymnast] = useState<GymnastProfile | null>(null);
+    const [editingMember, setEditingMember] = useState<DisplayMember | null>(null);
+    const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpenMenuId(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const canManageMembers = ['owner', 'director', 'admin'].includes(currentRole || '');
+
+    // Determine if user can view medical info for selected gymnast
+    // Admins, directors, owners, and coaches can always see medical info
+    // Parents can only see medical info for their own linked gymnasts
+    const canViewMedical = useMemo(() => {
+        if (!selectedGymnast) return false;
+
+        // Staff roles can always view medical info
+        const staffRoles = ['owner', 'director', 'admin', 'coach'];
+        if (currentRole && staffRoles.includes(currentRole)) return true;
+
+        // Parents can only view medical info for their linked gymnasts
+        if (currentRole === 'parent') {
+            return linkedGymnasts.some(g => g.id === selectedGymnast.id);
+        }
+
+        return false;
+    }, [selectedGymnast, currentRole, linkedGymnasts]);
 
     useEffect(() => {
         if (hub) {
@@ -30,7 +74,8 @@ export function Roster() {
 
     const fetchMembers = async () => {
         try {
-            const { data, error } = await supabase
+            // Fetch hub members (users with accounts)
+            const { data: hubMembersData, error: hubMembersError } = await supabase
                 .from('hub_members')
                 .select(`
           user_id,
@@ -42,13 +87,80 @@ export function Roster() {
         `)
                 .eq('hub_id', hub?.id);
 
-            if (error) throw error;
+            if (hubMembersError) throw hubMembersError;
 
-            setMembers(data as any);
+            // Fetch gymnast profiles (gymnasts without accounts)
+            const { data: gymnastProfilesData, error: gymnastProfilesError } = await supabase
+                .from('gymnast_profiles')
+                .select('*')
+                .eq('hub_id', hub?.id)
+                .order('gymnast_id', { ascending: true });
+
+            if (gymnastProfilesError) throw gymnastProfilesError;
+
+            // Combine both into DisplayMember format
+            const hubMembers: DisplayMember[] = (hubMembersData || []).map((m: any) => ({
+                id: m.user_id,
+                name: m.profile?.full_name || 'Unknown',
+                email: m.profile?.email || '',
+                role: m.role,
+                type: 'hub_member' as const,
+            }));
+
+            const gymnastMembers: DisplayMember[] = (gymnastProfilesData || []).map((g: GymnastProfile) => {
+                const guardianName = g.guardian_1
+                    ? `${g.guardian_1.first_name} ${g.guardian_1.last_name}`.trim()
+                    : '';
+
+                return {
+                    id: g.id,
+                    name: `${g.first_name} ${g.last_name}`,
+                    email: g.guardian_1?.email || '',
+                    role: 'gymnast',
+                    gymnast_id: g.gymnast_id,
+                    level: g.level || '',
+                    guardian_name: guardianName || '-',
+                    guardian_phone: g.guardian_1?.phone || '-',
+                    type: 'gymnast_profile' as const,
+                    full_profile: g,
+                };
+            });
+
+            setMembers([...hubMembers, ...gymnastMembers]);
         } catch (error) {
             console.error('Error fetching members:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleDeleteMember = async (member: DisplayMember) => {
+        const confirmMessage = member.type === 'gymnast_profile'
+            ? `Are you sure you want to remove ${member.name} from the roster? This will permanently delete their profile.`
+            : `Are you sure you want to remove ${member.name} from this hub?`;
+
+        if (!confirm(confirmMessage)) return;
+
+        try {
+            if (member.type === 'gymnast_profile') {
+                const { error } = await supabase
+                    .from('gymnast_profiles')
+                    .delete()
+                    .eq('id', member.id);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('hub_members')
+                    .delete()
+                    .eq('hub_id', hub?.id)
+                    .eq('user_id', member.id);
+                if (error) throw error;
+            }
+            fetchMembers();
+            setOpenMenuId(null);
+        } catch (error) {
+            console.error('Error deleting member:', error);
+            alert('Failed to remove member. Please try again.');
         }
     };
 
@@ -61,12 +173,29 @@ export function Roster() {
     ];
 
     const filteredMembers = members.filter((member) => {
+        // 1. Check Permission Scope
+        const scope = getPermissionScope('roster');
+        if (scope === 'none') return false;
+
+        if (scope === 'own') {
+            // If scope is 'own', only show linked gymnasts and self
+            if (member.type === 'gymnast_profile') {
+                const isLinked = linkedGymnasts.some(g => g.id === member.id);
+                if (!isLinked) return false;
+            } else {
+                // For hub members, only show self
+                if (member.id !== user?.id) return false;
+            }
+        }
+
+        // 2. Search Filter
         const matchesSearch =
-            member.profile.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            member.profile.email.toLowerCase().includes(searchTerm.toLowerCase());
+            member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            member.email.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (!matchesSearch) return false;
 
+        // 3. Tab Filter
         if (activeTab === 'All') return true;
 
         const currentTabRoles = tabs.find(t => t.name === activeTab)?.roles || [];
@@ -139,13 +268,22 @@ export function Roster() {
                                 <thead className="bg-slate-50">
                                     <tr>
                                         <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6">
+                                            ID
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
                                             Name
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
                                             Role
                                         </th>
                                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                                            Email
+                                            Level
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
+                                            Guardian
+                                        </th>
+                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
+                                            Contact
                                         </th>
                                         <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                                             <span className="sr-only">Actions</span>
@@ -155,26 +293,85 @@ export function Roster() {
                                 <tbody className="divide-y divide-slate-200 bg-white">
                                     {filteredMembers.length > 0 ? (
                                         filteredMembers.map((member) => (
-                                            <tr key={member.user_id}>
-                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-slate-900 sm:pl-6">
-                                                    {member.profile.full_name}
+                                            <tr
+                                                key={member.id}
+                                                onClick={() => {
+                                                    if (member.type === 'gymnast_profile' && member.full_profile) {
+                                                        setSelectedGymnast(member.full_profile);
+                                                    }
+                                                }}
+                                                className={member.type === 'gymnast_profile' ? 'cursor-pointer hover:bg-slate-50' : ''}
+                                            >
+                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-slate-500 sm:pl-6">
+                                                    {member.type === 'gymnast_profile' ? member.gymnast_id : '-'}
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900">
+                                                    {member.name}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 capitalize">
                                                     {member.role}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
-                                                    {member.profile.email}
+                                                    {member.level || '-'}
+                                                </td>
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
+                                                    {member.guardian_name || '-'}
+                                                </td>
+                                                <td className="px-3 py-4 text-sm text-slate-500">
+                                                    <div>{member.type === 'gymnast_profile' ? member.guardian_phone : member.email}</div>
+                                                    {member.type === 'gymnast_profile' && member.email && (
+                                                        <div className="text-xs text-slate-400">{member.email}</div>
+                                                    )}
                                                 </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                    <button className="text-slate-400 hover:text-slate-600">
-                                                        <MoreHorizontal className="h-5 w-5" />
-                                                    </button>
+                                                    {canManageMembers && (
+                                                        <div className="relative inline-block text-left" ref={openMenuId === member.id ? menuRef : null}>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setOpenMenuId(openMenuId === member.id ? null : member.id);
+                                                                }}
+                                                                className="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100"
+                                                            >
+                                                                <MoreHorizontal className="h-5 w-5" />
+                                                            </button>
+
+                                                            {openMenuId === member.id && (
+                                                                <div className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                                                    <div className="py-1">
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setEditingMember(member);
+                                                                                setIsAddModalOpen(true);
+                                                                                setOpenMenuId(null);
+                                                                            }}
+                                                                            className="flex w-full items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                                                                        >
+                                                                            <Pencil className="mr-3 h-4 w-4 text-slate-400" />
+                                                                            Edit
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                handleDeleteMember(member);
+                                                                            }}
+                                                                            className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                                        >
+                                                                            <Trash2 className="mr-3 h-4 w-4" />
+                                                                            Remove
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan={4} className="py-8 text-center text-sm text-slate-500">
+                                            <td colSpan={7} className="py-8 text-center text-sm text-slate-500">
                                                 No members found in this category.
                                             </td>
                                         </tr>
@@ -188,8 +385,19 @@ export function Roster() {
 
             <AddMemberModal
                 isOpen={isAddModalOpen}
-                onClose={() => setIsAddModalOpen(false)}
+                onClose={() => {
+                    setIsAddModalOpen(false);
+                    setEditingMember(null);
+                }}
                 onMemberAdded={fetchMembers}
+                initialData={editingMember}
+            />
+
+            <GymnastProfileModal
+                gymnast={selectedGymnast}
+                isOpen={!!selectedGymnast}
+                onClose={() => setSelectedGymnast(null)}
+                canViewMedical={canViewMedical}
             />
         </div>
     );

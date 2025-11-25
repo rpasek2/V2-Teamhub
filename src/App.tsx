@@ -14,6 +14,7 @@ import { Competitions } from './pages/competitions/Competitions';
 import { CompetitionDetails } from './pages/competitions/CompetitionDetails';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
+import { Settings } from './pages/Settings';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
               <Route path="competitions/:competitionId" element={<CompetitionDetails />} />
               <Route path="groups" element={<Groups />} />
               <Route path="groups/:groupId" element={<GroupDetails />} />
+              <Route path="settings" element={<Settings />} />
             </Route>
           </Route>
         </Routes>

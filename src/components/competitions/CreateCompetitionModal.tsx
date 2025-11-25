@@ -100,6 +100,29 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated }
                 if (rosterError) throw rosterError;
             }
 
+            // 3. Auto-create calendar event for the competition
+            const startDateTime = new Date(`${formData.startDate}T09:00:00`);
+            const endDateTime = new Date(`${formData.endDate}T17:00:00`);
+
+            const { error: eventError } = await supabase
+                .from('events')
+                .insert({
+                    hub_id: hub.id,
+                    title: formData.name,
+                    description: `Competition: ${formData.name}${formData.location ? ` at ${formData.location}` : ''}`,
+                    start_time: startDateTime.toISOString(),
+                    end_time: endDateTime.toISOString(),
+                    location: formData.location || null,
+                    type: 'competition',
+                    rsvp_enabled: true,
+                    created_by: user.id
+                });
+
+            if (eventError) {
+                console.error('Error creating calendar event:', eventError);
+                // Don't throw - competition was created successfully, calendar event is secondary
+            }
+
             onCompetitionCreated();
             onClose();
             setFormData({ name: '', startDate: '', endDate: '', location: '' });
