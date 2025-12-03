@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
     format,
@@ -14,7 +14,9 @@ import {
     addWeeks,
     subWeeks,
     parseISO,
-    isToday
+    isToday,
+    getYear,
+    getDay
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, List, Plus, Filter, LayoutGrid, MapPin, Clock } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -54,6 +56,93 @@ const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string 
     other: { bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-500' }
 };
 
+// Holiday definitions with emoji icons
+interface Holiday {
+    name: string;
+    emoji: string;
+    bgColor: string;
+    textColor: string;
+}
+
+// Get nth weekday of month (e.g., 4th Thursday)
+function getNthWeekdayOfMonth(year: number, month: number, weekday: number, n: number): Date {
+    const firstOfMonth = new Date(year, month, 1);
+    const firstWeekday = getDay(firstOfMonth);
+    let dayOffset = weekday - firstWeekday;
+    if (dayOffset < 0) dayOffset += 7;
+    return new Date(year, month, 1 + dayOffset + (n - 1) * 7);
+}
+
+// Get last weekday of month (e.g., last Monday)
+function getLastWeekdayOfMonth(year: number, month: number, weekday: number): Date {
+    const lastOfMonth = new Date(year, month + 1, 0);
+    const lastDay = lastOfMonth.getDate();
+    const lastWeekday = getDay(lastOfMonth);
+    let dayOffset = lastWeekday - weekday;
+    if (dayOffset < 0) dayOffset += 7;
+    return new Date(year, month, lastDay - dayOffset);
+}
+
+// Calculate Easter Sunday using the Anonymous Gregorian algorithm
+function getEasterSunday(year: number): Date {
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    return new Date(year, month, day);
+}
+
+// Get all US holidays for a given year
+function getUSHolidays(year: number): Map<string, Holiday> {
+    const holidays = new Map<string, Holiday>();
+
+    // Helper to add holiday
+    const addHoliday = (date: Date, name: string, emoji: string, bgColor: string, textColor: string) => {
+        const key = format(date, 'yyyy-MM-dd');
+        holidays.set(key, { name, emoji, bgColor, textColor });
+    };
+
+    // Fixed date holidays
+    addHoliday(new Date(year, 0, 1), "New Year's Day", '🎉', 'bg-gradient-to-br from-yellow-100 to-orange-100', 'text-orange-700');
+    addHoliday(new Date(year, 1, 14), "Valentine's Day", '💕', 'bg-gradient-to-br from-pink-100 to-red-100', 'text-red-600');
+    addHoliday(new Date(year, 2, 17), "St. Patrick's Day", '☘️', 'bg-gradient-to-br from-green-100 to-emerald-100', 'text-green-700');
+    addHoliday(new Date(year, 6, 4), "Independence Day", '🇺🇸', 'bg-gradient-to-br from-blue-100 to-red-100', 'text-blue-700');
+    addHoliday(new Date(year, 9, 31), "Halloween", '🎃', 'bg-gradient-to-br from-orange-100 to-purple-100', 'text-orange-600');
+    addHoliday(new Date(year, 10, 11), "Veterans Day", '🎖️', 'bg-gradient-to-br from-red-100 to-blue-100', 'text-red-700');
+    addHoliday(new Date(year, 11, 25), "Christmas Day", '🎄', 'bg-gradient-to-br from-red-100 to-green-100', 'text-red-600');
+    addHoliday(new Date(year, 11, 31), "New Year's Eve", '🥳', 'bg-gradient-to-br from-purple-100 to-pink-100', 'text-purple-700');
+    addHoliday(new Date(year, 11, 24), "Christmas Eve", '🎅', 'bg-gradient-to-br from-red-50 to-green-50', 'text-red-500');
+
+    // Floating holidays
+    addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", '✊', 'bg-gradient-to-br from-slate-100 to-blue-100', 'text-slate-700');
+    addHoliday(getNthWeekdayOfMonth(year, 1, 1, 3), "Presidents' Day", '🏛️', 'bg-gradient-to-br from-blue-100 to-red-100', 'text-blue-700');
+    addHoliday(getNthWeekdayOfMonth(year, 4, 0, 2), "Mother's Day", '💐', 'bg-gradient-to-br from-pink-100 to-rose-100', 'text-pink-600');
+    addHoliday(getLastWeekdayOfMonth(year, 4, 1), "Memorial Day", '🇺🇸', 'bg-gradient-to-br from-red-100 to-blue-100', 'text-red-700');
+    addHoliday(getNthWeekdayOfMonth(year, 5, 0, 3), "Father's Day", '👔', 'bg-gradient-to-br from-blue-100 to-sky-100', 'text-blue-600');
+    addHoliday(getNthWeekdayOfMonth(year, 8, 1, 1), "Labor Day", '⚒️', 'bg-gradient-to-br from-amber-100 to-yellow-100', 'text-amber-700');
+    addHoliday(getNthWeekdayOfMonth(year, 9, 1, 2), "Columbus Day", '🧭', 'bg-gradient-to-br from-blue-100 to-indigo-100', 'text-blue-700');
+    addHoliday(getNthWeekdayOfMonth(year, 10, 4, 4), "Thanksgiving", '🦃', 'bg-gradient-to-br from-orange-100 to-amber-100', 'text-orange-700');
+
+    // Easter (calculated)
+    const easter = getEasterSunday(year);
+    addHoliday(easter, "Easter Sunday", '🐰', 'bg-gradient-to-br from-pink-100 to-purple-100', 'text-pink-600');
+
+    // Juneteenth
+    addHoliday(new Date(year, 5, 19), "Juneteenth", '✊', 'bg-gradient-to-br from-red-100 to-green-100', 'text-red-700');
+
+    return holidays;
+}
+
 export function Calendar() {
     const { hub, currentRole } = useHub();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -73,6 +162,24 @@ export function Calendar() {
 
     // Permission check - admins, directors, owners, and coaches can add events
     const canAddEvents = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+
+    // Get holidays for current view (may span multiple years for week view in Dec/Jan)
+    const holidays = useMemo(() => {
+        const year = getYear(currentDate);
+        const holidaysMap = new Map<string, Holiday>();
+        // Get holidays for current year and adjacent years (for edge cases)
+        [year - 1, year, year + 1].forEach(y => {
+            const yearHolidays = getUSHolidays(y);
+            yearHolidays.forEach((holiday, key) => holidaysMap.set(key, holiday));
+        });
+        return holidaysMap;
+    }, [currentDate]);
+
+    // Helper to get holiday for a day
+    const getHolidayForDay = (day: Date): Holiday | undefined => {
+        const key = format(day, 'yyyy-MM-dd');
+        return holidays.get(key);
+    };
 
     useEffect(() => {
         if (hub) {
@@ -377,33 +484,50 @@ export function Calendar() {
                             const isCurrentMonth = view === 'week' || isSameMonth(day, currentDate);
                             const isCurrentDay = isToday(day);
                             const isSelected = selectedDayForMobile && isSameDay(day, selectedDayForMobile);
+                            const holiday = getHolidayForDay(day);
 
                             return (
                                 <div
                                     key={day.toString()}
                                     onClick={() => handleDayClick(day)}
                                     className={cn(
-                                        "min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border-b border-r border-slate-100 transition-colors",
+                                        "min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border-b border-r border-slate-100 transition-colors relative overflow-hidden",
                                         isCurrentMonth ? 'bg-white' : 'bg-slate-50/50',
                                         (canAddEvents || isMobile) && 'cursor-pointer hover:bg-slate-50',
                                         isSelected && 'bg-brand-50 ring-2 ring-inset ring-brand-500',
-                                        idx % 7 === 0 && 'border-l-0'
+                                        idx % 7 === 0 && 'border-l-0',
+                                        holiday && !isSelected && holiday.bgColor
                                     )}
                                 >
-                                    <div className="flex items-center justify-between mb-0.5 sm:mb-1">
-                                        <time
-                                            dateTime={format(day, 'yyyy-MM-dd')}
-                                            className={cn(
-                                                "flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs sm:text-sm font-medium",
-                                                isCurrentDay
-                                                    ? 'bg-brand-600 text-white'
-                                                    : isCurrentMonth
-                                                        ? 'text-slate-900'
-                                                        : 'text-slate-400'
+                                    {/* Holiday background decoration */}
+                                    {holiday && (
+                                        <div className="absolute -right-2 -bottom-2 text-4xl sm:text-6xl opacity-20 pointer-events-none select-none">
+                                            {holiday.emoji}
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center justify-between mb-0.5 sm:mb-1 relative z-10">
+                                        <div className="flex items-center gap-1">
+                                            <time
+                                                dateTime={format(day, 'yyyy-MM-dd')}
+                                                className={cn(
+                                                    "flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs sm:text-sm font-medium",
+                                                    isCurrentDay
+                                                        ? 'bg-brand-600 text-white'
+                                                        : holiday
+                                                            ? holiday.textColor
+                                                            : isCurrentMonth
+                                                                ? 'text-slate-900'
+                                                                : 'text-slate-400'
+                                                )}
+                                            >
+                                                {format(day, 'd')}
+                                            </time>
+                                            {/* Holiday emoji indicator (mobile) */}
+                                            {isMobile && holiday && (
+                                                <span className="text-sm">{holiday.emoji}</span>
                                             )}
-                                        >
-                                            {format(day, 'd')}
-                                        </time>
+                                        </div>
                                         {/* Mobile: Show dot indicators for events */}
                                         {isMobile && dayEvents.length > 0 && (
                                             <div className="flex gap-0.5">
@@ -419,17 +543,28 @@ export function Calendar() {
                                             </div>
                                         )}
                                         {/* Desktop: Show overflow count */}
-                                        {!isMobile && dayEvents.length > 3 && (
+                                        {!isMobile && dayEvents.length > (holiday ? 2 : 3) && (
                                             <span className="text-xs text-slate-500 font-medium">
-                                                +{dayEvents.length - 3}
+                                                +{dayEvents.length - (holiday ? 2 : 3)}
                                             </span>
                                         )}
                                     </div>
 
+                                    {/* Desktop: Show holiday banner */}
+                                    {!isMobile && holiday && (
+                                        <div className={cn(
+                                            "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-semibold mb-1 truncate",
+                                            holiday.textColor
+                                        )}>
+                                            <span>{holiday.emoji}</span>
+                                            <span className="truncate">{holiday.name}</span>
+                                        </div>
+                                    )}
+
                                     {/* Desktop: Show event cards */}
                                     {!isMobile && (
-                                        <div className="space-y-1 overflow-hidden">
-                                            {dayEvents.slice(0, 3).map((event) => {
+                                        <div className="space-y-1 overflow-hidden relative z-10">
+                                            {dayEvents.slice(0, holiday ? 2 : 3).map((event) => {
                                                 const colors = getEventColors(event.type);
                                                 return (
                                                     <button
@@ -460,14 +595,26 @@ export function Calendar() {
                     {/* Mobile: Selected Day Events Panel */}
                     {isMobile && selectedDayForMobile && (
                         <div className="border-t border-slate-200 bg-white">
-                            <div className="px-4 py-3 flex items-center justify-between border-b border-slate-100">
+                            <div className={cn(
+                                "px-4 py-3 flex items-center justify-between border-b border-slate-100",
+                                getHolidayForDay(selectedDayForMobile)?.bgColor
+                            )}>
                                 <div>
-                                    <h3 className="font-semibold text-slate-900">
+                                    <h3 className="font-semibold text-slate-900 flex items-center gap-2">
                                         {format(selectedDayForMobile, 'EEEE, MMMM d')}
+                                        {getHolidayForDay(selectedDayForMobile) && (
+                                            <span className="text-lg">{getHolidayForDay(selectedDayForMobile)?.emoji}</span>
+                                        )}
                                     </h3>
-                                    <p className="text-xs text-slate-500">
-                                        {getEventsForDay(selectedDayForMobile).length} event{getEventsForDay(selectedDayForMobile).length !== 1 ? 's' : ''}
-                                    </p>
+                                    {getHolidayForDay(selectedDayForMobile) ? (
+                                        <p className={cn("text-xs font-medium", getHolidayForDay(selectedDayForMobile)?.textColor)}>
+                                            {getHolidayForDay(selectedDayForMobile)?.name}
+                                        </p>
+                                    ) : (
+                                        <p className="text-xs text-slate-500">
+                                            {getEventsForDay(selectedDayForMobile).length} event{getEventsForDay(selectedDayForMobile).length !== 1 ? 's' : ''}
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {canAddEvents && (
