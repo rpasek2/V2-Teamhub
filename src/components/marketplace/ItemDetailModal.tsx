@@ -1,12 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
-    X, Loader2, ChevronLeft, ChevronRight, Phone,
+    X, Loader2, ChevronLeft, ChevronRight, Phone, MessageCircle,
     Trash2, Edit2, Tag, Clock, User, ImagePlus, DollarSign, AlertCircle, Check
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useHub } from '../../context/HubContext';
 import type { MarketplaceItem, MarketplaceCategory, MarketplaceCondition } from '../../types';
 import { MARKETPLACE_CATEGORIES, MARKETPLACE_CONDITIONS } from '../../types';
 
@@ -32,6 +33,7 @@ export function ItemDetailModal({
     currentHubId
 }: ItemDetailModalProps) {
     const { user } = useAuth();
+    const { hub } = useHub();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -81,6 +83,9 @@ export function ItemDetailModal({
 
     const category = MARKETPLACE_CATEGORIES[item.category];
     const condition = MARKETPLACE_CONDITIONS[item.condition];
+
+    const isSameHub = hub?.id === item.hub_id;
+    const canMessage = isSameHub && user?.id !== item.seller_id;
 
     const nextImage = () => {
         if (item.images.length > 1) {
@@ -592,6 +597,18 @@ export function ItemDetailModal({
                                                 <Phone className="h-5 w-5" />
                                                 Call {item.phone}
                                             </a>
+                                            {canMessage && (
+                                                <button
+                                                    onClick={() => {
+                                                        // TODO: Navigate to messages with this user
+                                                        console.log('Message seller:', item.seller_id);
+                                                    }}
+                                                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                                >
+                                                    <MessageCircle className="h-5 w-5" />
+                                                    Message Seller
+                                                </button>
+                                            )}
                                             {isFromLinkedHub && (
                                                 <p className="text-xs text-center text-slate-500">
                                                     This item is from a linked hub.
