@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
-    X, Loader2, ChevronLeft, ChevronRight, Phone, MessageCircle,
+    X, Loader2, ChevronLeft, ChevronRight, Phone,
     Trash2, Edit2, Tag, Clock, User, ImagePlus, DollarSign, AlertCircle, Check
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { useHub } from '../../context/HubContext';
 import type { MarketplaceItem, MarketplaceCategory, MarketplaceCondition } from '../../types';
 import { MARKETPLACE_CATEGORIES, MARKETPLACE_CONDITIONS } from '../../types';
 
@@ -33,7 +32,6 @@ export function ItemDetailModal({
     currentHubId
 }: ItemDetailModalProps) {
     const { user } = useAuth();
-    const { hub } = useHub();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -83,9 +81,6 @@ export function ItemDetailModal({
 
     const category = MARKETPLACE_CATEGORIES[item.category];
     const condition = MARKETPLACE_CONDITIONS[item.condition];
-
-    const isSameHub = hub?.id === item.hub_id;
-    const canMessage = isSameHub && user?.id !== item.seller_id;
 
     const nextImage = () => {
         if (item.images.length > 1) {
@@ -222,12 +217,6 @@ export function ItemDetailModal({
         } finally {
             setDeleting(false);
         }
-    };
-
-    const handleMessage = () => {
-        // Navigate to messages with this user
-        // This would integrate with your existing messaging system
-        console.log('Message seller:', item.seller_id);
     };
 
     if (!isOpen) return null;

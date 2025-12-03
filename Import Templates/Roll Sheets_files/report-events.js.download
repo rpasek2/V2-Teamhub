@@ -1,0 +1,27 @@
+var openReportInFormat = function openReportInFormat(baseUri, category, id, type, bgtaskid, title, noOfTableInSheet) {
+  if (typeof noOfTableInSheet === 'undefined') {
+    noOfTableInSheet = false;
+  }
+  jQuery.ajax({
+    url: baseUri + 'api/v1/reports/informat/' + category + '/' + id + '/' + type + '/' + bgtaskid + '/' + noOfTableInSheet,
+    type: 'get'
+  });
+  localStorage.setItem('generateReportFromFormat', '1');
+  showNotice(type + ' report started: ' + title, 'info');
+};
+var openNewReportInFormat = function openNewReportInFormat(baseUri, category, id, type, bgTaskId, title, filters) {
+  if (category == 'financial' && id == 18 || category == 'classes' && (id == 16 || id == 17)) {
+    jQuery.ajax({
+      url: baseUri + 'api/v1/reports/' + category + '/' + id + '/' + type,
+      type: 'post',
+      data: filters
+    });
+  } else {
+    jQuery.ajax({
+      url: baseUri + 'api/v1/reports/' + category + '/' + id + '/' + type,
+      type: 'post'
+    });
+  }
+  localStorage.setItem('generateReportFromFormat', '1');
+  showNotice(type + ' report started: ' + title, 'info');
+};
