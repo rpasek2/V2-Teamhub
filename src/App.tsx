@@ -13,6 +13,7 @@ import GroupDetails from './pages/groups/GroupDetails';
 import { Competitions } from './pages/competitions/Competitions';
 import { CompetitionDetails } from './pages/competitions/CompetitionDetails';
 import { Scores } from './pages/Scores';
+import { Skills } from './pages/Skills';
 import Marketplace from './pages/Marketplace';
 import { Mentorship } from './pages/Mentorship';
 import { Login } from './pages/auth/Login';
@@ -46,6 +47,7 @@ function App() {
               <Route path="competitions" element={<Competitions />} />
               <Route path="competitions/:competitionId" element={<CompetitionDetails />} />
               <Route path="scores" element={<Scores />} />
+              <Route path="skills" element={<Skills />} />
               <Route path="marketplace" element={<Marketplace />} />
               <Route path="groups" element={<Groups />} />
               <Route path="groups/:groupId" element={<GroupDetails />} />

@@ -22,13 +22,15 @@ export interface HubPermissions {
     messages?: RolePermissions;
     competitions?: RolePermissions;
     scores?: RolePermissions;
+    skills?: RolePermissions;
     marketplace?: RolePermissions;
     groups?: RolePermissions;
+    mentorship?: RolePermissions;
     [key: string]: RolePermissions | undefined;
 }
 
 // Feature tabs that can be enabled/disabled per hub
-export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'marketplace' | 'groups' | 'mentorship';
+export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'skills' | 'marketplace' | 'groups' | 'mentorship';
 
 export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: string }[] = [
     { id: 'roster', label: 'Roster', description: 'Manage gymnast profiles and team roster' },
@@ -36,9 +38,10 @@ export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: 
     { id: 'messages', label: 'Messages', description: 'Team messaging and direct messages' },
     { id: 'competitions', label: 'Competitions', description: 'Track competitions and sessions' },
     { id: 'scores', label: 'Scores', description: 'Record and view competition scores' },
+    { id: 'skills', label: 'Skills', description: 'Track gymnast skill progression by event' },
     { id: 'marketplace', label: 'Marketplace', description: 'Buy and sell team gear' },
     { id: 'groups', label: 'Groups', description: 'Create groups for team communication' },
-    { id: 'mentorship', label: 'Big/Little', description: 'Manage big sister/little sister mentorship pairings' },
+    { id: 'mentorship', label: 'Mentorship', description: 'Manage mentorship pairings and programs' },
 ];
 
 export interface HubSettings {
@@ -524,3 +527,38 @@ export interface MentorshipEvent {
     created_at: string;
     updated_at: string;
 }
+
+// Skills Types
+export type SkillStatus = 'none' | 'learning' | 'achieved' | 'mastered';
+
+export interface HubEventSkill {
+    id: string;
+    hub_id: string;
+    level: string;
+    event: string;
+    skill_name: string;
+    skill_order: number;
+    created_at: string;
+    created_by: string | null;
+}
+
+export interface GymnastSkill {
+    id: string;
+    gymnast_profile_id: string;
+    hub_event_skill_id: string;
+    status: SkillStatus;
+    notes: string | null;
+    achieved_date: string | null;
+    updated_at: string;
+    updated_by: string | null;
+    // Joined data
+    hub_event_skills?: HubEventSkill;
+    gymnast_profiles?: GymnastProfile;
+}
+
+export const SKILL_STATUS_CONFIG: Record<SkillStatus, { label: string; icon: string; color: string; bgColor: string }> = {
+    none: { label: 'Not Started', icon: '', color: 'text-slate-300', bgColor: 'bg-slate-50' },
+    learning: { label: 'Learning', icon: '◐', color: 'text-amber-500', bgColor: 'bg-amber-50' },
+    achieved: { label: 'Achieved', icon: '✓', color: 'text-green-500', bgColor: 'bg-green-50' },
+    mastered: { label: 'Mastered', icon: '★', color: 'text-yellow-500', bgColor: 'bg-yellow-50' }
+};

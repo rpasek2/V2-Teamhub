@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Calendar, MapPin, AlignLeft, Users, X } from 'lucide-react';
+import { Loader2, AlertCircle, Calendar, MapPin, AlignLeft, Users, X, Trophy, HeartHandshake } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { supabase } from '../../lib/supabase';
@@ -16,6 +16,7 @@ interface CreateEventModalProps {
 const EVENT_TYPES = [
     { value: 'practice', label: 'Practice', icon: '🏋️', color: 'bg-blue-100 border-blue-300 text-blue-700' },
     { value: 'competition', label: 'Competition', icon: '🏆', color: 'bg-purple-100 border-purple-300 text-purple-700' },
+    { value: 'mentorship', label: 'Mentorship', icon: '💕', color: 'bg-pink-100 border-pink-300 text-pink-700' },
     { value: 'meeting', label: 'Meeting', icon: '👥', color: 'bg-amber-100 border-amber-300 text-amber-700' },
     { value: 'social', label: 'Social', icon: '🎉', color: 'bg-green-100 border-green-300 text-green-700' },
     { value: 'other', label: 'Other', icon: '📌', color: 'bg-slate-100 border-slate-300 text-slate-700' },
@@ -107,6 +108,23 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                 throw new Error('End time must be after start time');
             }
 
+            // If this is a competition event, also create a competition record
+            if (formData.type === 'competition') {
+                const { error: competitionError } = await supabase
+                    .from('competitions')
+                    .insert({
+                        hub_id: hub.id,
+                        name: formData.title,
+                        start_date: formData.startDate,
+                        end_date: formData.endDate,
+                        location: formData.location || null,
+                        notes: formData.description || null,
+                        created_by: user.id
+                    });
+
+                if (competitionError) throw competitionError;
+            }
+
             const { error: insertError } = await supabase
                 .from('events')
                 .insert({
@@ -189,7 +207,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 Event Type
                             </label>
-                            <div className="grid grid-cols-5 gap-2">
+                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                                 {EVENT_TYPES.map((type) => (
                                     <button
                                         key={type.value}
@@ -206,6 +224,26 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Competition Warning */}
+                            {formData.type === 'competition' && (
+                                <div className="col-span-6 flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl mt-2">
+                                    <Trophy className="h-4 w-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                                    <p className="text-xs text-purple-700">
+                                        This will also create a competition in the Competitions tab.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Mentorship Info */}
+                            {formData.type === 'mentorship' && (
+                                <div className="col-span-6 flex items-start gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl mt-2">
+                                    <HeartHandshake className="h-4 w-4 text-pink-600 flex-shrink-0 mt-0.5" />
+                                    <p className="text-xs text-pink-700">
+                                        This will also appear in the Mentorship tab.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Event Title */}

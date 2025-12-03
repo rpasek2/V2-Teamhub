@@ -13,10 +13,12 @@ interface CompetitionWithCount extends BaseCompetition {
 }
 
 export function Competitions() {
-    const { hub } = useHub();
+    const { hub, currentRole } = useHub();
     const [competitions, setCompetitions] = useState<CompetitionWithCount[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
 
     useEffect(() => {
         if (hub) {
@@ -45,13 +47,15 @@ export function Competitions() {
         <div className="h-full flex flex-col">
             <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
                 <h1 className="text-2xl font-bold text-slate-900">Competitions</h1>
-                <button
-                    onClick={() => setIsCreateModalOpen(true)}
-                    className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                >
-                    <Plus className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                    New Competition
-                </button>
+                {isStaff && (
+                    <button
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                    >
+                        <Plus className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
+                        New Competition
+                    </button>
+                )}
             </header>
 
             <main className="flex-1 overflow-y-auto p-6">
@@ -107,15 +111,19 @@ export function Competitions() {
                         </div>
                         <h3 className="mt-4 text-lg font-semibold text-slate-900">No competitions yet</h3>
                         <p className="mt-2 text-sm text-slate-500">
-                            Get started by creating your first competition.
+                            {isStaff
+                                ? 'Get started by creating your first competition.'
+                                : 'Competitions will appear here once they are created.'}
                         </p>
-                        <button
-                            onClick={() => setIsCreateModalOpen(true)}
-                            className="mt-6 inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
-                        >
-                            <Plus className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                            New Competition
-                        </button>
+                        {isStaff && (
+                            <button
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="mt-6 inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
+                            >
+                                <Plus className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
+                                New Competition
+                            </button>
+                        )}
                     </div>
                 )}
             </main>

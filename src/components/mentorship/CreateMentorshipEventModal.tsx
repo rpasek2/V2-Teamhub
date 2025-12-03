@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CalendarDays } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Modal } from '../ui/Modal';
@@ -49,16 +49,25 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
         setLoading(true);
         setError(null);
 
+        // Create calendar event with type 'mentorship'
+        const startDateTime = startTime
+            ? new Date(`${eventDate}T${startTime}`)
+            : new Date(`${eventDate}T09:00`);
+        const endDateTime = endTime
+            ? new Date(`${eventDate}T${endTime}`)
+            : new Date(`${eventDate}T10:00`);
+
         const { error: insertError } = await supabase
-            .from('mentorship_events')
+            .from('events')
             .insert({
                 hub_id: hubId,
                 title: title.trim(),
                 description: description.trim() || null,
-                event_date: eventDate,
-                start_time: startTime || null,
-                end_time: endTime || null,
+                start_time: startDateTime.toISOString(),
+                end_time: endDateTime.toISOString(),
                 location: location.trim() || null,
+                type: 'mentorship',
+                rsvp_enabled: false,
                 created_by: user?.id
             });
 
@@ -74,7 +83,7 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={handleClose} title="Add Big/Little Event">
+        <Modal isOpen={isOpen} onClose={handleClose} title="Add Mentorship Event">
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Title */}
                 <div>
@@ -165,9 +174,13 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                     />
                 </div>
 
-                <p className="text-xs text-slate-500">
-                    This event will automatically appear on the hub calendar.
-                </p>
+                {/* Calendar Info */}
+                <div className="flex items-start gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl">
+                    <CalendarDays className="h-4 w-4 text-pink-600 flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-pink-700">
+                        This event will also appear on the hub calendar.
+                    </p>
+                </div>
 
                 {error && (
                     <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">

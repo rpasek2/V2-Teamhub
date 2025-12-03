@@ -6,7 +6,7 @@ import type { HubPermissions, RolePermissions, PermissionScope, HubInvite, HubRo
 import { HUB_FEATURE_TABS } from '../types';
 import { LinkedHubsSettings } from '../components/marketplace/LinkedHubsSettings';
 
-const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'marketplace', 'groups'] as const;
+const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'marketplace', 'groups', 'mentorship'] as const;
 const ROLES = ['admin', 'coach', 'parent'] as const;
 
 interface HubChannel {

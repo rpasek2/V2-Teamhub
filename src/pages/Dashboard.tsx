@@ -137,11 +137,12 @@ export function Dashboard() {
                     .eq('hub_id', hub.id);
                 accessibleGroupIds = allGroups?.map(g => g.id) || [];
             } else {
-                // Non-staff: only groups they're a member of or public groups
+                // Non-staff: only groups they're a member of (within this hub) or public groups
                 const { data: memberGroups } = await supabase
                     .from('group_members')
-                    .select('group_id')
-                    .eq('user_id', user.id);
+                    .select('group_id, groups!inner(hub_id)')
+                    .eq('user_id', user.id)
+                    .eq('groups.hub_id', hub.id);
 
                 const { data: publicGroups } = await supabase
                     .from('groups')

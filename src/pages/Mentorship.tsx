@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { HeartHandshake, Plus, Search, Filter, Loader2, Calendar, Users, Shuffle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -8,7 +8,17 @@ import { CreatePairingModal } from '../components/mentorship/CreatePairingModal'
 import { CreateMentorshipEventModal } from '../components/mentorship/CreateMentorshipEventModal';
 import { RandomAssignModal } from '../components/mentorship/RandomAssignModal';
 import { MentorshipEventCard } from '../components/mentorship/MentorshipEventCard';
-import type { MentorshipEvent, Competition, GymnastProfile } from '../types';
+import type { Competition, GymnastProfile } from '../types';
+
+// Calendar event structure for mentorship events
+interface CalendarMentorshipEvent {
+    id: string;
+    title: string;
+    description: string | null;
+    start_time: string;
+    end_time: string;
+    location: string | null;
+}
 
 type MobileTab = 'pairings' | 'events';
 type StatusFilter = 'all' | 'active' | 'inactive';
@@ -31,10 +41,10 @@ export interface GroupedPairing {
 
 export function Mentorship() {
     const { hubId } = useParams();
-    const { currentRole } = useHub();
+    const { currentRole, getPermissionScope, linkedGymnasts } = useHub();
 
     const [groupedPairings, setGroupedPairings] = useState<GroupedPairing[]>([]);
-    const [events, setEvents] = useState<MentorshipEvent[]>([]);
+    const [events, setEvents] = useState<CalendarMentorshipEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
@@ -45,6 +55,22 @@ export function Mentorship() {
     const [showPastEvents, setShowPastEvents] = useState(false);
 
     const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+    const mentorshipScope = getPermissionScope('mentorship');
+
+    // Filter pairings based on permission scope for parent accounts
+    const visiblePairings = useMemo(() => {
+        if (mentorshipScope === 'none') return [];
+        if (mentorshipScope === 'own') {
+            const linkedIds = linkedGymnasts.map(g => g.id);
+            // Show pairings where the parent's linked gymnast is either the Big or a Little
+            return groupedPairings.filter(group => {
+                const bigIsLinked = linkedIds.includes(group.big_gymnast_id);
+                const anyLittleIsLinked = group.littles.some(l => linkedIds.includes(l.gymnast.id));
+                return bigIsLinked || anyLittleIsLinked;
+            });
+        }
+        return groupedPairings;
+    }, [groupedPairings, mentorshipScope, linkedGymnasts]);
 
     useEffect(() => {
         if (hubId) {
@@ -136,11 +162,13 @@ export function Mentorship() {
     };
 
     const fetchEvents = async () => {
+        // Pull mentorship events from the calendar events table
         const { data, error } = await supabase
-            .from('mentorship_events')
-            .select('*')
+            .from('events')
+            .select('id, title, description, start_time, end_time, location')
             .eq('hub_id', hubId)
-            .order('event_date', { ascending: true });
+            .eq('type', 'mentorship')
+            .order('start_time', { ascending: true });
 
         if (error) {
             console.error('Error fetching events:', error);
@@ -190,8 +218,9 @@ export function Mentorship() {
     };
 
     const handleDeleteEvent = async (eventId: string) => {
+        // Delete from the calendar events table
         const { error } = await supabase
-            .from('mentorship_events')
+            .from('events')
             .delete()
             .eq('id', eventId);
 
@@ -200,8 +229,8 @@ export function Mentorship() {
         }
     };
 
-    // Filter grouped pairings
-    const filteredPairings = groupedPairings.filter(group => {
+    // Filter visible pairings by search and status
+    const filteredPairings = visiblePairings.filter(group => {
         // Status filter
         if (statusFilter !== 'all' && group.status !== statusFilter) return false;
 
@@ -219,9 +248,9 @@ export function Mentorship() {
     });
 
     // Split events into upcoming and past
-    const today = new Date().toISOString().split('T')[0];
-    const upcomingEvents = events.filter(e => e.event_date >= today);
-    const pastEvents = events.filter(e => e.event_date < today).reverse();
+    const now = new Date().toISOString();
+    const upcomingEvents = events.filter(e => e.start_time >= now);
+    const pastEvents = events.filter(e => e.start_time < now).reverse();
 
     if (loading) {
         return (
@@ -237,10 +266,10 @@ export function Mentorship() {
             <div>
                 <div className="flex items-center gap-3">
                     <HeartHandshake className="h-8 w-8 text-brand-600" />
-                    <h1 className="text-2xl font-bold text-slate-900">Big/Little Program</h1>
+                    <h1 className="text-2xl font-bold text-slate-900">Mentorship</h1>
                 </div>
                 <p className="mt-1 text-sm text-slate-600">
-                    Manage your team's mentorship pairings and events
+                    Manage pairings, events, and mentorship programs
                 </p>
             </div>
 
@@ -332,8 +361,8 @@ export function Mentorship() {
                                 <div className="text-center py-12">
                                     <HeartHandshake className="h-12 w-12 text-slate-300 mx-auto mb-4" />
                                     <p className="text-slate-500">
-                                        {groupedPairings.length === 0
-                                            ? 'No pairings yet. Create your first Big/Little pairing!'
+                                        {visiblePairings.length === 0
+                                            ? (isStaff ? 'No pairings yet. Create your first Big/Little pairing!' : 'No pairings to display.')
                                             : 'No pairings match your search.'}
                                     </p>
                                 </div>

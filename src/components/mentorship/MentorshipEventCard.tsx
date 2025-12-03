@@ -1,35 +1,34 @@
 import { format, parseISO } from 'date-fns';
 import { MapPin, Clock, Trash2 } from 'lucide-react';
-import type { MentorshipEvent } from '../../types';
+
+// Use calendar event structure
+interface CalendarEvent {
+    id: string;
+    title: string;
+    description: string | null;
+    start_time: string;
+    end_time: string;
+    location: string | null;
+}
 
 interface MentorshipEventCardProps {
-    event: MentorshipEvent;
+    event: CalendarEvent;
     isPast?: boolean;
     onDelete?: (id: string) => void;
 }
 
 export function MentorshipEventCard({ event, isPast, onDelete }: MentorshipEventCardProps) {
-    const formattedDate = format(parseISO(event.event_date), 'MMM d');
-
-    // Format time as "4:00 PM"
-    const formatTime = (time: string | null) => {
-        if (!time) return null;
-        const [hours, minutes] = time.split(':');
-        const hour = parseInt(hours, 10);
-        const ampm = hour >= 12 ? 'PM' : 'AM';
-        const displayHour = hour % 12 || 12;
-        return `${displayHour}:${minutes} ${ampm}`;
-    };
-
-    const startTimeFormatted = formatTime(event.start_time);
+    const eventDate = parseISO(event.start_time);
+    const formattedDate = format(eventDate, 'MMM d');
+    const formattedTime = format(eventDate, 'h:mm a');
 
     return (
-        <div className={`p-3 rounded-lg border ${isPast ? 'bg-slate-50 border-slate-200' : 'bg-green-50 border-green-200'}`}>
+        <div className={`p-3 rounded-lg border ${isPast ? 'bg-slate-50 border-slate-200' : 'bg-pink-50 border-pink-200'}`}>
             <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                     {/* Date Badge */}
                     <div className={`inline-block text-xs font-medium px-2 py-0.5 rounded mb-1 ${
-                        isPast ? 'bg-slate-200 text-slate-600' : 'bg-green-200 text-green-700'
+                        isPast ? 'bg-slate-200 text-slate-600' : 'bg-pink-200 text-pink-700'
                     }`}>
                         {formattedDate}
                     </div>
@@ -45,12 +44,10 @@ export function MentorshipEventCard({ event, isPast, onDelete }: MentorshipEvent
                                 {event.location}
                             </span>
                         )}
-                        {startTimeFormatted && (
-                            <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                {startTimeFormatted}
-                            </span>
-                        )}
+                        <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {formattedTime}
+                        </span>
                     </div>
 
                     {/* Description preview */}

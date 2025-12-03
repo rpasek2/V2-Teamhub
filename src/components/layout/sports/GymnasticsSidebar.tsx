@@ -1,10 +1,16 @@
-import { useState } from 'react';
-import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, ShoppingBag, HeartHandshake, type LucideIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, Sparkles, ShoppingBag, HeartHandshake, User, type LucideIcon } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useHub } from '../../../context/HubContext';
+import { supabase } from '../../../lib/supabase';
 import type { HubFeatureTab } from '../../../types';
+
+interface UserProfile {
+    full_name: string | null;
+    avatar_url: string | null;
+}
 
 const SPORT_ICONS: Record<string, LucideIcon> = {
     Trophy,
@@ -17,9 +23,26 @@ const SPORT_ICONS: Record<string, LucideIcon> = {
 export function GymnasticsSidebar() {
     const location = useLocation();
     const { hubId } = useParams();
-    const { signOut } = useAuth();
+    const { signOut, user } = useAuth();
     const { hasPermission, currentRole, hub, sportConfig } = useHub();
     const [isExpanded, setIsExpanded] = useState(false);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+    // Fetch user profile
+    useEffect(() => {
+        const fetchProfile = async () => {
+            if (!user) return;
+            const { data } = await supabase
+                .from('profiles')
+                .select('full_name, avatar_url')
+                .eq('id', user.id)
+                .single();
+            if (data) {
+                setUserProfile(data);
+            }
+        };
+        fetchProfile();
+    }, [user]);
 
     // Get the icon for the current sport
     const SportIcon = SPORT_ICONS[sportConfig.icon] || Trophy;
@@ -45,9 +68,10 @@ export function GymnasticsSidebar() {
         { name: 'Messages', href: `/hub/${hubId}/messages`, icon: MessageCircle, permission: 'messages', tabId: 'messages' as HubFeatureTab },
         { name: 'Competitions', href: `/hub/${hubId}/competitions`, icon: Trophy, permission: 'competitions', tabId: 'competitions' as HubFeatureTab },
         { name: 'Scores', href: `/hub/${hubId}/scores`, icon: Medal, permission: 'scores', tabId: 'scores' as HubFeatureTab },
+        { name: 'Skills', href: `/hub/${hubId}/skills`, icon: Sparkles, permission: 'skills', tabId: 'skills' as HubFeatureTab },
         { name: 'Marketplace', href: `/hub/${hubId}/marketplace`, icon: ShoppingBag, permission: 'marketplace', tabId: 'marketplace' as HubFeatureTab },
         { name: 'Groups', href: `/hub/${hubId}/groups`, icon: Users, permission: 'groups', tabId: 'groups' as HubFeatureTab },
-        { name: 'Big/Little', href: `/hub/${hubId}/mentorship`, icon: HeartHandshake, permission: 'mentorship', tabId: 'mentorship' as HubFeatureTab },
+        { name: 'Mentorship', href: `/hub/${hubId}/mentorship`, icon: HeartHandshake, permission: 'mentorship', tabId: 'mentorship' as HubFeatureTab },
         { name: 'Settings', href: `/hub/${hubId}/settings`, icon: Settings2, permission: 'settings', tabId: null },
     ];
 
@@ -73,7 +97,7 @@ export function GymnasticsSidebar() {
     return (
         <div
             className={clsx(
-                "flex h-full flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out",
+                "flex h-full flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out overflow-x-hidden",
                 isExpanded ? "w-64" : "w-16"
             )}
             onMouseEnter={() => setIsExpanded(true)}
@@ -128,7 +152,10 @@ export function GymnasticsSidebar() {
             </div>
 
             {/* Navigation */}
-            <div className="flex-1 overflow-y-auto py-4 px-3">
+            <div className={clsx(
+                "flex-1 overflow-y-auto overflow-x-hidden py-4 px-3",
+                isExpanded ? "sidebar-scrollbar" : "scrollbar-hidden"
+            )}>
                 <nav className="space-y-1">
                     {filteredNavigation.map((item) => {
                         const isActive = location.pathname === item.href;
@@ -171,8 +198,42 @@ export function GymnasticsSidebar() {
                 </nav>
             </div>
 
-            {/* Sign Out */}
-            <div className="border-t border-slate-200 px-3 py-2">
+            {/* User Profile & Sign Out */}
+            <div className="border-t border-slate-200 px-3 py-2 space-y-1">
+                {/* User Profile */}
+                <Link
+                    to="/settings"
+                    title={!isExpanded ? userProfile?.full_name || 'Profile' : undefined}
+                    className="group flex items-center rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors py-2"
+                >
+                    <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
+                        {userProfile?.avatar_url ? (
+                            <img
+                                src={userProfile.avatar_url}
+                                alt={userProfile.full_name || 'User'}
+                                className="h-8 w-8 rounded-full object-cover"
+                            />
+                        ) : (
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-600">
+                                <User className="h-4 w-4" />
+                            </div>
+                        )}
+                    </div>
+                    <span
+                        className="whitespace-nowrap overflow-hidden ml-1 truncate"
+                        style={{
+                            opacity: isExpanded ? 1 : 0,
+                            maxWidth: isExpanded ? '150px' : '0px',
+                            transition: isExpanded
+                                ? 'opacity 200ms ease-in-out, max-width 300ms ease-in-out'
+                                : 'opacity 150ms ease-in-out, max-width 300ms ease-in-out 100ms'
+                        }}
+                    >
+                        {userProfile?.full_name || 'Profile'}
+                    </span>
+                </Link>
+
+                {/* Sign Out */}
                 <button
                     onClick={() => signOut()}
                     title={!isExpanded ? "Sign out" : undefined}
