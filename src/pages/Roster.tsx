@@ -1,10 +1,13 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, UserCog } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
 import { GymnastProfileModal } from '../components/gymnast/GymnastProfileModal';
 import type { GymnastProfile } from '../types';
+
+type SortColumn = 'id' | 'name' | 'role' | 'level' | 'guardian' | 'contact';
+type SortDirection = 'asc' | 'desc';
 
 
 
@@ -33,6 +36,8 @@ export function Roster() {
     const [selectedGymnast, setSelectedGymnast] = useState<GymnastProfile | null>(null);
     const [editingMember, setEditingMember] = useState<DisplayMember | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const [sortColumn, setSortColumn] = useState<SortColumn>('level');
+    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const menuRef = useRef<HTMLDivElement>(null);
 
     // Close menu when clicking outside
@@ -65,6 +70,12 @@ export function Roster() {
 
         return false;
     }, [selectedGymnast, currentRole, linkedGymnasts]);
+
+    // Determine if user can report injuries (staff only)
+    const canReportInjury = useMemo(() => {
+        const staffRoles = ['owner', 'director', 'admin', 'coach'];
+        return currentRole ? staffRoles.includes(currentRole) : false;
+    }, [currentRole]);
 
     useEffect(() => {
         if (hub) {
@@ -108,9 +119,15 @@ export function Roster() {
             }));
 
             const gymnastMembers: DisplayMember[] = (gymnastProfilesData || []).map((g: GymnastProfile) => {
-                const guardianName = g.guardian_1
-                    ? `${g.guardian_1.first_name} ${g.guardian_1.last_name}`.trim()
-                    : '';
+                // Handle both guardian name formats: {name: "..."} or {first_name: "...", last_name: "..."}
+                let guardianName = '';
+                if (g.guardian_1) {
+                    if (g.guardian_1.name) {
+                        guardianName = g.guardian_1.name;
+                    } else if (g.guardian_1.first_name || g.guardian_1.last_name) {
+                        guardianName = `${g.guardian_1.first_name || ''} ${g.guardian_1.last_name || ''}`.trim();
+                    }
+                }
 
                 return {
                     id: g.id,
@@ -172,6 +189,24 @@ export function Roster() {
         { name: 'Parents', roles: ['parent'] },
     ];
 
+    const handleSort = (column: SortColumn) => {
+        if (sortColumn === column) {
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortColumn(column);
+            setSortDirection('asc');
+        }
+    };
+
+    const getSortIcon = (column: SortColumn) => {
+        if (sortColumn !== column) {
+            return <ChevronsUpDown className="h-4 w-4 text-slate-400" />;
+        }
+        return sortDirection === 'asc'
+            ? <ChevronUp className="h-4 w-4 text-brand-600" />
+            : <ChevronDown className="h-4 w-4 text-brand-600" />;
+    };
+
     const filteredMembers = members.filter((member) => {
         // 1. Check Permission Scope
         const scope = getPermissionScope('roster');
@@ -200,6 +235,47 @@ export function Roster() {
 
         const currentTabRoles = tabs.find(t => t.name === activeTab)?.roles || [];
         return currentTabRoles.includes(member.role);
+    }).sort((a, b) => {
+        const hubLevels = hub?.settings?.levels || [];
+        const direction = sortDirection === 'asc' ? 1 : -1;
+
+        const getSortValue = (member: DisplayMember): string | number => {
+            switch (sortColumn) {
+                case 'id':
+                    return member.gymnast_id || '';
+                case 'name':
+                    return member.name.toLowerCase();
+                case 'role':
+                    return member.role;
+                case 'level': {
+                    const levelIndex = member.level ? hubLevels.indexOf(member.level) : 999;
+                    return levelIndex === -1 ? 998 : levelIndex;
+                }
+                case 'guardian':
+                    return (member.guardian_name || '').toLowerCase();
+                case 'contact':
+                    return (member.type === 'gymnast_profile' ? (member.guardian_phone || '') : (member.email || '')).toLowerCase();
+                default:
+                    return '';
+            }
+        };
+
+        const aValue = getSortValue(a);
+        const bValue = getSortValue(b);
+
+        if (typeof aValue === 'number' && typeof bValue === 'number') {
+            return (aValue - bValue) * direction;
+        }
+
+        const aStr = String(aValue);
+        const bStr = String(bValue);
+
+        // Handle empty strings - push them to the end
+        if (!aStr && bStr) return 1;
+        if (aStr && !bStr) return -1;
+        if (!aStr && !bStr) return 0;
+
+        return aStr.localeCompare(bStr) * direction;
     });
 
     if (loading) return <div className="p-8">Loading roster...</div>;
@@ -267,23 +343,65 @@ export function Roster() {
                             <table className="min-w-full divide-y divide-slate-300">
                                 <thead className="bg-slate-50">
                                     <tr>
-                                        <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6">
-                                            ID
+                                        <th
+                                            scope="col"
+                                            className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            onClick={() => handleSort('id')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                ID
+                                                {getSortIcon('id')}
+                                            </div>
                                         </th>
-                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                                            Name
+                                        <th
+                                            scope="col"
+                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            onClick={() => handleSort('name')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Name
+                                                {getSortIcon('name')}
+                                            </div>
                                         </th>
-                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                                            Role
+                                        <th
+                                            scope="col"
+                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            onClick={() => handleSort('role')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Role
+                                                {getSortIcon('role')}
+                                            </div>
                                         </th>
-                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                                            Level
+                                        <th
+                                            scope="col"
+                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            onClick={() => handleSort('level')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Level
+                                                {getSortIcon('level')}
+                                            </div>
                                         </th>
-                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                                            Guardian
+                                        <th
+                                            scope="col"
+                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            onClick={() => handleSort('guardian')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Guardian
+                                                {getSortIcon('guardian')}
+                                            </div>
                                         </th>
-                                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900">
-                                            Contact
+                                        <th
+                                            scope="col"
+                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            onClick={() => handleSort('contact')}
+                                        >
+                                            <div className="flex items-center gap-1">
+                                                Contact
+                                                {getSortIcon('contact')}
+                                            </div>
                                         </th>
                                         <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
                                             <span className="sr-only">Actions</span>
@@ -398,6 +516,8 @@ export function Roster() {
                 isOpen={!!selectedGymnast}
                 onClose={() => setSelectedGymnast(null)}
                 canViewMedical={canViewMedical}
+                canReportInjury={canReportInjury}
+                onInjuryReported={fetchMembers}
             />
         </div>
     );

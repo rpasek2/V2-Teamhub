@@ -83,7 +83,14 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
             .eq('event_id', event.id)
             .eq('status', 'going');
 
-        if (data) setAttendees(data as Attendee[] || []);
+        if (data) {
+            const mapped = data.map((d: { user_id: string; status: string; profiles: { full_name: string; email: string } | { full_name: string; email: string }[] }) => ({
+                user_id: d.user_id,
+                status: d.status as 'going' | 'maybe' | 'not_going',
+                profiles: Array.isArray(d.profiles) ? d.profiles[0] : d.profiles
+            }));
+            setAttendees(mapped as Attendee[]);
+        }
     };
 
     const handleRsvp = async (status: 'going' | 'maybe' | 'not_going') => {

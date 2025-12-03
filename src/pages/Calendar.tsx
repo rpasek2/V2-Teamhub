@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
     format,
     startOfMonth,
@@ -55,6 +56,7 @@ const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string 
 
 export function Calendar() {
     const { hub, currentRole } = useHub();
+    const [searchParams, setSearchParams] = useSearchParams();
     const isMobile = useIsMobile();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [events, setEvents] = useState<Event[]>([]);
@@ -77,6 +79,46 @@ export function Calendar() {
             fetchEvents();
         }
     }, [hub, currentDate, view]);
+
+    // Handle opening event from URL query param
+    useEffect(() => {
+        const eventId = searchParams.get('event');
+        if (eventId && events.length > 0 && !loading) {
+            const event = events.find(e => e.id === eventId);
+            if (event) {
+                setSelectedEvent(event);
+                setIsDetailsModalOpen(true);
+                // Clear the query param
+                setSearchParams({}, { replace: true });
+            } else {
+                // Event not in current view, try to fetch it directly
+                fetchEventById(eventId);
+            }
+        }
+    }, [events, loading, searchParams]);
+
+    const fetchEventById = async (eventId: string) => {
+        if (!hub) return;
+        try {
+            const { data, error } = await supabase
+                .from('events')
+                .select('*')
+                .eq('id', eventId)
+                .eq('hub_id', hub.id)
+                .single();
+
+            if (!error && data) {
+                setSelectedEvent(data);
+                setIsDetailsModalOpen(true);
+                // Navigate to the event's month
+                setCurrentDate(parseISO(data.start_time));
+                // Clear the query param
+                setSearchParams({}, { replace: true });
+            }
+        } catch (err) {
+            console.error('Error fetching event:', err);
+        }
+    };
 
     const fetchEvents = async () => {
         if (!hub) return;
@@ -591,8 +633,8 @@ export function Calendar() {
                                 <h3 className="text-lg font-semibold text-slate-900">No events</h3>
                                 <p className="mt-1 text-sm text-slate-500">
                                     {filterType !== 'all'
-                                        ? `No ${filterType} events scheduled for this ${view === 'week' ? 'week' : 'month'}.`
-                                        : `No events scheduled for this ${view === 'week' ? 'week' : 'month'}.`
+                                        ? `No ${filterType} events scheduled.`
+                                        : `No upcoming events scheduled.`
                                     }
                                 </p>
                                 {canAddEvents && (

@@ -1,14 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, Trash2, UserPlus } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, UserPlus, ChevronDown, ChevronRight } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { clsx } from 'clsx';
+import { useHub } from '../../context/HubContext';
 import { CreateSessionModal } from '../../components/competitions/CreateSessionModal';
 import { AssignCoachModal } from '../../components/competitions/AssignCoachModal';
 import { ManageCompetitionRosterModal } from '../../components/competitions/ManageCompetitionRosterModal';
 import { AssignSessionGymnastsModal } from '../../components/competitions/AssignSessionGymnastsModal';
 import { CompetitionDocuments } from '../../components/competitions/CompetitionDocuments';
+import { WAG_EVENTS, MAG_EVENTS, EVENT_LABELS, type GymEvent } from '../../types';
 
 interface Competition {
     id: string;
@@ -20,10 +22,15 @@ interface Competition {
 }
 
 interface Gymnast {
-    user_id: string;
-    profiles: {
-        full_name: string;
-        email: string;
+    gymnast_profile_id: string;
+    events: GymEvent[];
+    gymnast_profiles: {
+        id: string;
+        first_name: string;
+        last_name: string;
+        level: string | null;
+        gymnast_id: string;
+        gender: 'Male' | 'Female' | null;
     };
 }
 
@@ -40,27 +47,78 @@ interface Session {
         };
     }[];
     session_gymnasts: {
-        user_id: string;
-        profiles: {
-            full_name: string;
+        gymnast_profile_id: string;
+        gymnast_profiles: {
+            first_name: string;
+            last_name: string;
+            level: string | null;
         };
     }[];
 }
 
 export function CompetitionDetails() {
     const { competitionId } = useParams();
+    const { currentRole, hub } = useHub();
     const [competition, setCompetition] = useState<Competition | null>(null);
     const [activeTab, setActiveTab] = useState<'roster' | 'sessions' | 'documents'>('roster');
     const [loading, setLoading] = useState(true);
     const [isCreateSessionModalOpen, setIsCreateSessionModalOpen] = useState(false);
     const [isAssignCoachModalOpen, setIsAssignCoachModalOpen] = useState(false);
     const [isManageRosterModalOpen, setIsManageRosterModalOpen] = useState(false);
+
+    // Staff roles that can manage competition rosters
+    const canManageRoster = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
     const [isAssignGymnastsModalOpen, setIsAssignGymnastsModalOpen] = useState(false);
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
 
     // Tab Data States
     const [roster, setRoster] = useState<Gymnast[]>([]);
     const [sessions, setSessions] = useState<Session[]>([]);
+    const [collapsedLevels, setCollapsedLevels] = useState<Set<string>>(new Set());
+
+    // Get levels from hub settings
+    const hubLevels = hub?.settings?.levels || [];
+
+    // Group roster by level
+    const rosterByLevel = useMemo(() => {
+        const grouped: Record<string, Gymnast[]> = {};
+
+        roster.forEach(gymnast => {
+            const level = gymnast.gymnast_profiles.level || 'Unassigned';
+            if (!grouped[level]) {
+                grouped[level] = [];
+            }
+            grouped[level].push(gymnast);
+        });
+
+        // Sort levels based on the hub settings order
+        const sortedLevels = hubLevels.filter((l: string) => grouped[l]);
+        const unlistedLevels = Object.keys(grouped).filter(l => !hubLevels.includes(l) && l !== 'Unassigned');
+        const orderedKeys = [...sortedLevels, ...unlistedLevels];
+        if (grouped['Unassigned']) orderedKeys.push('Unassigned');
+
+        const result: Record<string, Gymnast[]> = {};
+        orderedKeys.forEach(level => {
+            // Sort gymnasts alphabetically by last name within each level
+            result[level] = grouped[level].sort((a, b) =>
+                (a.gymnast_profiles.last_name || '').localeCompare(b.gymnast_profiles.last_name || '')
+            );
+        });
+
+        return result;
+    }, [roster, hubLevels]);
+
+    const toggleLevelCollapse = (level: string) => {
+        setCollapsedLevels(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(level)) {
+                newSet.delete(level);
+            } else {
+                newSet.add(level);
+            }
+            return newSet;
+        });
+    };
 
     useEffect(() => {
         if (competitionId) {
@@ -87,11 +145,48 @@ export function CompetitionDetails() {
         if (!competitionId) return;
         const { data, error } = await supabase
             .from('competition_gymnasts')
-            .select('user_id, profiles(full_name, email)')
+            .select('gymnast_profile_id, events, gymnast_profiles(id, first_name, last_name, level, gymnast_id, gender)')
             .eq('competition_id', competitionId);
 
-        if (error) console.error('Error fetching roster:', error);
-        else setRoster(data as any || []);
+        if (error) {
+            console.error('Error fetching roster:', error);
+        } else if (data) {
+            const mapped = data.map((d: { gymnast_profile_id: string; events: string[] | null; gymnast_profiles: { id: string; first_name: string; last_name: string; level: string | null; gymnast_id: string; gender: 'Male' | 'Female' | null } | { id: string; first_name: string; last_name: string; level: string | null; gymnast_id: string; gender: 'Male' | 'Female' | null }[] }) => ({
+                gymnast_profile_id: d.gymnast_profile_id,
+                events: (d.events || []) as GymEvent[],
+                gymnast_profiles: Array.isArray(d.gymnast_profiles) ? d.gymnast_profiles[0] : d.gymnast_profiles
+            }));
+            setRoster(mapped as Gymnast[]);
+        }
+    };
+
+    const toggleEvent = async (gymnastProfileId: string, event: GymEvent, currentEvents: GymEvent[]) => {
+        if (!canManageRoster || !competitionId) return;
+
+        const newEvents = currentEvents.includes(event)
+            ? currentEvents.filter(e => e !== event)
+            : [...currentEvents, event];
+
+        const { error } = await supabase
+            .from('competition_gymnasts')
+            .update({ events: newEvents })
+            .eq('competition_id', competitionId)
+            .eq('gymnast_profile_id', gymnastProfileId);
+
+        if (error) {
+            console.error('Error updating events:', error);
+        } else {
+            // Update local state
+            setRoster(prev => prev.map(g =>
+                g.gymnast_profile_id === gymnastProfileId
+                    ? { ...g, events: newEvents }
+                    : g
+            ));
+        }
+    };
+
+    const getEventsForGender = (gender: 'Male' | 'Female' | null): GymEvent[] => {
+        return gender === 'Male' ? MAG_EVENTS : WAG_EVENTS;
     };
 
     const fetchSessions = async () => {
@@ -105,8 +200,8 @@ export function CompetitionDetails() {
                     profiles (full_name)
                 ),
                 session_gymnasts (
-                    user_id,
-                    profiles (full_name)
+                    gymnast_profile_id,
+                    gymnast_profiles (first_name, last_name, level)
                 )
             `)
             .eq('competition_id', competitionId)
@@ -114,7 +209,36 @@ export function CompetitionDetails() {
             .order('warmup_time', { ascending: true });
 
         if (error) console.error('Error fetching sessions:', error);
-        else setSessions(data as any || []);
+        else setSessions(data as Session[] || []);
+    };
+
+    // Helper function to group session gymnasts by level
+    const groupSessionGymnastsByLevel = (sessionGymnasts: Session['session_gymnasts']) => {
+        const grouped: Record<string, Session['session_gymnasts']> = {};
+
+        sessionGymnasts.forEach(gymnast => {
+            const level = gymnast.gymnast_profiles.level || 'Unassigned';
+            if (!grouped[level]) {
+                grouped[level] = [];
+            }
+            grouped[level].push(gymnast);
+        });
+
+        // Sort levels based on the hub settings order
+        const sortedLevels = hubLevels.filter((l: string) => grouped[l]);
+        const unlistedLevels = Object.keys(grouped).filter(l => !hubLevels.includes(l) && l !== 'Unassigned');
+        const orderedKeys = [...sortedLevels, ...unlistedLevels];
+        if (grouped['Unassigned']) orderedKeys.push('Unassigned');
+
+        const result: Record<string, Session['session_gymnasts']> = {};
+        orderedKeys.forEach(level => {
+            // Sort gymnasts alphabetically by last name within each level
+            result[level] = grouped[level].sort((a, b) =>
+                (a.gymnast_profiles.last_name || '').localeCompare(b.gymnast_profiles.last_name || '')
+            );
+        });
+
+        return result;
     };
 
     if (loading) {
@@ -210,107 +334,197 @@ export function CompetitionDetails() {
             <div className="flex-1 overflow-y-auto p-6">
                 {activeTab === 'roster' && (
                     <div>
-                        <div className="mb-4 flex justify-end">
-                            <button
-                                onClick={() => setIsManageRosterModalOpen(true)}
-                                className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
-                            >
-                                <Plus className="-ml-0.5 mr-1.5 h-4 w-4 text-slate-400" />
-                                Manage Roster
-                            </button>
-                        </div>
-                        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-                            <ul className="divide-y divide-slate-200">
-                                {roster.map((gymnast) => (
-                                    <li key={gymnast.user_id} className="flex items-center justify-between p-4 hover:bg-slate-50">
-                                        <div className="flex items-center">
-                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100 text-brand-600 font-semibold">
-                                                {gymnast.profiles.full_name[0]}
+                        {canManageRoster && (
+                            <div className="mb-4 flex justify-end">
+                                <button
+                                    onClick={() => setIsManageRosterModalOpen(true)}
+                                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
+                                >
+                                    <Plus className="-ml-0.5 mr-1.5 h-4 w-4 text-slate-400" />
+                                    Manage Roster
+                                </button>
+                            </div>
+                        )}
+                        {roster.length === 0 ? (
+                            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm p-8 text-center text-slate-500">
+                                No gymnasts assigned to this competition yet.
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {Object.entries(rosterByLevel).map(([level, gymnasts]) => (
+                                    <div key={level} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                                        {/* Level Header */}
+                                        <button
+                                            onClick={() => toggleLevelCollapse(level)}
+                                            className="flex w-full items-center justify-between bg-slate-50 px-4 py-3 text-left hover:bg-slate-100"
+                                        >
+                                            <div className="flex items-center gap-2">
+                                                {collapsedLevels.has(level) ? (
+                                                    <ChevronRight className="h-4 w-4 text-slate-400" />
+                                                ) : (
+                                                    <ChevronDown className="h-4 w-4 text-slate-400" />
+                                                )}
+                                                <span className="text-sm font-semibold text-slate-900">{level}</span>
+                                                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                                                    {gymnasts.length}
+                                                </span>
                                             </div>
-                                            <div className="ml-4">
-                                                <p className="text-sm font-medium text-slate-900">{gymnast.profiles.full_name}</p>
-                                                <p className="text-sm text-slate-500">{gymnast.profiles.email}</p>
-                                            </div>
-                                        </div>
-                                    </li>
+                                        </button>
+                                        {/* Gymnasts List */}
+                                        {!collapsedLevels.has(level) && (
+                                            <ul className="divide-y divide-slate-200">
+                                                {gymnasts.map((gymnast) => {
+                                                    const availableEvents = getEventsForGender(gymnast.gymnast_profiles.gender);
+                                                    return (
+                                                        <li key={gymnast.gymnast_profile_id} className="flex items-center justify-between p-3 hover:bg-slate-50">
+                                                            <div className="flex items-center">
+                                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-sm font-semibold">
+                                                                    {gymnast.gymnast_profiles.first_name[0]}{gymnast.gymnast_profiles.last_name[0]}
+                                                                </div>
+                                                                <p className="ml-3 text-sm font-medium text-slate-900">
+                                                                    {gymnast.gymnast_profiles.first_name} {gymnast.gymnast_profiles.last_name}
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-center gap-1">
+                                                                {availableEvents.map((event) => {
+                                                                    const isActive = gymnast.events.includes(event);
+                                                                    return (
+                                                                        <button
+                                                                            key={event}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                if (canManageRoster) {
+                                                                                    toggleEvent(gymnast.gymnast_profile_id, event, gymnast.events);
+                                                                                }
+                                                                            }}
+                                                                            disabled={!canManageRoster}
+                                                                            className={clsx(
+                                                                                'px-2 py-1 text-xs font-semibold rounded transition-colors',
+                                                                                isActive
+                                                                                    ? 'bg-brand-600 text-white'
+                                                                                    : 'bg-slate-100 text-slate-400',
+                                                                                canManageRoster && 'hover:bg-brand-500 hover:text-white cursor-pointer',
+                                                                                !canManageRoster && 'cursor-default'
+                                                                            )}
+                                                                            title={canManageRoster ? `Toggle ${EVENT_LABELS[event]}` : EVENT_LABELS[event]}
+                                                                        >
+                                                                            {EVENT_LABELS[event]}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ul>
+                                        )}
+                                    </div>
                                 ))}
-                                {roster.length === 0 && (
-                                    <li className="p-8 text-center text-slate-500">
-                                        No gymnasts assigned to this competition yet.
-                                    </li>
-                                )}
-                            </ul>
-                        </div>
+                            </div>
+                        )}
                     </div>
                 )}
 
                 {activeTab === 'sessions' && (
                     <div>
-                        <div className="mb-4 flex justify-end">
-                            <button
-                                onClick={() => setIsCreateSessionModalOpen(true)}
-                                className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
-                            >
-                                <Plus className="-ml-0.5 mr-1.5 h-4 w-4" />
-                                Add Session
-                            </button>
-                        </div>
+                        {canManageRoster && (
+                            <div className="mb-4 flex justify-end">
+                                <button
+                                    onClick={() => setIsCreateSessionModalOpen(true)}
+                                    className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
+                                >
+                                    <Plus className="-ml-0.5 mr-1.5 h-4 w-4" />
+                                    Add Session
+                                </button>
+                            </div>
+                        )}
                         <div className="space-y-4">
                             {sessions.map((session) => (
                                 <div key={session.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                                    {/* Session Header */}
                                     <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 sm:px-6">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="text-base font-semibold leading-6 text-slate-900">{session.name}</h3>
-                                            <div className="flex items-center text-sm text-slate-500">
-                                                <Calendar className="mr-1.5 h-4 w-4 text-slate-400" />
-                                                {format(parseISO(session.date), 'MMM d, yyyy')}
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className="flex items-center gap-4">
+                                                <h3 className="text-base font-semibold leading-6 text-slate-900">{session.name}</h3>
+                                                <div className="flex items-center gap-3 text-sm text-slate-500">
+                                                    <span className="flex items-center">
+                                                        <Calendar className="mr-1 h-4 w-4 text-slate-400" />
+                                                        {format(parseISO(session.date), 'MMM d, yyyy')}
+                                                    </span>
+                                                    {session.warmup_time && (
+                                                        <span className="flex items-center">
+                                                            <Clock className="mr-1 h-4 w-4 text-slate-400" />
+                                                            {format(parseISO(`2000-01-01T${session.warmup_time}`), 'h:mm a')}
+                                                        </span>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div className="px-4 py-4 sm:px-6">
-                                        <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-                                            <div className="sm:col-span-1">
-                                                <dt className="text-sm font-medium text-slate-500">Times</dt>
-                                                <dd className="mt-1 text-sm text-slate-900">
-                                                    <div className="flex items-center">
-                                                        <span className="w-20 text-slate-500">Warmup:</span>
-                                                        {session.warmup_time ? format(parseISO(`2000-01-01T${session.warmup_time}`), 'h:mm a') : 'TBD'}
-                                                    </div>
-                                                    <div className="flex items-center mt-1">
-                                                        <span className="w-20 text-slate-500">Awards:</span>
-                                                        {session.awards_time ? format(parseISO(`2000-01-01T${session.awards_time}`), 'h:mm a') : 'TBD'}
-                                                    </div>
-                                                </dd>
-                                            </div>
-                                            <div className="sm:col-span-1">
-                                                <dt className="text-sm font-medium text-slate-500 flex items-center justify-between">
-                                                    Coaches
+                                            <div className="flex items-center gap-2 text-sm">
+                                                {session.session_coaches && session.session_coaches.length > 0 ? (
+                                                    <span className="text-slate-600">
+                                                        {session.session_coaches.map(c => c.profiles.full_name).join(', ')}
+                                                    </span>
+                                                ) : (
+                                                    <span className="text-slate-400 italic">No coaches</span>
+                                                )}
+                                                {canManageRoster && (
                                                     <button
                                                         onClick={() => {
                                                             setSelectedSession(session);
                                                             setIsAssignCoachModalOpen(true);
                                                         }}
-                                                        className="text-xs text-brand-600 hover:text-brand-500 flex items-center"
+                                                        className="text-brand-600 hover:text-brand-500"
+                                                        title="Assign coaches"
                                                     >
-                                                        <UserPlus className="h-3 w-3 mr-1" />
-                                                        Assign
+                                                        <UserPlus className="h-4 w-4" />
                                                     </button>
-                                                </dt>
-                                                <dd className="mt-1 text-sm text-slate-900">
-                                                    {session.session_coaches && session.session_coaches.length > 0 ? (
-                                                        <ul className="list-disc pl-4 space-y-1">
-                                                            {session.session_coaches.map((coach) => (
-                                                                <li key={coach.user_id}>{coach.profiles.full_name}</li>
-                                                            ))}
-                                                        </ul>
-                                                    ) : (
-                                                        <span className="text-slate-400 italic">No coaches assigned</span>
-                                                    )}
-                                                </dd>
+                                                )}
                                             </div>
-                                            <div className="sm:col-span-2 border-t border-slate-100 pt-4 mt-2">
-                                                <dt className="text-sm font-medium text-slate-500 flex items-center justify-between">
-                                                    Gymnasts ({session.session_gymnasts?.length || 0})
+                                        </div>
+                                    </div>
+                                    {/* Session Gymnasts */}
+                                    <div className="px-4 py-4 sm:px-6">
+                                        {session.session_gymnasts && session.session_gymnasts.length > 0 ? (
+                                            <div className="space-y-4">
+                                                {Object.entries(groupSessionGymnastsByLevel(session.session_gymnasts)).map(([level, gymnasts], index) => (
+                                                    <div key={level}>
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-sm font-semibold text-slate-700">{level}</span>
+                                                                <span className="text-xs text-slate-400">({gymnasts.length})</span>
+                                                            </div>
+                                                            {index === 0 && canManageRoster && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedSession(session);
+                                                                        setIsAssignGymnastsModalOpen(true);
+                                                                    }}
+                                                                    className="text-xs text-brand-600 hover:text-brand-500 flex items-center"
+                                                                >
+                                                                    <Users className="h-3 w-3 mr-1" />
+                                                                    Manage
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                                            {gymnasts.map((gymnast) => (
+                                                                <div key={gymnast.gymnast_profile_id} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                                                                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-brand-100 text-brand-600 text-xs font-semibold">
+                                                                        {gymnast.gymnast_profiles.first_name[0]}{gymnast.gymnast_profiles.last_name[0]}
+                                                                    </div>
+                                                                    <span className="text-sm font-medium text-slate-900 truncate">
+                                                                        {gymnast.gymnast_profiles.first_name} {gymnast.gymnast_profiles.last_name}
+                                                                    </span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sm text-slate-400 italic">No gymnasts assigned</span>
+                                                {canManageRoster && (
                                                     <button
                                                         onClick={() => {
                                                             setSelectedSession(session);
@@ -321,22 +535,9 @@ export function CompetitionDetails() {
                                                         <Users className="h-3 w-3 mr-1" />
                                                         Manage
                                                     </button>
-                                                </dt>
-                                                <dd className="mt-2 text-sm text-slate-900">
-                                                    {session.session_gymnasts && session.session_gymnasts.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {session.session_gymnasts.map((gymnast) => (
-                                                                <span key={gymnast.user_id} className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
-                                                                    {gymnast.profiles.full_name}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    ) : (
-                                                        <span className="text-slate-400 italic">No gymnasts assigned</span>
-                                                    )}
-                                                </dd>
+                                                )}
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -344,16 +545,20 @@ export function CompetitionDetails() {
                                 <div className="rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
                                     <Clock className="mx-auto h-12 w-12 text-slate-400" />
                                     <h3 className="mt-2 text-sm font-semibold text-slate-900">No sessions</h3>
-                                    <p className="mt-1 text-sm text-slate-500">Get started by creating a new session.</p>
-                                    <div className="mt-6">
-                                        <button
-                                            onClick={() => setIsCreateSessionModalOpen(true)}
-                                            className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
-                                        >
-                                            <Plus className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
-                                            Add Session
-                                        </button>
-                                    </div>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        {canManageRoster ? 'Get started by creating a new session.' : 'No sessions have been scheduled yet.'}
+                                    </p>
+                                    {canManageRoster && (
+                                        <div className="mt-6">
+                                            <button
+                                                onClick={() => setIsCreateSessionModalOpen(true)}
+                                                className="inline-flex items-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500"
+                                            >
+                                                <Plus className="-ml-0.5 mr-1.5 h-5 w-5" aria-hidden="true" />
+                                                Add Session
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -361,7 +566,7 @@ export function CompetitionDetails() {
                 )}
 
                 {activeTab === 'documents' && (
-                    <CompetitionDocuments competitionId={competition.id} />
+                    <CompetitionDocuments competitionId={competition.id} canManage={canManageRoster} />
                 )}
             </div>
 
@@ -394,7 +599,7 @@ export function CompetitionDetails() {
                     onClose={() => setIsManageRosterModalOpen(false)}
                     onRosterUpdated={fetchRoster}
                     competitionId={competition.id}
-                    currentRosterIds={roster.map(g => g.user_id)}
+                    currentRosterIds={roster.map(g => g.gymnast_profile_id)}
                 />
             )}
 
@@ -408,7 +613,7 @@ export function CompetitionDetails() {
                     onGymnastsAssigned={fetchSessions}
                     sessionId={selectedSession.id}
                     competitionId={competition.id}
-                    currentGymnastIds={selectedSession.session_gymnasts?.map(sg => sg.user_id) || []}
+                    currentGymnastIds={selectedSession.session_gymnasts?.map(sg => sg.gymnast_profile_id) || []}
                 />
             )}
         </div>

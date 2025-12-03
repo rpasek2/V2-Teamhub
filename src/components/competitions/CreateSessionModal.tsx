@@ -1,7 +1,7 @@
-import { useState, Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { X, Loader2, AlertCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Loader2, AlertCircle, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useHub } from '../../context/HubContext';
 
 interface CreateSessionModalProps {
     isOpen: boolean;
@@ -11,16 +11,58 @@ interface CreateSessionModalProps {
     defaultDate?: string;
 }
 
+interface Coach {
+    user_id: string;
+    profiles: {
+        full_name: string;
+    };
+}
+
 export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competitionId, defaultDate }: CreateSessionModalProps) {
+    const { hub } = useHub();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [coaches, setCoaches] = useState<Coach[]>([]);
+    const [selectedCoaches, setSelectedCoaches] = useState<string[]>([]);
 
     const [formData, setFormData] = useState({
         name: '',
         date: defaultDate || '',
-        warmupTime: '',
-        awardsTime: ''
+        checkInTime: ''
     });
+
+    useEffect(() => {
+        if (isOpen && hub) {
+            fetchCoaches();
+        }
+    }, [isOpen, hub]);
+
+    const fetchCoaches = async () => {
+        if (!hub) return;
+        const { data, error } = await supabase
+            .from('hub_members')
+            .select('user_id, profiles(full_name)')
+            .eq('hub_id', hub.id)
+            .in('role', ['owner', 'admin', 'director', 'coach']);
+
+        if (error) {
+            console.error('Error fetching coaches:', error);
+        } else if (data) {
+            const mapped = data.map((d: { user_id: string; profiles: { full_name: string } | { full_name: string }[] }) => ({
+                user_id: d.user_id,
+                profiles: Array.isArray(d.profiles) ? d.profiles[0] : d.profiles
+            }));
+            setCoaches(mapped as Coach[]);
+        }
+    };
+
+    const toggleCoach = (userId: string) => {
+        setSelectedCoaches(prev =>
+            prev.includes(userId)
+                ? prev.filter(id => id !== userId)
+                : [...prev, userId]
+        );
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,26 +70,38 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
         setError(null);
 
         try {
-            const { error: insertError } = await supabase
+            const { data: sessionData, error: insertError } = await supabase
                 .from('competition_sessions')
                 .insert({
                     competition_id: competitionId,
                     name: formData.name,
                     date: formData.date,
-                    warmup_time: formData.warmupTime || null,
-                    awards_time: formData.awardsTime || null
-                });
+                    warmup_time: formData.checkInTime || null
+                })
+                .select()
+                .single();
 
             if (insertError) throw insertError;
+
+            // Assign selected coaches to the session
+            if (selectedCoaches.length > 0 && sessionData) {
+                const { error: coachError } = await supabase
+                    .from('session_coaches')
+                    .insert(selectedCoaches.map(userId => ({
+                        session_id: sessionData.id,
+                        user_id: userId
+                    })));
+                if (coachError) throw coachError;
+            }
 
             onSessionCreated();
             onClose();
             setFormData({
                 name: '',
                 date: defaultDate || '',
-                warmupTime: '',
-                awardsTime: ''
+                checkInTime: ''
             });
+            setSelectedCoaches([]);
         } catch (err: any) {
             console.error('Error creating session:', err);
             setError(err.message || 'Failed to create session');
@@ -56,164 +110,159 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
         }
     };
 
+    if (!isOpen) return null;
+
     return (
-        <Transition.Root show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={onClose}>
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                >
-                    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-                </Transition.Child>
+        <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            aria-labelledby="modal-title"
+            role="dialog"
+            aria-modal="true"
+        >
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 bg-slate-900/50"
+                onClick={onClose}
+            />
 
-                <div className="fixed inset-0 z-10 overflow-y-auto">
-                    <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                        <Transition.Child
-                            as={Fragment}
-                            enter="ease-out duration-300"
-                            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-100 translate-y-0 sm:scale-100"
-                            leave="ease-in duration-200"
-                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                        >
-                            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                                <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-                                    <button
-                                        type="button"
-                                        className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                                        onClick={onClose}
-                                    >
-                                        <span className="sr-only">Close</span>
-                                        <X className="h-6 w-6" aria-hidden="true" />
-                                    </button>
-                                </div>
-
-                                <div className="sm:flex sm:items-start">
-                                    <div className="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                        <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                                            Add Session
-                                        </Dialog.Title>
-                                        <div className="mt-2">
-                                            <form onSubmit={handleSubmit} className="space-y-4">
-                                                {error && (
-                                                    <div className="rounded-md bg-red-50 p-4">
-                                                        <div className="flex">
-                                                            <div className="flex-shrink-0">
-                                                                <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
-                                                            </div>
-                                                            <div className="ml-3">
-                                                                <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <div>
-                                                    <label htmlFor="name" className="block text-sm font-medium leading-6 text-gray-900">
-                                                        Session Name
-                                                    </label>
-                                                    <div className="mt-2">
-                                                        <input
-                                                            type="text"
-                                                            name="name"
-                                                            id="name"
-                                                            required
-                                                            value={formData.name}
-                                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6"
-                                                            placeholder="Session 1"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div>
-                                                    <label htmlFor="date" className="block text-sm font-medium leading-6 text-gray-900">
-                                                        Date
-                                                    </label>
-                                                    <div className="mt-2">
-                                                        <input
-                                                            type="date"
-                                                            name="date"
-                                                            id="date"
-                                                            required
-                                                            value={formData.date}
-                                                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                                            className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label htmlFor="warmupTime" className="block text-sm font-medium leading-6 text-gray-900">
-                                                            Warmup Time
-                                                        </label>
-                                                        <div className="mt-2">
-                                                            <input
-                                                                type="time"
-                                                                name="warmupTime"
-                                                                id="warmupTime"
-                                                                value={formData.warmupTime}
-                                                                onChange={(e) => setFormData({ ...formData, warmupTime: e.target.value })}
-                                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <label htmlFor="awardsTime" className="block text-sm font-medium leading-6 text-gray-900">
-                                                            Awards Time
-                                                        </label>
-                                                        <div className="mt-2">
-                                                            <input
-                                                                type="time"
-                                                                name="awardsTime"
-                                                                id="awardsTime"
-                                                                value={formData.awardsTime}
-                                                                onChange={(e) => setFormData({ ...formData, awardsTime: e.target.value })}
-                                                                className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                                                    <button
-                                                        type="submit"
-                                                        disabled={loading}
-                                                        className="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:ml-3 sm:w-auto disabled:opacity-50"
-                                                    >
-                                                        {loading ? (
-                                                            <>
-                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                                Adding...
-                                                            </>
-                                                        ) : (
-                                                            'Add Session'
-                                                        )}
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                                                        onClick={onClose}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Dialog.Panel>
-                        </Transition.Child>
-                    </div>
+            {/* Modal Content */}
+            <div className="relative z-[10000] w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+                {/* Close Button */}
+                <div className="absolute top-4 right-4">
+                    <button
+                        type="button"
+                        className="rounded-md text-slate-400 hover:text-slate-500"
+                        onClick={onClose}
+                    >
+                        <span className="sr-only">Close</span>
+                        <X className="h-6 w-6" />
+                    </button>
                 </div>
-            </Dialog>
-        </Transition.Root>
+
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-slate-900 pr-8" id="modal-title">
+                    Add Session
+                </h3>
+
+                {/* Content */}
+                <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+                    {error && (
+                        <div className="rounded-md bg-red-50 p-3">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+                                <p className="text-sm font-medium text-red-800">{error}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Session Name */}
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium text-slate-700">
+                            Session Name
+                        </label>
+                        <input
+                            type="text"
+                            name="name"
+                            id="name"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            className="mt-1.5 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                            placeholder="e.g., Session 1, Morning Session"
+                        />
+                    </div>
+
+                    {/* Date and Check-In Time */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="date" className="block text-sm font-medium text-slate-700">
+                                Date
+                            </label>
+                            <input
+                                type="date"
+                                name="date"
+                                id="date"
+                                required
+                                value={formData.date}
+                                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                className="mt-1.5 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="checkInTime" className="block text-sm font-medium text-slate-700">
+                                Check-In Time
+                            </label>
+                            <input
+                                type="time"
+                                name="checkInTime"
+                                id="checkInTime"
+                                value={formData.checkInTime}
+                                onChange={(e) => setFormData({ ...formData, checkInTime: e.target.value })}
+                                className="mt-1.5 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Coach Assignment */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">
+                            Assign Coaches <span className="text-slate-400 font-normal">(optional)</span>
+                        </label>
+                        <div className="mt-1.5 max-h-40 overflow-y-auto rounded-md border border-slate-300">
+                            {coaches.length > 0 ? (
+                                <div className="divide-y divide-slate-100">
+                                    {coaches.map((coach) => (
+                                        <div
+                                            key={coach.user_id}
+                                            className={`flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-slate-50 ${
+                                                selectedCoaches.includes(coach.user_id) ? 'bg-brand-50' : ''
+                                            }`}
+                                            onClick={() => toggleCoach(coach.user_id)}
+                                        >
+                                            <span className="text-sm text-slate-900">{coach.profiles.full_name}</span>
+                                            {selectedCoaches.includes(coach.user_id) && (
+                                                <Check className="h-4 w-4 text-brand-600" />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="px-3 py-2 text-sm text-slate-500">No coaches available</p>
+                            )}
+                        </div>
+                        {selectedCoaches.length > 0 && (
+                            <p className="mt-1 text-xs text-slate-500">
+                                {selectedCoaches.length} coach{selectedCoaches.length !== 1 ? 'es' : ''} selected
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            className="rounded-md px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                            onClick={onClose}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Adding...
+                                </>
+                            ) : (
+                                'Add Session'
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

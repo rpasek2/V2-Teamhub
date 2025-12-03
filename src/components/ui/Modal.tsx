@@ -1,7 +1,6 @@
 import { X } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { clsx } from 'clsx';
 
 interface ModalProps {
     isOpen: boolean;
@@ -11,8 +10,6 @@ interface ModalProps {
 }
 
 export function Modal({ isOpen, onClose, title, children }: ModalProps) {
-    const overlayRef = useRef<HTMLDivElement>(null);
-
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -40,15 +37,17 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             />
 
             <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-2xl transition-all">
-                <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
-                    <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-                    <button
-                        onClick={onClose}
-                        className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-500 transition-colors"
-                    >
-                        <X className="h-5 w-5" />
-                    </button>
-                </div>
+                {title && (
+                    <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+                        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+                        <button
+                            onClick={onClose}
+                            className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-500 transition-colors"
+                        >
+                            <X className="h-5 w-5" />
+                        </button>
+                    </div>
+                )}
 
                 <div className="p-6">
                     {children}

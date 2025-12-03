@@ -50,7 +50,15 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated }
         if (error) {
             console.error('Error fetching gymnasts:', error);
         } else {
-            setGymnasts(data as any || []);
+            // Sort gymnasts alphabetically by last name
+            const sortedGymnasts = (data as any || []).sort((a: any, b: any) => {
+                const aName = a.profiles?.full_name || '';
+                const bName = b.profiles?.full_name || '';
+                const aLastName = aName.split(' ').slice(-1)[0] || '';
+                const bLastName = bName.split(' ').slice(-1)[0] || '';
+                return aLastName.localeCompare(bLastName);
+            });
+            setGymnasts(sortedGymnasts);
         }
     };
 

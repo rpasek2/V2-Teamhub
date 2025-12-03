@@ -5,21 +5,16 @@ import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { CreateCompetitionModal } from '../../components/competitions/CreateCompetitionModal';
+import type { Competition as BaseCompetition } from '../../types';
 
-interface Competition {
-    id: string;
-    name: string;
-    start_date: string;
-    end_date: string;
-    location: string;
-    _count?: {
-        competition_gymnasts: number;
-    };
+// Extended type with joined count data
+interface CompetitionWithCount extends BaseCompetition {
+    competition_gymnasts?: { count: number }[];
 }
 
 export function Competitions() {
     const { hub } = useHub();
-    const [competitions, setCompetitions] = useState<Competition[]>([]);
+    const [competitions, setCompetitions] = useState<CompetitionWithCount[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
@@ -41,10 +36,7 @@ export function Competitions() {
         if (error) {
             console.error('Error fetching competitions:', error);
         } else {
-            // Transform data to include count cleanly if needed, though supabase returns it as array of objects if not careful
-            // With select('*, competition_gymnasts(count)'), it returns { ..., competition_gymnasts: [{ count: 5 }] }
-            // We can just map it or use it as is.
-            setCompetitions(data as any || []);
+            setCompetitions(data || []);
         }
         setLoading(false);
     };
@@ -81,7 +73,7 @@ export function Competitions() {
                                             <Trophy className="h-6 w-6" />
                                         </div>
                                         <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
-                                            {(comp as any).competition_gymnasts?.[0]?.count || 0} Gymnasts
+                                            {comp.competition_gymnasts?.[0]?.count || 0} Gymnasts
                                         </span>
                                     </div>
                                     <h3 className="mt-4 text-lg font-semibold text-slate-900 group-hover:text-brand-600">

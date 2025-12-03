@@ -28,7 +28,7 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [dateOfBirth, setDateOfBirth] = useState('');
-    const [gender, setGender] = useState<'Male' | 'Female' | 'Other' | ''>('');
+    const [gender, setGender] = useState<'Male' | 'Female' | ''>('');
     const [level, setLevel] = useState('');
     const [memberId, setMemberId] = useState('');
     const [memberIdType, setMemberIdType] = useState<'USAG' | 'AAU' | 'Other' | ''>('');
@@ -169,7 +169,7 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
         firstName: string;
         lastName: string;
         dateOfBirth: string;
-        gender: 'Male' | 'Female' | 'Other' | '';
+        gender: 'Male' | 'Female' | '';
         level: string;
         guardianFirstName: string;
         guardianLastName: string;
@@ -225,7 +225,7 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                     const infoText = infoElement?.textContent?.trim() || '';
                     const infoLines = infoText.split('\n').map(l => l.trim()).filter(l => l);
 
-                    let gender: 'Male' | 'Female' | 'Other' | '' = '';
+                    let gender: 'Male' | 'Female' | '' = '';
                     let dateOfBirth = '';
 
                     infoLines.forEach(line => {
@@ -784,13 +784,12 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                                 <label className="block text-xs font-medium text-slate-600 mb-1.5">Gender</label>
                                                 <select
                                                     value={gender}
-                                                    onChange={(e) => setGender(e.target.value as 'Male' | 'Female' | 'Other' | '')}
+                                                    onChange={(e) => setGender(e.target.value as 'Male' | 'Female' | '')}
                                                     className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow bg-white"
                                                 >
                                                     <option value="">Select...</option>
                                                     <option value="Female">Female</option>
                                                     <option value="Male">Male</option>
-                                                    <option value="Other">Other</option>
                                                 </select>
                                             </div>
                                         </div>

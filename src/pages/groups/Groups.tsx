@@ -67,8 +67,8 @@ export default function Groups() {
         <div className="px-4 sm:px-6 lg:px-8 py-8">
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
-                    <h1 className="text-2xl font-semibold text-gray-900">Groups</h1>
-                    <p className="mt-2 text-sm text-gray-700">
+                    <h1 className="text-2xl font-semibold text-slate-900">Groups</h1>
+                    <p className="mt-2 text-sm text-slate-700">
                         Connect with your team, parents, and coaches in dedicated spaces.
                     </p>
                 </div>
@@ -88,11 +88,11 @@ export default function Groups() {
             <div className="mt-6 flex items-center">
                 <div className="relative w-full max-w-md">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <Search className="h-5 w-5 text-gray-400" aria-hidden="true" />
+                        <Search className="h-5 w-5 text-slate-400" aria-hidden="true" />
                     </div>
                     <input
                         type="text"
-                        className="block w-full rounded-md border-gray-300 pl-10 focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+                        className="block w-full rounded-md border-slate-300 pl-10 focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
                         placeholder="Search groups..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -104,10 +104,10 @@ export default function Groups() {
                 {loading ? (
                     // Skeleton loading
                     [...Array(3)].map((_, i) => (
-                        <div key={i} className="animate-pulse rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
-                            <div className="h-4 w-1/3 rounded bg-gray-200"></div>
-                            <div className="mt-4 h-4 w-full rounded bg-gray-200"></div>
-                            <div className="mt-2 h-4 w-2/3 rounded bg-gray-200"></div>
+                        <div key={i} className="animate-pulse rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
+                            <div className="h-4 w-1/3 rounded bg-slate-200"></div>
+                            <div className="mt-4 h-4 w-full rounded bg-slate-200"></div>
+                            <div className="mt-2 h-4 w-2/3 rounded bg-slate-200"></div>
                         </div>
                     ))
                 ) : filteredGroups.length > 0 ? (
@@ -115,7 +115,7 @@ export default function Groups() {
                         <Link
                             key={group.id}
                             to={`/hub/${hub?.id}/groups/${group.id}`}
-                            className="group relative flex flex-col overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm hover:border-brand-300 hover:shadow-md transition-all"
+                            className="group relative flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm hover:border-brand-300 hover:shadow-md transition-all"
                         >
                             <div className="flex flex-1 flex-col p-6">
                                 <div className="flex items-center justify-between">
@@ -123,25 +123,25 @@ export default function Groups() {
                                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50">
                                             <Users className="h-6 w-6 text-brand-600" />
                                         </div>
-                                        <h3 className="ml-3 text-lg font-medium text-gray-900 group-hover:text-brand-600">
+                                        <h3 className="ml-3 text-lg font-medium text-slate-900 group-hover:text-brand-600">
                                             {group.name}
                                         </h3>
                                     </div>
                                     {group.type === 'private' ? (
-                                        <Lock className="h-4 w-4 text-gray-400" />
+                                        <Lock className="h-4 w-4 text-slate-400" />
                                     ) : (
-                                        <Globe className="h-4 w-4 text-gray-400" />
+                                        <Globe className="h-4 w-4 text-slate-400" />
                                     )}
                                 </div>
-                                <p className="mt-4 flex-1 text-sm text-gray-500 line-clamp-2">
+                                <p className="mt-4 flex-1 text-sm text-slate-500 line-clamp-2">
                                     {group.description || 'No description provided.'}
                                 </p>
                                 <div className="mt-6 flex items-center justify-between">
-                                    <div className="flex items-center text-sm text-gray-500">
-                                        <Users className="mr-1.5 h-4 w-4 flex-shrink-0 text-gray-400" />
+                                    <div className="flex items-center text-sm text-slate-500">
+                                        <Users className="mr-1.5 h-4 w-4 flex-shrink-0 text-slate-400" />
                                         {group._count?.members || 0} members
                                     </div>
-                                    <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
                                         {group.type}
                                     </span>
                                 </div>
@@ -149,10 +149,10 @@ export default function Groups() {
                         </Link>
                     ))
                 ) : (
-                    <div className="col-span-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
-                        <Users className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">No groups found</h3>
-                        <p className="mt-1 text-sm text-gray-500">
+                    <div className="col-span-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
+                        <Users className="mx-auto h-12 w-12 text-slate-400" />
+                        <h3 className="mt-2 text-sm font-medium text-slate-900">No groups found</h3>
+                        <p className="mt-1 text-sm text-slate-500">
                             {searchQuery ? 'Try adjusting your search terms.' : 'Get started by creating a new group.'}
                         </p>
                         {canCreateGroup && !searchQuery && (

@@ -1,5 +1,8 @@
-import { X, Calendar, Mail, Phone, User, AlertCircle, Shield, Shirt, Award, CreditCard, Heart, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { X, Calendar, Mail, Phone, User, AlertCircle, Shield, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Modal } from '../ui/Modal';
+import { ReportInjuryModal } from './ReportInjuryModal';
+import { format, parseISO } from 'date-fns';
 import type { GymnastProfile } from '../../types';
 
 interface GymnastProfileModalProps {
@@ -7,10 +10,17 @@ interface GymnastProfileModalProps {
     isOpen: boolean;
     onClose: () => void;
     canViewMedical?: boolean; // Whether user can view medical info (admin/coach or own child)
+    canReportInjury?: boolean; // Whether user can report injuries (staff only)
+    onInjuryReported?: () => void; // Callback after injury is reported
 }
 
-export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical = true }: GymnastProfileModalProps) {
+export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical = true, canReportInjury = false, onInjuryReported }: GymnastProfileModalProps) {
+    const [isReportInjuryOpen, setIsReportInjuryOpen] = useState(false);
+    const [showInjuryHistory, setShowInjuryHistory] = useState(false);
+
     if (!gymnast) return null;
+
+    const injuryReports = gymnast.medical_info?.injury_reports || [];
 
     const calculateAge = (dob: string) => {
         const birthDate = new Date(dob);
@@ -273,10 +283,21 @@ export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical =
                         <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border-b border-red-200">
                             <Heart className="h-4 w-4 text-red-500" />
                             <h3 className="text-sm font-semibold text-red-700">Medical Information</h3>
-                            <span className="text-xs text-red-400 ml-auto flex items-center gap-1">
-                                <Shield className="h-3 w-3" />
-                                Confidential
-                            </span>
+                            <div className="flex items-center gap-2 ml-auto">
+                                {canReportInjury && (
+                                    <button
+                                        onClick={() => setIsReportInjuryOpen(true)}
+                                        className="inline-flex items-center gap-1 rounded-md bg-red-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-700 transition-colors"
+                                    >
+                                        <AlertTriangle className="h-3 w-3" />
+                                        Report Injury
+                                    </button>
+                                )}
+                                <span className="text-xs text-red-400 flex items-center gap-1">
+                                    <Shield className="h-3 w-3" />
+                                    Confidential
+                                </span>
+                            </div>
                         </div>
                         <div className="p-4">
                             {!canViewMedical ? (
@@ -353,6 +374,92 @@ export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical =
                                     <p className="text-sm text-slate-600 mt-2">No medical concerns reported</p>
                                 </div>
                             )}
+
+                            {/* Injury History Section */}
+                            {canViewMedical && injuryReports.length > 0 && (
+                                <div className="mt-4 pt-4 border-t border-red-100">
+                                    <button
+                                        onClick={() => setShowInjuryHistory(!showInjuryHistory)}
+                                        className="flex items-center gap-2 text-sm font-semibold text-red-700 hover:text-red-800 transition-colors w-full"
+                                    >
+                                        {showInjuryHistory ? (
+                                            <ChevronDown className="h-4 w-4" />
+                                        ) : (
+                                            <ChevronRight className="h-4 w-4" />
+                                        )}
+                                        <AlertTriangle className="h-4 w-4" />
+                                        Injury History ({injuryReports.length})
+                                    </button>
+
+                                    {showInjuryHistory && (
+                                        <div className="mt-3 space-y-3">
+                                            {injuryReports.map((injury) => (
+                                                <div
+                                                    key={injury.id}
+                                                    className={`rounded-lg border p-3 ${
+                                                        injury.status === 'active'
+                                                            ? 'border-red-200 bg-red-50'
+                                                            : injury.status === 'recovering'
+                                                            ? 'border-amber-200 bg-amber-50'
+                                                            : 'border-green-200 bg-green-50'
+                                                    }`}
+                                                >
+                                                    <div className="flex items-start justify-between">
+                                                        <div className="flex-1">
+                                                            <div className="flex items-center gap-2">
+                                                                <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+                                                                    injury.status === 'active'
+                                                                        ? 'bg-red-100 text-red-700'
+                                                                        : injury.status === 'recovering'
+                                                                        ? 'bg-amber-100 text-amber-700'
+                                                                        : 'bg-green-100 text-green-700'
+                                                                }`}>
+                                                                    {injury.status.charAt(0).toUpperCase() + injury.status.slice(1)}
+                                                                </span>
+                                                                <span className="text-xs text-slate-500">
+                                                                    {format(parseISO(injury.date), 'MMM d, yyyy')} at {injury.time}
+                                                                </span>
+                                                            </div>
+                                                            <div className="mt-1.5 flex items-center gap-2 text-xs text-slate-600">
+                                                                <span className="capitalize">{injury.location}</span>
+                                                                {injury.body_part && (
+                                                                    <>
+                                                                        <span>•</span>
+                                                                        <span>{injury.body_part}</span>
+                                                                    </>
+                                                                )}
+                                                                {injury.severity && (
+                                                                    <>
+                                                                        <span>•</span>
+                                                                        <span className={`capitalize ${
+                                                                            injury.severity === 'severe'
+                                                                                ? 'text-red-600 font-medium'
+                                                                                : injury.severity === 'moderate'
+                                                                                ? 'text-amber-600'
+                                                                                : 'text-slate-600'
+                                                                        }`}>
+                                                                            {injury.severity}
+                                                                        </span>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                            <p className="mt-2 text-sm text-slate-700">{injury.description}</p>
+                                                            <div className="mt-2 text-xs text-slate-600">
+                                                                <span className="font-medium">Response:</span> {injury.response}
+                                                            </div>
+                                                            {injury.follow_up && (
+                                                                <div className="mt-1 text-xs text-slate-500">
+                                                                    <span className="font-medium">Follow-up:</span> {injury.follow_up}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -367,6 +474,19 @@ export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical =
                     </button>
                 </div>
             </div>
+
+            {/* Report Injury Modal */}
+            <ReportInjuryModal
+                isOpen={isReportInjuryOpen}
+                onClose={() => setIsReportInjuryOpen(false)}
+                gymnastProfileId={gymnast.id}
+                gymnastName={`${gymnast.first_name} ${gymnast.last_name}`}
+                currentMedicalInfo={gymnast.medical_info}
+                onReportSaved={() => {
+                    setIsReportInjuryOpen(false);
+                    onInjuryReported?.();
+                }}
+            />
         </Modal>
     );
 }

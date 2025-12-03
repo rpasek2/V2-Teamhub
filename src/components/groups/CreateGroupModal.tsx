@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Loader2, Users } from 'lucide-react';
+import { X, Loader2, Users, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 
@@ -10,12 +10,25 @@ interface CreateGroupModalProps {
 }
 
 export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGroupModalProps) {
-    const { hub, user } = useHub();
+    const { hub, user, levels } = useHub();
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const type = 'private';
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [selectedLevels, setSelectedLevels] = useState<Set<string>>(new Set());
+
+    const toggleLevel = (level: string) => {
+        setSelectedLevels(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(level)) {
+                newSet.delete(level);
+            } else {
+                newSet.add(level);
+            }
+            return newSet;
+        });
+    };
 
     if (!isOpen) return null;
 
@@ -27,6 +40,8 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
         setError(null);
 
         try {
+            const levelsArray = selectedLevels.size > 0 ? Array.from(selectedLevels) : null;
+
             // 1. Create the group
             const { data: group, error: groupError } = await supabase
                 .from('groups')
@@ -35,7 +50,8 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                     name,
                     description,
                     type,
-                    created_by: user.id
+                    created_by: user.id,
+                    auto_assign_levels: levelsArray
                 })
                 .select()
                 .single();
@@ -53,10 +69,59 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
 
             if (memberError) throw memberError;
 
+            // 3. If levels are selected, auto-add parents of gymnasts in those levels
+            if (levelsArray && levelsArray.length > 0) {
+                // Fetch gymnasts in the selected levels
+                const { data: gymnasts } = await supabase
+                    .from('gymnast_profiles')
+                    .select('guardian_1, guardian_2')
+                    .eq('hub_id', hub.id)
+                    .in('level', levelsArray);
+
+                if (gymnasts && gymnasts.length > 0) {
+                    // Collect unique guardian emails
+                    const guardianEmails = new Set<string>();
+                    gymnasts.forEach(g => {
+                        if (g.guardian_1?.email) guardianEmails.add(g.guardian_1.email.toLowerCase());
+                        if (g.guardian_2?.email) guardianEmails.add(g.guardian_2.email.toLowerCase());
+                    });
+
+                    // Find hub members with matching emails (parents)
+                    if (guardianEmails.size > 0) {
+                        const { data: hubMembers } = await supabase
+                            .from('hub_members')
+                            .select('user_id, profiles(email)')
+                            .eq('hub_id', hub.id);
+
+                        if (hubMembers) {
+                            const membersToAdd: { group_id: string; user_id: string; role: string }[] = [];
+
+                            hubMembers.forEach((member: any) => {
+                                const memberEmail = member.profiles?.email?.toLowerCase();
+                                if (memberEmail && guardianEmails.has(memberEmail) && member.user_id !== user.id) {
+                                    membersToAdd.push({
+                                        group_id: group.id,
+                                        user_id: member.user_id,
+                                        role: 'member'
+                                    });
+                                }
+                            });
+
+                            if (membersToAdd.length > 0) {
+                                await supabase
+                                    .from('group_members')
+                                    .insert(membersToAdd);
+                            }
+                        }
+                    }
+                }
+            }
+
             onGroupCreated();
             onClose();
             setName('');
             setDescription('');
+            setSelectedLevels(new Set());
         } catch (err: any) {
             console.error('Error creating group:', err);
             setError(err.message || 'Failed to create group');
@@ -134,6 +199,43 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                             placeholder="What is this group for?"
                         />
                     </div>
+
+                    {/* Auto-assign Levels */}
+                    {levels.length > 0 && (
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Auto-Assign to Levels
+                                <span className="ml-1 font-normal text-gray-500">(Optional)</span>
+                            </label>
+                            <p className="text-xs text-gray-500 mb-3">
+                                Parents of gymnasts in the selected levels will be automatically added to this group.
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                                {levels.map((level) => (
+                                    <button
+                                        key={level}
+                                        type="button"
+                                        onClick={() => toggleLevel(level)}
+                                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                                            selectedLevels.has(level)
+                                                ? 'bg-brand-600 text-white'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        {selectedLevels.has(level) && (
+                                            <Check className="h-3.5 w-3.5" />
+                                        )}
+                                        {level}
+                                    </button>
+                                ))}
+                            </div>
+                            {selectedLevels.size > 0 && (
+                                <p className="mt-2 text-xs text-brand-600">
+                                    {selectedLevels.size} level{selectedLevels.size !== 1 ? 's' : ''} selected
+                                </p>
+                            )}
+                        </div>
+                    )}
 
                     <div className="flex justify-end gap-3 pt-4">
                         <button

@@ -1,7 +1,7 @@
-import { useState, useEffect, Fragment } from 'react';
-import { Dialog, Transition } from '@headlessui/react';
-import { X, Loader2, AlertCircle, Check } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { X, Loader2, AlertCircle, Check, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useHub } from '../../context/HubContext';
 
 interface AssignSessionGymnastsModalProps {
     isOpen: boolean;
@@ -13,17 +13,25 @@ interface AssignSessionGymnastsModalProps {
 }
 
 interface Gymnast {
-    user_id: string;
-    profiles: {
-        full_name: string;
+    gymnast_profile_id: string;
+    gymnast_profiles: {
+        id: string;
+        first_name: string;
+        last_name: string;
+        level: string | null;
     };
 }
 
 export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned, sessionId, competitionId, currentGymnastIds }: AssignSessionGymnastsModalProps) {
+    const { hub } = useHub();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [roster, setRoster] = useState<Gymnast[]>([]);
     const [selectedGymnasts, setSelectedGymnasts] = useState<string[]>([]);
+    const [collapsedLevels, setCollapsedLevels] = useState<Set<string>>(new Set());
+
+    // Get levels from hub settings
+    const hubLevels = hub?.settings?.levels || [];
 
     useEffect(() => {
         if (isOpen) {
@@ -35,22 +43,91 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
     const fetchCompetitionRoster = async () => {
         const { data, error } = await supabase
             .from('competition_gymnasts')
-            .select('user_id, profiles(full_name)')
+            .select('gymnast_profile_id, gymnast_profiles(id, first_name, last_name, level)')
             .eq('competition_id', competitionId);
 
         if (error) {
             console.error('Error fetching competition roster:', error);
-        } else {
-            setRoster(data as any || []);
+        } else if (data) {
+            const mapped = data.map((d: { gymnast_profile_id: string; gymnast_profiles: { id: string; first_name: string; last_name: string; level: string | null } | { id: string; first_name: string; last_name: string; level: string | null }[] }) => ({
+                gymnast_profile_id: d.gymnast_profile_id,
+                gymnast_profiles: Array.isArray(d.gymnast_profiles) ? d.gymnast_profiles[0] : d.gymnast_profiles
+            }));
+            setRoster(mapped as Gymnast[]);
         }
     };
 
-    const toggleGymnast = (userId: string) => {
+    // Group roster by level
+    const rosterByLevel = useMemo(() => {
+        const grouped: Record<string, Gymnast[]> = {};
+
+        roster.forEach(gymnast => {
+            const level = gymnast.gymnast_profiles.level || 'Unassigned';
+            if (!grouped[level]) {
+                grouped[level] = [];
+            }
+            grouped[level].push(gymnast);
+        });
+
+        // Sort levels based on the hub settings order
+        const sortedLevels = hubLevels.filter((l: string) => grouped[l]);
+        const unlistedLevels = Object.keys(grouped).filter(l => !hubLevels.includes(l) && l !== 'Unassigned');
+        const orderedKeys = [...sortedLevels, ...unlistedLevels];
+        if (grouped['Unassigned']) orderedKeys.push('Unassigned');
+
+        const result: Record<string, Gymnast[]> = {};
+        orderedKeys.forEach(level => {
+            // Sort gymnasts alphabetically by last name within each level
+            result[level] = grouped[level].sort((a, b) =>
+                (a.gymnast_profiles.last_name || '').localeCompare(b.gymnast_profiles.last_name || '')
+            );
+        });
+
+        return result;
+    }, [roster, hubLevels]);
+
+    const toggleLevelCollapse = (level: string) => {
+        setCollapsedLevels(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(level)) {
+                newSet.delete(level);
+            } else {
+                newSet.add(level);
+            }
+            return newSet;
+        });
+    };
+
+    const toggleGymnast = (gymnastProfileId: string) => {
         setSelectedGymnasts(prev =>
-            prev.includes(userId)
-                ? prev.filter(id => id !== userId)
-                : [...prev, userId]
+            prev.includes(gymnastProfileId)
+                ? prev.filter(id => id !== gymnastProfileId)
+                : [...prev, gymnastProfileId]
         );
+    };
+
+    const toggleLevel = (level: string) => {
+        const levelGymnastIds = rosterByLevel[level]?.map(g => g.gymnast_profile_id) || [];
+        const allSelected = levelGymnastIds.every(id => selectedGymnasts.includes(id));
+
+        if (allSelected) {
+            // Deselect all in this level
+            setSelectedGymnasts(prev => prev.filter(id => !levelGymnastIds.includes(id)));
+        } else {
+            // Select all in this level
+            setSelectedGymnasts(prev => [...new Set([...prev, ...levelGymnastIds])]);
+        }
+    };
+
+    const isLevelFullySelected = (level: string) => {
+        const levelGymnastIds = rosterByLevel[level]?.map(g => g.gymnast_profile_id) || [];
+        return levelGymnastIds.length > 0 && levelGymnastIds.every(id => selectedGymnasts.includes(id));
+    };
+
+    const isLevelPartiallySelected = (level: string) => {
+        const levelGymnastIds = rosterByLevel[level]?.map(g => g.gymnast_profile_id) || [];
+        const selectedCount = levelGymnastIds.filter(id => selectedGymnasts.includes(id)).length;
+        return selectedCount > 0 && selectedCount < levelGymnastIds.length;
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -65,7 +142,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
             if (toAdd.length > 0) {
                 const { error: addError } = await supabase
                     .from('session_gymnasts')
-                    .insert(toAdd.map(userId => ({ session_id: sessionId, user_id: userId })));
+                    .insert(toAdd.map(gymnastProfileId => ({ session_id: sessionId, gymnast_profile_id: gymnastProfileId })));
                 if (addError) throw addError;
             }
 
@@ -74,7 +151,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                     .from('session_gymnasts')
                     .delete()
                     .eq('session_id', sessionId)
-                    .in('user_id', toRemove);
+                    .in('gymnast_profile_id', toRemove);
                 if (removeError) throw removeError;
             }
 
@@ -88,126 +165,159 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
         }
     };
 
+    if (!isOpen) return null;
+
     return (
-        <Transition.Root show={isOpen} as={Fragment}>
-            <Dialog as="div" className="relative z-10" onClose={onClose}>
-                <Transition.Child
-                    as={Fragment}
-                    enter="ease-out duration-300"
-                    enterFrom="opacity-0"
-                    enterTo="opacity-100"
-                    leave="ease-in duration-200"
-                    leaveFrom="opacity-100"
-                    leaveTo="opacity-0"
-                >
-                    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
-                </Transition.Child>
+        <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            aria-labelledby="modal-title"
+            role="dialog"
+            aria-modal="true"
+        >
+            {/* Backdrop */}
+            <div
+                className="fixed inset-0 bg-slate-900/50"
+                onClick={onClose}
+            />
 
-                <div className="fixed inset-0 z-10 overflow-y-auto">
-                    <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                        <Transition.Child
-                            as={Fragment}
-                            enter="ease-out duration-300"
-                            enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                            enterTo="opacity-100 translate-y-0 sm:scale-100"
-                            leave="ease-in duration-200"
-                            leaveFrom="opacity-100 translate-y-0 sm:scale-100"
-                            leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                        >
-                            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
-                                <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-                                    <button
-                                        type="button"
-                                        className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                                        onClick={onClose}
-                                    >
-                                        <span className="sr-only">Close</span>
-                                        <X className="h-6 w-6" aria-hidden="true" />
-                                    </button>
-                                </div>
-
-                                <div className="sm:flex sm:items-start">
-                                    <div className="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                        <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
-                                            Assign Gymnasts to Session
-                                        </Dialog.Title>
-                                        <div className="mt-2">
-                                            <form onSubmit={handleSubmit} className="space-y-4">
-                                                {error && (
-                                                    <div className="rounded-md bg-red-50 p-4">
-                                                        <div className="flex">
-                                                            <div className="flex-shrink-0">
-                                                                <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
-                                                            </div>
-                                                            <div className="ml-3">
-                                                                <h3 className="text-sm font-medium text-red-800">{error}</h3>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                <div>
-                                                    <label className="block text-sm font-medium leading-6 text-gray-900">
-                                                        Select Gymnasts from Competition Roster
-                                                    </label>
-                                                    <div className="mt-2 max-h-60 overflow-y-auto rounded-md border border-gray-200 p-2">
-                                                        {roster.length > 0 ? (
-                                                            <div className="space-y-2">
-                                                                {roster.map((gymnast) => (
-                                                                    <div
-                                                                        key={gymnast.user_id}
-                                                                        className={`flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-gray-50 ${selectedGymnasts.includes(gymnast.user_id) ? 'bg-brand-50' : ''
-                                                                            }`}
-                                                                        onClick={() => toggleGymnast(gymnast.user_id)}
-                                                                    >
-                                                                        <span className="text-sm text-gray-900">{gymnast.profiles.full_name}</span>
-                                                                        {selectedGymnasts.includes(gymnast.user_id) && (
-                                                                            <Check className="h-4 w-4 text-brand-600" />
-                                                                        )}
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        ) : (
-                                                            <p className="text-sm text-gray-500">No gymnasts in competition roster.</p>
-                                                        )}
-                                                    </div>
-                                                    <p className="mt-1 text-xs text-gray-500">
-                                                        {selectedGymnasts.length} selected
-                                                    </p>
-                                                </div>
-
-                                                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                                                    <button
-                                                        type="submit"
-                                                        disabled={loading}
-                                                        className="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:ml-3 sm:w-auto disabled:opacity-50"
-                                                    >
-                                                        {loading ? (
-                                                            <>
-                                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                                                Saving...
-                                                            </>
-                                                        ) : (
-                                                            'Save Assignments'
-                                                        )}
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
-                                                        onClick={onClose}
-                                                    >
-                                                        Cancel
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                            </Dialog.Panel>
-                        </Transition.Child>
-                    </div>
+            {/* Modal Content */}
+            <div className="relative z-[10000] w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+                {/* Close Button */}
+                <div className="absolute top-4 right-4">
+                    <button
+                        type="button"
+                        className="rounded-md text-slate-400 hover:text-slate-500"
+                        onClick={onClose}
+                    >
+                        <span className="sr-only">Close</span>
+                        <X className="h-6 w-6" />
+                    </button>
                 </div>
-            </Dialog>
-        </Transition.Root>
+
+                {/* Title */}
+                <h3 className="text-lg font-semibold text-slate-900 pr-8" id="modal-title">
+                    Assign Gymnasts to Session
+                </h3>
+
+                {/* Content */}
+                <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+                    {error && (
+                        <div className="rounded-md bg-red-50 p-3">
+                            <div className="flex items-center gap-2">
+                                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
+                                <p className="text-sm font-medium text-red-800">{error}</p>
+                            </div>
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700">
+                            Select Gymnasts from Competition Roster
+                        </label>
+                        <div className="mt-1.5 max-h-80 overflow-y-auto rounded-md border border-slate-300">
+                            {roster.length > 0 ? (
+                                <div className="divide-y divide-slate-200">
+                                    {Object.entries(rosterByLevel).map(([level, gymnasts]) => (
+                                        <div key={level}>
+                                            {/* Level Header */}
+                                            <div className="flex items-center bg-slate-50">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleLevelCollapse(level)}
+                                                    className="flex items-center gap-1 px-3 py-2 text-slate-500 hover:text-slate-700"
+                                                >
+                                                    {collapsedLevels.has(level) ? (
+                                                        <ChevronRight className="h-4 w-4" />
+                                                    ) : (
+                                                        <ChevronDown className="h-4 w-4" />
+                                                    )}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleLevel(level)}
+                                                    className="flex flex-1 items-center justify-between py-2 pr-3 text-left hover:bg-slate-100"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-sm font-semibold text-slate-900">{level}</span>
+                                                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                                                            {gymnasts.length}
+                                                        </span>
+                                                    </div>
+                                                    <div className={`flex h-4 w-4 items-center justify-center rounded border ${
+                                                        isLevelFullySelected(level)
+                                                            ? 'border-brand-600 bg-brand-600'
+                                                            : isLevelPartiallySelected(level)
+                                                                ? 'border-brand-600 bg-brand-100'
+                                                                : 'border-slate-300'
+                                                    }`}>
+                                                        {isLevelFullySelected(level) && (
+                                                            <Check className="h-3 w-3 text-white" />
+                                                        )}
+                                                        {isLevelPartiallySelected(level) && (
+                                                            <div className="h-2 w-2 rounded-sm bg-brand-600" />
+                                                        )}
+                                                    </div>
+                                                </button>
+                                            </div>
+                                            {/* Gymnasts List */}
+                                            {!collapsedLevels.has(level) && (
+                                                <div className="divide-y divide-slate-100">
+                                                    {gymnasts.map((gymnast) => (
+                                                        <div
+                                                            key={gymnast.gymnast_profile_id}
+                                                            className={`flex cursor-pointer items-center justify-between px-3 py-2 pl-10 hover:bg-slate-50 ${
+                                                                selectedGymnasts.includes(gymnast.gymnast_profile_id) ? 'bg-brand-50' : ''
+                                                            }`}
+                                                            onClick={() => toggleGymnast(gymnast.gymnast_profile_id)}
+                                                        >
+                                                            <span className="text-sm text-slate-900">
+                                                                {gymnast.gymnast_profiles.first_name} {gymnast.gymnast_profiles.last_name}
+                                                            </span>
+                                                            {selectedGymnasts.includes(gymnast.gymnast_profile_id) && (
+                                                                <Check className="h-4 w-4 text-brand-600" />
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="px-3 py-4 text-sm text-slate-500 text-center">No gymnasts in competition roster.</p>
+                            )}
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">
+                            {selectedGymnasts.length} selected
+                        </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end gap-3 pt-2">
+                        <button
+                            type="button"
+                            className="rounded-md px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                            onClick={onClose}
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50"
+                        >
+                            {loading ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Saving...
+                                </>
+                            ) : (
+                                'Save Assignments'
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     );
 }

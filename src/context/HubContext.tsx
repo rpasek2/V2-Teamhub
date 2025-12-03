@@ -2,7 +2,8 @@ import { createContext, useContext, useEffect, useState, useCallback } from 'rea
 import { useParams } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-import type { Hub, GymnastProfile, HubMember as FullHubMember } from '../types';
+import type { Hub, GymnastProfile, HubMember as FullHubMember, SportConfig } from '../types';
+import { SPORT_CONFIGS } from '../types';
 
 // Partial HubMember for context (just the fields we need)
 type HubMemberContext = Pick<FullHubMember, 'role' | 'permissions'>;
@@ -16,6 +17,7 @@ interface HubContextType {
     currentRole: string | null;
     linkedGymnasts: GymnastProfile[];
     levels: string[];
+    sportConfig: SportConfig;
     hasPermission: (feature: string) => boolean;
     getPermissionScope: (feature: string) => PermissionScope;
     refreshHub: () => Promise<void>;
@@ -113,6 +115,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
 
     const currentRole = member?.role || null;
     const levels: string[] = hub?.settings?.levels || [];
+    const sportConfig: SportConfig = SPORT_CONFIGS[hub?.sport_type || 'gymnastics'];
 
     const getPermissionScope = (feature: string): PermissionScope => {
         if (!hub || !currentRole) return 'none';
@@ -122,21 +125,30 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
 
         const permissions = hub.settings?.permissions;
 
-        // Default behavior if permissions are not configured (Legacy Hubs)
-        if (!permissions) {
-            if (['admin', 'coach'].includes(currentRole)) return 'all';
-            if (currentRole === 'parent') return 'own';
+        // Default permissions for each role when not explicitly configured
+        const getDefaultScope = (role: string): PermissionScope => {
+            if (['admin', 'coach'].includes(role)) return 'all';
+            if (role === 'parent') return 'own';
             return 'none';
+        };
+
+        // Default behavior if permissions are not configured at all (Legacy Hubs)
+        if (!permissions) {
+            return getDefaultScope(currentRole);
         }
 
-        // Check configured permissions
+        // Check configured permissions for this feature
         const rolePermissions = permissions[feature];
-        if (!rolePermissions) return 'none';
 
-        const scope = rolePermissions[currentRole];
+        // If feature permissions aren't configured, use defaults
+        if (!rolePermissions) {
+            return getDefaultScope(currentRole);
+        }
 
-        // If scope is explicitly set, return it. Otherwise default to none.
-        return scope || 'none';
+        const scope = rolePermissions[currentRole as keyof typeof rolePermissions];
+
+        // If scope is explicitly set, return it. Otherwise use defaults.
+        return scope || getDefaultScope(currentRole);
     };
 
     const hasPermission = (feature: string): boolean => {
@@ -152,6 +164,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
             currentRole,
             linkedGymnasts,
             levels,
+            sportConfig,
             hasPermission,
             getPermissionScope,
             refreshHub,

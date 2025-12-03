@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, ExternalLink, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useHub } from '../../context/HubContext';
 
 interface CompetitionDocument {
     id: string;
@@ -14,10 +13,10 @@ interface CompetitionDocument {
 
 interface CompetitionDocumentsProps {
     competitionId: string;
+    canManage?: boolean;
 }
 
-export function CompetitionDocuments({ competitionId }: CompetitionDocumentsProps) {
-    const { hub } = useHub();
+export function CompetitionDocuments({ competitionId, canManage = false }: CompetitionDocumentsProps) {
     const [documents, setDocuments] = useState<CompetitionDocument[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -161,15 +160,17 @@ export function CompetitionDocuments({ competitionId }: CompetitionDocumentsProp
 
     return (
         <div>
-            <div className="mb-4 flex justify-end">
-                <button
-                    onClick={() => setIsAdding(!isAdding)}
-                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
-                >
-                    <Plus className="-ml-0.5 mr-1.5 h-4 w-4 text-slate-400" />
-                    {isAdding ? 'Cancel' : 'Add Document'}
-                </button>
-            </div>
+            {canManage && (
+                <div className="mb-4 flex justify-end">
+                    <button
+                        onClick={() => setIsAdding(!isAdding)}
+                        className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
+                    >
+                        <Plus className="-ml-0.5 mr-1.5 h-4 w-4 text-slate-400" />
+                        {isAdding ? 'Cancel' : 'Add Document'}
+                    </button>
+                </div>
+            )}
 
             {error && (
                 <div className="mb-4 rounded-md bg-red-50 p-4">
@@ -298,15 +299,17 @@ export function CompetitionDocuments({ competitionId }: CompetitionDocumentsProp
                                         </a>
                                     </div>
                                 </div>
-                                <div className="ml-4 flex-shrink-0">
-                                    <button
-                                        onClick={() => handleDeleteDocument(doc)}
-                                        className="rounded-md bg-white text-slate-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
-                                    >
-                                        <span className="sr-only">Delete</span>
-                                        <Trash2 className="h-5 w-5" />
-                                    </button>
-                                </div>
+                                {canManage && (
+                                    <div className="ml-4 flex-shrink-0">
+                                        <button
+                                            onClick={() => handleDeleteDocument(doc)}
+                                            className="rounded-md bg-white text-slate-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                                        >
+                                            <span className="sr-only">Delete</span>
+                                            <Trash2 className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                )}
                             </li>
                         ))}
                     </ul>
@@ -314,7 +317,9 @@ export function CompetitionDocuments({ competitionId }: CompetitionDocumentsProp
                     <div className="p-8 text-center">
                         <FileText className="mx-auto h-12 w-12 text-slate-300" />
                         <h3 className="mt-2 text-sm font-semibold text-slate-900">No documents</h3>
-                        <p className="mt-1 text-sm text-slate-500">Get started by adding a link to this competition.</p>
+                        <p className="mt-1 text-sm text-slate-500">
+                            {canManage ? 'Get started by adding a link to this competition.' : 'No documents have been added yet.'}
+                        </p>
                     </div>
                 )}
             </div>

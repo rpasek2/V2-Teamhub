@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 interface StandardModalProps {
@@ -34,7 +34,7 @@ export function StandardModal({
         >
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black bg-opacity-50"
+                className="fixed inset-0 bg-slate-900/50"
                 onClick={onClose}
             />
 
@@ -44,7 +44,7 @@ export function StandardModal({
                 <div className="absolute top-4 right-4">
                     <button
                         type="button"
-                        className="rounded-md text-gray-400 hover:text-gray-500"
+                        className="rounded-md text-slate-400 hover:text-slate-500"
                         onClick={onClose}
                     >
                         <span className="sr-only">Close</span>
@@ -53,7 +53,7 @@ export function StandardModal({
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-medium text-gray-900 pr-8" id="modal-title">
+                <h3 className="text-lg font-medium text-slate-900 pr-8" id="modal-title">
                     {title}
                 </h3>
 

@@ -1,8 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Trash2, User } from 'lucide-react';
+import { MessageSquare, Trash2, User, Pin, MoreHorizontal, Heart, ThumbsUp, PartyPopper, PinOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { useHub } from '../../context/HubContext';
+import { PollDisplay, SignupDisplay, RsvpDisplay, ImageGallery, FileList } from './attachments';
+import type { Post, PostAttachment } from '../../types';
+
+type ReactionType = 'like' | 'heart' | 'celebrate';
 
 interface Comment {
     id: string;
@@ -15,37 +18,116 @@ interface Comment {
     };
 }
 
-interface Post {
-    id: string;
-    content: string;
-    image_url: string | null;
-    created_at: string;
-    user_id: string;
-    profiles?: {
-        full_name: string;
-        avatar_url: string | null;
-    };
-    comments?: Comment[];
-    _count?: {
-        comments: number;
-    };
-}
-
 interface PostCardProps {
     post: Post;
     onDelete: () => void;
+    onPinToggle?: (postId: string, isPinned: boolean) => void;
     currentUserId: string;
     isAdmin: boolean;
 }
 
-export function PostCard({ post, onDelete, currentUserId, isAdmin }: PostCardProps) {
+export function PostCard({ post, onDelete, onPinToggle, currentUserId, isAdmin }: PostCardProps) {
     const [showComments, setShowComments] = useState(false);
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState('');
-    const [loadingComments, setLoadingComments] = useState(false);
+    const [_loadingComments, setLoadingComments] = useState(false);
     const [submittingComment, setSubmittingComment] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
+    const [isPinned, setIsPinned] = useState(post.is_pinned);
+    const [reactions, setReactions] = useState<{ like: number; heart: number; celebrate: number }>({ like: 0, heart: 0, celebrate: 0 });
+    const [userReaction, setUserReaction] = useState<string | null>(null);
 
     const canDelete = isAdmin || post.user_id === currentUserId;
+    const canPin = isAdmin;
+
+    // Fetch reactions on mount
+    useEffect(() => {
+        fetchReactions();
+    }, [post.id]);
+
+    const fetchReactions = async () => {
+        try {
+            const { data, error } = await supabase
+                .from('post_reactions')
+                .select('reaction_type, user_id')
+                .eq('post_id', post.id);
+
+            if (error) throw error;
+
+            // Count reactions by type
+            const counts = { like: 0, heart: 0, celebrate: 0 };
+            let myReaction: string | null = null;
+
+            data?.forEach(r => {
+                counts[r.reaction_type as ReactionType]++;
+                if (r.user_id === currentUserId) {
+                    myReaction = r.reaction_type;
+                }
+            });
+
+            setReactions(counts);
+            setUserReaction(myReaction);
+        } catch (err) {
+            // Table might not exist yet - silently ignore
+        }
+    };
+
+    const handleReaction = async (type: ReactionType) => {
+        if (!currentUserId) return;
+
+        try {
+            if (userReaction === type) {
+                // Remove reaction
+                await supabase
+                    .from('post_reactions')
+                    .delete()
+                    .eq('post_id', post.id)
+                    .eq('user_id', currentUserId);
+
+                setReactions(prev => ({ ...prev, [type]: Math.max(0, prev[type] - 1) }));
+                setUserReaction(null);
+            } else {
+                if (userReaction) {
+                    // Update existing reaction
+                    await supabase
+                        .from('post_reactions')
+                        .update({ reaction_type: type })
+                        .eq('post_id', post.id)
+                        .eq('user_id', currentUserId);
+
+                    setReactions(prev => ({
+                        ...prev,
+                        [userReaction as ReactionType]: Math.max(0, prev[userReaction as ReactionType] - 1),
+                        [type]: prev[type] + 1
+                    }));
+                } else {
+                    // Add new reaction
+                    await supabase
+                        .from('post_reactions')
+                        .insert({
+                            post_id: post.id,
+                            user_id: currentUserId,
+                            reaction_type: type
+                        });
+
+                    setReactions(prev => ({ ...prev, [type]: prev[type] + 1 }));
+                }
+                setUserReaction(type);
+            }
+        } catch (err) {
+            console.error('Error handling reaction:', err);
+        }
+    };
+
+    // Parse attachments - handle both old and new format
+    const attachments: PostAttachment[] = Array.isArray(post.attachments) ? post.attachments : [];
+
+    // Support legacy image_url field
+    const legacyImageUrls = post.image_url ? [post.image_url] : [];
+    const imageAttachment = attachments.find(a => a.type === 'images');
+    const allImageUrls = imageAttachment?.type === 'images'
+        ? [...imageAttachment.urls, ...legacyImageUrls]
+        : legacyImageUrls;
 
     const fetchComments = async () => {
         if (showComments) {
@@ -131,119 +213,288 @@ export function PostCard({ post, onDelete, currentUserId, isAdmin }: PostCardPro
     };
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
-            <div className="p-4 sm:p-6">
-                <div className="flex space-x-3">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            {/* Header */}
+            <div className="px-5 pt-5">
+                <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                         {post.profiles?.avatar_url ? (
                             <img
-                                className="h-10 w-10 rounded-full"
+                                className="h-11 w-11 rounded-full ring-2 ring-white"
                                 src={post.profiles.avatar_url}
                                 alt=""
                             />
                         ) : (
-                            <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                                <User className="h-6 w-6 text-gray-400" />
+                            <div className="h-11 w-11 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center ring-2 ring-white">
+                                <span className="text-white font-semibold text-sm">
+                                    {post.profiles?.full_name?.charAt(0) || 'U'}
+                                </span>
                             </div>
                         )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900">
-                            {post.profiles?.full_name || 'Unknown User'}
-                        </p>
-                        <p className="text-sm text-gray-500">
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                            <p className="text-sm font-semibold text-slate-900">
+                                {post.profiles?.full_name || 'Unknown User'}
+                            </p>
+                            {isPinned && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 text-xs font-medium shadow-sm">
+                                    <Pin className="h-3 w-3" />
+                                    Pinned
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-xs text-slate-500">
                             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                         </p>
                     </div>
-                    {canDelete && (
-                        <div className="flex-shrink-0 self-center flex">
+                    {(canDelete || canPin) && (
+                        <div className="relative">
                             <button
-                                onClick={onDelete}
-                                className="-m-2 p-2 text-gray-400 hover:text-red-500"
+                                onClick={() => setShowMenu(!showMenu)}
+                                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                             >
-                                <span className="sr-only">Delete</span>
-                                <Trash2 className="h-5 w-5" />
+                                <MoreHorizontal className="h-5 w-5" />
                             </button>
-                        </div>
-                    )}
-                </div>
-                <div className="mt-4 text-sm text-gray-700 space-y-4">
-                    <p className="whitespace-pre-wrap">{post.content}</p>
-                    {post.image_url && (
-                        <div className="mt-2">
-                            <img
-                                src={post.image_url}
-                                alt="Post attachment"
-                                className="rounded-lg max-h-96 object-cover"
-                            />
+                            {showMenu && (
+                                <>
+                                    <div
+                                        className="fixed inset-0 z-10"
+                                        onClick={() => setShowMenu(false)}
+                                    />
+                                    <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-20">
+                                        {canPin && (
+                                            <button
+                                                onClick={async () => {
+                                                    setShowMenu(false);
+                                                    const newPinned = !isPinned;
+                                                    setIsPinned(newPinned);
+                                                    try {
+                                                        await supabase
+                                                            .from('posts')
+                                                            .update({ is_pinned: newPinned })
+                                                            .eq('id', post.id);
+                                                        if (onPinToggle) onPinToggle(post.id, newPinned);
+                                                    } catch (err) {
+                                                        setIsPinned(!newPinned);
+                                                        console.error('Error toggling pin:', err);
+                                                    }
+                                                }}
+                                                className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5"
+                                            >
+                                                {isPinned ? (
+                                                    <>
+                                                        <PinOff className="h-4 w-4 text-slate-500" />
+                                                        Unpin Post
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Pin className="h-4 w-4 text-amber-500" />
+                                                        Pin Post
+                                                    </>
+                                                )}
+                                            </button>
+                                        )}
+                                        {canDelete && (
+                                            <>
+                                                {canPin && <div className="my-1 border-t border-slate-100" />}
+                                                <button
+                                                    onClick={() => {
+                                                        setShowMenu(false);
+                                                        onDelete();
+                                                    }}
+                                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Delete Post
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
                 </div>
             </div>
-            <div className="bg-gray-50 px-4 py-3 sm:px-6">
-                <div className="flex items-center space-x-4">
+
+            {/* Content */}
+            <div className="px-5 py-4 space-y-4">
+                {/* Text content */}
+                <p className="text-slate-800 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+
+                {/* Image Gallery */}
+                {allImageUrls.length > 0 && (
+                    <ImageGallery urls={allImageUrls} />
+                )}
+
+                {/* Files */}
+                {attachments.filter(a => a.type === 'files').map((attachment, idx) => (
+                    attachment.type === 'files' && (
+                        <FileList key={idx} files={attachment.files} />
+                    )
+                ))}
+
+                {/* Poll */}
+                {attachments.filter(a => a.type === 'poll').map((attachment, idx) => (
+                    attachment.type === 'poll' && (
+                        <PollDisplay
+                            key={idx}
+                            postId={post.id}
+                            question={attachment.question}
+                            options={attachment.options}
+                            settings={attachment.settings}
+                        />
+                    )
+                ))}
+
+                {/* Sign-Up */}
+                {attachments.filter(a => a.type === 'signup').map((attachment, idx) => (
+                    attachment.type === 'signup' && (
+                        <SignupDisplay
+                            key={idx}
+                            postId={post.id}
+                            title={attachment.title}
+                            description={attachment.description}
+                            slots={attachment.slots}
+                            settings={attachment.settings}
+                        />
+                    )
+                ))}
+
+                {/* RSVP */}
+                {attachments.filter(a => a.type === 'rsvp').map((attachment, idx) => (
+                    attachment.type === 'rsvp' && (
+                        <RsvpDisplay
+                            key={idx}
+                            postId={post.id}
+                            title={attachment.title}
+                            date={attachment.date}
+                            time={attachment.time}
+                            location={attachment.location}
+                        />
+                    )
+                ))}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 bg-gradient-to-b from-slate-50/80 to-slate-100/50 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                    {/* Reactions */}
+                    <div className="flex items-center gap-0.5">
+                        <button
+                            onClick={() => handleReaction('like')}
+                            className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
+                                userReaction === 'like'
+                                    ? 'bg-blue-100 text-blue-600 shadow-sm'
+                                    : 'hover:bg-slate-100 text-slate-400 hover:text-blue-600'
+                            }`}
+                            title="Like"
+                        >
+                            <ThumbsUp className={`h-[18px] w-[18px] transition-transform group-hover:scale-110 ${userReaction === 'like' ? 'fill-current' : ''}`} />
+                            {reactions.like > 0 && <span className="text-xs font-semibold">{reactions.like}</span>}
+                        </button>
+                        <button
+                            onClick={() => handleReaction('heart')}
+                            className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
+                                userReaction === 'heart'
+                                    ? 'bg-pink-100 text-pink-500 shadow-sm'
+                                    : 'hover:bg-slate-100 text-slate-400 hover:text-pink-500'
+                            }`}
+                            title="Love"
+                        >
+                            <Heart className={`h-[18px] w-[18px] transition-transform group-hover:scale-110 ${userReaction === 'heart' ? 'fill-current' : ''}`} />
+                            {reactions.heart > 0 && <span className="text-xs font-semibold">{reactions.heart}</span>}
+                        </button>
+                        <button
+                            onClick={() => handleReaction('celebrate')}
+                            className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
+                                userReaction === 'celebrate'
+                                    ? 'bg-amber-100 text-amber-600 shadow-sm'
+                                    : 'hover:bg-slate-100 text-slate-400 hover:text-amber-600'
+                            }`}
+                            title="Celebrate"
+                        >
+                            <PartyPopper className={`h-[18px] w-[18px] transition-transform group-hover:scale-110`} />
+                            {reactions.celebrate > 0 && <span className="text-xs font-semibold">{reactions.celebrate}</span>}
+                        </button>
+                    </div>
+
+                    {/* Comments button */}
                     <button
                         onClick={fetchComments}
-                        className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all ${
+                            showComments
+                                ? 'bg-brand-100 text-brand-600 shadow-sm'
+                                : 'text-slate-500 hover:bg-slate-100 hover:text-brand-600'
+                        }`}
                     >
-                        <MessageSquare className="mr-1.5 h-4 w-4" />
-                        {post._count?.comments || 0} Comments
+                        <MessageSquare className="h-[18px] w-[18px]" />
+                        <span className="font-medium">{post._count?.comments || 0}</span>
                     </button>
                 </div>
             </div>
 
+            {/* Comments Section */}
             {showComments && (
-                <div className="bg-gray-50 px-4 pb-4 sm:px-6 border-t border-gray-200">
-                    <div className="space-y-4 mt-4">
-                        {comments.map((comment) => (
-                            <div key={comment.id} className="flex space-x-3">
-                                <div className="flex-shrink-0">
-                                    {comment.profiles?.avatar_url ? (
-                                        <img
-                                            className="h-6 w-6 rounded-full"
-                                            src={comment.profiles.avatar_url}
-                                            alt=""
-                                        />
-                                    ) : (
-                                        <div className="h-6 w-6 rounded-full bg-gray-200 flex items-center justify-center">
-                                            <User className="h-4 w-4 text-gray-400" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex-1 bg-white rounded-lg px-4 py-2 shadow-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-xs font-medium text-gray-900">
-                                            {comment.profiles?.full_name}
-                                        </span>
-                                        <span className="text-xs text-gray-500">
-                                            {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                                        </span>
+                <div className="px-5 pb-5 border-t border-slate-100">
+                    <div className="space-y-4 pt-4">
+                        {comments.length === 0 ? (
+                            <p className="text-sm text-slate-500 text-center py-2">No comments yet. Be the first!</p>
+                        ) : (
+                            comments.map((comment) => (
+                                <div key={comment.id} className="flex gap-3">
+                                    <div className="flex-shrink-0">
+                                        {comment.profiles?.avatar_url ? (
+                                            <img
+                                                className="h-8 w-8 rounded-full"
+                                                src={comment.profiles.avatar_url}
+                                                alt=""
+                                            />
+                                        ) : (
+                                            <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
+                                                <User className="h-4 w-4 text-slate-500" />
+                                            </div>
+                                        )}
                                     </div>
-                                    <p className="text-sm text-gray-700 mt-1">{comment.content}</p>
-                                    {(isAdmin || comment.user_id === currentUserId) && (
-                                        <button
-                                            onClick={() => handleDeleteComment(comment.id)}
-                                            className="text-xs text-red-400 hover:text-red-600 mt-1"
-                                        >
-                                            Delete
-                                        </button>
-                                    )}
+                                    <div className="flex-1">
+                                        <div className="bg-slate-100 rounded-2xl px-4 py-2.5">
+                                            <div className="flex items-center justify-between gap-2">
+                                                <span className="text-xs font-semibold text-slate-900">
+                                                    {comment.profiles?.full_name || 'Unknown'}
+                                                </span>
+                                                <span className="text-xs text-slate-400">
+                                                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                                                </span>
+                                            </div>
+                                            <p className="text-sm text-slate-700 mt-0.5">{comment.content}</p>
+                                        </div>
+                                        {(isAdmin || comment.user_id === currentUserId) && (
+                                            <button
+                                                onClick={() => handleDeleteComment(comment.id)}
+                                                className="text-xs text-slate-400 hover:text-red-500 mt-1 ml-4"
+                                            >
+                                                Delete
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            ))
+                        )}
 
-                        <form onSubmit={handleAddComment} className="mt-4 flex gap-2">
+                        {/* Add Comment Form */}
+                        <form onSubmit={handleAddComment} className="flex gap-3 pt-2">
                             <input
                                 type="text"
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 placeholder="Write a comment..."
-                                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+                                className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
                             />
                             <button
                                 type="submit"
                                 disabled={submittingComment || !newComment.trim()}
-                                className="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50"
+                                className="px-5 py-2 rounded-full bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                             >
                                 Post
                             </button>

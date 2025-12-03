@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
-import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare } from 'lucide-react';
-import type { HubPermissions, RolePermissions, PermissionScope } from '../types';
+import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, LayoutGrid } from 'lucide-react';
+import type { HubPermissions, RolePermissions, PermissionScope, HubInvite, HubRole, HubFeatureTab } from '../types';
+import { HUB_FEATURE_TABS } from '../types';
+import { LinkedHubsSettings } from '../components/marketplace/LinkedHubsSettings';
 
-const FEATURES = ['roster', 'calendar', 'competitions', 'groups'] as const;
+const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'marketplace', 'groups'] as const;
 const ROLES = ['admin', 'coach', 'parent'] as const;
 
 interface HubChannel {
@@ -33,6 +35,23 @@ export function Settings() {
     const [addingChannel, setAddingChannel] = useState(false);
     const [channelsMessage, setChannelsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+    // Invite codes state
+    const [invites, setInvites] = useState<HubInvite[]>([]);
+    const [loadingInvites, setLoadingInvites] = useState(false);
+    const [creatingInvite, setCreatingInvite] = useState(false);
+    const [newInviteRole, setNewInviteRole] = useState<HubRole>('parent');
+    const [newInviteMaxUses, setNewInviteMaxUses] = useState<string>('');
+    const [copiedCode, setCopiedCode] = useState<string | null>(null);
+    const [invitesMessage, setInvitesMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    // Owner info state
+    const [ownerInfo, setOwnerInfo] = useState<{ name: string; organization: string | null } | null>(null);
+
+    // Enabled tabs state
+    const [enabledTabs, setEnabledTabs] = useState<Set<HubFeatureTab>>(new Set(HUB_FEATURE_TABS.map(t => t.id)));
+    const [savingTabs, setSavingTabs] = useState(false);
+    const [tabsMessage, setTabsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
     useEffect(() => {
         if (hub?.settings?.permissions) {
             setPermissions(hub.settings.permissions);
@@ -56,11 +75,49 @@ export function Settings() {
             setLevels([]);
         }
 
-        // Load channels
+        // Load enabled tabs
+        if (hub?.settings?.enabledTabs) {
+            setEnabledTabs(new Set(hub.settings.enabledTabs));
+        } else {
+            // Default: all tabs enabled
+            setEnabledTabs(new Set(HUB_FEATURE_TABS.map(t => t.id)));
+        }
+
+        // Load channels, invites, and owner info
         if (hub) {
             fetchChannels();
+            fetchInvites();
+            fetchOwnerInfo();
         }
     }, [hub]);
+
+    const fetchOwnerInfo = async () => {
+        if (!hub) return;
+
+        const { data, error } = await supabase
+            .from('hub_members')
+            .select(`
+                user:profiles (
+                    full_name,
+                    organization
+                )
+            `)
+            .eq('hub_id', hub.id)
+            .eq('role', 'owner')
+            .single();
+
+        if (error) {
+            console.error('Error fetching owner info:', error);
+            return;
+        }
+
+        if (data?.user) {
+            setOwnerInfo({
+                name: (data.user as any).full_name,
+                organization: (data.user as any).organization
+            });
+        }
+    };
 
     const fetchChannels = async () => {
         if (!hub) return;
@@ -80,6 +137,128 @@ export function Settings() {
             setChannels(data || []);
         }
         setLoadingChannels(false);
+    };
+
+    const fetchInvites = async () => {
+        if (!hub) return;
+        setLoadingInvites(true);
+
+        const { data, error } = await supabase
+            .from('hub_invites')
+            .select('*, profiles:created_by(full_name)')
+            .eq('hub_id', hub.id)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching invites:', error);
+        } else {
+            setInvites(data || []);
+        }
+        setLoadingInvites(false);
+    };
+
+    const generateInviteCode = () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing characters like 0, O, I, 1
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+    };
+
+    const handleCreateInvite = async () => {
+        if (!hub) return;
+        setCreatingInvite(true);
+        setInvitesMessage(null);
+
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) throw new Error('Not authenticated');
+
+            const code = generateInviteCode();
+            const maxUses = newInviteMaxUses ? parseInt(newInviteMaxUses) : null;
+
+            const { error } = await supabase
+                .from('hub_invites')
+                .insert([{
+                    hub_id: hub.id,
+                    code,
+                    role: newInviteRole,
+                    created_by: user.id,
+                    max_uses: maxUses,
+                    uses: 0,
+                    is_active: true
+                }]);
+
+            if (error) throw error;
+
+            setNewInviteMaxUses('');
+            await fetchInvites();
+            setInvitesMessage({ type: 'success', text: `Invite code created: ${code}` });
+        } catch (err: unknown) {
+            console.error('Error creating invite:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to create invite.';
+            setInvitesMessage({ type: 'error', text: errorMessage });
+        } finally {
+            setCreatingInvite(false);
+        }
+    };
+
+    const handleCopyCode = async (code: string) => {
+        try {
+            await navigator.clipboard.writeText(code);
+            setCopiedCode(code);
+            setTimeout(() => setCopiedCode(null), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
+
+    const handleToggleInvite = async (inviteId: string, currentActive: boolean) => {
+        try {
+            const { error } = await supabase
+                .from('hub_invites')
+                .update({ is_active: !currentActive })
+                .eq('id', inviteId);
+
+            if (error) throw error;
+            await fetchInvites();
+        } catch (err) {
+            console.error('Error toggling invite:', err);
+        }
+    };
+
+    const handleDeleteInvite = async (inviteId: string, code: string) => {
+        if (!confirm(`Are you sure you want to delete invite code ${code}?`)) {
+            return;
+        }
+
+        try {
+            const { error } = await supabase
+                .from('hub_invites')
+                .delete()
+                .eq('id', inviteId);
+
+            if (error) throw error;
+            await fetchInvites();
+            setInvitesMessage({ type: 'success', text: 'Invite deleted successfully.' });
+        } catch (err: unknown) {
+            console.error('Error deleting invite:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Failed to delete invite.';
+            setInvitesMessage({ type: 'error', text: errorMessage });
+        }
+    };
+
+    const getRoleColor = (role: HubRole) => {
+        const colors: Record<HubRole, string> = {
+            owner: 'bg-purple-100 text-purple-700',
+            director: 'bg-indigo-100 text-indigo-700',
+            admin: 'bg-blue-100 text-blue-700',
+            coach: 'bg-green-100 text-green-700',
+            parent: 'bg-amber-100 text-amber-700',
+            gymnast: 'bg-pink-100 text-pink-700'
+        };
+        return colors[role] || 'bg-slate-100 text-slate-700';
     };
 
     const handleAddChannel = async () => {
@@ -224,6 +403,49 @@ export function Settings() {
 
     const canManagePermissions = currentRole === 'owner' || currentRole === 'director';
 
+    const handleToggleTab = (tabId: HubFeatureTab) => {
+        setEnabledTabs(prev => {
+            const newSet = new Set(prev);
+            if (newSet.has(tabId)) {
+                // Don't allow disabling all tabs - keep at least one
+                if (newSet.size > 1) {
+                    newSet.delete(tabId);
+                }
+            } else {
+                newSet.add(tabId);
+            }
+            return newSet;
+        });
+    };
+
+    const handleSaveTabs = async () => {
+        if (!hub) return;
+        setSavingTabs(true);
+        setTabsMessage(null);
+
+        try {
+            const updatedSettings = {
+                ...hub.settings,
+                enabledTabs: Array.from(enabledTabs) as HubFeatureTab[]
+            };
+
+            const { error } = await supabase
+                .from('hubs')
+                .update({ settings: updatedSettings })
+                .eq('id', hub.id);
+
+            if (error) throw error;
+
+            await refreshHub();
+            setTabsMessage({ type: 'success', text: 'Feature tabs saved successfully.' });
+        } catch (err: unknown) {
+            console.error('Error saving feature tabs:', err);
+            setTabsMessage({ type: 'error', text: 'Failed to save feature tabs.' });
+        } finally {
+            setSavingTabs(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div>
@@ -240,10 +462,239 @@ export function Settings() {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700">Hub ID</label>
-                        <div className="mt-1 text-sm text-slate-900">{hub?.id}</div>
+                        <div className="mt-1 text-sm text-slate-500 font-mono text-xs">{hub?.id}</div>
                     </div>
+                    {ownerInfo && (
+                        <>
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700">Owner</label>
+                                <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-900">
+                                    <User className="h-4 w-4 text-slate-400" />
+                                    {ownerInfo.name}
+                                </div>
+                            </div>
+                            {ownerInfo.organization && (
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700">Organization</label>
+                                    <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-900">
+                                        <Building2 className="h-4 w-4 text-slate-400" />
+                                        {ownerInfo.organization}
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
             </div>
+
+            {/* Feature Tabs Section */}
+            {canManagePermissions && (
+                <div className="bg-white shadow rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                            <LayoutGrid className="h-5 w-5 text-brand-600 mr-2" />
+                            <h2 className="text-lg font-medium text-slate-900">Feature Tabs</h2>
+                        </div>
+                        <button
+                            onClick={handleSaveTabs}
+                            disabled={savingTabs}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50"
+                        >
+                            {savingTabs ? (
+                                <>
+                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                                    Saving...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="-ml-1 mr-2 h-4 w-4" />
+                                    Save Tabs
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    <p className="text-sm text-slate-600 mb-4">
+                        Choose which features are available in your hub. Disabled tabs will be hidden from the sidebar for all members.
+                    </p>
+
+                    {tabsMessage && (
+                        <div className={`mb-4 p-4 rounded-md ${tabsMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                            {tabsMessage.text}
+                        </div>
+                    )}
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        {HUB_FEATURE_TABS.map((tab) => {
+                            const isEnabled = enabledTabs.has(tab.id);
+                            const isLastEnabled = isEnabled && enabledTabs.size === 1;
+
+                            return (
+                                <button
+                                    key={tab.id}
+                                    type="button"
+                                    onClick={() => handleToggleTab(tab.id)}
+                                    disabled={isLastEnabled}
+                                    className={`flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-all ${
+                                        isEnabled
+                                            ? 'border-brand-500 bg-brand-50'
+                                            : 'border-slate-200 bg-slate-50 opacity-60'
+                                    } ${isLastEnabled ? 'cursor-not-allowed' : 'hover:border-brand-300'}`}
+                                    title={isLastEnabled ? 'At least one tab must be enabled' : undefined}
+                                >
+                                    <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
+                                        isEnabled
+                                            ? 'bg-brand-600 border-brand-600'
+                                            : 'border-slate-300 bg-white'
+                                    }`}>
+                                        {isEnabled && (
+                                            <Check className="h-3.5 w-3.5 text-white" />
+                                        )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-sm font-medium ${isEnabled ? 'text-slate-900' : 'text-slate-500'}`}>
+                                            {tab.label}
+                                        </p>
+                                        <p className="text-xs text-slate-500 mt-0.5">
+                                            {tab.description}
+                                        </p>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
+            {/* Invite Codes Section */}
+            {canManagePermissions && (
+                <div className="bg-white shadow rounded-lg p-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center">
+                            <UserPlus className="h-5 w-5 text-brand-600 mr-2" />
+                            <h2 className="text-lg font-medium text-slate-900">Invite Codes</h2>
+                        </div>
+                    </div>
+
+                    <p className="text-sm text-slate-600 mb-4">
+                        Create invite codes to allow new members to join your hub. Each code can be assigned a specific role.
+                    </p>
+
+                    {invitesMessage && (
+                        <div className={`mb-4 p-4 rounded-md ${invitesMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                            {invitesMessage.text}
+                        </div>
+                    )}
+
+                    {/* Create new invite */}
+                    <div className="flex flex-wrap gap-2 mb-4 items-end">
+                        <div className="flex-1 min-w-[150px]">
+                            <label className="block text-xs font-medium text-slate-600 mb-1">Role</label>
+                            <select
+                                value={newInviteRole}
+                                onChange={(e) => setNewInviteRole(e.target.value as HubRole)}
+                                className="w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+                            >
+                                <option value="coach">Coach</option>
+                                <option value="parent">Parent</option>
+                                <option value="gymnast">Gymnast</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                        <div className="w-32">
+                            <label className="block text-xs font-medium text-slate-600 mb-1">Max Uses</label>
+                            <input
+                                type="number"
+                                min="1"
+                                value={newInviteMaxUses}
+                                onChange={(e) => setNewInviteMaxUses(e.target.value)}
+                                placeholder="Unlimited"
+                                className="w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleCreateInvite}
+                            disabled={creatingInvite}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50"
+                        >
+                            {creatingInvite ? (
+                                <Loader2 className="animate-spin h-4 w-4" />
+                            ) : (
+                                <>
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Create Invite
+                                </>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Invites list */}
+                    {loadingInvites ? (
+                        <div className="text-center py-6">
+                            <Loader2 className="animate-spin h-6 w-6 text-slate-400 mx-auto" />
+                        </div>
+                    ) : invites.length === 0 ? (
+                        <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+                            <Link className="mx-auto h-8 w-8 text-slate-400" />
+                            <p className="mt-2 text-sm text-slate-500">No invite codes yet.</p>
+                            <p className="text-xs text-slate-400">Create an invite code above to get started.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {invites.map((invite) => (
+                                <div
+                                    key={invite.id}
+                                    className={`flex items-center justify-between rounded-lg px-4 py-3 border ${invite.is_active ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <code className="text-lg font-mono font-bold text-slate-900 tracking-wider">
+                                                {invite.code}
+                                            </code>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCopyCode(invite.code)}
+                                                className="p-1 text-slate-400 hover:text-brand-600 transition-colors"
+                                                title="Copy code"
+                                            >
+                                                {copiedCode === invite.code ? (
+                                                    <Check className="h-4 w-4 text-green-500" />
+                                                ) : (
+                                                    <Copy className="h-4 w-4" />
+                                                )}
+                                            </button>
+                                        </div>
+                                        <span className={`px-2 py-0.5 text-xs font-medium rounded-full capitalize ${getRoleColor(invite.role)}`}>
+                                            {invite.role}
+                                        </span>
+                                        <span className="text-xs text-slate-500">
+                                            {invite.max_uses ? `${invite.uses}/${invite.max_uses} uses` : `${invite.uses} uses`}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleToggleInvite(invite.id, invite.is_active)}
+                                            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${invite.is_active ? 'bg-green-100 text-green-700 hover:bg-green-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                        >
+                                            {invite.is_active ? 'Active' : 'Inactive'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleDeleteInvite(invite.id, invite.code)}
+                                            className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                                            title="Delete invite"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {canManagePermissions && (
                 <div className="bg-white shadow rounded-lg p-6">
@@ -447,6 +898,9 @@ export function Settings() {
                     )}
                 </div>
             )}
+
+            {/* Linked Marketplaces - Only visible to hub owners */}
+            <LinkedHubsSettings />
 
             {canManagePermissions && (
                 <div className="bg-white shadow rounded-lg p-6">

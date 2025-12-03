@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Loader2, User, Users as UsersIcon, Heart, AlertCircle } from 'lucide-react';
+import { Loader2, User, Users as UsersIcon, Heart, AlertCircle, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
-import type { Guardian, MedicalInfo } from '../../types';
+import { ReportInjuryModal } from './ReportInjuryModal';
+import { format, parseISO } from 'date-fns';
+import type { Guardian, MedicalInfo, InjuryReport } from '../../types';
 
 interface GymnastProfileFormProps {
     userId: string;
@@ -15,6 +17,10 @@ export function GymnastProfileForm({ userId, onSaved }: GymnastProfileFormProps)
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [profileId, setProfileId] = useState<string | null>(null);
+    const [isReportInjuryOpen, setIsReportInjuryOpen] = useState(false);
+    const [injuryReports, setInjuryReports] = useState<InjuryReport[]>([]);
+    const [showInjuryHistory, setShowInjuryHistory] = useState(false);
 
     // Basic Info
     const [firstName, setFirstName] = useState('');
@@ -64,6 +70,7 @@ export function GymnastProfileForm({ userId, onSaved }: GymnastProfileFormProps)
             if (error && error.code !== 'PGRST116') throw error;
 
             if (data) {
+                setProfileId(data.id);
                 setFirstName(data.first_name || '');
                 setLastName(data.last_name || '');
                 setDateOfBirth(data.date_of_birth || '');
@@ -96,6 +103,7 @@ export function GymnastProfileForm({ userId, onSaved }: GymnastProfileFormProps)
                     setMedications(medical.medications || '');
                     setConditions(medical.conditions || '');
                     setNotes(medical.notes || '');
+                    setInjuryReports(medical.injury_reports || []);
                 }
             }
         } catch (err) {
@@ -122,8 +130,8 @@ export function GymnastProfileForm({ userId, onSaved }: GymnastProfileFormProps)
                 ? { first_name: g2FirstName, last_name: g2LastName, email: g2Email, phone: g2Phone }
                 : null;
 
-            const medicalInfo: MedicalInfo | null = allergies || medications || conditions || notes
-                ? { allergies, medications, conditions, notes }
+            const medicalInfo: MedicalInfo | null = allergies || medications || conditions || notes || injuryReports.length > 0
+                ? { allergies, medications, conditions, notes, injury_reports: injuryReports }
                 : null;
 
             const profileData = {
@@ -225,7 +233,6 @@ export function GymnastProfileForm({ userId, onSaved }: GymnastProfileFormProps)
                             <option value="">Select...</option>
                             <option value="Female">Female</option>
                             <option value="Male">Male</option>
-                            <option value="Other">Other</option>
                         </select>
                     </div>
 
@@ -459,6 +466,120 @@ export function GymnastProfileForm({ userId, onSaved }: GymnastProfileFormProps)
                 </div>
             </div>
 
+            {/* Injury Reports */}
+            <div className="bg-white rounded-lg border border-slate-200 p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                        <h3 className="text-lg font-medium text-slate-900">Injury Reports</h3>
+                        {injuryReports.length > 0 && (
+                            <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                                {injuryReports.length}
+                            </span>
+                        )}
+                    </div>
+                    {profileId && (
+                        <button
+                            type="button"
+                            onClick={() => setIsReportInjuryOpen(true)}
+                            className="inline-flex items-center rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700"
+                        >
+                            <AlertTriangle className="mr-1.5 h-4 w-4" />
+                            Report Injury
+                        </button>
+                    )}
+                </div>
+
+                {injuryReports.length === 0 ? (
+                    <p className="text-sm text-slate-500">No injury reports on file.</p>
+                ) : (
+                    <div className="space-y-3">
+                        {/* Toggle to show/hide history */}
+                        <button
+                            type="button"
+                            onClick={() => setShowInjuryHistory(!showInjuryHistory)}
+                            className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900"
+                        >
+                            {showInjuryHistory ? (
+                                <ChevronDown className="h-4 w-4" />
+                            ) : (
+                                <ChevronRight className="h-4 w-4" />
+                            )}
+                            {showInjuryHistory ? 'Hide' : 'Show'} Injury History ({injuryReports.length})
+                        </button>
+
+                        {showInjuryHistory && (
+                            <div className="space-y-3">
+                                {injuryReports
+                                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                                    .map((report) => (
+                                        <div
+                                            key={report.id}
+                                            className={`rounded-lg border p-4 ${
+                                                report.status === 'active'
+                                                    ? 'border-red-200 bg-red-50'
+                                                    : report.status === 'recovering'
+                                                    ? 'border-amber-200 bg-amber-50'
+                                                    : 'border-green-200 bg-green-50'
+                                            }`}
+                                        >
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className="text-sm font-semibold text-slate-900">
+                                                            {format(parseISO(report.date), 'MMM d, yyyy')} at {report.time}
+                                                        </span>
+                                                        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                                            report.status === 'active'
+                                                                ? 'bg-red-200 text-red-800'
+                                                                : report.status === 'recovering'
+                                                                ? 'bg-amber-200 text-amber-800'
+                                                                : 'bg-green-200 text-green-800'
+                                                        }`}>
+                                                            {report.status.charAt(0).toUpperCase() + report.status.slice(1)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-3 text-xs text-slate-600 mb-2">
+                                                        <span className="capitalize">{report.location}</span>
+                                                        {report.location_details && (
+                                                            <span>• {report.location_details}</span>
+                                                        )}
+                                                        {report.body_part && (
+                                                            <span>• {report.body_part}</span>
+                                                        )}
+                                                        {report.severity && (
+                                                            <span className={`font-medium ${
+                                                                report.severity === 'severe'
+                                                                    ? 'text-red-700'
+                                                                    : report.severity === 'moderate'
+                                                                    ? 'text-amber-700'
+                                                                    : 'text-slate-600'
+                                                            }`}>
+                                                                • {report.severity.charAt(0).toUpperCase() + report.severity.slice(1)}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-slate-700 mb-2">
+                                                        <span className="font-medium">Description:</span> {report.description}
+                                                    </p>
+                                                    <p className="text-sm text-slate-700">
+                                                        <span className="font-medium">Response:</span> {report.response}
+                                                    </p>
+                                                    {report.follow_up && (
+                                                        <p className="text-sm text-slate-700 mt-1">
+                                                            <span className="font-medium">Follow-up:</span> {report.follow_up}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
             {/* Error/Success Messages */}
             {error && (
                 <div className="rounded-md bg-red-50 p-4 flex items-start">
@@ -484,6 +605,18 @@ export function GymnastProfileForm({ userId, onSaved }: GymnastProfileFormProps)
                     Save Profile
                 </button>
             </div>
+
+            {/* Report Injury Modal */}
+            {profileId && (
+                <ReportInjuryModal
+                    isOpen={isReportInjuryOpen}
+                    onClose={() => setIsReportInjuryOpen(false)}
+                    gymnastProfileId={profileId}
+                    gymnastName={`${firstName} ${lastName}`}
+                    currentMedicalInfo={{ allergies, medications, conditions, notes, injury_reports: injuryReports }}
+                    onReportSaved={fetchProfile}
+                />
+            )}
         </form>
     );
 }

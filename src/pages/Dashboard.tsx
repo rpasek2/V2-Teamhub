@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Users, CalendarDays, MessageCircle, Trophy, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText } from 'lucide-react';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
-import { format, isAfter, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 interface DashboardStats {
     totalMembers: number;
@@ -22,26 +23,32 @@ interface UpcomingEvent {
 
 interface RecentActivity {
     id: string;
-    type: 'post' | 'event' | 'member';
+    type: 'post' | 'event' | 'member' | 'competition';
     description: string;
     timestamp: string;
+    link?: string;
+    groupName?: string;
+    content?: string;
 }
 
 export function Dashboard() {
-    const { hub, loading } = useHub();
+    const { hub, loading, user, currentRole } = useHub();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
     const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
     const [loadingStats, setLoadingStats] = useState(true);
 
+    // Staff roles can see all activity
+    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+
     useEffect(() => {
-        if (hub) {
+        if (hub && user) {
             fetchDashboardData();
         }
-    }, [hub]);
+    }, [hub, user]);
 
     const fetchDashboardData = async () => {
-        if (!hub) return;
+        if (!hub || !user) return;
         setLoadingStats(true);
 
         try {
@@ -57,7 +64,7 @@ export function Dashboard() {
                 .select('*', { count: 'exact', head: true })
                 .eq('hub_id', hub.id);
 
-            // Fetch upcoming events (next 7 days)
+            // Fetch upcoming events
             const now = new Date().toISOString();
             const { data: eventsData, count: eventsCount } = await supabase
                 .from('events')
@@ -76,42 +83,143 @@ export function Dashboard() {
                 .order('start_date', { ascending: true })
                 .limit(5);
 
-            // Fetch recent posts for activity feed
-            const { data: recentPosts } = await supabase
-                .from('posts')
-                .select(`
-                    id,
-                    content,
-                    created_at,
-                    profiles:user_id (full_name)
-                `)
-                .eq('group_id', hub.id) // This won't work for group posts, but catches hub-level if any
-                .order('created_at', { ascending: false })
-                .limit(5);
+            // Build activity feed from multiple sources
+            const activities: RecentActivity[] = [];
 
-            // Build activity feed from recent events created
+            // 1. Fetch recent events created
             const { data: recentEvents } = await supabase
                 .from('events')
                 .select('id, title, created_at')
                 .eq('hub_id', hub.id)
                 .order('created_at', { ascending: false })
-                .limit(3);
-
-            // Build activity feed
-            const activities: RecentActivity[] = [];
+                .limit(5);
 
             if (recentEvents) {
                 recentEvents.forEach(event => {
                     activities.push({
                         id: `event-${event.id}`,
                         type: 'event',
-                        description: `New event created: ${event.title}`,
-                        timestamp: event.created_at
+                        description: `New event: ${event.title}`,
+                        timestamp: event.created_at,
+                        link: `calendar?event=${event.id}`
                     });
                 });
             }
 
-            // Sort activities by timestamp
+            // 2. Fetch recent competitions created
+            const { data: recentCompetitions } = await supabase
+                .from('competitions')
+                .select('id, name, created_at')
+                .eq('hub_id', hub.id)
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            if (recentCompetitions) {
+                recentCompetitions.forEach(comp => {
+                    activities.push({
+                        id: `comp-${comp.id}`,
+                        type: 'competition',
+                        description: `New competition: ${comp.name}`,
+                        timestamp: comp.created_at,
+                        link: `competitions/${comp.id}`
+                    });
+                });
+            }
+
+            // 3. Fetch groups the user has access to
+            let accessibleGroupIds: string[] = [];
+
+            if (isStaff) {
+                // Staff can see all groups
+                const { data: allGroups } = await supabase
+                    .from('groups')
+                    .select('id')
+                    .eq('hub_id', hub.id);
+                accessibleGroupIds = allGroups?.map(g => g.id) || [];
+            } else {
+                // Non-staff: only groups they're a member of or public groups
+                const { data: memberGroups } = await supabase
+                    .from('group_members')
+                    .select('group_id')
+                    .eq('user_id', user.id);
+
+                const { data: publicGroups } = await supabase
+                    .from('groups')
+                    .select('id')
+                    .eq('hub_id', hub.id)
+                    .eq('type', 'public');
+
+                const memberGroupIds = memberGroups?.map(g => g.group_id) || [];
+                const publicGroupIds = publicGroups?.map(g => g.id) || [];
+                accessibleGroupIds = [...new Set([...memberGroupIds, ...publicGroupIds])];
+            }
+
+            // 4. Fetch recent posts from accessible groups
+            if (accessibleGroupIds.length > 0) {
+                const { data: recentPosts } = await supabase
+                    .from('posts')
+                    .select(`
+                        id,
+                        content,
+                        created_at,
+                        group_id,
+                        profiles:user_id (full_name),
+                        groups:group_id (name)
+                    `)
+                    .in('group_id', accessibleGroupIds)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (recentPosts) {
+                    recentPosts.forEach((post: any) => {
+                        const authorName = post.profiles?.full_name || 'Someone';
+                        const groupName = post.groups?.name || 'a group';
+                        const contentPreview = post.content?.length > 80
+                            ? post.content.substring(0, 80) + '...'
+                            : post.content || '';
+
+                        activities.push({
+                            id: `post-${post.id}`,
+                            type: 'post',
+                            description: `${authorName} in ${groupName}`,
+                            timestamp: post.created_at,
+                            link: `groups/${post.group_id}?post=${post.id}`,
+                            groupName,
+                            content: contentPreview
+                        });
+                    });
+                }
+            }
+
+            // 5. Fetch recent new members (staff only)
+            if (isStaff) {
+                const { data: recentMembers } = await supabase
+                    .from('hub_members')
+                    .select(`
+                        user_id,
+                        created_at,
+                        role,
+                        profiles:user_id (full_name)
+                    `)
+                    .eq('hub_id', hub.id)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (recentMembers) {
+                    recentMembers.forEach((member: any) => {
+                        const memberName = member.profiles?.full_name || 'A new member';
+                        activities.push({
+                            id: `member-${member.user_id}`,
+                            type: 'member',
+                            description: `${memberName} joined as ${member.role}`,
+                            timestamp: member.created_at,
+                            link: 'roster'
+                        });
+                    });
+                }
+            }
+
+            // Sort activities by timestamp and take top 8
             activities.sort((a, b) =>
                 new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
             );
@@ -126,7 +234,7 @@ export function Dashboard() {
             });
 
             setUpcomingEvents(eventsData || []);
-            setRecentActivity(activities.slice(0, 5));
+            setRecentActivity(activities.slice(0, 8));
 
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -212,21 +320,52 @@ export function Dashboard() {
                         ) : recentActivity.length === 0 ? (
                             <p className="text-sm text-slate-500">No recent activity to show.</p>
                         ) : (
-                            <ul className="space-y-3">
-                                {recentActivity.map((activity) => (
-                                    <li key={activity.id} className="flex items-start gap-3">
-                                        <div className={`mt-1 h-2 w-2 rounded-full ${
-                                            activity.type === 'event' ? 'bg-blue-500' :
-                                            activity.type === 'post' ? 'bg-green-500' : 'bg-slate-400'
-                                        }`} />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm text-slate-700 truncate">{activity.description}</p>
-                                            <p className="text-xs text-slate-400">
-                                                {format(parseISO(activity.timestamp), 'MMM d, h:mma')}
-                                            </p>
+                            <ul className="space-y-2">
+                                {recentActivity.map((activity) => {
+                                    const ActivityIcon = activity.type === 'event' ? Calendar :
+                                        activity.type === 'post' ? MessageSquare :
+                                        activity.type === 'competition' ? Trophy :
+                                        activity.type === 'member' ? UserPlus : FileText;
+
+                                    const iconBg = activity.type === 'event' ? 'bg-blue-100 text-blue-600' :
+                                        activity.type === 'post' ? 'bg-green-100 text-green-600' :
+                                        activity.type === 'competition' ? 'bg-purple-100 text-purple-600' :
+                                        activity.type === 'member' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-600';
+
+                                    const activityContent = (
+                                        <div className="flex items-start gap-3">
+                                            <div className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${iconBg}`}>
+                                                <ActivityIcon className="h-3.5 w-3.5" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm text-slate-700">{activity.description}</p>
+                                                {activity.content && (
+                                                    <p className="text-sm text-slate-600 mt-0.5 line-clamp-2">{activity.content}</p>
+                                                )}
+                                                <p className="text-xs text-slate-400 mt-0.5">
+                                                    {format(parseISO(activity.timestamp), 'MMM d, h:mma')}
+                                                </p>
+                                            </div>
                                         </div>
-                                    </li>
-                                ))}
+                                    );
+
+                                    return (
+                                        <li key={activity.id}>
+                                            {activity.link ? (
+                                                <Link
+                                                    to={activity.link}
+                                                    className="block rounded-lg px-2 py-2 -mx-2 hover:bg-slate-50 transition-colors"
+                                                >
+                                                    {activityContent}
+                                                </Link>
+                                            ) : (
+                                                <div className="px-2 py-2 -mx-2">
+                                                    {activityContent}
+                                                </div>
+                                            )}
+                                        </li>
+                                    );
+                                })}
                             </ul>
                         )}
                     </div>

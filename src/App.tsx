@@ -12,9 +12,13 @@ import Groups from './pages/groups/Groups';
 import GroupDetails from './pages/groups/GroupDetails';
 import { Competitions } from './pages/competitions/Competitions';
 import { CompetitionDetails } from './pages/competitions/CompetitionDetails';
+import { Scores } from './pages/Scores';
+import Marketplace from './pages/Marketplace';
+import { Mentorship } from './pages/Mentorship';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { Settings } from './pages/Settings';
+import { UserSettings } from './pages/UserSettings';
 
 function App() {
   return (
@@ -30,6 +34,7 @@ function App() {
             {/* Root Layout (Hub Selection) */}
             <Route element={<RootLayout />}>
               <Route path="/" element={<HubSelection />} />
+              <Route path="/settings" element={<UserSettings />} />
             </Route>
 
             {/* Hub Layout (Full App) */}
@@ -40,8 +45,11 @@ function App() {
               <Route path="messages" element={<Messages />} /> {/* Added Messages route */}
               <Route path="competitions" element={<Competitions />} />
               <Route path="competitions/:competitionId" element={<CompetitionDetails />} />
+              <Route path="scores" element={<Scores />} />
+              <Route path="marketplace" element={<Marketplace />} />
               <Route path="groups" element={<Groups />} />
               <Route path="groups/:groupId" element={<GroupDetails />} />
+              <Route path="mentorship" element={<Mentorship />} />
               <Route path="settings" element={<Settings />} />
             </Route>
           </Route>

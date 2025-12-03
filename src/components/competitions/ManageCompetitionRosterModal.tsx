@@ -13,10 +13,11 @@ interface ManageCompetitionRosterModalProps {
 }
 
 interface Gymnast {
-    user_id: string;
-    profiles: {
-        full_name: string;
-    };
+    id: string;
+    first_name: string;
+    last_name: string;
+    level: string | null;
+    gymnast_id: string;
 }
 
 export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated, competitionId, currentRosterIds }: ManageCompetitionRosterModalProps) {
@@ -35,24 +36,38 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
 
     const fetchAllGymnasts = async () => {
         if (!hub) return;
+        // Fetch from gymnast_profiles table instead of hub_members
         const { data, error } = await supabase
-            .from('hub_members')
-            .select('user_id, profiles(full_name)')
-            .eq('hub_id', hub.id)
-            .eq('role', 'gymnast');
+            .from('gymnast_profiles')
+            .select('id, first_name, last_name, level, gymnast_id')
+            .eq('hub_id', hub.id);
 
         if (error) {
             console.error('Error fetching gymnasts:', error);
         } else {
-            setAllGymnasts(data as any || []);
+            // Sort by level (using hub settings order) then by last name
+            const hubLevels = hub?.settings?.levels || [];
+            const sortedData = (data || []).sort((a, b) => {
+                const aLevelIndex = a.level ? hubLevels.indexOf(a.level) : 999;
+                const bLevelIndex = b.level ? hubLevels.indexOf(b.level) : 999;
+                const aLevelOrder = aLevelIndex === -1 ? 998 : aLevelIndex;
+                const bLevelOrder = bLevelIndex === -1 ? 998 : bLevelIndex;
+
+                if (aLevelOrder !== bLevelOrder) {
+                    return aLevelOrder - bLevelOrder;
+                }
+
+                return (a.last_name || '').localeCompare(b.last_name || '');
+            });
+            setAllGymnasts(sortedData);
         }
     };
 
-    const toggleGymnast = (userId: string) => {
+    const toggleGymnast = (gymnastId: string) => {
         setSelectedGymnasts(prev =>
-            prev.includes(userId)
-                ? prev.filter(id => id !== userId)
-                : [...prev, userId]
+            prev.includes(gymnastId)
+                ? prev.filter(id => id !== gymnastId)
+                : [...prev, gymnastId]
         );
     };
 
@@ -68,7 +83,10 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
             if (toAdd.length > 0) {
                 const { error: addError } = await supabase
                     .from('competition_gymnasts')
-                    .insert(toAdd.map(userId => ({ competition_id: competitionId, user_id: userId })));
+                    .insert(toAdd.map(gymnastProfileId => ({
+                        competition_id: competitionId,
+                        gymnast_profile_id: gymnastProfileId
+                    })));
                 if (addError) throw addError;
             }
 
@@ -77,7 +95,7 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
                     .from('competition_gymnasts')
                     .delete()
                     .eq('competition_id', competitionId)
-                    .in('user_id', toRemove);
+                    .in('gymnast_profile_id', toRemove);
                 if (removeError) throw removeError;
             }
 
@@ -158,13 +176,22 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
                                                             <div className="space-y-2">
                                                                 {allGymnasts.map((gymnast) => (
                                                                     <div
-                                                                        key={gymnast.user_id}
-                                                                        className={`flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-gray-50 ${selectedGymnasts.includes(gymnast.user_id) ? 'bg-brand-50' : ''
+                                                                        key={gymnast.id}
+                                                                        className={`flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-gray-50 ${selectedGymnasts.includes(gymnast.id) ? 'bg-brand-50' : ''
                                                                             }`}
-                                                                        onClick={() => toggleGymnast(gymnast.user_id)}
+                                                                        onClick={() => toggleGymnast(gymnast.id)}
                                                                     >
-                                                                        <span className="text-sm text-gray-900">{gymnast.profiles.full_name}</span>
-                                                                        {selectedGymnasts.includes(gymnast.user_id) && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-sm text-gray-900">
+                                                                                {gymnast.first_name} {gymnast.last_name}
+                                                                            </span>
+                                                                            {gymnast.level && (
+                                                                                <span className="text-xs text-gray-500">
+                                                                                    {gymnast.level}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        {selectedGymnasts.includes(gymnast.id) && (
                                                                             <Check className="h-4 w-4 text-brand-600" />
                                                                         )}
                                                                     </div>

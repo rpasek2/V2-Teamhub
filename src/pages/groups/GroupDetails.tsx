@@ -1,14 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, Plus, Users, Settings } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, Plus, Users, Settings, Lock, Globe, Image, FileText, MessageSquare } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { CreatePostModal } from '../../components/groups/CreatePostModal';
 import { PostCard } from '../../components/groups/PostCard';
+import { GroupPhotos } from '../../components/groups/GroupPhotos';
+import { GroupFiles } from '../../components/groups/GroupFiles';
+import { GroupMembers } from '../../components/groups/GroupMembers';
+import { GroupSettings } from '../../components/groups/GroupSettings';
 import type { Group, Post } from '../../types';
+
+type TabType = 'posts' | 'photos' | 'files' | 'members' | 'settings';
 
 export default function GroupDetails() {
     const { groupId } = useParams<{ groupId: string }>();
+    const [searchParams, setSearchParams] = useSearchParams();
     const { user, currentRole } = useHub();
     const [group, setGroup] = useState<Group | null>(null);
     const [posts, setPosts] = useState<Post[]>([]);
@@ -16,14 +23,40 @@ export default function GroupDetails() {
     const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
     const [isMember, setIsMember] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [memberCount, setMemberCount] = useState(0);
+    const [activeTab, setActiveTab] = useState<TabType>('posts');
+    const [highlightedPostId, setHighlightedPostId] = useState<string | null>(null);
+    const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     useEffect(() => {
         if (groupId && user) {
             fetchGroupDetails();
             fetchPosts();
             checkMembership();
+            fetchMemberCount();
         }
     }, [groupId, user]);
+
+    // Handle scrolling to highlighted post from URL query param
+    useEffect(() => {
+        const postId = searchParams.get('post');
+        if (postId && posts.length > 0 && !loading) {
+            setHighlightedPostId(postId);
+            // Scroll to the post after a brief delay to ensure DOM is ready
+            setTimeout(() => {
+                const postElement = postRefs.current[postId];
+                if (postElement) {
+                    postElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+            // Clear the highlight after 3 seconds
+            setTimeout(() => {
+                setHighlightedPostId(null);
+                // Remove the query param from URL
+                setSearchParams({}, { replace: true });
+            }, 3000);
+        }
+    }, [posts, loading, searchParams]);
 
     const fetchGroupDetails = async () => {
         const { data, error } = await supabase
@@ -34,6 +67,17 @@ export default function GroupDetails() {
 
         if (error) console.error('Error fetching group:', error);
         else setGroup(data);
+    };
+
+    const fetchMemberCount = async () => {
+        const { count, error } = await supabase
+            .from('group_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('group_id', groupId);
+
+        if (!error && count !== null) {
+            setMemberCount(count);
+        }
     };
 
     const checkMembership = async () => {
@@ -70,6 +114,7 @@ export default function GroupDetails() {
                 comments:comments(count)
             `)
             .eq('group_id', groupId)
+            .order('is_pinned', { ascending: false })
             .order('created_at', { ascending: false });
 
         if (error) {
@@ -78,6 +123,8 @@ export default function GroupDetails() {
             // Transform to include comment count
             const postsWithCount = data?.map(p => ({
                 ...p,
+                attachments: p.attachments || [],
+                is_pinned: p.is_pinned || false,
                 _count: {
                     comments: p.comments?.[0]?.count || 0
                 }
@@ -100,7 +147,8 @@ export default function GroupDetails() {
 
             if (error) throw error;
             setIsMember(true);
-            fetchPosts(); // Refresh posts as they might be hidden for non-members
+            setMemberCount(prev => prev + 1);
+            fetchPosts();
         } catch (error) {
             console.error('Error joining group:', error);
         }
@@ -121,84 +169,208 @@ export default function GroupDetails() {
         }
     };
 
-    if (!group) return <div>Loading...</div>;
+    const handlePinToggle = (postId: string, isPinned: boolean) => {
+        // Re-sort posts with pinned at top
+        setPosts(prev => {
+            const updated = prev.map(p => p.id === postId ? { ...p, is_pinned: isPinned } : p);
+            return updated.sort((a, b) => {
+                if (a.is_pinned && !b.is_pinned) return -1;
+                if (!a.is_pinned && b.is_pinned) return 1;
+                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            });
+        });
+    };
+
+    const tabs = [
+        { id: 'posts' as TabType, label: 'Posts', icon: MessageSquare },
+        { id: 'photos' as TabType, label: 'Photos', icon: Image },
+        { id: 'files' as TabType, label: 'Files', icon: FileText },
+        { id: 'members' as TabType, label: 'Members', icon: Users, count: memberCount },
+        ...(isAdmin ? [{ id: 'settings' as TabType, label: 'Settings', icon: Settings }] : []),
+    ];
+
+    if (!group) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+                <div className="animate-pulse flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-full bg-slate-200" />
+                    <div className="h-4 w-32 rounded bg-slate-200" />
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="bg-white shadow">
-                <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                    <div className="py-6">
+        <div className="min-h-screen bg-slate-50">
+            {/* Header */}
+            <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+                <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+                    {/* Top row */}
+                    <div className="py-4">
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center">
-                                <Link to="../groups" className="mr-4 text-gray-500 hover:text-gray-700">
-                                    <ArrowLeft className="h-6 w-6" />
+                            <div className="flex items-center gap-4">
+                                <Link
+                                    to="../groups"
+                                    className="p-2 -ml-2 rounded-xl text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                >
+                                    <ArrowLeft className="h-5 w-5" />
                                 </Link>
-                                <div>
-                                    <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
-                                    <p className="text-sm text-gray-500">{group.description}</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20">
+                                        <Users className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <div className="flex items-center gap-2">
+                                            <h1 className="text-xl font-bold text-slate-900">{group.name}</h1>
+                                            {group.type === 'private' ? (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-xs">
+                                                    <Lock className="h-3 w-3" />
+                                                    Private
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-xs">
+                                                    <Globe className="h-3 w-3" />
+                                                    Public
+                                                </span>
+                                            )}
+                                        </div>
+                                        {group.description && (
+                                            <p className="text-sm text-slate-500 mt-0.5 max-w-md truncate">{group.description}</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="flex items-center space-x-4">
+                            <div className="flex items-center gap-3">
                                 {!isMember && (
                                     <button
                                         onClick={handleJoinGroup}
-                                        className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700"
+                                        className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 hover:bg-brand-700 transition-all hover:shadow-brand-500/40"
                                     >
+                                        <Users className="h-4 w-4" />
                                         Join Group
                                     </button>
                                 )}
-                                {isMember && (
+                                {isMember && activeTab === 'posts' && (
                                     <button
                                         onClick={() => setIsCreatePostOpen(true)}
-                                        className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700"
+                                        className="inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 hover:bg-brand-700 transition-all hover:shadow-brand-500/40"
                                     >
-                                        <Plus className="mr-2 h-4 w-4" />
+                                        <Plus className="h-4 w-4" />
                                         New Post
                                     </button>
                                 )}
                             </div>
                         </div>
                     </div>
+
+                    {/* Tabs */}
+                    <div className="flex gap-1 -mb-px overflow-x-auto scrollbar-hide">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-all whitespace-nowrap ${
+                                    activeTab === tab.id
+                                        ? 'border-brand-600 text-brand-600'
+                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                                }`}
+                            >
+                                <tab.icon className="h-4 w-4" />
+                                {tab.label}
+                                {tab.count !== undefined && (
+                                    <span className={`px-1.5 py-0.5 rounded-full text-xs ${
+                                        activeTab === tab.id
+                                            ? 'bg-brand-100 text-brand-700'
+                                            : 'bg-slate-100 text-slate-600'
+                                    }`}>
+                                        {tab.count}
+                                    </span>
+                                )}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8">
-                {loading ? (
-                    <div className="space-y-4">
-                        {[...Array(3)].map((_, i) => (
-                            <div key={i} className="animate-pulse rounded-lg bg-white p-6 shadow">
-                                <div className="flex space-x-3">
-                                    <div className="h-10 w-10 rounded-full bg-gray-200"></div>
-                                    <div className="flex-1 space-y-2 py-1">
-                                        <div className="h-4 w-1/4 rounded bg-gray-200"></div>
-                                        <div className="h-4 w-1/2 rounded bg-gray-200"></div>
+            {/* Content */}
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+                {activeTab === 'posts' && (
+                    <div className="max-w-2xl mx-auto">
+                        {loading ? (
+                            <div className="space-y-6">
+                                {[...Array(3)].map((_, i) => (
+                                    <div key={i} className="animate-pulse rounded-2xl bg-white p-6 shadow-sm border border-slate-200">
+                                        <div className="flex gap-3">
+                                            <div className="h-11 w-11 rounded-full bg-slate-200"></div>
+                                            <div className="flex-1 space-y-2 py-1">
+                                                <div className="h-4 w-1/4 rounded bg-slate-200"></div>
+                                                <div className="h-3 w-1/6 rounded bg-slate-200"></div>
+                                            </div>
+                                        </div>
+                                        <div className="mt-4 space-y-2">
+                                            <div className="h-4 rounded bg-slate-200"></div>
+                                            <div className="h-4 rounded bg-slate-200 w-5/6"></div>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="mt-4 space-y-2">
-                                    <div className="h-4 rounded bg-gray-200"></div>
-                                    <div className="h-4 rounded bg-gray-200"></div>
-                                </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : posts.length > 0 ? (
+                            <div className="space-y-6">
+                                {posts.map((post) => (
+                                    <div
+                                        key={post.id}
+                                        ref={(el) => { postRefs.current[post.id] = el; }}
+                                        className={`transition-all duration-500 rounded-2xl ${
+                                            highlightedPostId === post.id
+                                                ? 'ring-2 ring-brand-500 ring-offset-2'
+                                                : ''
+                                        }`}
+                                    >
+                                        <PostCard
+                                            post={post}
+                                            onDelete={() => handleDeletePost(post.id)}
+                                            onPinToggle={handlePinToggle}
+                                            currentUserId={user?.id || ''}
+                                            isAdmin={isAdmin}
+                                        />
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200">
+                                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center mx-auto">
+                                    <MessageSquare className="h-8 w-8 text-slate-400" />
+                                </div>
+                                <h3 className="mt-4 text-lg font-semibold text-slate-900">No posts yet</h3>
+                                <p className="mt-1 text-sm text-slate-500">Be the first to share something with the group!</p>
+                                {isMember && (
+                                    <button
+                                        onClick={() => setIsCreatePostOpen(true)}
+                                        className="mt-6 inline-flex items-center gap-2 rounded-xl bg-brand-600 px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-brand-500/25 hover:bg-brand-700 transition-all"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                        Create First Post
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
-                ) : posts.length > 0 ? (
-                    <div className="space-y-6">
-                        {posts.map((post) => (
-                            <PostCard
-                                key={post.id}
-                                post={post}
-                                onDelete={() => handleDeletePost(post.id)}
-                                currentUserId={user?.id || ''}
-                                isAdmin={isAdmin}
-                            />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-12 bg-white rounded-lg shadow">
-                        <Users className="mx-auto h-12 w-12 text-gray-400" />
-                        <h3 className="mt-2 text-sm font-medium text-gray-900">No posts yet</h3>
-                        <p className="mt-1 text-sm text-gray-500">Be the first to post in this group!</p>
-                    </div>
+                )}
+
+                {activeTab === 'photos' && groupId && (
+                    <GroupPhotos groupId={groupId} posts={posts} />
+                )}
+
+                {activeTab === 'files' && groupId && (
+                    <GroupFiles groupId={groupId} posts={posts} />
+                )}
+
+                {activeTab === 'members' && groupId && (
+                    <GroupMembers groupId={groupId} isAdmin={isAdmin} onMemberCountChange={setMemberCount} />
+                )}
+
+                {activeTab === 'settings' && groupId && group && (
+                    <GroupSettings group={group} onUpdate={fetchGroupDetails} />
                 )}
             </div>
 

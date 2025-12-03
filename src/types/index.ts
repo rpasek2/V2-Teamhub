@@ -5,6 +5,7 @@ export interface Profile {
     email: string;
     full_name: string;
     avatar_url: string | null;
+    organization: string | null;
 }
 
 export type PermissionScope = 'none' | 'all' | 'own';
@@ -18,14 +19,32 @@ export interface RolePermissions {
 export interface HubPermissions {
     roster?: RolePermissions;
     calendar?: RolePermissions;
+    messages?: RolePermissions;
     competitions?: RolePermissions;
+    scores?: RolePermissions;
+    marketplace?: RolePermissions;
     groups?: RolePermissions;
     [key: string]: RolePermissions | undefined;
 }
 
+// Feature tabs that can be enabled/disabled per hub
+export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'marketplace' | 'groups' | 'mentorship';
+
+export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: string }[] = [
+    { id: 'roster', label: 'Roster', description: 'Manage gymnast profiles and team roster' },
+    { id: 'calendar', label: 'Calendar', description: 'Schedule practices, meets, and events' },
+    { id: 'messages', label: 'Messages', description: 'Team messaging and direct messages' },
+    { id: 'competitions', label: 'Competitions', description: 'Track competitions and sessions' },
+    { id: 'scores', label: 'Scores', description: 'Record and view competition scores' },
+    { id: 'marketplace', label: 'Marketplace', description: 'Buy and sell team gear' },
+    { id: 'groups', label: 'Groups', description: 'Create groups for team communication' },
+    { id: 'mentorship', label: 'Big/Little', description: 'Manage big sister/little sister mentorship pairings' },
+];
+
 export interface HubSettings {
     permissions?: HubPermissions;
     levels?: string[];
+    enabledTabs?: HubFeatureTab[];
 }
 
 export interface Hub {
@@ -33,6 +52,7 @@ export interface Hub {
     name: string;
     slug: string;
     organization_id: string;
+    sport_type: SportType;
     settings: HubSettings;
 }
 
@@ -227,10 +247,28 @@ export interface Message {
 
 // Gymnast Profile Types
 export interface Guardian {
-    first_name: string;
-    last_name: string;
+    first_name?: string;
+    last_name?: string;
+    name?: string; // Combined name field (alternative to first_name/last_name)
     email: string;
     phone: string;
+    relationship?: string;
+}
+
+export interface InjuryReport {
+    id: string;
+    date: string;
+    time: string;
+    location: 'competition' | 'practice' | 'other';
+    location_details?: string; // For 'other' location or specific venue
+    description: string;
+    body_part?: string;
+    severity?: 'minor' | 'moderate' | 'severe';
+    response: string; // What was done in response (ice, rest, medical attention, etc.)
+    follow_up?: string; // Any follow-up actions or notes
+    reported_by: string; // User ID who reported
+    reported_at: string; // Timestamp when reported
+    status: 'active' | 'recovering' | 'resolved';
 }
 
 export interface MedicalInfo {
@@ -238,6 +276,7 @@ export interface MedicalInfo {
     medications: string;
     conditions: string;
     notes: string;
+    injury_reports?: InjuryReport[];
 }
 
 export interface GymnastProfile {
@@ -253,10 +292,235 @@ export interface GymnastProfile {
     member_id_type: 'USAG' | 'AAU' | 'Other' | null;
     tshirt_size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | null;
     leo_size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'AS' | 'AM' | 'AL' | 'AXL' | null;
-    gender: 'Male' | 'Female' | 'Other' | null;
+    gender: 'Male' | 'Female' | null;
     guardian_1: Guardian | null;
     guardian_2: Guardian | null;
     medical_info: MedicalInfo | null;
+    created_at: string;
+    updated_at: string;
+}
+
+// Sport Types
+export type SportType = 'gymnastics' | 'dance' | 'cheer' | 'swimming' | 'martial_arts';
+
+export interface SportConfig {
+    id: SportType;
+    name: string;
+    icon: string; // Lucide icon name
+    athleteLabel: string; // What to call athletes (gymnast, dancer, cheerleader, swimmer, student)
+    athleteLabelPlural: string;
+    color: string; // Tailwind color class
+}
+
+export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
+    gymnastics: {
+        id: 'gymnastics',
+        name: 'Gymnastics',
+        icon: 'Trophy',
+        athleteLabel: 'Gymnast',
+        athleteLabelPlural: 'Gymnasts',
+        color: 'purple'
+    },
+    dance: {
+        id: 'dance',
+        name: 'Dance',
+        icon: 'Music',
+        athleteLabel: 'Dancer',
+        athleteLabelPlural: 'Dancers',
+        color: 'pink'
+    },
+    cheer: {
+        id: 'cheer',
+        name: 'Cheerleading',
+        icon: 'Megaphone',
+        athleteLabel: 'Cheerleader',
+        athleteLabelPlural: 'Cheerleaders',
+        color: 'red'
+    },
+    swimming: {
+        id: 'swimming',
+        name: 'Swimming',
+        icon: 'Waves',
+        athleteLabel: 'Swimmer',
+        athleteLabelPlural: 'Swimmers',
+        color: 'blue'
+    },
+    martial_arts: {
+        id: 'martial_arts',
+        name: 'Martial Arts',
+        icon: 'Swords',
+        athleteLabel: 'Student',
+        athleteLabelPlural: 'Students',
+        color: 'amber'
+    }
+};
+
+// Hub Invite Types
+export type HubRole = 'owner' | 'director' | 'admin' | 'coach' | 'parent' | 'gymnast';
+
+export interface HubInvite {
+    id: string;
+    hub_id: string;
+    code: string;
+    role: HubRole;
+    created_by: string;
+    max_uses: number | null;
+    uses: number;
+    expires_at: string | null;
+    is_active: boolean;
+    created_at: string;
+    profiles?: Profile;
+}
+
+// Competition Score Types
+export type GymEvent = 'vault' | 'bars' | 'beam' | 'floor' | 'pommel' | 'rings' | 'pbars' | 'highbar';
+
+export const WAG_EVENTS: GymEvent[] = ['vault', 'bars', 'beam', 'floor'];
+export const MAG_EVENTS: GymEvent[] = ['floor', 'pommel', 'rings', 'vault', 'pbars', 'highbar'];
+
+export const EVENT_LABELS: Record<GymEvent, string> = {
+    vault: 'VT',
+    bars: 'UB',
+    beam: 'BB',
+    floor: 'FX',
+    pommel: 'PH',
+    rings: 'SR',
+    pbars: 'PB',
+    highbar: 'HB'
+};
+
+export const EVENT_FULL_NAMES: Record<GymEvent, string> = {
+    vault: 'Vault',
+    bars: 'Uneven Bars',
+    beam: 'Balance Beam',
+    floor: 'Floor Exercise',
+    pommel: 'Pommel Horse',
+    rings: 'Still Rings',
+    pbars: 'Parallel Bars',
+    highbar: 'High Bar'
+};
+
+export interface CompetitionScore {
+    id: string;
+    competition_id: string;
+    gymnast_profile_id: string;
+    event: GymEvent;
+    score: number | null;
+    placement: number | null;
+    created_at: string;
+    updated_at: string;
+    created_by: string | null;
+    gymnast_profiles?: GymnastProfile;
+}
+
+export interface CompetitionTeamPlacement {
+    id: string;
+    competition_id: string;
+    level: string;
+    gender: 'Female' | 'Male';
+    event: GymEvent | 'all_around';
+    placement: number | null;
+    created_at: string;
+    updated_at: string;
+}
+
+// Marketplace Types
+export type MarketplaceCategory =
+    | 'leos'
+    | 'warmups'
+    | 'grips'
+    | 'equipment'
+    | 'bags'
+    | 'accessories'
+    | 'other';
+
+export type MarketplaceCondition = 'new' | 'like_new' | 'good' | 'fair';
+
+export type MarketplaceItemStatus = 'active' | 'pending' | 'sold';
+
+export const MARKETPLACE_CATEGORIES: Record<MarketplaceCategory, { label: string; icon: string }> = {
+    leos: { label: 'Leotards', icon: 'Shirt' },
+    warmups: { label: 'Warm-ups', icon: 'Jacket' },
+    grips: { label: 'Grips', icon: 'Hand' },
+    equipment: { label: 'Equipment', icon: 'Dumbbell' },
+    bags: { label: 'Bags', icon: 'Backpack' },
+    accessories: { label: 'Accessories', icon: 'Sparkles' },
+    other: { label: 'Other', icon: 'Package' }
+};
+
+export const MARKETPLACE_CONDITIONS: Record<MarketplaceCondition, string> = {
+    new: 'New with tags',
+    like_new: 'Like new',
+    good: 'Good',
+    fair: 'Fair'
+};
+
+export interface MarketplaceItem {
+    id: string;
+    hub_id: string;
+    seller_id: string;
+    title: string;
+    description: string;
+    price: number; // 0 for free items
+    category: MarketplaceCategory;
+    condition: MarketplaceCondition;
+    size: string | null;
+    brand: string | null;
+    images: string[];
+    phone: string;
+    status: MarketplaceItemStatus;
+    created_at: string;
+    updated_at: string;
+    profiles?: Profile;
+    hubs?: { id: string; name: string }; // For cross-hub items
+}
+
+// Marketplace Hub Linking Types
+export type MarketplaceLinkStatus = 'pending' | 'active' | 'rejected';
+
+export interface MarketplaceHubLink {
+    id: string;
+    requester_hub_id: string;
+    target_hub_id: string;
+    status: MarketplaceLinkStatus;
+    requested_by: string;
+    approved_by: string | null;
+    created_at: string;
+    updated_at: string;
+    requester_hub?: { id: string; name: string };
+    target_hub?: { id: string; name: string };
+    requester_profile?: Profile;
+    approver_profile?: Profile;
+}
+
+// Mentorship Types (Big/Little Sister Program)
+export interface MentorshipPair {
+    id: string;
+    hub_id: string;
+    big_gymnast_id: string;
+    little_gymnast_id: string;
+    status: 'active' | 'inactive';
+    paired_date: string;
+    notes: string | null;
+    created_by: string | null;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    big_gymnast?: GymnastProfile;
+    little_gymnast?: GymnastProfile;
+}
+
+export interface MentorshipEvent {
+    id: string;
+    hub_id: string;
+    event_id: string | null;
+    title: string;
+    description: string | null;
+    event_date: string;
+    start_time: string | null;
+    end_time: string | null;
+    location: string | null;
+    created_by: string | null;
     created_at: string;
     updated_at: string;
 }

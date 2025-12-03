@@ -1,13 +1,24 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Check, ChevronRight, ArrowLeft } from 'lucide-react';
+import teamhubLogo from '../../assets/teamhub-logo.svg';
+
+const benefits = [
+    'Unlimited team members and athletes',
+    'Competition and event management',
+    'Built-in messaging and groups',
+    'Mobile-friendly access anywhere',
+    'Secure cloud storage for documents',
+    'Real-time updates and notifications'
+];
 
 export function Register() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
+    const [organization, setOrganization] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -23,70 +34,142 @@ export function Register() {
                 options: {
                     data: {
                         full_name: fullName,
+                        organization: organization || null,
                     },
                 },
             });
 
             if (error) throw error;
-            // For now, redirect to login or show success message
-            // Depending on if email confirmation is enabled
             navigate('/');
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'An error occurred');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12 sm:px-6 lg:px-8">
-            <div className="w-full max-w-md space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-bold tracking-tight text-slate-900">
-                        Create your account
-                    </h2>
-                    <p className="mt-2 text-center text-sm text-slate-600">
-                        Or{' '}
-                        <Link to="/login" className="font-medium text-brand-600 hover:text-brand-500">
-                            sign in to your existing account
-                        </Link>
-                    </p>
+        <div className="min-h-screen flex">
+            {/* Left Side - Hero Section */}
+            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-purple-600 via-brand-600 to-brand-700 relative overflow-hidden">
+                {/* Background Pattern */}
+                <div className="absolute inset-0 opacity-10">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-300 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+                    <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-purple-300 rounded-full blur-3xl" />
                 </div>
-                <form className="mt-8 space-y-6" onSubmit={handleRegister}>
-                    <div className="-space-y-px rounded-md shadow-sm">
+
+                {/* Content */}
+                <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-20 text-center">
+                    {/* Logo/Brand */}
+                    <div className="mb-12">
+                        <div className="flex items-center justify-center gap-3 mb-8">
+                            <img src={teamhubLogo} alt="TeamHub" className="h-64 xl:h-80 w-auto" />
+                        </div>
+                        <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
+                            Start Managing<br />
+                            <span className="text-purple-200">Your Team Today</span>
+                        </h1>
+                        <p className="text-lg text-purple-100 max-w-md">
+                            Join thousands of coaches and team managers who trust TeamHub for their organization needs.
+                        </p>
+                    </div>
+
+                    {/* Benefits List */}
+                    <div className="space-y-4">
+                        <h3 className="text-white font-semibold text-lg mb-4">Everything you need:</h3>
+                        {benefits.map((benefit, index) => (
+                            <div key={index} className="flex items-center gap-3">
+                                <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                                    <Check className="w-4 h-4 text-white" />
+                                </div>
+                                <span className="text-purple-100">{benefit}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Quote */}
+                    <div className="mt-12 pt-8 border-t border-white/10">
+                        <blockquote className="text-purple-100 italic text-lg">
+                            "TeamHub transformed how we manage our gymnastics program. Everything is organized and accessible."
+                        </blockquote>
+                        <div className="mt-4 flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                                <span className="text-white font-semibold">JD</span>
+                            </div>
+                            <div>
+                                <div className="text-white font-medium">Jane Doe</div>
+                                <div className="text-purple-200 text-sm">Head Coach, Elite Gymnastics</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Right Side - Register Form */}
+            <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center px-6 py-12 bg-white">
+                <div className="w-full max-w-md">
+                    {/* Back to Login - Mobile */}
+                    <Link
+                        to="/login"
+                        className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-600 mb-6 lg:mb-8"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        Back to sign in
+                    </Link>
+
+                    {/* Mobile Logo */}
+                    <div className="lg:hidden text-center mb-8">
+                        <img src={teamhubLogo} alt="TeamHub" className="h-48 w-auto mx-auto" />
+                    </div>
+
+                    {/* Form Header */}
+                    <div className="text-center lg:text-left mb-8">
+                        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                            Create your account
+                        </h2>
+                        <p className="text-slate-600">
+                            Get started with TeamHub in just a few steps
+                        </p>
+                    </div>
+
+                    {/* Register Form */}
+                    <form onSubmit={handleRegister} className="space-y-4">
                         <div>
-                            <label htmlFor="full-name" className="sr-only">
-                                Full Name
+                            <label htmlFor="fullName" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Full name
                             </label>
                             <input
-                                id="full-name"
+                                id="fullName"
                                 name="fullName"
                                 type="text"
                                 required
-                                className="relative block w-full rounded-t-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6 px-3"
-                                placeholder="Full Name"
+                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                placeholder="John Smith"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
                             />
                         </div>
+
                         <div>
-                            <label htmlFor="email-address" className="sr-only">
+                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Email address
                             </label>
                             <input
-                                id="email-address"
+                                id="email"
                                 name="email"
                                 type="email"
                                 autoComplete="email"
                                 required
-                                className="relative block w-full border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6 px-3"
-                                placeholder="Email address"
+                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                placeholder="you@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
+
                         <div>
-                            <label htmlFor="password" className="sr-only">
+                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Password
                             </label>
                             <input
@@ -95,33 +178,69 @@ export function Register() {
                                 type="password"
                                 autoComplete="new-password"
                                 required
-                                className="relative block w-full rounded-b-md border-0 py-1.5 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:z-10 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6 px-3"
-                                placeholder="Password"
+                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                placeholder="Create a strong password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
+                            <p className="mt-1.5 text-xs text-slate-500">
+                                Must be at least 6 characters
+                            </p>
                         </div>
-                    </div>
 
-                    {error && (
-                        <div className="rounded-md bg-red-50 p-4 text-sm text-red-700">
-                            {error}
+                        <div>
+                            <label htmlFor="organization" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Organization name <span className="text-slate-400 font-normal">(optional)</span>
+                            </label>
+                            <input
+                                id="organization"
+                                name="organization"
+                                type="text"
+                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                placeholder="Your gym or club name"
+                                value={organization}
+                                onChange={(e) => setOrganization(e.target.value)}
+                            />
                         </div>
-                    )}
 
-                    <div>
+                        {error && (
+                            <div className="rounded-xl bg-red-50 border border-red-100 p-4 text-sm text-red-600">
+                                {error}
+                            </div>
+                        )}
+
                         <button
                             type="submit"
                             disabled={loading}
-                            className="group relative flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
                         >
                             {loading ? (
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            ) : null}
-                            Sign up
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : (
+                                <>
+                                    Create account
+                                    <ChevronRight className="h-5 w-5" />
+                                </>
+                            )}
                         </button>
-                    </div>
-                </form>
+                    </form>
+
+                    {/* Sign In Link */}
+                    <p className="mt-6 text-center text-sm text-slate-600">
+                        Already have an account?{' '}
+                        <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-500">
+                            Sign in
+                        </Link>
+                    </p>
+
+                    {/* Footer */}
+                    <p className="mt-8 text-center text-xs text-slate-500">
+                        By creating an account, you agree to our{' '}
+                        <a href="#" className="text-brand-600 hover:underline">Terms of Service</a>
+                        {' '}and{' '}
+                        <a href="#" className="text-brand-600 hover:underline">Privacy Policy</a>
+                    </p>
+                </div>
             </div>
         </div>
     );
