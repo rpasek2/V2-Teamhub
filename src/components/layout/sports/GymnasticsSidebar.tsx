@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, Sparkles, ShoppingBag, HeartHandshake, User, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, type LucideIcon } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
@@ -72,6 +72,9 @@ export function GymnasticsSidebar() {
         { name: 'Marketplace', href: `/hub/${hubId}/marketplace`, icon: ShoppingBag, permission: 'marketplace', tabId: 'marketplace' as HubFeatureTab },
         { name: 'Groups', href: `/hub/${hubId}/groups`, icon: Users, permission: 'groups', tabId: 'groups' as HubFeatureTab },
         { name: 'Mentorship', href: `/hub/${hubId}/mentorship`, icon: HeartHandshake, permission: 'mentorship', tabId: 'mentorship' as HubFeatureTab },
+        { name: 'Assignments', href: `/hub/${hubId}/assignments`, icon: ClipboardCheck, permission: 'assignments', tabId: 'assignments' as HubFeatureTab },
+        { name: 'Resources', href: `/hub/${hubId}/resources`, icon: FolderOpen, permission: 'resources', tabId: 'resources' as HubFeatureTab },
+        { name: 'Staff', href: `/hub/${hubId}/staff`, icon: UserCog, permission: 'staff', tabId: 'staff' as HubFeatureTab },
         { name: 'Settings', href: `/hub/${hubId}/settings`, icon: Settings2, permission: 'settings', tabId: null },
     ];
 
@@ -84,13 +87,20 @@ export function GymnasticsSidebar() {
     };
 
     const filteredNavigation = navigation.filter(item => {
-        // First check if tab is enabled at the hub level
-        if (!isTabEnabled(item.tabId)) return false;
-
+        // Dashboard and Settings are always available (tabId is null)
         if (item.name === 'Dashboard') return true;
         if (item.name === 'Settings') {
             return ['owner', 'director', 'admin'].includes(currentRole || '');
         }
+        // Staff tab is only visible to staff roles (must also be enabled in settings)
+        if (item.name === 'Staff') {
+            const isStaffRole = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+            return isStaffRole && isTabEnabled(item.tabId);
+        }
+
+        // For other tabs, check if tab is enabled at the hub level
+        if (!isTabEnabled(item.tabId)) return false;
+
         return hasPermission(item.permission);
     });
 

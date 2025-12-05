@@ -16,6 +16,9 @@ import { Scores } from './pages/Scores';
 import { Skills } from './pages/Skills';
 import Marketplace from './pages/Marketplace';
 import { Mentorship } from './pages/Mentorship';
+import { Staff } from './pages/Staff';
+import { Assignments } from './pages/Assignments';
+import { Resources } from './pages/Resources';
 import { Login } from './pages/auth/Login';
 import { Register } from './pages/auth/Register';
 import { Settings } from './pages/Settings';
@@ -52,6 +55,9 @@ function App() {
               <Route path="groups" element={<Groups />} />
               <Route path="groups/:groupId" element={<GroupDetails />} />
               <Route path="mentorship" element={<Mentorship />} />
+              <Route path="assignments" element={<Assignments />} />
+              <Route path="resources" element={<Resources />} />
+              <Route path="staff" element={<Staff />} />
               <Route path="settings" element={<Settings />} />
             </Route>
           </Route>

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
-import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, LayoutGrid } from 'lucide-react';
+import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, LayoutGrid, Info } from 'lucide-react';
 import type { HubPermissions, RolePermissions, PermissionScope, HubInvite, HubRole, HubFeatureTab } from '../types';
 import { HUB_FEATURE_TABS } from '../types';
 import { LinkedHubsSettings } from '../components/marketplace/LinkedHubsSettings';
+import { CollapsibleSection } from '../components/ui/CollapsibleSection';
 
 const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'marketplace', 'groups', 'mentorship'] as const;
 const ROLES = ['admin', 'coach', 'parent'] as const;
@@ -447,14 +448,19 @@ export function Settings() {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-4">
             <div>
                 <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
                 <p className="text-slate-600">Manage your hub settings.</p>
             </div>
 
-            <div className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-lg font-medium text-slate-900 mb-4">Hub Information</h2>
+            {/* Hub Information - Always visible, not collapsible */}
+            <CollapsibleSection
+                title="Hub Information"
+                icon={Info}
+                defaultOpen={true}
+                description="Basic information about your hub"
+            >
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
                         <label className="block text-sm font-medium text-slate-700">Hub Name</label>
@@ -485,16 +491,15 @@ export function Settings() {
                         </>
                     )}
                 </div>
-            </div>
+            </CollapsibleSection>
 
             {/* Feature Tabs Section */}
             {canManagePermissions && (
-                <div className="bg-white shadow rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                            <LayoutGrid className="h-5 w-5 text-brand-600 mr-2" />
-                            <h2 className="text-lg font-medium text-slate-900">Feature Tabs</h2>
-                        </div>
+                <CollapsibleSection
+                    title="Feature Tabs"
+                    icon={LayoutGrid}
+                    description="Choose which features are available in your hub"
+                    actions={
                         <button
                             onClick={handleSaveTabs}
                             disabled={savingTabs}
@@ -512,12 +517,8 @@ export function Settings() {
                                 </>
                             )}
                         </button>
-                    </div>
-
-                    <p className="text-sm text-slate-600 mb-4">
-                        Choose which features are available in your hub. Disabled tabs will be hidden from the sidebar for all members.
-                    </p>
-
+                    }
+                >
                     {tabsMessage && (
                         <div className={`mb-4 p-4 rounded-md ${tabsMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                             {tabsMessage.text}
@@ -563,23 +564,16 @@ export function Settings() {
                             );
                         })}
                     </div>
-                </div>
+                </CollapsibleSection>
             )}
 
             {/* Invite Codes Section */}
             {canManagePermissions && (
-                <div className="bg-white shadow rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                            <UserPlus className="h-5 w-5 text-brand-600 mr-2" />
-                            <h2 className="text-lg font-medium text-slate-900">Invite Codes</h2>
-                        </div>
-                    </div>
-
-                    <p className="text-sm text-slate-600 mb-4">
-                        Create invite codes to allow new members to join your hub. Each code can be assigned a specific role.
-                    </p>
-
+                <CollapsibleSection
+                    title="Invite Codes"
+                    icon={UserPlus}
+                    description="Create invite codes to allow new members to join your hub"
+                >
                     {invitesMessage && (
                         <div className={`mb-4 p-4 rounded-md ${invitesMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                             {invitesMessage.text}
@@ -693,16 +687,15 @@ export function Settings() {
                             ))}
                         </div>
                     )}
-                </div>
+                </CollapsibleSection>
             )}
 
             {canManagePermissions && (
-                <div className="bg-white shadow rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                            <ListOrdered className="h-5 w-5 text-brand-600 mr-2" />
-                            <h2 className="text-lg font-medium text-slate-900">Levels</h2>
-                        </div>
+                <CollapsibleSection
+                    title="Levels"
+                    icon={ListOrdered}
+                    description="Define the competition levels for your program"
+                    actions={
                         <button
                             onClick={handleSaveLevels}
                             disabled={savingLevels}
@@ -720,12 +713,8 @@ export function Settings() {
                                 </>
                             )}
                         </button>
-                    </div>
-
-                    <p className="text-sm text-slate-600 mb-4">
-                        Define the competition levels for your program. These will be available when assigning levels to gymnasts.
-                    </p>
-
+                    }
+                >
                     {levelsMessage && (
                         <div className={`mb-4 p-4 rounded-md ${levelsMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                             {levelsMessage.text}
@@ -807,23 +796,16 @@ export function Settings() {
                             ))}
                         </ul>
                     )}
-                </div>
+                </CollapsibleSection>
             )}
 
             {/* Channels Management Section */}
             {canManagePermissions && (
-                <div className="bg-white shadow rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                            <MessageSquare className="h-5 w-5 text-brand-600 mr-2" />
-                            <h2 className="text-lg font-medium text-slate-900">Hub Channels</h2>
-                        </div>
-                    </div>
-
-                    <p className="text-sm text-slate-600 mb-4">
-                        Manage hub-wide channels that all members can access. Group channels are created automatically when groups are made.
-                    </p>
-
+                <CollapsibleSection
+                    title="Hub Channels"
+                    icon={MessageSquare}
+                    description="Manage hub-wide channels that all members can access"
+                >
                     {channelsMessage && (
                         <div className={`mb-4 p-4 rounded-md ${channelsMessage.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                             {channelsMessage.text}
@@ -896,19 +878,18 @@ export function Settings() {
                             ))}
                         </ul>
                     )}
-                </div>
+                </CollapsibleSection>
             )}
 
             {/* Linked Marketplaces - Only visible to hub owners */}
             <LinkedHubsSettings />
 
             {canManagePermissions && (
-                <div className="bg-white shadow rounded-lg p-6">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center">
-                            <Shield className="h-5 w-5 text-brand-600 mr-2" />
-                            <h2 className="text-lg font-medium text-slate-900">Permissions</h2>
-                        </div>
+                <CollapsibleSection
+                    title="Permissions"
+                    icon={Shield}
+                    description="Control what each role can access"
+                    actions={
                         <button
                             onClick={handleSave}
                             disabled={saving}
@@ -926,12 +907,8 @@ export function Settings() {
                                 </>
                             )}
                         </button>
-                    </div>
-
-                    <p className="text-sm text-slate-600 mb-4">
-                        Control what each role can access. Owners and Directors always have full access.
-                    </p>
-
+                    }
+                >
                     {message && (
                         <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
                             {message.text}
@@ -978,7 +955,7 @@ export function Settings() {
                             </tbody>
                         </table>
                     </div>
-                </div>
+                </CollapsibleSection>
             )}
         </div>
     );

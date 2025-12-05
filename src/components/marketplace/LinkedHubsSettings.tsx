@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useHub } from '../../context/HubContext';
 import { LinkHubModal } from './LinkHubModal';
+import { CollapsibleSection } from '../ui/CollapsibleSection';
 
 interface LinkedHub {
     id: string;
@@ -148,19 +149,11 @@ export function LinkedHubsSettings() {
     }
 
     return (
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
-            <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
-                        <Link2 className="h-5 w-5 text-purple-600" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-semibold text-slate-900">Linked Marketplaces</h3>
-                        <p className="text-sm text-slate-500">
-                            Share your marketplace with other hubs you manage
-                        </p>
-                    </div>
-                </div>
+        <CollapsibleSection
+            title="Linked Marketplaces"
+            icon={Link2}
+            description="Share your marketplace with other hubs you manage"
+            actions={
                 <button
                     onClick={() => setIsLinkModalOpen(true)}
                     className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
@@ -168,8 +161,8 @@ export function LinkedHubsSettings() {
                     <Plus className="h-4 w-4" />
                     Link Hub
                 </button>
-            </div>
-
+            }
+        >
             {loading ? (
                 <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
@@ -310,6 +303,6 @@ export function LinkedHubsSettings() {
                 onLinkRequested={fetchLinkedHubs}
                 existingLinkIds={[...linkedHubs.map(h => h.id), ...pendingRequests.map(h => h.id)]}
             />
-        </div>
+        </CollapsibleSection>
     );
 }

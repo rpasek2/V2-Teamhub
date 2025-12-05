@@ -30,7 +30,7 @@ export interface HubPermissions {
 }
 
 // Feature tabs that can be enabled/disabled per hub
-export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'skills' | 'marketplace' | 'groups' | 'mentorship';
+export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'skills' | 'marketplace' | 'groups' | 'mentorship' | 'staff' | 'assignments' | 'resources';
 
 export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: string }[] = [
     { id: 'roster', label: 'Roster', description: 'Manage gymnast profiles and team roster' },
@@ -42,6 +42,9 @@ export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: 
     { id: 'marketplace', label: 'Marketplace', description: 'Buy and sell team gear' },
     { id: 'groups', label: 'Groups', description: 'Create groups for team communication' },
     { id: 'mentorship', label: 'Mentorship', description: 'Manage mentorship pairings and programs' },
+    { id: 'staff', label: 'Staff', description: 'Manage staff profiles, schedules, and tasks' },
+    { id: 'assignments', label: 'Assignments', description: 'Assign and track homework and drills' },
+    { id: 'resources', label: 'Resources', description: 'Share documents, videos, and helpful links' },
 ];
 
 export interface HubSettings {
