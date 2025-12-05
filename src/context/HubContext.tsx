@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
@@ -113,11 +113,13 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         await fetchHubData(false);
     }, [fetchHubData]);
 
-    const currentRole = member?.role || null;
-    const levels: string[] = hub?.settings?.levels || [];
-    const sportConfig: SportConfig = SPORT_CONFIGS[hub?.sport_type || 'gymnastics'];
+    // Memoize derived values
+    const currentRole = useMemo(() => member?.role || null, [member]);
+    const levels = useMemo(() => hub?.settings?.levels || [], [hub?.settings?.levels]);
+    const sportConfig = useMemo(() => SPORT_CONFIGS[hub?.sport_type || 'gymnastics'], [hub?.sport_type]);
 
-    const getPermissionScope = (feature: string): PermissionScope => {
+    // Memoize permission functions
+    const getPermissionScope = useCallback((feature: string): PermissionScope => {
         if (!hub || !currentRole) return 'none';
 
         // Owner and Director always have full access
@@ -149,28 +151,31 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
 
         // If scope is explicitly set, return it. Otherwise use defaults.
         return scope || getDefaultScope(currentRole);
-    };
+    }, [hub, currentRole]);
 
-    const hasPermission = (feature: string): boolean => {
+    const hasPermission = useCallback((feature: string): boolean => {
         const scope = getPermissionScope(feature);
         return scope === 'all' || scope === 'own';
-    };
+    }, [getPermissionScope]);
+
+    // Memoize context value
+    const contextValue = useMemo(() => ({
+        hub,
+        member,
+        user,
+        currentRole,
+        linkedGymnasts,
+        levels,
+        sportConfig,
+        hasPermission,
+        getPermissionScope,
+        refreshHub,
+        loading,
+        error
+    }), [hub, member, user, currentRole, linkedGymnasts, levels, sportConfig, hasPermission, getPermissionScope, refreshHub, loading, error]);
 
     return (
-        <HubContext.Provider value={{
-            hub,
-            member,
-            user,
-            currentRole,
-            linkedGymnasts,
-            levels,
-            sportConfig,
-            hasPermission,
-            getPermissionScope,
-            refreshHub,
-            loading,
-            error
-        }}>
+        <HubContext.Provider value={contextValue}>
             {children}
         </HubContext.Provider>
     );

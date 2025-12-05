@@ -1,67 +1,73 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { RootLayout } from './components/layout/RootLayout';
 import { HubLayout } from './components/layout/HubLayout';
-import { HubSelection } from './pages/hubs/HubSelection';
-import { Dashboard } from './pages/Dashboard';
-import { Roster } from './pages/Roster';
-import { Calendar } from './pages/Calendar';
-import Messages from './pages/Messages';
-import Groups from './pages/groups/Groups';
-import GroupDetails from './pages/groups/GroupDetails';
-import { Competitions } from './pages/competitions/Competitions';
-import { CompetitionDetails } from './pages/competitions/CompetitionDetails';
-import { Scores } from './pages/Scores';
-import { Skills } from './pages/Skills';
-import Marketplace from './pages/Marketplace';
-import { Mentorship } from './pages/Mentorship';
-import { Staff } from './pages/Staff';
-import { Assignments } from './pages/Assignments';
-import { Resources } from './pages/Resources';
-import { Login } from './pages/auth/Login';
-import { Register } from './pages/auth/Register';
-import { Settings } from './pages/Settings';
-import { UserSettings } from './pages/UserSettings';
+import { PageLoader } from './components/ui/PageLoader';
+
+// Lazy load all page components
+const HubSelection = lazy(() => import('./pages/hubs/HubSelection').then(m => ({ default: m.HubSelection })));
+const Dashboard = lazy(() => import('./pages/Dashboard').then(m => ({ default: m.Dashboard })));
+const Roster = lazy(() => import('./pages/Roster').then(m => ({ default: m.Roster })));
+const Calendar = lazy(() => import('./pages/Calendar').then(m => ({ default: m.Calendar })));
+const Messages = lazy(() => import('./pages/Messages'));
+const Groups = lazy(() => import('./pages/groups/Groups'));
+const GroupDetails = lazy(() => import('./pages/groups/GroupDetails'));
+const Competitions = lazy(() => import('./pages/competitions/Competitions').then(m => ({ default: m.Competitions })));
+const CompetitionDetails = lazy(() => import('./pages/competitions/CompetitionDetails').then(m => ({ default: m.CompetitionDetails })));
+const Scores = lazy(() => import('./pages/Scores').then(m => ({ default: m.Scores })));
+const Skills = lazy(() => import('./pages/Skills').then(m => ({ default: m.Skills })));
+const Marketplace = lazy(() => import('./pages/Marketplace'));
+const Mentorship = lazy(() => import('./pages/Mentorship').then(m => ({ default: m.Mentorship })));
+const Staff = lazy(() => import('./pages/Staff').then(m => ({ default: m.Staff })));
+const Assignments = lazy(() => import('./pages/Assignments').then(m => ({ default: m.Assignments })));
+const Resources = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
+const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })));
+const Register = lazy(() => import('./pages/auth/Register').then(m => ({ default: m.Register })));
+const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
+const UserSettings = lazy(() => import('./pages/UserSettings').then(m => ({ default: m.UserSettings })));
 
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <Routes>
-          {/* Public Routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
 
-          {/* Protected Routes */}
-          <Route element={<ProtectedRoute />}>
-            {/* Root Layout (Hub Selection) */}
-            <Route element={<RootLayout />}>
-              <Route path="/" element={<HubSelection />} />
-              <Route path="/settings" element={<UserSettings />} />
-            </Route>
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              {/* Root Layout (Hub Selection) */}
+              <Route element={<RootLayout />}>
+                <Route path="/" element={<HubSelection />} />
+                <Route path="/settings" element={<UserSettings />} />
+              </Route>
 
-            {/* Hub Layout (Full App) */}
-            <Route path="/hub/:hubId" element={<HubLayout />}>
-              <Route index element={<Dashboard />} />
-              <Route path="roster" element={<Roster />} />
-              <Route path="calendar" element={<Calendar />} /> {/* Added Calendar route */}
-              <Route path="messages" element={<Messages />} /> {/* Added Messages route */}
-              <Route path="competitions" element={<Competitions />} />
-              <Route path="competitions/:competitionId" element={<CompetitionDetails />} />
-              <Route path="scores" element={<Scores />} />
-              <Route path="skills" element={<Skills />} />
-              <Route path="marketplace" element={<Marketplace />} />
-              <Route path="groups" element={<Groups />} />
-              <Route path="groups/:groupId" element={<GroupDetails />} />
-              <Route path="mentorship" element={<Mentorship />} />
-              <Route path="assignments" element={<Assignments />} />
-              <Route path="resources" element={<Resources />} />
-              <Route path="staff" element={<Staff />} />
-              <Route path="settings" element={<Settings />} />
+              {/* Hub Layout (Full App) */}
+              <Route path="/hub/:hubId" element={<HubLayout />}>
+                <Route index element={<Dashboard />} />
+                <Route path="roster" element={<Roster />} />
+                <Route path="calendar" element={<Calendar />} />
+                <Route path="messages" element={<Messages />} />
+                <Route path="competitions" element={<Competitions />} />
+                <Route path="competitions/:competitionId" element={<CompetitionDetails />} />
+                <Route path="scores" element={<Scores />} />
+                <Route path="skills" element={<Skills />} />
+                <Route path="marketplace" element={<Marketplace />} />
+                <Route path="groups" element={<Groups />} />
+                <Route path="groups/:groupId" element={<GroupDetails />} />
+                <Route path="mentorship" element={<Mentorship />} />
+                <Route path="assignments" element={<Assignments />} />
+                <Route path="resources" element={<Resources />} />
+                <Route path="staff" element={<Staff />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
             </Route>
-          </Route>
-        </Routes>
+          </Routes>
+        </Suspense>
       </Router>
     </AuthProvider>
   );

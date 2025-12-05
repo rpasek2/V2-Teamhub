@@ -85,29 +85,24 @@ export function Roster() {
 
     const fetchMembers = async () => {
         try {
-            // Fetch hub members (users with accounts)
-            const { data: hubMembersData, error: hubMembersError } = await supabase
-                .from('hub_members')
-                .select(`
-          user_id,
-          role,
-          profile:profiles (
-            full_name,
-            email
-          )
-        `)
-                .eq('hub_id', hub?.id);
+            // Run both queries in parallel
+            const [hubMembersResult, gymnastProfilesResult] = await Promise.all([
+                supabase
+                    .from('hub_members')
+                    .select(`user_id, role, profile:profiles (full_name, email)`)
+                    .eq('hub_id', hub?.id),
+                supabase
+                    .from('gymnast_profiles')
+                    .select('*')
+                    .eq('hub_id', hub?.id)
+                    .order('gymnast_id', { ascending: true })
+            ]);
 
-            if (hubMembersError) throw hubMembersError;
+            if (hubMembersResult.error) throw hubMembersResult.error;
+            if (gymnastProfilesResult.error) throw gymnastProfilesResult.error;
 
-            // Fetch gymnast profiles (gymnasts without accounts)
-            const { data: gymnastProfilesData, error: gymnastProfilesError } = await supabase
-                .from('gymnast_profiles')
-                .select('*')
-                .eq('hub_id', hub?.id)
-                .order('gymnast_id', { ascending: true });
-
-            if (gymnastProfilesError) throw gymnastProfilesError;
+            const hubMembersData = hubMembersResult.data;
+            const gymnastProfilesData = gymnastProfilesResult.data;
 
             // Combine both into DisplayMember format
             const hubMembers: DisplayMember[] = (hubMembersData || []).map((m: any) => ({
@@ -207,35 +202,9 @@ export function Roster() {
             : <ChevronDown className="h-4 w-4 text-brand-600" />;
     };
 
-    const filteredMembers = members.filter((member) => {
-        // 1. Check Permission Scope
+    // Memoized filtering and sorting
+    const filteredMembers = useMemo(() => {
         const scope = getPermissionScope('roster');
-        if (scope === 'none') return false;
-
-        if (scope === 'own') {
-            // If scope is 'own', only show linked gymnasts and self
-            if (member.type === 'gymnast_profile') {
-                const isLinked = linkedGymnasts.some(g => g.id === member.id);
-                if (!isLinked) return false;
-            } else {
-                // For hub members, only show self
-                if (member.id !== user?.id) return false;
-            }
-        }
-
-        // 2. Search Filter
-        const matchesSearch =
-            member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            member.email.toLowerCase().includes(searchTerm.toLowerCase());
-
-        if (!matchesSearch) return false;
-
-        // 3. Tab Filter
-        if (activeTab === 'All') return true;
-
-        const currentTabRoles = tabs.find(t => t.name === activeTab)?.roles || [];
-        return currentTabRoles.includes(member.role);
-    }).sort((a, b) => {
         const hubLevels = hub?.settings?.levels || [];
         const direction = sortDirection === 'asc' ? 1 : -1;
 
@@ -260,23 +229,52 @@ export function Roster() {
             }
         };
 
-        const aValue = getSortValue(a);
-        const bValue = getSortValue(b);
+        return members.filter((member) => {
+            // 1. Check Permission Scope
+            if (scope === 'none') return false;
 
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-            return (aValue - bValue) * direction;
-        }
+            if (scope === 'own') {
+                // If scope is 'own', only show linked gymnasts and self
+                if (member.type === 'gymnast_profile') {
+                    const isLinked = linkedGymnasts.some(g => g.id === member.id);
+                    if (!isLinked) return false;
+                } else {
+                    // For hub members, only show self
+                    if (member.id !== user?.id) return false;
+                }
+            }
 
-        const aStr = String(aValue);
-        const bStr = String(bValue);
+            // 2. Search Filter
+            const matchesSearch =
+                member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                member.email.toLowerCase().includes(searchTerm.toLowerCase());
 
-        // Handle empty strings - push them to the end
-        if (!aStr && bStr) return 1;
-        if (aStr && !bStr) return -1;
-        if (!aStr && !bStr) return 0;
+            if (!matchesSearch) return false;
 
-        return aStr.localeCompare(bStr) * direction;
-    });
+            // 3. Tab Filter
+            if (activeTab === 'All') return true;
+
+            const currentTabRoles = tabs.find(t => t.name === activeTab)?.roles || [];
+            return currentTabRoles.includes(member.role);
+        }).sort((a, b) => {
+            const aValue = getSortValue(a);
+            const bValue = getSortValue(b);
+
+            if (typeof aValue === 'number' && typeof bValue === 'number') {
+                return (aValue - bValue) * direction;
+            }
+
+            const aStr = String(aValue);
+            const bStr = String(bValue);
+
+            // Handle empty strings - push them to the end
+            if (!aStr && bStr) return 1;
+            if (aStr && !bStr) return -1;
+            if (!aStr && !bStr) return 0;
+
+            return aStr.localeCompare(bStr) * direction;
+        });
+    }, [members, searchTerm, activeTab, sortColumn, sortDirection, getPermissionScope, linkedGymnasts, user?.id, hub?.settings?.levels]);
 
     if (loading) return <div className="p-8">Loading roster...</div>;
 

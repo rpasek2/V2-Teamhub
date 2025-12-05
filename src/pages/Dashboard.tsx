@@ -52,50 +52,63 @@ export function Dashboard() {
         setLoadingStats(true);
 
         try {
-            // Fetch member count
-            const { count: memberCount } = await supabase
-                .from('hub_members')
-                .select('*', { count: 'exact', head: true })
-                .eq('hub_id', hub.id);
-
-            // Fetch gymnast count
-            const { count: gymnastCount } = await supabase
-                .from('gymnast_profiles')
-                .select('*', { count: 'exact', head: true })
-                .eq('hub_id', hub.id);
-
-            // Fetch upcoming events
             const now = new Date().toISOString();
-            const { data: eventsData, count: eventsCount } = await supabase
-                .from('events')
-                .select('id, title, start_time, type', { count: 'exact' })
-                .eq('hub_id', hub.id)
-                .gte('start_time', now)
-                .order('start_time', { ascending: true })
-                .limit(5);
 
-            // Fetch active competitions
-            const { data: competitionsData, count: competitionsCount } = await supabase
-                .from('competitions')
-                .select('id, name, start_date, end_date', { count: 'exact' })
-                .eq('hub_id', hub.id)
-                .gte('end_date', now.split('T')[0])
-                .order('start_date', { ascending: true })
-                .limit(5);
+            // Group 1: Stats queries (all independent) - run in parallel
+            const [memberCountResult, gymnastCountResult, eventsResult, competitionsResult] = await Promise.all([
+                supabase.from('hub_members').select('*', { count: 'exact', head: true }).eq('hub_id', hub.id),
+                supabase.from('gymnast_profiles').select('*', { count: 'exact', head: true }).eq('hub_id', hub.id),
+                supabase.from('events').select('id, title, start_time, type', { count: 'exact' })
+                    .eq('hub_id', hub.id).gte('start_time', now).order('start_time', { ascending: true }).limit(5),
+                supabase.from('competitions').select('id, name, start_date, end_date', { count: 'exact' })
+                    .eq('hub_id', hub.id).gte('end_date', now.split('T')[0]).order('start_date', { ascending: true }).limit(5)
+            ]);
+
+            const memberCount = memberCountResult.count;
+            const gymnastCount = gymnastCountResult.count;
+            const eventsData = eventsResult.data;
+            const eventsCount = eventsResult.count;
+            const competitionsData = competitionsResult.data;
+            const competitionsCount = competitionsResult.count;
+
+            // Group 2: Activity queries (all independent) - run in parallel
+            // Build base queries first, then run them all
+            const recentEventsQuery = supabase.from('events').select('id, title, created_at')
+                .eq('hub_id', hub.id).order('created_at', { ascending: false }).limit(5);
+            const recentCompsQuery = supabase.from('competitions').select('id, name, created_at')
+                .eq('hub_id', hub.id).order('created_at', { ascending: false }).limit(5);
+            const groupsQuery = supabase.from('groups').select('id').eq('hub_id', hub.id);
+            const memberGroupsQuery = supabase.from('group_members').select('group_id, groups!inner(hub_id)')
+                .eq('user_id', user.id).eq('groups.hub_id', hub.id);
+            const publicGroupsQuery = supabase.from('groups').select('id').eq('hub_id', hub.id).eq('type', 'public');
+            const recentMembersQuery = supabase.from('hub_members').select(`user_id, created_at, role, profiles:user_id (full_name)`)
+                .eq('hub_id', hub.id).order('created_at', { ascending: false }).limit(5);
+
+            // Determine which queries to run based on role
+            let activityResults: any[];
+            if (isStaff) {
+                activityResults = await Promise.all([
+                    recentEventsQuery,
+                    recentCompsQuery,
+                    groupsQuery,
+                    recentMembersQuery
+                ]);
+            } else {
+                activityResults = await Promise.all([
+                    recentEventsQuery,
+                    recentCompsQuery,
+                    memberGroupsQuery,
+                    publicGroupsQuery
+                ]);
+            }
 
             // Build activity feed from multiple sources
             const activities: RecentActivity[] = [];
 
-            // 1. Fetch recent events created
-            const { data: recentEvents } = await supabase
-                .from('events')
-                .select('id, title, created_at')
-                .eq('hub_id', hub.id)
-                .order('created_at', { ascending: false })
-                .limit(5);
-
+            // 1. Process recent events
+            const recentEvents = activityResults[0].data;
             if (recentEvents) {
-                recentEvents.forEach(event => {
+                recentEvents.forEach((event: { id: string; title: string; created_at: string }) => {
                     activities.push({
                         id: `event-${event.id}`,
                         type: 'event',
@@ -106,16 +119,10 @@ export function Dashboard() {
                 });
             }
 
-            // 2. Fetch recent competitions created
-            const { data: recentCompetitions } = await supabase
-                .from('competitions')
-                .select('id, name, created_at')
-                .eq('hub_id', hub.id)
-                .order('created_at', { ascending: false })
-                .limit(5);
-
+            // 2. Process recent competitions
+            const recentCompetitions = activityResults[1].data;
             if (recentCompetitions) {
-                recentCompetitions.forEach(comp => {
+                recentCompetitions.forEach((comp: { id: string; name: string; created_at: string }) => {
                     activities.push({
                         id: `comp-${comp.id}`,
                         type: 'competition',
@@ -126,36 +133,20 @@ export function Dashboard() {
                 });
             }
 
-            // 3. Fetch groups the user has access to
+            // 3. Get accessible group IDs
             let accessibleGroupIds: string[] = [];
-
             if (isStaff) {
-                // Staff can see all groups
-                const { data: allGroups } = await supabase
-                    .from('groups')
-                    .select('id')
-                    .eq('hub_id', hub.id);
-                accessibleGroupIds = allGroups?.map(g => g.id) || [];
+                const allGroups = activityResults[2].data;
+                accessibleGroupIds = allGroups?.map((g: { id: string }) => g.id) || [];
             } else {
-                // Non-staff: only groups they're a member of (within this hub) or public groups
-                const { data: memberGroups } = await supabase
-                    .from('group_members')
-                    .select('group_id, groups!inner(hub_id)')
-                    .eq('user_id', user.id)
-                    .eq('groups.hub_id', hub.id);
-
-                const { data: publicGroups } = await supabase
-                    .from('groups')
-                    .select('id')
-                    .eq('hub_id', hub.id)
-                    .eq('type', 'public');
-
-                const memberGroupIds = memberGroups?.map(g => g.group_id) || [];
-                const publicGroupIds = publicGroups?.map(g => g.id) || [];
+                const memberGroups = activityResults[2].data;
+                const publicGroups = activityResults[3].data;
+                const memberGroupIds = memberGroups?.map((g: { group_id: string }) => g.group_id) || [];
+                const publicGroupIds = publicGroups?.map((g: { id: string }) => g.id) || [];
                 accessibleGroupIds = [...new Set([...memberGroupIds, ...publicGroupIds])];
             }
 
-            // 4. Fetch recent posts from accessible groups
+            // 4. Fetch recent posts from accessible groups (depends on group IDs)
             if (accessibleGroupIds.length > 0) {
                 const { data: recentPosts } = await supabase
                     .from('posts')
@@ -192,20 +183,9 @@ export function Dashboard() {
                 }
             }
 
-            // 5. Fetch recent new members (staff only)
+            // 5. Process recent new members (staff only - index 3 in staff results)
             if (isStaff) {
-                const { data: recentMembers } = await supabase
-                    .from('hub_members')
-                    .select(`
-                        user_id,
-                        created_at,
-                        role,
-                        profiles:user_id (full_name)
-                    `)
-                    .eq('hub_id', hub.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-
+                const recentMembers = activityResults[3]?.data;
                 if (recentMembers) {
                     recentMembers.forEach((member: any) => {
                         const memberName = member.profiles?.full_name || 'A new member';

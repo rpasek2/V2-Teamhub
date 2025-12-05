@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
     format,
@@ -15,7 +15,6 @@ import {
     subWeeks,
     parseISO,
     isToday,
-    getYear,
     getDay
 } from 'date-fns';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, List, Plus, Filter, LayoutGrid, MapPin, Clock } from 'lucide-react';
@@ -144,6 +143,14 @@ function getUSHolidays(year: number): Map<string, Holiday> {
     return holidays;
 }
 
+// Pre-compute holidays for a reasonable range of years (module-level constant)
+// This avoids recalculating holidays on every currentDate change
+const ALL_HOLIDAYS_MAP = new Map<string, Holiday>();
+for (let year = 2020; year <= 2035; year++) {
+    const yearHolidays = getUSHolidays(year);
+    yearHolidays.forEach((holiday, key) => ALL_HOLIDAYS_MAP.set(key, holiday));
+}
+
 export function Calendar() {
     const { hub, currentRole } = useHub();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -164,22 +171,10 @@ export function Calendar() {
     // Permission check - admins, directors, owners, and coaches can add events
     const canAddEvents = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
 
-    // Get holidays for current view (may span multiple years for week view in Dec/Jan)
-    const holidays = useMemo(() => {
-        const year = getYear(currentDate);
-        const holidaysMap = new Map<string, Holiday>();
-        // Get holidays for current year and adjacent years (for edge cases)
-        [year - 1, year, year + 1].forEach(y => {
-            const yearHolidays = getUSHolidays(y);
-            yearHolidays.forEach((holiday, key) => holidaysMap.set(key, holiday));
-        });
-        return holidaysMap;
-    }, [currentDate]);
-
-    // Helper to get holiday for a day
+    // Helper to get holiday for a day (uses pre-computed module-level holidays)
     const getHolidayForDay = (day: Date): Holiday | undefined => {
         const key = format(day, 'yyyy-MM-dd');
-        return holidays.get(key);
+        return ALL_HOLIDAYS_MAP.get(key);
     };
 
     useEffect(() => {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Users, Plus, Search, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -71,28 +71,30 @@ export function Staff() {
             return;
         }
 
-        // Fetch staff profiles for these members
         const userIds = membersData?.map(m => m.user_id) || [];
 
-        const { data: staffProfiles } = await supabase
-            .from('staff_profiles')
-            .select('*')
-            .eq('hub_id', hubId)
-            .in('user_id', userIds);
+        // Run remaining 3 queries in parallel
+        const [staffProfilesResult, timeOffResult, tasksResult] = await Promise.all([
+            supabase
+                .from('staff_profiles')
+                .select('id, user_id, title, bio, phone, email, hire_date, status')
+                .eq('hub_id', hubId)
+                .in('user_id', userIds),
+            supabase
+                .from('staff_time_off')
+                .select('staff_user_id')
+                .eq('hub_id', hubId)
+                .eq('status', 'pending'),
+            supabase
+                .from('staff_tasks')
+                .select('staff_user_id')
+                .eq('hub_id', hubId)
+                .in('status', ['pending', 'in_progress'])
+        ]);
 
-        // Fetch pending time off counts
-        const { data: timeOffCounts } = await supabase
-            .from('staff_time_off')
-            .select('staff_user_id')
-            .eq('hub_id', hubId)
-            .eq('status', 'pending');
-
-        // Fetch pending task counts
-        const { data: taskCounts } = await supabase
-            .from('staff_tasks')
-            .select('staff_user_id')
-            .eq('hub_id', hubId)
-            .in('status', ['pending', 'in_progress']);
+        const staffProfiles = staffProfilesResult.data;
+        const timeOffCounts = timeOffResult.data;
+        const taskCounts = tasksResult.data;
 
         // Combine data
         const combined: StaffMember[] = (membersData || []).map(member => {
@@ -126,16 +128,18 @@ export function Staff() {
         setLoading(false);
     };
 
-    // Filter staff members
-    const filteredStaff = staffMembers.filter(member => {
-        const matchesSearch = searchQuery === '' ||
-            member.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            member.staff_profile?.title?.toLowerCase().includes(searchQuery.toLowerCase());
+    // Filter staff members (memoized)
+    const filteredStaff = useMemo(() => {
+        return staffMembers.filter(member => {
+            const matchesSearch = searchQuery === '' ||
+                member.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                member.staff_profile?.title?.toLowerCase().includes(searchQuery.toLowerCase());
 
-        const matchesRole = roleFilter === 'all' || member.role === roleFilter;
+            const matchesRole = roleFilter === 'all' || member.role === roleFilter;
 
-        return matchesSearch && matchesRole;
-    });
+            return matchesSearch && matchesRole;
+        });
+    }, [staffMembers, searchQuery, roleFilter]);
 
     const getRoleBadgeColor = (role: string) => {
         switch (role) {
