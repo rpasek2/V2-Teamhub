@@ -1,61 +1,65 @@
-/* Google Fonts - must be before tailwind import */
-@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap');
+/* Google Fonts - Inter for UI, with tabular figures support */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
 /* ============================================
-   KINETIC STRUCTURALISM DESIGN SYSTEM
-   "The Architect - Building structures that allow perfection."
+   THE DIGITAL GYM DESIGN SYSTEM
+   "Calm, focused, and professional"
    ============================================ */
 
 @theme {
   /* ========== TYPOGRAPHY ========== */
-  --font-display: 'Oswald', 'Barlow Condensed', sans-serif;
-  --font-body: 'Roboto', system-ui, sans-serif;
-  --font-mono: 'Roboto Mono', monospace;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
 
-  /* ========== PRIMARY: OBSIDIAN BLUE ========== */
-  /* Professional, serious, easier on eyes than pure black */
-  --color-obsidian-50: #f0f4f8;
-  --color-obsidian-100: #d9e2ec;
-  --color-obsidian-200: #bcccdc;
-  --color-obsidian-300: #9fb3c8;
-  --color-obsidian-400: #829ab1;
-  --color-obsidian-500: #627d98;
-  --color-obsidian-600: #486581;
-  --color-obsidian-700: #334e68;
-  --color-obsidian-800: #243b53;
-  --color-obsidian-900: #102a43;
-  --color-obsidian-950: #0a1929;
+  /* ========== PRIMARY: CARBON SLATE ========== */
+  /* Deep, cool charcoal - easier on eyes than pure black */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-850: #1a2332;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
 
-  /* ========== ACTION: VELOCITY ORANGE ========== */
-  /* Energy, warning markers, chalk on mats - demands attention */
-  --color-velocity-50: #fff7ed;
-  --color-velocity-100: #ffedd5;
-  --color-velocity-200: #fed7aa;
-  --color-velocity-300: #fdba74;
-  --color-velocity-400: #fb923c;
-  --color-velocity-500: #f97316;
-  --color-velocity-600: #ea580c;
-  --color-velocity-700: #c2410c;
-  --color-velocity-800: #9a3412;
-  --color-velocity-900: #7c2d12;
+  /* ========== CHALK WHITE ========== */
+  /* Soft off-white, not blinding - like chalk dust */
+  --color-chalk-50: #ffffff;
+  --color-chalk-100: #fefefe;
+  --color-chalk-200: #fafafa;
+  --color-chalk-300: #f5f5f5;
+  --color-chalk-400: #f3f4f6;
+  --color-chalk-500: #e5e7eb;
+  --color-chalk-600: #d1d5db;
+  --color-chalk-700: #9ca3af;
 
-  /* ========== SUPPORT: TUNGSTEN (Cool greyish white) ========== */
-  /* Like raw metal or a whiteboard */
-  --color-tungsten-50: #fafbfc;
-  --color-tungsten-100: #f1f5f9;
-  --color-tungsten-200: #e2e8f0;
-  --color-tungsten-300: #cbd5e1;
-  --color-tungsten-400: #94a3b8;
-  --color-tungsten-500: #64748b;
-  --color-tungsten-600: #475569;
-  --color-tungsten-700: #334155;
-  --color-tungsten-800: #1e293b;
-  --color-tungsten-900: #0f172a;
+  /* ========== ACCENT: ELECTRIC MINT ========== */
+  /* Success, Go, Growth - pops against slate */
+  --color-mint-50: #ecfdf5;
+  --color-mint-100: #d1fae5;
+  --color-mint-200: #a7f3d0;
+  --color-mint-300: #6ee7b7;
+  --color-mint-400: #34d399;
+  --color-mint-500: #10b981;
+  --color-mint-600: #059669;
+  --color-mint-700: #047857;
+
+  /* ========== SECONDARY: MUTED INDIGO ========== */
+  /* Info, Selected Items - calm and intellectual */
+  --color-indigo-50: #eef2ff;
+  --color-indigo-100: #e0e7ff;
+  --color-indigo-200: #c7d2fe;
+  --color-indigo-300: #a5b4fc;
+  --color-indigo-400: #818cf8;
+  --color-indigo-500: #6366f1;
+  --color-indigo-600: #4f46e5;
+  --color-indigo-700: #4338ca;
 
   /* ========== SEMANTIC COLORS ========== */
   --color-success-50: #ecfdf5;
@@ -77,122 +81,88 @@
   --color-warning-600: #d97706;
   --color-warning-700: #b45309;
 
-  /* ========== LEGACY BRAND (mapped to obsidian for compatibility) ========== */
-  --color-brand-50: #f0f4f8;
-  --color-brand-100: #d9e2ec;
-  --color-brand-200: #bcccdc;
-  --color-brand-300: #9fb3c8;
-  --color-brand-400: #829ab1;
-  --color-brand-500: #627d98;
-  --color-brand-600: #486581;
-  --color-brand-700: #334e68;
-  --color-brand-800: #243b53;
-  --color-brand-900: #102a43;
-  --color-brand-950: #0a1929;
+  /* ========== LEGACY BRAND (mapped for compatibility) ========== */
+  --color-brand-50: #ecfdf5;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-300: #6ee7b7;
+  --color-brand-400: #34d399;
+  --color-brand-500: #10b981;
+  --color-brand-600: #059669;
+  --color-brand-700: #047857;
+  --color-brand-800: #065f46;
+  --color-brand-900: #064e3b;
+  --color-brand-950: #022c22;
 
-  /* ========== SHADOWS ========== */
-  --shadow-xs: 0 1px 2px rgba(10, 25, 41, 0.05);
-  --shadow-sm: 0 1px 3px rgba(10, 25, 41, 0.1), 0 1px 2px rgba(10, 25, 41, 0.06);
-  --shadow-md: 0 4px 6px rgba(10, 25, 41, 0.1), 0 2px 4px rgba(10, 25, 41, 0.06);
-  --shadow-lg: 0 10px 15px rgba(10, 25, 41, 0.1), 0 4px 6px rgba(10, 25, 41, 0.05);
-  --shadow-xl: 0 20px 25px rgba(10, 25, 41, 0.1), 0 10px 10px rgba(10, 25, 41, 0.04);
-  --shadow-velocity: 0 4px 14px rgba(249, 115, 22, 0.35);
-  --shadow-obsidian: 0 4px 14px rgba(16, 42, 67, 0.25);
+  /* ========== SHADOWS - Soft, modern ========== */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-glow-mint: 0 0 20px rgba(16, 185, 129, 0.15);
+  --shadow-glow-indigo: 0 0 20px rgba(99, 102, 241, 0.15);
+
+  /* ========== BORDER RADIUS - Rounded Geometry ========== */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
 }
 
 /* ========== BASE STYLES ========== */
 @layer base {
   html {
-    font-family: var(--font-body);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
   body {
-    @apply bg-tungsten-100 text-obsidian-900 antialiased;
+    @apply bg-slate-900 text-chalk-400 antialiased;
   }
 
-  /* Headings use Oswald - athletic, commanding */
-  h1, h2, h3, h4, h5, h6,
-  .font-display {
-    font-family: var(--font-display);
-    letter-spacing: 0.025em;
-    text-transform: uppercase;
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold tracking-tight text-chalk-50;
   }
 
-  /* Mono text for data/code */
-  code, pre, kbd, samp,
-  .font-mono {
-    font-family: var(--font-mono);
+  /* Tabular figures for numbers */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 
-  /* Focus styles - velocity orange */
+  /* Focus styles - mint accent */
   :focus-visible {
-    @apply outline-none ring-2 ring-velocity-500/50 ring-offset-2 ring-offset-tungsten-100;
+    @apply outline-none ring-2 ring-mint-500/50 ring-offset-2 ring-offset-slate-900;
   }
 
   /* Selection */
   ::selection {
-    @apply bg-velocity-200 text-obsidian-900;
+    @apply bg-mint-500/30 text-chalk-50;
   }
 }
 
 /* ========== UTILITY CLASSES ========== */
 @layer utilities {
-  /* Grid background pattern - "The Lab" feel */
-  .grid-pattern {
-    background-image:
-      linear-gradient(rgba(16, 42, 67, 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(16, 42, 67, 0.03) 1px, transparent 1px);
-    background-size: 24px 24px;
+  /* Subtle gradient backgrounds */
+  .bg-gradient-slate {
+    background: linear-gradient(180deg, var(--color-slate-900) 0%, var(--color-slate-950) 100%);
   }
 
-  .grid-pattern-dark {
-    background-image:
-      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 24px 24px;
+  /* Glow effects */
+  .glow-mint {
+    box-shadow: var(--shadow-glow-mint);
   }
 
-  /* Arc/trajectory decorations */
-  .arc-accent {
-    position: relative;
+  .glow-indigo {
+    box-shadow: var(--shadow-glow-indigo);
   }
 
-  .arc-accent::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, var(--color-velocity-500), transparent);
-    border-radius: 100%;
-  }
-
-  /* Velocity glow effects */
-  .glow-velocity {
-    box-shadow: var(--shadow-velocity);
-  }
-
-  .glow-obsidian {
-    box-shadow: var(--shadow-obsidian);
-  }
-
-  /* Data emphasis */
-  .stat-value {
-    @apply font-display text-4xl font-bold tracking-tight;
-  }
-
-  .stat-label {
-    @apply font-mono text-xs uppercase tracking-wider text-tungsten-500;
-  }
-
-  /* Snap animation for buttons */
-  .snap-click {
-    @apply transition-transform duration-75;
-  }
-
-  .snap-click:active {
-    transform: scale(0.96);
+  /* Glass effect for cards */
+  .glass {
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(12px);
   }
 
   /* Animation utilities */
@@ -201,15 +171,15 @@
   }
 
   .animate-slide-up {
-    animation: slideUp 0.25s ease-out;
+    animation: slideUp 0.3s ease-out;
   }
 
-  .animate-slide-in-right {
-    animation: slideInRight 0.2s ease-out;
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
   }
 
-  .animate-snap {
-    animation: snap 0.15s ease-out;
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
   }
 }
 
@@ -230,208 +200,219 @@
   }
 }
 
-@keyframes slideInRight {
+@keyframes slideDown {
   from {
     opacity: 0;
-    transform: translateX(-8px);
+    transform: translateY(-8px);
   }
   to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
   }
 }
 
-@keyframes snap {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.95); }
-  100% { transform: scale(1); }
-}
-
-@keyframes pulse-velocity {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); }
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* ========== COMPONENT STYLES ========== */
 @layer components {
-  /* Primary Button - Velocity Orange with snap */
+  /* Primary Button - Electric Mint */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
-           bg-velocity-500 text-white font-semibold uppercase tracking-wide text-sm
-           rounded-md shadow-md
-           hover:bg-velocity-600 hover:shadow-lg
-           active:scale-95
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           bg-mint-500 text-slate-900 font-medium
+           rounded-lg shadow-sm
+           hover:bg-mint-400
+           active:bg-mint-600
            transition-all duration-150;
   }
 
-  /* Secondary Button - Obsidian outlined */
+  /* Secondary Button - Outlined */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
-           bg-transparent border-2 border-obsidian-300
-           text-obsidian-700 font-semibold uppercase tracking-wide text-sm
-           rounded-md
-           hover:bg-obsidian-50 hover:border-obsidian-400
-           active:scale-95
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           bg-transparent border border-slate-600
+           text-chalk-400 font-medium
+           rounded-lg
+           hover:bg-slate-800 hover:border-slate-500 hover:text-chalk-50
            transition-all duration-150;
   }
 
   /* Ghost Button */
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2
-           text-obsidian-600 font-medium
-           rounded-md
-           hover:bg-obsidian-100 hover:text-obsidian-800
-           active:scale-95
+           text-chalk-500 font-medium
+           rounded-lg
+           hover:bg-slate-800 hover:text-chalk-50
            transition-all duration-150;
   }
 
   /* Danger Button */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
-           bg-error-500 text-white font-semibold uppercase tracking-wide text-sm
-           rounded-md shadow-md
-           hover:bg-error-600 hover:shadow-lg
-           active:scale-95
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           bg-error-500 text-white font-medium
+           rounded-lg shadow-sm
+           hover:bg-error-600
            transition-all duration-150;
   }
 
   /* Icon Button */
   .btn-icon {
     @apply inline-flex items-center justify-center p-2
-           text-obsidian-500 rounded-md
-           hover:bg-obsidian-100 hover:text-obsidian-700
-           active:scale-90
-           transition-all duration-100;
+           text-slate-400 rounded-lg
+           hover:bg-slate-800 hover:text-chalk-50
+           transition-all duration-150;
   }
 
-  /* Cards - Clean, architectural */
+  /* Cards - Rounded Geometry, Matte Finish */
   .card {
-    @apply bg-white rounded-lg border border-tungsten-200 shadow-sm;
+    @apply bg-slate-800 rounded-xl border border-slate-700/50 shadow-lg;
   }
 
   .card-elevated {
-    @apply bg-white rounded-lg shadow-md border border-tungsten-100;
+    @apply bg-slate-800 rounded-xl shadow-xl border border-slate-700/50;
   }
 
-  .card-dark {
-    @apply bg-obsidian-900 rounded-lg border border-obsidian-700 text-tungsten-100;
+  .card-glass {
+    @apply rounded-xl border border-slate-700/50 shadow-lg;
+    background: rgba(30, 41, 59, 0.8);
+    backdrop-filter: blur(12px);
   }
 
-  /* Data Card - High info density style */
-  .data-card {
-    @apply bg-white rounded-lg border border-tungsten-200 shadow-sm overflow-hidden;
-  }
-
-  .data-card-header {
-    @apply px-4 py-3 bg-obsidian-900 text-white;
-  }
-
-  .data-card-header h3 {
-    @apply font-display text-sm font-semibold tracking-wider uppercase;
-  }
-
-  .data-card-body {
-    @apply p-4;
-  }
-
-  /* Stat Block - Scoreboard style */
-  .stat-block {
-    @apply bg-obsidian-900 rounded-lg p-4 text-center;
-  }
-
-  .stat-block .stat-value {
-    @apply text-white;
-  }
-
-  .stat-block .stat-label {
-    @apply text-obsidian-400;
-  }
-
-  /* Inputs - Clean and functional */
+  /* Inputs */
   .input {
-    @apply w-full px-4 py-2.5 bg-white border border-tungsten-300 rounded-md
-           text-obsidian-900 placeholder:text-tungsten-400
-           focus:border-velocity-500 focus:ring-2 focus:ring-velocity-500/20
+    @apply w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg
+           text-chalk-50 placeholder:text-slate-500
+           focus:border-mint-500 focus:ring-2 focus:ring-mint-500/20
            transition-all duration-150;
   }
 
   .input-label {
-    @apply block text-sm font-semibold text-obsidian-700 uppercase tracking-wide mb-1.5;
+    @apply block text-sm font-medium text-chalk-400 mb-1.5;
   }
 
-  /* Badges - Compact, readable */
+  /* Status Pills/Badges */
   .badge {
-    @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-semibold uppercase tracking-wide rounded;
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full;
   }
 
-  .badge-velocity {
-    @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-semibold uppercase tracking-wide rounded
-           bg-velocity-100 text-velocity-700 border border-velocity-200;
+  .badge-mint {
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full
+           bg-mint-500/15 text-mint-400 border border-mint-500/30;
   }
 
-  .badge-obsidian {
-    @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-semibold uppercase tracking-wide rounded
-           bg-obsidian-100 text-obsidian-700 border border-obsidian-200;
+  .badge-indigo {
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full
+           bg-indigo-500/15 text-indigo-400 border border-indigo-500/30;
+  }
+
+  .badge-slate {
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full
+           bg-slate-700 text-slate-300 border border-slate-600;
   }
 
   .badge-success {
-    @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-semibold uppercase tracking-wide rounded
-           bg-success-100 text-success-700 border border-success-400/30;
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full
+           bg-mint-500/15 text-mint-400 border border-mint-500/30;
   }
 
   .badge-error {
-    @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-semibold uppercase tracking-wide rounded
-           bg-error-100 text-error-700 border border-error-400/30;
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full
+           bg-error-500/15 text-error-400 border border-error-500/30;
   }
 
-  /* Progress bars - Athletic */
-  .progress-bar {
-    @apply h-2 bg-tungsten-200 rounded-full overflow-hidden;
+  /* Skill Status Pills */
+  .skill-incomplete {
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full
+           bg-transparent text-slate-500 border border-slate-600;
   }
 
-  .progress-bar-fill {
-    @apply h-full bg-gradient-to-r from-velocity-500 to-velocity-400 rounded-full
-           transition-all duration-500 ease-out;
+  .skill-learning {
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full
+           bg-indigo-500/15 text-indigo-400 border border-indigo-500/30;
+  }
+
+  .skill-mastered {
+    @apply inline-flex items-center gap-1 px-2.5 py-1
+           text-xs font-medium rounded-full
+           bg-mint-500/15 text-mint-400 border border-mint-500/30;
   }
 
   /* Navigation items */
   .nav-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-md
-           text-obsidian-400 font-medium text-sm
-           hover:bg-obsidian-800 hover:text-white
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg
+           text-slate-400 font-medium text-sm
+           hover:bg-slate-800 hover:text-chalk-50
            transition-all duration-150;
   }
 
   .nav-item-active {
-    @apply bg-obsidian-800 text-white border-l-3 border-velocity-500;
+    @apply bg-slate-800 text-chalk-50;
   }
 
-  /* Tables - High density */
+  /* Stat blocks - for scores */
+  .stat-block {
+    @apply bg-slate-800 rounded-xl p-5 border border-slate-700/50;
+  }
+
+  .stat-value {
+    @apply text-4xl font-bold tracking-tight tabular-nums text-chalk-50;
+  }
+
+  .stat-label {
+    @apply text-sm text-slate-400;
+  }
+
+  /* Tables */
   .table-compact {
     @apply w-full text-sm;
   }
 
   .table-compact th {
-    @apply px-3 py-2 text-left font-semibold uppercase tracking-wide text-xs
-           text-obsidian-500 bg-tungsten-50 border-b border-tungsten-200;
+    @apply px-4 py-3 text-left font-medium text-xs uppercase tracking-wider
+           text-slate-400 bg-slate-800/50 border-b border-slate-700;
   }
 
   .table-compact td {
-    @apply px-3 py-2 border-b border-tungsten-100;
+    @apply px-4 py-3 border-b border-slate-700/50;
   }
 
   .table-compact tr:hover td {
-    @apply bg-velocity-50/50;
+    @apply bg-slate-800/30;
   }
 
-  /* Sparkline placeholder */
-  .sparkline {
-    @apply inline-block w-16 h-4 bg-tungsten-100 rounded;
+  /* Score display - tabular nums aligned */
+  .score-display {
+    @apply font-mono tabular-nums text-chalk-50;
+  }
+
+  /* Progress bars */
+  .progress-bar {
+    @apply h-2 bg-slate-700 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full bg-gradient-to-r from-mint-500 to-mint-400 rounded-full
+           transition-all duration-500 ease-out;
+  }
+
+  /* Accordion for skill details */
+  .accordion-content {
+    @apply overflow-hidden transition-all duration-300 ease-out;
   }
 }
 
@@ -445,21 +426,21 @@
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-obsidian-700);
+  background: var(--color-slate-700);
   border-radius: 4px;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-obsidian-600);
+  background: var(--color-slate-600);
 }
 
 /* Firefox */
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-obsidian-700) transparent;
+  scrollbar-color: var(--color-slate-700) transparent;
 }
 
-/* Hidden scrollbar (still scrollable) */
+/* Hidden scrollbar */
 .scrollbar-hidden::-webkit-scrollbar {
   width: 0;
   display: none;
@@ -477,14 +458,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-tungsten-100);
+  background: var(--color-slate-900);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-tungsten-300);
+  background: var(--color-slate-700);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-tungsten-400);
+  background: var(--color-slate-600);
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText, Activity, ChevronRight } from 'lucide-react';
+import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText, ChevronRight } from 'lucide-react';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
 import { format, parseISO } from 'date-fns';
@@ -241,16 +241,16 @@ export function Dashboard() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 text-velocity-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-mint-500 animate-spin" />
             </div>
         );
     }
 
     if (!hub) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 text-obsidian-500">
+            <div className="flex flex-col items-center justify-center h-64 text-slate-500">
                 <FileText className="w-12 h-12 mb-4 opacity-50" />
-                <p className="font-display text-lg">Hub not found</p>
+                <p className="text-lg">Hub not found</p>
             </div>
         );
     }
@@ -261,30 +261,30 @@ export function Dashboard() {
 
     const getEventTypeStyles = (type: string) => {
         const styles: Record<string, string> = {
-            practice: 'bg-blue-100 text-blue-700 border-blue-200',
-            competition: 'bg-velocity-100 text-velocity-700 border-velocity-200',
-            meeting: 'bg-tungsten-200 text-obsidian-700 border-tungsten-300',
-            social: 'bg-success-100 text-success-600 border-success-400/30',
-            other: 'bg-tungsten-100 text-obsidian-600 border-tungsten-200'
+            practice: 'badge-indigo',
+            competition: 'badge-mint',
+            meeting: 'badge-slate',
+            social: 'badge-mint',
+            other: 'badge-slate'
         };
         return styles[type] || styles.other;
     };
 
     const statCards = [
         {
-            name: 'ROSTER',
+            name: 'Team Members',
             value: loadingStats ? '-' : String(stats?.totalMembers || 0),
             icon: Users,
             subtitle: loadingStats ? '' : `${stats?.totalGymnasts || 0} athletes`,
         },
         {
-            name: 'EVENTS',
+            name: 'Upcoming Events',
             value: loadingStats ? '-' : String(stats?.upcomingEvents || 0),
             icon: CalendarDays,
             subtitle: stats?.nextEventDate ? `Next: ${format(parseISO(stats.nextEventDate), 'EEE h:mma')}` : 'No upcoming',
         },
         {
-            name: 'MEETS',
+            name: 'Competitions',
             value: loadingStats ? '-' : String(stats?.activeCompetitions || 0),
             icon: Trophy,
             subtitle: stats?.nextCompetitionName || 'None scheduled',
@@ -293,88 +293,78 @@ export function Dashboard() {
 
     return (
         <div className="animate-fade-in">
-            {/* Header - Scoreboard Style */}
-            <div className="mb-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        <div className="flex items-center gap-3 mb-1">
-                            <div className="h-8 w-1 bg-velocity-500 rounded-full" />
-                            <h1 className="font-display text-2xl font-bold text-obsidian-900 uppercase tracking-wide">
-                                {hub.name}
-                            </h1>
-                        </div>
-                        <p className="text-obsidian-500 text-sm ml-4">
-                            {getGreeting()}{userName ? `, ${userName}` : ''} • {format(new Date(), 'EEEE, MMMM d')}
-                        </p>
-                    </div>
-                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-obsidian-900 rounded-md">
-                        <Activity className="w-4 h-4 text-velocity-500" />
-                        <span className="font-mono text-xs text-obsidian-300 uppercase tracking-wider">Live Dashboard</span>
-                    </div>
-                </div>
+            {/* Header */}
+            <div className="mb-8">
+                <h1 className="text-2xl font-semibold text-chalk-50">
+                    {getGreeting()}{userName ? `, ${userName}` : ''}
+                </h1>
+                <p className="text-slate-400 mt-1">
+                    Welcome to {hub.name} • {format(new Date(), 'EEEE, MMMM d')}
+                </p>
             </div>
 
-            {/* Stat Cards - Scoreboard Style */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            {/* Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
                 {statCards.map((item) => (
                     <div
                         key={item.name}
-                        className="stat-block relative overflow-hidden"
+                        className="stat-block"
                     >
-                        {/* Velocity accent line */}
-                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-velocity-600 via-velocity-500 to-velocity-600" />
-
-                        <div className="flex items-center justify-between mb-2">
-                            <span className="font-mono text-[10px] uppercase tracking-wider text-obsidian-500">{item.name}</span>
-                            <item.icon className="h-4 w-4 text-obsidian-600" />
+                        <div className="flex items-center justify-between mb-3">
+                            <span className="stat-label">{item.name}</span>
+                            <item.icon className="h-5 w-5 text-slate-500" />
                         </div>
-                        <p className="stat-value text-velocity-500">{item.value}</p>
-                        <p className="font-mono text-xs text-obsidian-400 mt-1 truncate">{item.subtitle}</p>
+                        <p className="stat-value text-mint-400">{item.value}</p>
+                        <p className="text-sm text-slate-500 mt-1 truncate">{item.subtitle}</p>
                     </div>
                 ))}
             </div>
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                {/* Recent Activity - Data Card Style */}
-                <div className="data-card">
-                    <div className="data-card-header flex items-center justify-between">
-                        <h3>Activity Feed</h3>
-                        <Activity className="w-4 h-4 text-velocity-500" />
+                {/* Recent Activity */}
+                <div className="card">
+                    <div className="px-6 py-4 border-b border-slate-700/50">
+                        <h2 className="text-lg font-semibold text-chalk-50">Recent Activity</h2>
                     </div>
-                    <div className="data-card-body">
+                    <div className="p-6">
                         {loadingStats ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-velocity-500" />
+                                <Loader2 className="h-6 w-6 animate-spin text-mint-500" />
                             </div>
                         ) : recentActivity.length === 0 ? (
                             <div className="text-center py-8">
-                                <MessageSquare className="w-10 h-10 mx-auto text-tungsten-300 mb-3" />
-                                <p className="font-display text-obsidian-500 uppercase text-sm">No recent activity</p>
+                                <MessageSquare className="w-10 h-10 mx-auto text-slate-600 mb-3" />
+                                <p className="text-slate-400">No recent activity</p>
                             </div>
                         ) : (
-                            <ul className="space-y-0 divide-y divide-tungsten-100">
+                            <ul className="space-y-1">
                                 {recentActivity.map((activity, index) => {
                                     const ActivityIcon = activity.type === 'event' ? Calendar :
                                         activity.type === 'post' ? MessageSquare :
                                         activity.type === 'competition' ? Trophy :
                                         activity.type === 'member' ? UserPlus : FileText;
 
-                                    const iconColor = activity.type === 'event' ? 'text-blue-500' :
-                                        activity.type === 'post' ? 'text-success-500' :
-                                        activity.type === 'competition' ? 'text-velocity-500' :
-                                        activity.type === 'member' ? 'text-success-500' :
-                                        'text-obsidian-400';
+                                    const iconColor = activity.type === 'event' ? 'text-indigo-400' :
+                                        activity.type === 'post' ? 'text-mint-400' :
+                                        activity.type === 'competition' ? 'text-mint-400' :
+                                        activity.type === 'member' ? 'text-mint-400' :
+                                        'text-slate-400';
 
                                     const activityContent = (
-                                        <div className="flex items-center gap-3 py-2.5">
-                                            <ActivityIcon className={clsx("h-4 w-4 flex-shrink-0", iconColor)} />
+                                        <div className="flex items-center gap-3 py-3">
+                                            <div className={clsx(
+                                                "flex h-9 w-9 items-center justify-center rounded-lg",
+                                                "bg-slate-700/50"
+                                            )}>
+                                                <ActivityIcon className={clsx("h-4 w-4", iconColor)} />
+                                            </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-obsidian-800 truncate">{activity.description}</p>
+                                                <p className="text-sm font-medium text-chalk-400 truncate">{activity.description}</p>
                                                 {activity.content && (
-                                                    <p className="text-xs text-obsidian-500 mt-0.5 line-clamp-1">{activity.content}</p>
+                                                    <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{activity.content}</p>
                                                 )}
                                             </div>
-                                            <span className="font-mono text-[10px] text-obsidian-400 flex-shrink-0">
+                                            <span className="text-xs text-slate-500 flex-shrink-0">
                                                 {format(parseISO(activity.timestamp), 'MMM d')}
                                             </span>
                                         </div>
@@ -389,12 +379,12 @@ export function Dashboard() {
                                             {activity.link ? (
                                                 <Link
                                                     to={activity.link}
-                                                    className="block hover:bg-velocity-50/50 transition-colors -mx-4 px-4"
+                                                    className="block rounded-lg hover:bg-slate-700/30 transition-colors -mx-3 px-3"
                                                 >
                                                     {activityContent}
                                                 </Link>
                                             ) : (
-                                                <div className="-mx-4 px-4">
+                                                <div className="-mx-3 px-3">
                                                     {activityContent}
                                                 </div>
                                             )}
@@ -406,21 +396,20 @@ export function Dashboard() {
                     </div>
                 </div>
 
-                {/* Upcoming Schedule - Data Card Style */}
-                <div className="data-card">
-                    <div className="data-card-header flex items-center justify-between">
-                        <h3>Upcoming Schedule</h3>
-                        <CalendarDays className="w-4 h-4 text-velocity-500" />
+                {/* Upcoming Schedule */}
+                <div className="card">
+                    <div className="px-6 py-4 border-b border-slate-700/50">
+                        <h2 className="text-lg font-semibold text-chalk-50">Upcoming Schedule</h2>
                     </div>
-                    <div className="data-card-body">
+                    <div className="p-6">
                         {loadingStats ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-velocity-500" />
+                                <Loader2 className="h-6 w-6 animate-spin text-mint-500" />
                             </div>
                         ) : upcomingEvents.length === 0 ? (
                             <div className="text-center py-8">
-                                <CalendarDays className="w-10 h-10 mx-auto text-tungsten-300 mb-3" />
-                                <p className="font-display text-obsidian-500 uppercase text-sm">No upcoming events</p>
+                                <CalendarDays className="w-10 h-10 mx-auto text-slate-600 mb-3" />
+                                <p className="text-slate-400">No upcoming events</p>
                             </div>
                         ) : (
                             <ul className="space-y-2">
@@ -433,32 +422,32 @@ export function Dashboard() {
                                         <Link
                                             to={`calendar?event=${event.id}`}
                                             className={clsx(
-                                                "group flex items-center justify-between rounded-md px-3 py-2.5",
-                                                "bg-tungsten-50 border border-tungsten-200",
-                                                "hover:border-velocity-300 hover:bg-velocity-50/30 transition-all duration-150"
+                                                "group flex items-center justify-between rounded-lg px-4 py-3",
+                                                "bg-slate-700/30 border border-slate-700/50",
+                                                "hover:bg-slate-700/50 hover:border-slate-600 transition-all duration-150"
                                             )}
                                         >
                                             <div className="min-w-0 flex-1">
-                                                <p className="font-medium text-sm text-obsidian-800 truncate">
+                                                <p className="font-medium text-sm text-chalk-400 truncate">
                                                     {event.title}
                                                 </p>
                                                 <span className={clsx(
-                                                    "inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wide border",
+                                                    "inline-block mt-1.5",
                                                     getEventTypeStyles(event.type)
                                                 )}>
                                                     {formatEventType(event.type)}
                                                 </span>
                                             </div>
-                                            <div className="ml-3 text-right flex items-center gap-2">
+                                            <div className="ml-4 text-right flex items-center gap-3">
                                                 <div>
-                                                    <p className="font-mono text-xs font-medium text-obsidian-700">
+                                                    <p className="text-sm font-medium text-chalk-400">
                                                         {format(parseISO(event.start_time), 'EEE, MMM d')}
                                                     </p>
-                                                    <p className="font-mono text-[10px] text-obsidian-400">
+                                                    <p className="text-xs text-slate-500">
                                                         {format(parseISO(event.start_time), 'h:mm a')}
                                                     </p>
                                                 </div>
-                                                <ChevronRight className="w-4 h-4 text-obsidian-300 group-hover:text-velocity-500 transition-colors" />
+                                                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-mint-400 transition-colors" />
                                             </div>
                                         </Link>
                                     </li>
@@ -468,10 +457,10 @@ export function Dashboard() {
                     </div>
 
                     {upcomingEvents.length > 0 && (
-                        <div className="px-4 py-3 border-t border-tungsten-100 bg-tungsten-50/50">
+                        <div className="px-6 py-4 border-t border-slate-700/50">
                             <Link
                                 to="calendar"
-                                className="btn-primary w-full text-sm snap-click"
+                                className="btn-primary w-full"
                             >
                                 <CalendarDays className="w-4 h-4" />
                                 View Full Calendar
