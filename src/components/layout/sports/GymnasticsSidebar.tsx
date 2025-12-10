@@ -47,20 +47,6 @@ export function GymnasticsSidebar() {
     // Get the icon for the current sport
     const SportIcon = SPORT_ICONS[sportConfig.icon] || Trophy;
 
-    // Get sport-specific color classes
-    const getSportColors = (color: string) => {
-        const colorMap: Record<string, { icon: string; text: string }> = {
-            purple: { icon: 'text-purple-500', text: 'text-purple-600' },
-            pink: { icon: 'text-pink-500', text: 'text-pink-600' },
-            red: { icon: 'text-red-500', text: 'text-red-600' },
-            blue: { icon: 'text-blue-500', text: 'text-blue-600' },
-            amber: { icon: 'text-amber-500', text: 'text-amber-600' }
-        };
-        return colorMap[color] || colorMap.purple;
-    };
-
-    const sportColors = getSportColors(sportConfig.color);
-
     const navigation = [
         { name: 'Dashboard', href: `/hub/${hubId}`, icon: LayoutDashboard, permission: 'dashboard', tabId: null },
         { name: 'Roster', href: `/hub/${hubId}/roster`, icon: ClipboardList, permission: 'roster', tabId: 'roster' as HubFeatureTab },
@@ -107,20 +93,32 @@ export function GymnasticsSidebar() {
     return (
         <div
             className={clsx(
-                "flex h-full flex-col bg-white border-r border-slate-200 transition-all duration-300 ease-in-out overflow-x-hidden",
+                "flex h-full flex-col transition-all duration-300 ease-in-out overflow-x-hidden relative",
+                "bg-gradient-to-b from-canopy-950 via-canopy-900 to-canopy-950",
                 isExpanded ? "w-64" : "w-16"
             )}
             onMouseEnter={() => setIsExpanded(true)}
             onMouseLeave={() => setIsExpanded(false)}
         >
-            {/* Header */}
-            <div className="flex h-16 items-center border-b border-slate-200 px-3">
+            {/* Glassmorphism overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+
+            {/* Subtle pattern overlay */}
+            <div
+                className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                }}
+            />
+
+            {/* Header - Back to Overview */}
+            <div className="relative flex h-16 items-center border-b border-canopy-800/50 px-3">
                 <Link
                     to="/"
-                    className="group flex items-center text-sm font-medium text-slate-500 hover:text-brand-600 transition-colors"
+                    className="group flex items-center text-sm font-medium text-canopy-300 hover:text-canopy-100 transition-colors"
                     title={!isExpanded ? "Back to Overview" : undefined}
                 >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-brand-50 group-hover:text-brand-600 transition-colors flex-shrink-0">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-canopy-800/50 group-hover:bg-canopy-700/50 transition-all duration-200 flex-shrink-0">
                         <ArrowLeft className="h-5 w-5" />
                     </div>
                     <div
@@ -133,17 +131,20 @@ export function GymnasticsSidebar() {
                                 : 'opacity 150ms ease-in-out, max-width 300ms ease-in-out 100ms'
                         }}
                     >
-                        <span className="text-xs font-normal text-slate-400 group-hover:text-brand-500">Back to</span>
-                        <span className="font-semibold text-slate-700 group-hover:text-brand-700">Overview</span>
+                        <span className="text-xs font-mono uppercase tracking-wider text-canopy-500 group-hover:text-canopy-400">Back to</span>
+                        <span className="font-display font-semibold text-canopy-200 group-hover:text-canopy-100">Overview</span>
                     </div>
                 </Link>
             </div>
 
-            {/* Hub Name */}
-            <div className="border-b border-slate-100 px-3 py-3">
+            {/* Hub Name with Sport Badge */}
+            <div className="relative border-b border-canopy-800/50 px-3 py-3">
                 <div className="flex items-center" title={!isExpanded ? hub?.name : undefined}>
-                    <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
-                        <SportIcon className={`h-5 w-5 ${sportColors.icon}`} />
+                    <div className={clsx(
+                        "flex h-10 w-10 items-center justify-center flex-shrink-0 rounded-lg",
+                        "bg-gradient-to-br from-arcane-500/20 to-arcane-600/10 border border-arcane-500/30"
+                    )}>
+                        <SportIcon className="h-5 w-5 text-arcane-400" />
                     </div>
                     <div
                         className="flex flex-col ml-3 overflow-hidden whitespace-nowrap"
@@ -155,15 +156,15 @@ export function GymnasticsSidebar() {
                                 : 'opacity 150ms ease-in-out, max-width 300ms ease-in-out 100ms'
                         }}
                     >
-                        <span className="text-sm font-semibold text-slate-900">{hub?.name}</span>
-                        <span className={`text-xs ${sportColors.text}`}>{sportConfig.name}</span>
+                        <span className="font-display text-sm font-semibold text-canopy-100">{hub?.name}</span>
+                        <span className="text-xs font-mono uppercase tracking-wider text-arcane-400">{sportConfig.name}</span>
                     </div>
                 </div>
             </div>
 
             {/* Navigation */}
             <div className={clsx(
-                "flex-1 overflow-y-auto overflow-x-hidden py-4 px-3",
+                "relative flex-1 overflow-y-auto overflow-x-hidden py-4 px-2",
                 isExpanded ? "sidebar-scrollbar" : "scrollbar-hidden"
             )}>
                 <nav className="space-y-1">
@@ -175,17 +176,19 @@ export function GymnasticsSidebar() {
                                 to={item.href}
                                 title={!isExpanded ? item.name : undefined}
                                 className={clsx(
+                                    "group flex items-center rounded-lg text-sm font-medium transition-all duration-200 py-2 mx-1",
                                     isActive
-                                        ? 'bg-brand-50 text-brand-700'
-                                        : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900',
-                                    'group flex items-center rounded-md text-sm font-medium transition-colors py-2'
+                                        ? 'bg-canopy-700/50 text-canopy-100 shadow-lg shadow-canopy-900/50 border-l-2 border-arcane-400'
+                                        : 'text-canopy-300 hover:bg-canopy-800/50 hover:text-canopy-100'
                                 )}
                             >
                                 <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
                                     <item.icon
                                         className={clsx(
-                                            isActive ? 'text-brand-700' : 'text-slate-400 group-hover:text-slate-500',
-                                            'h-5 w-5'
+                                            "h-5 w-5 transition-all duration-200",
+                                            isActive
+                                                ? 'text-arcane-400'
+                                                : 'text-canopy-500 group-hover:text-canopy-300 group-hover:scale-110'
                                         )}
                                         aria-hidden="true"
                                     />
@@ -202,6 +205,16 @@ export function GymnasticsSidebar() {
                                 >
                                     {item.name}
                                 </span>
+                                {/* Active indicator dot */}
+                                {isActive && (
+                                    <span
+                                        className="ml-auto mr-3 w-1.5 h-1.5 rounded-full bg-arcane-400 animate-glow-pulse"
+                                        style={{
+                                            opacity: isExpanded ? 1 : 0,
+                                            transition: 'opacity 200ms ease-in-out'
+                                        }}
+                                    />
+                                )}
                             </Link>
                         );
                     })}
@@ -209,22 +222,22 @@ export function GymnasticsSidebar() {
             </div>
 
             {/* User Profile & Sign Out */}
-            <div className="border-t border-slate-200 px-3 py-2 space-y-1">
+            <div className="relative border-t border-canopy-800/50 px-2 py-2 space-y-1">
                 {/* User Profile */}
                 <Link
                     to="/settings"
                     title={!isExpanded ? userProfile?.full_name || 'Profile' : undefined}
-                    className="group flex items-center rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors py-2"
+                    className="group flex items-center rounded-lg text-sm font-medium text-canopy-300 hover:bg-canopy-800/50 hover:text-canopy-100 transition-all duration-200 py-2 mx-1"
                 >
                     <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
                         {userProfile?.avatar_url ? (
                             <img
                                 src={userProfile.avatar_url}
                                 alt={userProfile.full_name || 'User'}
-                                className="h-8 w-8 rounded-full object-cover"
+                                className="h-8 w-8 rounded-full object-cover ring-2 ring-canopy-600 group-hover:ring-arcane-500/50 transition-all duration-200"
                             />
                         ) : (
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-brand-600">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-canopy-600 to-canopy-700 text-canopy-200 ring-2 ring-canopy-500/30 group-hover:ring-arcane-500/50 transition-all duration-200">
                                 <User className="h-4 w-4" />
                             </div>
                         )}
@@ -247,11 +260,11 @@ export function GymnasticsSidebar() {
                 <button
                     onClick={() => signOut()}
                     title={!isExpanded ? "Sign out" : undefined}
-                    className="group flex w-full items-center rounded-md text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900 transition-colors py-2"
+                    className="group flex w-full items-center rounded-lg text-sm font-medium text-canopy-400 hover:bg-error-500/10 hover:text-error-400 transition-all duration-200 py-2 mx-1"
                 >
                     <div className="flex h-10 w-10 items-center justify-center flex-shrink-0">
                         <LogOut
-                            className="h-5 w-5 text-slate-400 group-hover:text-slate-500"
+                            className="h-5 w-5 text-canopy-500 group-hover:text-error-400 transition-colors"
                             aria-hidden="true"
                         />
                     </div>
@@ -269,6 +282,9 @@ export function GymnasticsSidebar() {
                     </span>
                 </button>
             </div>
+
+            {/* Bottom decorative element */}
+            <div className="h-1 bg-gradient-to-r from-transparent via-arcane-500/50 to-transparent" />
         </div>
     );
 }

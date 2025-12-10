@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText } from 'lucide-react';
+import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText, TrendingUp, Sparkles } from 'lucide-react';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
 import { format, parseISO } from 'date-fns';
+import { clsx } from 'clsx';
 
 interface DashboardStats {
     totalMembers: number;
@@ -31,12 +32,21 @@ interface RecentActivity {
     content?: string;
 }
 
+// Get time-based greeting
+function getGreeting(): string {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good morning';
+    if (hour < 17) return 'Good afternoon';
+    return 'Good evening';
+}
+
 export function Dashboard() {
     const { hub, loading, user, currentRole } = useHub();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
     const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
     const [loadingStats, setLoadingStats] = useState(true);
+    const [userName, setUserName] = useState<string>('');
 
     // Staff roles can see all activity
     const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
@@ -44,8 +54,21 @@ export function Dashboard() {
     useEffect(() => {
         if (hub && user) {
             fetchDashboardData();
+            fetchUserName();
         }
     }, [hub, user]);
+
+    const fetchUserName = async () => {
+        if (!user) return;
+        const { data } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+        if (data?.full_name) {
+            setUserName(data.full_name.split(' ')[0]); // First name only
+        }
+    };
 
     const fetchDashboardData = async () => {
         if (!hub || !user) return;
@@ -72,7 +95,6 @@ export function Dashboard() {
             const competitionsCount = competitionsResult.count;
 
             // Group 2: Activity queries (all independent) - run in parallel
-            // Build base queries first, then run them all
             const recentEventsQuery = supabase.from('events').select('id, title, created_at')
                 .eq('hub_id', hub.id).order('created_at', { ascending: false }).limit(5);
             const recentCompsQuery = supabase.from('competitions').select('id, name, created_at')
@@ -84,7 +106,6 @@ export function Dashboard() {
             const recentMembersQuery = supabase.from('hub_members').select(`user_id, created_at, role, profiles:user_id (full_name)`)
                 .eq('hub_id', hub.id).order('created_at', { ascending: false }).limit(5);
 
-            // Determine which queries to run based on role
             let activityResults: any[];
             if (isStaff) {
                 activityResults = await Promise.all([
@@ -102,10 +123,8 @@ export function Dashboard() {
                 ]);
             }
 
-            // Build activity feed from multiple sources
             const activities: RecentActivity[] = [];
 
-            // 1. Process recent events
             const recentEvents = activityResults[0].data;
             if (recentEvents) {
                 recentEvents.forEach((event: { id: string; title: string; created_at: string }) => {
@@ -119,7 +138,6 @@ export function Dashboard() {
                 });
             }
 
-            // 2. Process recent competitions
             const recentCompetitions = activityResults[1].data;
             if (recentCompetitions) {
                 recentCompetitions.forEach((comp: { id: string; name: string; created_at: string }) => {
@@ -133,7 +151,6 @@ export function Dashboard() {
                 });
             }
 
-            // 3. Get accessible group IDs
             let accessibleGroupIds: string[] = [];
             if (isStaff) {
                 const allGroups = activityResults[2].data;
@@ -146,7 +163,6 @@ export function Dashboard() {
                 accessibleGroupIds = [...new Set([...memberGroupIds, ...publicGroupIds])];
             }
 
-            // 4. Fetch recent posts from accessible groups (depends on group IDs)
             if (accessibleGroupIds.length > 0) {
                 const { data: recentPosts } = await supabase
                     .from('posts')
@@ -183,7 +199,6 @@ export function Dashboard() {
                 }
             }
 
-            // 5. Process recent new members (staff only - index 3 in staff results)
             if (isStaff) {
                 const recentMembers = activityResults[3]?.data;
                 if (recentMembers) {
@@ -200,7 +215,6 @@ export function Dashboard() {
                 }
             }
 
-            // Sort activities by timestamp and take top 8
             activities.sort((a, b) =>
                 new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
             );
@@ -225,105 +239,173 @@ export function Dashboard() {
     };
 
     if (loading) {
-        return <div className="p-8">Loading hub data...</div>;
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 className="w-8 h-8 text-canopy-600 animate-spin" />
+            </div>
+        );
     }
 
     if (!hub) {
-        return <div className="p-8">Hub not found.</div>;
+        return (
+            <div className="flex flex-col items-center justify-center h-64 text-mithril-500">
+                <FileText className="w-12 h-12 mb-4 opacity-50" />
+                <p className="font-display text-lg">Hub not found</p>
+            </div>
+        );
     }
 
     const formatEventType = (type: string) => {
         return type.charAt(0).toUpperCase() + type.slice(1);
     };
 
+    const getEventTypeStyles = (type: string) => {
+        const styles: Record<string, string> = {
+            practice: 'bg-ether-100 text-ether-700 border-ether-200',
+            competition: 'bg-arcane-100 text-arcane-700 border-arcane-200',
+            meeting: 'bg-mithril-100 text-mithril-700 border-mithril-200',
+            social: 'bg-canopy-100 text-canopy-700 border-canopy-200',
+            other: 'bg-mithril-100 text-mithril-600 border-mithril-200'
+        };
+        return styles[type] || styles.other;
+    };
+
     const statCards = [
         {
-            name: 'Team Members',
+            name: 'TEAM MEMBERS',
             value: loadingStats ? '-' : String(stats?.totalMembers || 0),
             icon: Users,
             subtitle: loadingStats ? '' : `${stats?.totalGymnasts || 0} gymnasts`,
-            color: 'bg-brand-500'
+            gradient: 'from-canopy-600 to-canopy-700',
+            iconBg: 'bg-canopy-500/20',
+            iconColor: 'text-canopy-300'
         },
         {
-            name: 'Upcoming Events',
+            name: 'UPCOMING EVENTS',
             value: loadingStats ? '-' : String(stats?.upcomingEvents || 0),
             icon: CalendarDays,
             subtitle: stats?.nextEventDate ? `Next: ${format(parseISO(stats.nextEventDate), 'EEE h:mma')}` : 'No upcoming',
-            color: 'bg-blue-500'
+            gradient: 'from-ether-600 to-ether-700',
+            iconBg: 'bg-ether-500/20',
+            iconColor: 'text-ether-300'
         },
         {
-            name: 'Active Competitions',
+            name: 'COMPETITIONS',
             value: loadingStats ? '-' : String(stats?.activeCompetitions || 0),
             icon: Trophy,
             subtitle: stats?.nextCompetitionName || 'None scheduled',
-            color: 'bg-amber-500'
+            gradient: 'from-arcane-600 to-arcane-700',
+            iconBg: 'bg-arcane-500/20',
+            iconColor: 'text-arcane-300'
         },
     ];
 
     return (
-        <div>
+        <div className="animate-fade-in">
+            {/* Header with greeting */}
             <div className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-900">{hub.name}</h1>
-                <p className="mt-1 text-slate-600">Welcome to your team dashboard.</p>
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-arcane-500/20 to-arcane-600/10 border border-arcane-500/30">
+                        <Sparkles className="w-5 h-5 text-arcane-500" />
+                    </div>
+                    <span className="font-mono text-xs uppercase tracking-wider text-mithril-400">
+                        {format(new Date(), 'EEEE, MMMM d')}
+                    </span>
+                </div>
+                <h1 className="font-display text-3xl font-bold text-mithril-900">
+                    {getGreeting()}{userName ? `, ${userName}` : ''}
+                </h1>
+                <p className="mt-2 text-mithril-500 font-display italic">
+                    Welcome to {hub.name}
+                </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Stat Cards - D&D Stat Block Style */}
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
                 {statCards.map((item) => (
                     <div
                         key={item.name}
-                        className="relative overflow-hidden rounded-xl bg-white p-5 shadow-sm ring-1 ring-slate-200 transition-all hover:shadow-md"
+                        className={clsx(
+                            "relative overflow-hidden rounded-xl p-5 transition-all duration-300",
+                            "bg-gradient-to-br", item.gradient,
+                            "shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                        )}
                     >
-                        <dt>
-                            <div className={`absolute rounded-md ${item.color} p-3`}>
-                                <item.icon className="h-6 w-6 text-white" aria-hidden="true" />
+                        {/* Subtle pattern overlay */}
+                        <div className="absolute inset-0 opacity-10"
+                            style={{
+                                backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3Ccircle cx='13' cy='13' r='1'/%3E%3C/g%3E%3C/svg%3E")`
+                            }}
+                        />
+
+                        <div className="relative">
+                            <div className="flex items-start justify-between">
+                                <div>
+                                    <p className="font-mono text-xs uppercase tracking-wider text-white/70">{item.name}</p>
+                                    <p className="font-display text-4xl font-bold text-white mt-1">{item.value}</p>
+                                </div>
+                                <div className={clsx("p-3 rounded-lg", item.iconBg)}>
+                                    <item.icon className={clsx("h-6 w-6", item.iconColor)} />
+                                </div>
                             </div>
-                            <p className="ml-16 truncate text-sm font-medium text-slate-500">{item.name}</p>
-                        </dt>
-                        <dd className="ml-16 flex items-baseline pb-1 sm:pb-2">
-                            <p className="text-2xl font-semibold text-slate-900">{item.value}</p>
-                            <p className="ml-2 flex items-baseline text-sm text-slate-500 truncate">
-                                {item.subtitle}
-                            </p>
-                        </dd>
+                            <div className="mt-3 pt-3 border-t border-white/20">
+                                <p className="text-sm text-white/80 truncate flex items-center gap-1">
+                                    <TrendingUp className="w-3 h-3" />
+                                    {item.subtitle}
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 ))}
             </div>
 
-            <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-2">
-                {/* Recent Activity */}
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 className="text-lg font-semibold text-slate-900">Recent Activity</h2>
-                    <div className="mt-4 space-y-4">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+                {/* Recent Activity - Quest Log Style */}
+                <div className="card p-6">
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="stat-block-header px-3 py-1.5 rounded-md">
+                            <span className="text-xs">RECENT ACTIVITY</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-1">
                         {loadingStats ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                                <Loader2 className="h-6 w-6 animate-spin text-canopy-500" />
                             </div>
                         ) : recentActivity.length === 0 ? (
-                            <p className="text-sm text-slate-500">No recent activity to show.</p>
+                            <div className="text-center py-8">
+                                <MessageSquare className="w-10 h-10 mx-auto text-mithril-300 mb-3" />
+                                <p className="font-display text-mithril-500 italic">No recent activity to show</p>
+                            </div>
                         ) : (
-                            <ul className="space-y-2">
-                                {recentActivity.map((activity) => {
+                            <ul className="space-y-1">
+                                {recentActivity.map((activity, index) => {
                                     const ActivityIcon = activity.type === 'event' ? Calendar :
                                         activity.type === 'post' ? MessageSquare :
                                         activity.type === 'competition' ? Trophy :
                                         activity.type === 'member' ? UserPlus : FileText;
 
-                                    const iconBg = activity.type === 'event' ? 'bg-blue-100 text-blue-600' :
-                                        activity.type === 'post' ? 'bg-green-100 text-green-600' :
-                                        activity.type === 'competition' ? 'bg-purple-100 text-purple-600' :
-                                        activity.type === 'member' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-600';
+                                    const iconStyles = activity.type === 'event' ? 'bg-ether-100 text-ether-600 border-ether-200' :
+                                        activity.type === 'post' ? 'bg-canopy-100 text-canopy-600 border-canopy-200' :
+                                        activity.type === 'competition' ? 'bg-arcane-100 text-arcane-600 border-arcane-200' :
+                                        activity.type === 'member' ? 'bg-canopy-100 text-canopy-600 border-canopy-200' :
+                                        'bg-mithril-100 text-mithril-600 border-mithril-200';
 
                                     const activityContent = (
                                         <div className="flex items-start gap-3">
-                                            <div className={`mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full ${iconBg}`}>
-                                                <ActivityIcon className="h-3.5 w-3.5" />
+                                            <div className={clsx(
+                                                "mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border",
+                                                iconStyles
+                                            )}>
+                                                <ActivityIcon className="h-4 w-4" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-slate-700">{activity.description}</p>
+                                                <p className="text-sm font-medium text-mithril-800">{activity.description}</p>
                                                 {activity.content && (
-                                                    <p className="text-sm text-slate-600 mt-0.5 line-clamp-2">{activity.content}</p>
+                                                    <p className="text-sm text-mithril-500 mt-0.5 line-clamp-2">{activity.content}</p>
                                                 )}
-                                                <p className="text-xs text-slate-400 mt-0.5">
+                                                <p className="font-mono text-xs text-mithril-400 mt-1">
                                                     {format(parseISO(activity.timestamp), 'MMM d, h:mma')}
                                                 </p>
                                             </div>
@@ -331,16 +413,20 @@ export function Dashboard() {
                                     );
 
                                     return (
-                                        <li key={activity.id}>
+                                        <li
+                                            key={activity.id}
+                                            className="animate-slide-up"
+                                            style={{ animationDelay: `${index * 50}ms` }}
+                                        >
                                             {activity.link ? (
                                                 <Link
                                                     to={activity.link}
-                                                    className="block rounded-lg px-2 py-2 -mx-2 hover:bg-slate-50 transition-colors"
+                                                    className="block rounded-lg px-3 py-3 -mx-3 hover:bg-canopy-50/50 transition-all duration-150"
                                                 >
                                                     {activityContent}
                                                 </Link>
                                             ) : (
-                                                <div className="px-2 py-2 -mx-2">
+                                                <div className="px-3 py-3 -mx-3">
                                                     {activityContent}
                                                 </div>
                                             )}
@@ -352,37 +438,78 @@ export function Dashboard() {
                     </div>
                 </div>
 
-                {/* Upcoming Schedule */}
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 className="text-lg font-semibold text-slate-900">Upcoming Schedule</h2>
-                    <div className="mt-4 space-y-4">
+                {/* Upcoming Schedule - Quest Board Style */}
+                <div className="card p-6">
+                    <div className="flex items-center gap-3 mb-5">
+                        <div className="stat-block-header px-3 py-1.5 rounded-md">
+                            <span className="text-xs">UPCOMING QUESTS</span>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
                         {loadingStats ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                                <Loader2 className="h-6 w-6 animate-spin text-canopy-500" />
                             </div>
                         ) : upcomingEvents.length === 0 ? (
-                            <p className="text-sm text-slate-500">No upcoming events scheduled.</p>
+                            <div className="text-center py-8">
+                                <CalendarDays className="w-10 h-10 mx-auto text-mithril-300 mb-3" />
+                                <p className="font-display text-mithril-500 italic">No upcoming events scheduled</p>
+                                <p className="text-sm text-mithril-400 mt-1">Your quest log awaits...</p>
+                            </div>
                         ) : (
                             <ul className="space-y-3">
-                                {upcomingEvents.map((event) => (
-                                    <li key={event.id} className="flex items-center justify-between rounded-lg bg-slate-50 px-4 py-3">
-                                        <div className="min-w-0 flex-1">
-                                            <p className="text-sm font-medium text-slate-900 truncate">{event.title}</p>
-                                            <p className="text-xs text-slate-500">{formatEventType(event.type)}</p>
-                                        </div>
-                                        <div className="ml-4 text-right">
-                                            <p className="text-sm font-medium text-slate-700">
-                                                {format(parseISO(event.start_time), 'EEE, MMM d')}
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                {format(parseISO(event.start_time), 'h:mm a')}
-                                            </p>
-                                        </div>
+                                {upcomingEvents.map((event, index) => (
+                                    <li
+                                        key={event.id}
+                                        className="animate-slide-up"
+                                        style={{ animationDelay: `${index * 50}ms` }}
+                                    >
+                                        <Link
+                                            to={`calendar?event=${event.id}`}
+                                            className={clsx(
+                                                "flex items-center justify-between rounded-lg px-4 py-3",
+                                                "bg-paper-warm border border-mithril-200",
+                                                "hover:border-canopy-300 hover:shadow-sm transition-all duration-150"
+                                            )}
+                                        >
+                                            <div className="min-w-0 flex-1">
+                                                <p className="font-display text-sm font-semibold text-mithril-900 truncate">
+                                                    {event.title}
+                                                </p>
+                                                <span className={clsx(
+                                                    "inline-block mt-1 px-2 py-0.5 rounded text-xs font-mono uppercase tracking-wide border",
+                                                    getEventTypeStyles(event.type)
+                                                )}>
+                                                    {formatEventType(event.type)}
+                                                </span>
+                                            </div>
+                                            <div className="ml-4 text-right">
+                                                <p className="font-display text-sm font-semibold text-mithril-800">
+                                                    {format(parseISO(event.start_time), 'EEE, MMM d')}
+                                                </p>
+                                                <p className="font-mono text-xs text-mithril-500">
+                                                    {format(parseISO(event.start_time), 'h:mm a')}
+                                                </p>
+                                            </div>
+                                        </Link>
                                     </li>
                                 ))}
                             </ul>
                         )}
                     </div>
+
+                    {upcomingEvents.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-mithril-100">
+                            <Link
+                                to="calendar"
+                                className="btn-secondary w-full text-sm"
+                            >
+                                <CalendarDays className="w-4 h-4" />
+                                View Full Calendar
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

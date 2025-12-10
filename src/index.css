@@ -1,26 +1,451 @@
+/* Google Fonts - must be before tailwind import */
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 @import "tailwindcss";
 
+/* ============================================
+   TECH-NATURALISM DESIGN SYSTEM
+   "Building the hidden structures that allow magic to happen."
+   ============================================ */
+
 @theme {
-  --color-brand-50: #f0f9ff;
-  --color-brand-100: #e0f2fe;
-  --color-brand-200: #bae6fd;
-  --color-brand-300: #7dd3fc;
-  --color-brand-400: #38bdf8;
-  --color-brand-500: #0ea5e9;
-  --color-brand-600: #0284c7;
-  --color-brand-700: #0369a1;
-  --color-brand-800: #075985;
-  --color-brand-900: #0c4a6e;
-  --color-brand-950: #082f49;
+  /* ========== TYPOGRAPHY ========== */
+  --font-display: 'Spectral', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* ========== PRIMARY: CANOPY GREEN ========== */
+  /* Wisdom, growth, nature, Two Trees */
+  --color-canopy-50: #f0fdf4;
+  --color-canopy-100: #dcfce7;
+  --color-canopy-200: #bbf7d0;
+  --color-canopy-300: #86efac;
+  --color-canopy-400: #4ade80;
+  --color-canopy-500: #22c55e;
+  --color-canopy-600: #16a34a;
+  --color-canopy-700: #15803d;
+  --color-canopy-800: #166534;
+  --color-canopy-900: #14532d;
+  --color-canopy-950: #052e16;
+
+  /* ========== SECONDARY: MITHRIL GREY ========== */
+  /* Code, hardware, steel equipment */
+  --color-mithril-50: #f8fafc;
+  --color-mithril-100: #f1f5f9;
+  --color-mithril-200: #e2e8f0;
+  --color-mithril-300: #cbd5e1;
+  --color-mithril-400: #94a3b8;
+  --color-mithril-500: #64748b;
+  --color-mithril-600: #475569;
+  --color-mithril-700: #334155;
+  --color-mithril-800: #1e293b;
+  --color-mithril-900: #0f172a;
+  --color-mithril-950: #020617;
+
+  /* ========== ACCENT: ARCANE GOLD ========== */
+  /* Magic, perfect routines, critical moments */
+  --color-arcane-50: #fffbeb;
+  --color-arcane-100: #fef3c7;
+  --color-arcane-200: #fde68a;
+  --color-arcane-300: #fcd34d;
+  --color-arcane-400: #fbbf24;
+  --color-arcane-500: #f59e0b;
+  --color-arcane-600: #d97706;
+  --color-arcane-700: #b45309;
+  --color-arcane-800: #92400e;
+  --color-arcane-900: #78350f;
+
+  /* ========== ACCENT ALT: ETHER BLUE ========== */
+  /* Links, secondary CTAs */
+  --color-ether-50: #eff6ff;
+  --color-ether-100: #dbeafe;
+  --color-ether-200: #bfdbfe;
+  --color-ether-300: #93c5fd;
+  --color-ether-400: #60a5fa;
+  --color-ether-500: #3b82f6;
+  --color-ether-600: #2563eb;
+  --color-ether-700: #1d4ed8;
+  --color-ether-800: #1e40af;
+  --color-ether-900: #1e3a8a;
+
+  /* ========== PAPER/PARCHMENT BACKGROUNDS ========== */
+  --color-paper-white: #fefdfb;
+  --color-paper-cream: #faf9f7;
+  --color-paper-warm: #f5f4f1;
+  --color-paper-aged: #f0efe9;
+
+  /* ========== SEMANTIC COLORS ========== */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-400: #f87171;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+
+  /* ========== LEGACY BRAND (for compatibility) ========== */
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-200: #bbf7d0;
+  --color-brand-300: #86efac;
+  --color-brand-400: #4ade80;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  --color-brand-800: #166534;
+  --color-brand-900: #14532d;
+  --color-brand-950: #052e16;
+
+  /* ========== SHADOWS ========== */
+  --shadow-xs: 0 1px 2px rgba(5, 46, 22, 0.04);
+  --shadow-sm: 0 2px 4px rgba(5, 46, 22, 0.06), 0 1px 2px rgba(5, 46, 22, 0.04);
+  --shadow-md: 0 4px 12px rgba(5, 46, 22, 0.08), 0 2px 4px rgba(5, 46, 22, 0.04);
+  --shadow-lg: 0 8px 24px rgba(5, 46, 22, 0.1), 0 4px 8px rgba(5, 46, 22, 0.06);
+  --shadow-xl: 0 20px 48px rgba(5, 46, 22, 0.12), 0 8px 16px rgba(5, 46, 22, 0.08);
+  --shadow-glow-gold: 0 0 20px rgba(245, 158, 11, 0.3);
+  --shadow-glow-canopy: 0 0 20px rgba(22, 163, 74, 0.25);
+  --shadow-glow-ether: 0 0 20px rgba(59, 130, 246, 0.25);
 }
 
+/* ========== BASE STYLES ========== */
 @layer base {
+  html {
+    font-family: var(--font-body);
+  }
+
   body {
-    @apply bg-slate-50 text-slate-900 antialiased;
+    @apply bg-paper-cream text-mithril-900 antialiased;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
+  /* Headings use Spectral */
+  h1, h2, h3, h4, h5, h6,
+  .font-display {
+    font-family: var(--font-display);
+    font-feature-settings: 'kern' 1, 'liga' 1;
+  }
+
+  /* Mono text uses JetBrains Mono */
+  code, pre, kbd, samp,
+  .font-mono {
+    font-family: var(--font-mono);
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-canopy-500/50 ring-offset-2 ring-offset-paper-cream;
+  }
+
+  /* Selection */
+  ::selection {
+    @apply bg-canopy-200 text-canopy-900;
   }
 }
 
-/* Custom scrollbar for sidebar */
+/* ========== UTILITY CLASSES ========== */
+@layer utilities {
+  /* Glass morphism */
+  .glass {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .glass-dark {
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-canopy {
+    background: rgba(20, 83, 45, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(134, 239, 172, 0.2);
+  }
+
+  /* Glow effects */
+  .glow-gold {
+    box-shadow: var(--shadow-glow-gold);
+  }
+
+  .glow-canopy {
+    box-shadow: var(--shadow-glow-canopy);
+  }
+
+  .glow-ether {
+    box-shadow: var(--shadow-glow-ether);
+  }
+
+  /* Text gradients */
+  .text-gradient-canopy {
+    @apply bg-gradient-to-r from-canopy-600 to-canopy-500 bg-clip-text text-transparent;
+  }
+
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-arcane-600 to-arcane-400 bg-clip-text text-transparent;
+  }
+
+  /* Stat block styling */
+  .stat-label {
+    @apply font-mono text-xs uppercase tracking-wider text-mithril-500;
+  }
+
+  .stat-value {
+    @apply font-display text-3xl font-semibold text-mithril-900;
+  }
+
+  /* Paper texture overlay */
+  .paper-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  /* Decorative dividers */
+  .divider-ornate {
+    @apply relative;
+  }
+
+  .divider-ornate::after {
+    content: '◆';
+    @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-arcane-400 text-xs;
+  }
+
+  /* Animation utilities */
+  .animate-fade-in {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+
+  .animate-glow-pulse {
+    animation: glowPulse 2s ease-in-out infinite;
+  }
+}
+
+/* ========== KEYFRAMES ========== */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glowPulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* ========== COMPONENT STYLES ========== */
+@layer components {
+  /* Buttons */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           bg-gradient-to-b from-canopy-600 to-canopy-700
+           text-white font-medium rounded-lg
+           shadow-md hover:shadow-lg hover:from-canopy-500 hover:to-canopy-600
+           active:scale-[0.98] transition-all duration-150;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           bg-paper-white border border-mithril-300
+           text-mithril-700 font-medium rounded-lg
+           shadow-sm hover:bg-mithril-50 hover:border-mithril-400
+           active:scale-[0.98] transition-all duration-150;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           text-mithril-600 font-medium rounded-lg
+           hover:bg-mithril-100 hover:text-mithril-900
+           active:scale-[0.98] transition-all duration-150;
+  }
+
+  .btn-arcane {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           bg-gradient-to-b from-arcane-500 to-arcane-600
+           text-white font-medium rounded-lg
+           shadow-md hover:shadow-lg hover:from-arcane-400 hover:to-arcane-500
+           active:scale-[0.98] transition-all duration-150;
+  }
+
+  .btn-arcane:hover {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3), 0 4px 12px rgba(0,0,0,0.15);
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
+           bg-gradient-to-b from-error-500 to-error-600
+           text-white font-medium rounded-lg
+           shadow-md hover:shadow-lg hover:from-error-400 hover:to-error-500
+           active:scale-[0.98] transition-all duration-150;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-paper-white rounded-xl border border-mithril-200 shadow-sm;
+  }
+
+  .card-hover {
+    @apply bg-paper-white rounded-xl border border-mithril-200 shadow-sm
+           transition-all duration-200
+           hover:shadow-md hover:border-canopy-300 hover:-translate-y-0.5;
+  }
+
+  .card-glass {
+    @apply rounded-xl shadow-lg;
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  /* Stat blocks (D&D style) */
+  .stat-block {
+    @apply bg-paper-white rounded-lg border-2 border-mithril-200
+           shadow-sm overflow-hidden;
+  }
+
+  .stat-block-header {
+    @apply px-4 py-2 bg-gradient-to-r from-canopy-900 to-canopy-800
+           text-canopy-100 font-display text-sm font-semibold uppercase tracking-wider;
+  }
+
+  .stat-block-body {
+    @apply p-4 space-y-3;
+  }
+
+  .stat-block-divider {
+    @apply border-t border-dashed border-mithril-300 my-3;
+  }
+
+  /* Inputs */
+  .input {
+    @apply w-full px-4 py-2.5 bg-paper-white border border-mithril-300 rounded-lg
+           font-mono text-sm text-mithril-900 placeholder:text-mithril-400
+           focus:border-canopy-500 focus:ring-2 focus:ring-canopy-500/20
+           transition-all duration-150;
+  }
+
+  .input-label {
+    @apply block font-display text-sm font-medium text-mithril-700 mb-1.5;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5
+           text-xs font-mono uppercase tracking-wide rounded-full;
+  }
+
+  .badge-canopy {
+    @apply inline-flex items-center gap-1 px-2 py-0.5
+           text-xs font-mono uppercase tracking-wide rounded-full
+           bg-canopy-100 text-canopy-800 border border-canopy-200;
+  }
+
+  .badge-mithril {
+    @apply inline-flex items-center gap-1 px-2 py-0.5
+           text-xs font-mono uppercase tracking-wide rounded-full
+           bg-mithril-100 text-mithril-700 border border-mithril-200;
+  }
+
+  .badge-arcane {
+    @apply inline-flex items-center gap-1 px-2 py-0.5
+           text-xs font-mono uppercase tracking-wide rounded-full
+           bg-arcane-100 text-arcane-800 border border-arcane-200;
+  }
+
+  .badge-ether {
+    @apply inline-flex items-center gap-1 px-2 py-0.5
+           text-xs font-mono uppercase tracking-wide rounded-full
+           bg-ether-100 text-ether-800 border border-ether-200;
+  }
+
+  /* Progress bars */
+  .progress-bar {
+    @apply h-2 bg-mithril-200 rounded-full overflow-hidden;
+  }
+
+  .progress-bar-fill {
+    @apply h-full bg-gradient-to-r from-canopy-500 to-canopy-400 rounded-full
+           transition-all duration-500 ease-out;
+  }
+
+  .progress-bar-arcane .progress-bar-fill {
+    @apply from-arcane-500 to-arcane-400;
+  }
+
+  /* Navigation items */
+  .nav-item {
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg
+           text-mithril-600 font-medium
+           hover:bg-canopy-50 hover:text-canopy-700
+           transition-all duration-150;
+  }
+
+  .nav-item-active {
+    @apply bg-canopy-100 text-canopy-800
+           border-l-3 border-arcane-500 -ml-px;
+  }
+
+  /* Skeleton loading */
+  .skeleton {
+    @apply bg-mithril-200 rounded animate-pulse;
+  }
+
+  .skeleton-shimmer {
+    @apply bg-gradient-to-r from-mithril-200 via-mithril-100 to-mithril-200
+           bg-[length:200%_100%] animate-[shimmer_1.5s_infinite];
+  }
+}
+
+/* ========== SCROLLBAR STYLES ========== */
 .sidebar-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -30,18 +455,18 @@
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--color-brand-500);
+  background: linear-gradient(to bottom, var(--color-canopy-500), var(--color-canopy-600));
   border-radius: 4px;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-brand-600);
+  background: linear-gradient(to bottom, var(--color-canopy-400), var(--color-canopy-500));
 }
 
 /* Firefox */
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-brand-500) transparent;
+  scrollbar-color: var(--color-canopy-500) transparent;
 }
 
 /* Hidden scrollbar (still scrollable) */
@@ -53,4 +478,23 @@
 .scrollbar-hidden {
   scrollbar-width: none;
   -ms-overflow-style: none;
+}
+
+/* Custom scrollbar for main content */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-paper-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-mithril-300);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-mithril-400);
 }
