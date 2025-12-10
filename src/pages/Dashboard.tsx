@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText, TrendingUp, Sparkles } from 'lucide-react';
+import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText, Activity, ChevronRight } from 'lucide-react';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
 import { format, parseISO } from 'date-fns';
@@ -241,14 +241,14 @@ export function Dashboard() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 text-canopy-600 animate-spin" />
+                <Loader2 className="w-8 h-8 text-velocity-500 animate-spin" />
             </div>
         );
     }
 
     if (!hub) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 text-mithril-500">
+            <div className="flex flex-col items-center justify-center h-64 text-obsidian-500">
                 <FileText className="w-12 h-12 mb-4 opacity-50" />
                 <p className="font-display text-lg">Hub not found</p>
             </div>
@@ -261,154 +261,122 @@ export function Dashboard() {
 
     const getEventTypeStyles = (type: string) => {
         const styles: Record<string, string> = {
-            practice: 'bg-ether-100 text-ether-700 border-ether-200',
-            competition: 'bg-arcane-100 text-arcane-700 border-arcane-200',
-            meeting: 'bg-mithril-100 text-mithril-700 border-mithril-200',
-            social: 'bg-canopy-100 text-canopy-700 border-canopy-200',
-            other: 'bg-mithril-100 text-mithril-600 border-mithril-200'
+            practice: 'bg-blue-100 text-blue-700 border-blue-200',
+            competition: 'bg-velocity-100 text-velocity-700 border-velocity-200',
+            meeting: 'bg-tungsten-200 text-obsidian-700 border-tungsten-300',
+            social: 'bg-success-100 text-success-600 border-success-400/30',
+            other: 'bg-tungsten-100 text-obsidian-600 border-tungsten-200'
         };
         return styles[type] || styles.other;
     };
 
     const statCards = [
         {
-            name: 'TEAM MEMBERS',
+            name: 'ROSTER',
             value: loadingStats ? '-' : String(stats?.totalMembers || 0),
             icon: Users,
-            subtitle: loadingStats ? '' : `${stats?.totalGymnasts || 0} gymnasts`,
-            gradient: 'from-canopy-600 to-canopy-700',
-            iconBg: 'bg-canopy-500/20',
-            iconColor: 'text-canopy-300'
+            subtitle: loadingStats ? '' : `${stats?.totalGymnasts || 0} athletes`,
         },
         {
-            name: 'UPCOMING EVENTS',
+            name: 'EVENTS',
             value: loadingStats ? '-' : String(stats?.upcomingEvents || 0),
             icon: CalendarDays,
             subtitle: stats?.nextEventDate ? `Next: ${format(parseISO(stats.nextEventDate), 'EEE h:mma')}` : 'No upcoming',
-            gradient: 'from-ether-600 to-ether-700',
-            iconBg: 'bg-ether-500/20',
-            iconColor: 'text-ether-300'
         },
         {
-            name: 'COMPETITIONS',
+            name: 'MEETS',
             value: loadingStats ? '-' : String(stats?.activeCompetitions || 0),
             icon: Trophy,
             subtitle: stats?.nextCompetitionName || 'None scheduled',
-            gradient: 'from-arcane-600 to-arcane-700',
-            iconBg: 'bg-arcane-500/20',
-            iconColor: 'text-arcane-300'
         },
     ];
 
     return (
         <div className="animate-fade-in">
-            {/* Header with greeting */}
-            <div className="mb-8">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-arcane-500/20 to-arcane-600/10 border border-arcane-500/30">
-                        <Sparkles className="w-5 h-5 text-arcane-500" />
+            {/* Header - Scoreboard Style */}
+            <div className="mb-6">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="h-8 w-1 bg-velocity-500 rounded-full" />
+                            <h1 className="font-display text-2xl font-bold text-obsidian-900 uppercase tracking-wide">
+                                {hub.name}
+                            </h1>
+                        </div>
+                        <p className="text-obsidian-500 text-sm ml-4">
+                            {getGreeting()}{userName ? `, ${userName}` : ''} • {format(new Date(), 'EEEE, MMMM d')}
+                        </p>
                     </div>
-                    <span className="font-mono text-xs uppercase tracking-wider text-mithril-400">
-                        {format(new Date(), 'EEEE, MMMM d')}
-                    </span>
+                    <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-obsidian-900 rounded-md">
+                        <Activity className="w-4 h-4 text-velocity-500" />
+                        <span className="font-mono text-xs text-obsidian-300 uppercase tracking-wider">Live Dashboard</span>
+                    </div>
                 </div>
-                <h1 className="font-display text-3xl font-bold text-mithril-900">
-                    {getGreeting()}{userName ? `, ${userName}` : ''}
-                </h1>
-                <p className="mt-2 text-mithril-500 font-display italic">
-                    Welcome to {hub.name}
-                </p>
             </div>
 
-            {/* Stat Cards - D&D Stat Block Style */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+            {/* Stat Cards - Scoreboard Style */}
+            <div className="grid grid-cols-3 gap-4 mb-6">
                 {statCards.map((item) => (
                     <div
                         key={item.name}
-                        className={clsx(
-                            "relative overflow-hidden rounded-xl p-5 transition-all duration-300",
-                            "bg-gradient-to-br", item.gradient,
-                            "shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                        )}
+                        className="stat-block relative overflow-hidden"
                     >
-                        {/* Subtle pattern overlay */}
-                        <div className="absolute inset-0 opacity-10"
-                            style={{
-                                backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='1'/%3E%3Ccircle cx='13' cy='13' r='1'/%3E%3C/g%3E%3C/svg%3E")`
-                            }}
-                        />
+                        {/* Velocity accent line */}
+                        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-velocity-600 via-velocity-500 to-velocity-600" />
 
-                        <div className="relative">
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <p className="font-mono text-xs uppercase tracking-wider text-white/70">{item.name}</p>
-                                    <p className="font-display text-4xl font-bold text-white mt-1">{item.value}</p>
-                                </div>
-                                <div className={clsx("p-3 rounded-lg", item.iconBg)}>
-                                    <item.icon className={clsx("h-6 w-6", item.iconColor)} />
-                                </div>
-                            </div>
-                            <div className="mt-3 pt-3 border-t border-white/20">
-                                <p className="text-sm text-white/80 truncate flex items-center gap-1">
-                                    <TrendingUp className="w-3 h-3" />
-                                    {item.subtitle}
-                                </p>
-                            </div>
+                        <div className="flex items-center justify-between mb-2">
+                            <span className="font-mono text-[10px] uppercase tracking-wider text-obsidian-500">{item.name}</span>
+                            <item.icon className="h-4 w-4 text-obsidian-600" />
                         </div>
+                        <p className="stat-value text-velocity-500">{item.value}</p>
+                        <p className="font-mono text-xs text-obsidian-400 mt-1 truncate">{item.subtitle}</p>
                     </div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-                {/* Recent Activity - Quest Log Style */}
-                <div className="card p-6">
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="stat-block-header px-3 py-1.5 rounded-md">
-                            <span className="text-xs">RECENT ACTIVITY</span>
-                        </div>
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                {/* Recent Activity - Data Card Style */}
+                <div className="data-card">
+                    <div className="data-card-header flex items-center justify-between">
+                        <h3>Activity Feed</h3>
+                        <Activity className="w-4 h-4 text-velocity-500" />
                     </div>
-
-                    <div className="space-y-1">
+                    <div className="data-card-body">
                         {loadingStats ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-canopy-500" />
+                                <Loader2 className="h-6 w-6 animate-spin text-velocity-500" />
                             </div>
                         ) : recentActivity.length === 0 ? (
                             <div className="text-center py-8">
-                                <MessageSquare className="w-10 h-10 mx-auto text-mithril-300 mb-3" />
-                                <p className="font-display text-mithril-500 italic">No recent activity to show</p>
+                                <MessageSquare className="w-10 h-10 mx-auto text-tungsten-300 mb-3" />
+                                <p className="font-display text-obsidian-500 uppercase text-sm">No recent activity</p>
                             </div>
                         ) : (
-                            <ul className="space-y-1">
+                            <ul className="space-y-0 divide-y divide-tungsten-100">
                                 {recentActivity.map((activity, index) => {
                                     const ActivityIcon = activity.type === 'event' ? Calendar :
                                         activity.type === 'post' ? MessageSquare :
                                         activity.type === 'competition' ? Trophy :
                                         activity.type === 'member' ? UserPlus : FileText;
 
-                                    const iconStyles = activity.type === 'event' ? 'bg-ether-100 text-ether-600 border-ether-200' :
-                                        activity.type === 'post' ? 'bg-canopy-100 text-canopy-600 border-canopy-200' :
-                                        activity.type === 'competition' ? 'bg-arcane-100 text-arcane-600 border-arcane-200' :
-                                        activity.type === 'member' ? 'bg-canopy-100 text-canopy-600 border-canopy-200' :
-                                        'bg-mithril-100 text-mithril-600 border-mithril-200';
+                                    const iconColor = activity.type === 'event' ? 'text-blue-500' :
+                                        activity.type === 'post' ? 'text-success-500' :
+                                        activity.type === 'competition' ? 'text-velocity-500' :
+                                        activity.type === 'member' ? 'text-success-500' :
+                                        'text-obsidian-400';
 
                                     const activityContent = (
-                                        <div className="flex items-start gap-3">
-                                            <div className={clsx(
-                                                "mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border",
-                                                iconStyles
-                                            )}>
-                                                <ActivityIcon className="h-4 w-4" />
-                                            </div>
+                                        <div className="flex items-center gap-3 py-2.5">
+                                            <ActivityIcon className={clsx("h-4 w-4 flex-shrink-0", iconColor)} />
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-mithril-800">{activity.description}</p>
+                                                <p className="text-sm font-medium text-obsidian-800 truncate">{activity.description}</p>
                                                 {activity.content && (
-                                                    <p className="text-sm text-mithril-500 mt-0.5 line-clamp-2">{activity.content}</p>
+                                                    <p className="text-xs text-obsidian-500 mt-0.5 line-clamp-1">{activity.content}</p>
                                                 )}
-                                                <p className="font-mono text-xs text-mithril-400 mt-1">
-                                                    {format(parseISO(activity.timestamp), 'MMM d, h:mma')}
-                                                </p>
                                             </div>
+                                            <span className="font-mono text-[10px] text-obsidian-400 flex-shrink-0">
+                                                {format(parseISO(activity.timestamp), 'MMM d')}
+                                            </span>
                                         </div>
                                     );
 
@@ -416,17 +384,17 @@ export function Dashboard() {
                                         <li
                                             key={activity.id}
                                             className="animate-slide-up"
-                                            style={{ animationDelay: `${index * 50}ms` }}
+                                            style={{ animationDelay: `${index * 30}ms` }}
                                         >
                                             {activity.link ? (
                                                 <Link
                                                     to={activity.link}
-                                                    className="block rounded-lg px-3 py-3 -mx-3 hover:bg-canopy-50/50 transition-all duration-150"
+                                                    className="block hover:bg-velocity-50/50 transition-colors -mx-4 px-4"
                                                 >
                                                     {activityContent}
                                                 </Link>
                                             ) : (
-                                                <div className="px-3 py-3 -mx-3">
+                                                <div className="-mx-4 px-4">
                                                     {activityContent}
                                                 </div>
                                             )}
@@ -438,59 +406,59 @@ export function Dashboard() {
                     </div>
                 </div>
 
-                {/* Upcoming Schedule - Quest Board Style */}
-                <div className="card p-6">
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="stat-block-header px-3 py-1.5 rounded-md">
-                            <span className="text-xs">UPCOMING QUESTS</span>
-                        </div>
+                {/* Upcoming Schedule - Data Card Style */}
+                <div className="data-card">
+                    <div className="data-card-header flex items-center justify-between">
+                        <h3>Upcoming Schedule</h3>
+                        <CalendarDays className="w-4 h-4 text-velocity-500" />
                     </div>
-
-                    <div className="space-y-3">
+                    <div className="data-card-body">
                         {loadingStats ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-canopy-500" />
+                                <Loader2 className="h-6 w-6 animate-spin text-velocity-500" />
                             </div>
                         ) : upcomingEvents.length === 0 ? (
                             <div className="text-center py-8">
-                                <CalendarDays className="w-10 h-10 mx-auto text-mithril-300 mb-3" />
-                                <p className="font-display text-mithril-500 italic">No upcoming events scheduled</p>
-                                <p className="text-sm text-mithril-400 mt-1">Your quest log awaits...</p>
+                                <CalendarDays className="w-10 h-10 mx-auto text-tungsten-300 mb-3" />
+                                <p className="font-display text-obsidian-500 uppercase text-sm">No upcoming events</p>
                             </div>
                         ) : (
-                            <ul className="space-y-3">
+                            <ul className="space-y-2">
                                 {upcomingEvents.map((event, index) => (
                                     <li
                                         key={event.id}
                                         className="animate-slide-up"
-                                        style={{ animationDelay: `${index * 50}ms` }}
+                                        style={{ animationDelay: `${index * 30}ms` }}
                                     >
                                         <Link
                                             to={`calendar?event=${event.id}`}
                                             className={clsx(
-                                                "flex items-center justify-between rounded-lg px-4 py-3",
-                                                "bg-paper-warm border border-mithril-200",
-                                                "hover:border-canopy-300 hover:shadow-sm transition-all duration-150"
+                                                "group flex items-center justify-between rounded-md px-3 py-2.5",
+                                                "bg-tungsten-50 border border-tungsten-200",
+                                                "hover:border-velocity-300 hover:bg-velocity-50/30 transition-all duration-150"
                                             )}
                                         >
                                             <div className="min-w-0 flex-1">
-                                                <p className="font-display text-sm font-semibold text-mithril-900 truncate">
+                                                <p className="font-medium text-sm text-obsidian-800 truncate">
                                                     {event.title}
                                                 </p>
                                                 <span className={clsx(
-                                                    "inline-block mt-1 px-2 py-0.5 rounded text-xs font-mono uppercase tracking-wide border",
+                                                    "inline-block mt-1 px-1.5 py-0.5 rounded text-[10px] font-mono uppercase tracking-wide border",
                                                     getEventTypeStyles(event.type)
                                                 )}>
                                                     {formatEventType(event.type)}
                                                 </span>
                                             </div>
-                                            <div className="ml-4 text-right">
-                                                <p className="font-display text-sm font-semibold text-mithril-800">
-                                                    {format(parseISO(event.start_time), 'EEE, MMM d')}
-                                                </p>
-                                                <p className="font-mono text-xs text-mithril-500">
-                                                    {format(parseISO(event.start_time), 'h:mm a')}
-                                                </p>
+                                            <div className="ml-3 text-right flex items-center gap-2">
+                                                <div>
+                                                    <p className="font-mono text-xs font-medium text-obsidian-700">
+                                                        {format(parseISO(event.start_time), 'EEE, MMM d')}
+                                                    </p>
+                                                    <p className="font-mono text-[10px] text-obsidian-400">
+                                                        {format(parseISO(event.start_time), 'h:mm a')}
+                                                    </p>
+                                                </div>
+                                                <ChevronRight className="w-4 h-4 text-obsidian-300 group-hover:text-velocity-500 transition-colors" />
                                             </div>
                                         </Link>
                                     </li>
@@ -500,10 +468,10 @@ export function Dashboard() {
                     </div>
 
                     {upcomingEvents.length > 0 && (
-                        <div className="mt-4 pt-4 border-t border-mithril-100">
+                        <div className="px-4 py-3 border-t border-tungsten-100 bg-tungsten-50/50">
                             <Link
                                 to="calendar"
-                                className="btn-secondary w-full text-sm"
+                                className="btn-primary w-full text-sm snap-click"
                             >
                                 <CalendarDays className="w-4 h-4" />
                                 View Full Calendar

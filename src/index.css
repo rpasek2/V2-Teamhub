@@ -1,120 +1,103 @@
 /* Google Fonts - must be before tailwind import */
-@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500&display=swap');
 
 @import "tailwindcss";
 
 /* ============================================
-   TECH-NATURALISM DESIGN SYSTEM
-   "Building the hidden structures that allow magic to happen."
+   KINETIC STRUCTURALISM DESIGN SYSTEM
+   "The Architect - Building structures that allow perfection."
    ============================================ */
 
 @theme {
   /* ========== TYPOGRAPHY ========== */
-  --font-display: 'Spectral', Georgia, serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --font-body: 'Inter', system-ui, sans-serif;
+  --font-display: 'Oswald', 'Barlow Condensed', sans-serif;
+  --font-body: 'Roboto', system-ui, sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
 
-  /* ========== PRIMARY: CANOPY GREEN ========== */
-  /* Wisdom, growth, nature, Two Trees */
-  --color-canopy-50: #f0fdf4;
-  --color-canopy-100: #dcfce7;
-  --color-canopy-200: #bbf7d0;
-  --color-canopy-300: #86efac;
-  --color-canopy-400: #4ade80;
-  --color-canopy-500: #22c55e;
-  --color-canopy-600: #16a34a;
-  --color-canopy-700: #15803d;
-  --color-canopy-800: #166534;
-  --color-canopy-900: #14532d;
-  --color-canopy-950: #052e16;
+  /* ========== PRIMARY: OBSIDIAN BLUE ========== */
+  /* Professional, serious, easier on eyes than pure black */
+  --color-obsidian-50: #f0f4f8;
+  --color-obsidian-100: #d9e2ec;
+  --color-obsidian-200: #bcccdc;
+  --color-obsidian-300: #9fb3c8;
+  --color-obsidian-400: #829ab1;
+  --color-obsidian-500: #627d98;
+  --color-obsidian-600: #486581;
+  --color-obsidian-700: #334e68;
+  --color-obsidian-800: #243b53;
+  --color-obsidian-900: #102a43;
+  --color-obsidian-950: #0a1929;
 
-  /* ========== SECONDARY: MITHRIL GREY ========== */
-  /* Code, hardware, steel equipment */
-  --color-mithril-50: #f8fafc;
-  --color-mithril-100: #f1f5f9;
-  --color-mithril-200: #e2e8f0;
-  --color-mithril-300: #cbd5e1;
-  --color-mithril-400: #94a3b8;
-  --color-mithril-500: #64748b;
-  --color-mithril-600: #475569;
-  --color-mithril-700: #334155;
-  --color-mithril-800: #1e293b;
-  --color-mithril-900: #0f172a;
-  --color-mithril-950: #020617;
+  /* ========== ACTION: VELOCITY ORANGE ========== */
+  /* Energy, warning markers, chalk on mats - demands attention */
+  --color-velocity-50: #fff7ed;
+  --color-velocity-100: #ffedd5;
+  --color-velocity-200: #fed7aa;
+  --color-velocity-300: #fdba74;
+  --color-velocity-400: #fb923c;
+  --color-velocity-500: #f97316;
+  --color-velocity-600: #ea580c;
+  --color-velocity-700: #c2410c;
+  --color-velocity-800: #9a3412;
+  --color-velocity-900: #7c2d12;
 
-  /* ========== ACCENT: ARCANE GOLD ========== */
-  /* Magic, perfect routines, critical moments */
-  --color-arcane-50: #fffbeb;
-  --color-arcane-100: #fef3c7;
-  --color-arcane-200: #fde68a;
-  --color-arcane-300: #fcd34d;
-  --color-arcane-400: #fbbf24;
-  --color-arcane-500: #f59e0b;
-  --color-arcane-600: #d97706;
-  --color-arcane-700: #b45309;
-  --color-arcane-800: #92400e;
-  --color-arcane-900: #78350f;
-
-  /* ========== ACCENT ALT: ETHER BLUE ========== */
-  /* Links, secondary CTAs */
-  --color-ether-50: #eff6ff;
-  --color-ether-100: #dbeafe;
-  --color-ether-200: #bfdbfe;
-  --color-ether-300: #93c5fd;
-  --color-ether-400: #60a5fa;
-  --color-ether-500: #3b82f6;
-  --color-ether-600: #2563eb;
-  --color-ether-700: #1d4ed8;
-  --color-ether-800: #1e40af;
-  --color-ether-900: #1e3a8a;
-
-  /* ========== PAPER/PARCHMENT BACKGROUNDS ========== */
-  --color-paper-white: #fefdfb;
-  --color-paper-cream: #faf9f7;
-  --color-paper-warm: #f5f4f1;
-  --color-paper-aged: #f0efe9;
+  /* ========== SUPPORT: TUNGSTEN (Cool greyish white) ========== */
+  /* Like raw metal or a whiteboard */
+  --color-tungsten-50: #fafbfc;
+  --color-tungsten-100: #f1f5f9;
+  --color-tungsten-200: #e2e8f0;
+  --color-tungsten-300: #cbd5e1;
+  --color-tungsten-400: #94a3b8;
+  --color-tungsten-500: #64748b;
+  --color-tungsten-600: #475569;
+  --color-tungsten-700: #334155;
+  --color-tungsten-800: #1e293b;
+  --color-tungsten-900: #0f172a;
 
   /* ========== SEMANTIC COLORS ========== */
-  --color-success-50: #f0fdf4;
-  --color-success-100: #dcfce7;
-  --color-success-400: #4ade80;
-  --color-success-500: #22c55e;
-  --color-success-600: #16a34a;
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-400: #34d399;
+  --color-success-500: #10b981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
   --color-error-50: #fef2f2;
   --color-error-100: #fee2e2;
   --color-error-400: #f87171;
   --color-error-500: #ef4444;
   --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
   --color-warning-50: #fffbeb;
   --color-warning-100: #fef3c7;
   --color-warning-400: #fbbf24;
   --color-warning-500: #f59e0b;
   --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
 
-  /* ========== LEGACY BRAND (for compatibility) ========== */
-  --color-brand-50: #f0fdf4;
-  --color-brand-100: #dcfce7;
-  --color-brand-200: #bbf7d0;
-  --color-brand-300: #86efac;
-  --color-brand-400: #4ade80;
-  --color-brand-500: #22c55e;
-  --color-brand-600: #16a34a;
-  --color-brand-700: #15803d;
-  --color-brand-800: #166534;
-  --color-brand-900: #14532d;
-  --color-brand-950: #052e16;
+  /* ========== LEGACY BRAND (mapped to obsidian for compatibility) ========== */
+  --color-brand-50: #f0f4f8;
+  --color-brand-100: #d9e2ec;
+  --color-brand-200: #bcccdc;
+  --color-brand-300: #9fb3c8;
+  --color-brand-400: #829ab1;
+  --color-brand-500: #627d98;
+  --color-brand-600: #486581;
+  --color-brand-700: #334e68;
+  --color-brand-800: #243b53;
+  --color-brand-900: #102a43;
+  --color-brand-950: #0a1929;
 
   /* ========== SHADOWS ========== */
-  --shadow-xs: 0 1px 2px rgba(5, 46, 22, 0.04);
-  --shadow-sm: 0 2px 4px rgba(5, 46, 22, 0.06), 0 1px 2px rgba(5, 46, 22, 0.04);
-  --shadow-md: 0 4px 12px rgba(5, 46, 22, 0.08), 0 2px 4px rgba(5, 46, 22, 0.04);
-  --shadow-lg: 0 8px 24px rgba(5, 46, 22, 0.1), 0 4px 8px rgba(5, 46, 22, 0.06);
-  --shadow-xl: 0 20px 48px rgba(5, 46, 22, 0.12), 0 8px 16px rgba(5, 46, 22, 0.08);
-  --shadow-glow-gold: 0 0 20px rgba(245, 158, 11, 0.3);
-  --shadow-glow-canopy: 0 0 20px rgba(22, 163, 74, 0.25);
-  --shadow-glow-ether: 0 0 20px rgba(59, 130, 246, 0.25);
+  --shadow-xs: 0 1px 2px rgba(10, 25, 41, 0.05);
+  --shadow-sm: 0 1px 3px rgba(10, 25, 41, 0.1), 0 1px 2px rgba(10, 25, 41, 0.06);
+  --shadow-md: 0 4px 6px rgba(10, 25, 41, 0.1), 0 2px 4px rgba(10, 25, 41, 0.06);
+  --shadow-lg: 0 10px 15px rgba(10, 25, 41, 0.1), 0 4px 6px rgba(10, 25, 41, 0.05);
+  --shadow-xl: 0 20px 25px rgba(10, 25, 41, 0.1), 0 10px 10px rgba(10, 25, 41, 0.04);
+  --shadow-velocity: 0 4px 14px rgba(249, 115, 22, 0.35);
+  --shadow-obsidian: 0 4px 14px rgba(16, 42, 67, 0.25);
 }
 
 /* ========== BASE STYLES ========== */
@@ -124,119 +107,109 @@
   }
 
   body {
-    @apply bg-paper-cream text-mithril-900 antialiased;
-    font-feature-settings: 'kern' 1, 'liga' 1;
+    @apply bg-tungsten-100 text-obsidian-900 antialiased;
   }
 
-  /* Headings use Spectral */
+  /* Headings use Oswald - athletic, commanding */
   h1, h2, h3, h4, h5, h6,
   .font-display {
     font-family: var(--font-display);
-    font-feature-settings: 'kern' 1, 'liga' 1;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
   }
 
-  /* Mono text uses JetBrains Mono */
+  /* Mono text for data/code */
   code, pre, kbd, samp,
   .font-mono {
     font-family: var(--font-mono);
   }
 
-  /* Focus styles */
+  /* Focus styles - velocity orange */
   :focus-visible {
-    @apply outline-none ring-2 ring-canopy-500/50 ring-offset-2 ring-offset-paper-cream;
+    @apply outline-none ring-2 ring-velocity-500/50 ring-offset-2 ring-offset-tungsten-100;
   }
 
   /* Selection */
   ::selection {
-    @apply bg-canopy-200 text-canopy-900;
+    @apply bg-velocity-200 text-obsidian-900;
   }
 }
 
 /* ========== UTILITY CLASSES ========== */
 @layer utilities {
-  /* Glass morphism */
-  .glass {
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  /* Grid background pattern - "The Lab" feel */
+  .grid-pattern {
+    background-image:
+      linear-gradient(rgba(16, 42, 67, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(16, 42, 67, 0.03) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
-  .glass-dark {
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  .grid-pattern-dark {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
-  .glass-canopy {
-    background: rgba(20, 83, 45, 0.9);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(134, 239, 172, 0.2);
+  /* Arc/trajectory decorations */
+  .arc-accent {
+    position: relative;
   }
 
-  /* Glow effects */
-  .glow-gold {
-    box-shadow: var(--shadow-glow-gold);
+  .arc-accent::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--color-velocity-500), transparent);
+    border-radius: 100%;
   }
 
-  .glow-canopy {
-    box-shadow: var(--shadow-glow-canopy);
+  /* Velocity glow effects */
+  .glow-velocity {
+    box-shadow: var(--shadow-velocity);
   }
 
-  .glow-ether {
-    box-shadow: var(--shadow-glow-ether);
+  .glow-obsidian {
+    box-shadow: var(--shadow-obsidian);
   }
 
-  /* Text gradients */
-  .text-gradient-canopy {
-    @apply bg-gradient-to-r from-canopy-600 to-canopy-500 bg-clip-text text-transparent;
-  }
-
-  .text-gradient-gold {
-    @apply bg-gradient-to-r from-arcane-600 to-arcane-400 bg-clip-text text-transparent;
-  }
-
-  /* Stat block styling */
-  .stat-label {
-    @apply font-mono text-xs uppercase tracking-wider text-mithril-500;
-  }
-
+  /* Data emphasis */
   .stat-value {
-    @apply font-display text-3xl font-semibold text-mithril-900;
+    @apply font-display text-4xl font-bold tracking-tight;
   }
 
-  /* Paper texture overlay */
-  .paper-texture {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  .stat-label {
+    @apply font-mono text-xs uppercase tracking-wider text-tungsten-500;
   }
 
-  /* Decorative dividers */
-  .divider-ornate {
-    @apply relative;
+  /* Snap animation for buttons */
+  .snap-click {
+    @apply transition-transform duration-75;
   }
 
-  .divider-ornate::after {
-    content: '◆';
-    @apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-arcane-400 text-xs;
+  .snap-click:active {
+    transform: scale(0.96);
   }
 
   /* Animation utilities */
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-out;
+    animation: fadeIn 0.2s ease-out;
   }
 
   .animate-slide-up {
-    animation: slideUp 0.3s ease-out;
+    animation: slideUp 0.25s ease-out;
   }
 
-  .animate-scale-in {
-    animation: scaleIn 0.2s ease-out;
+  .animate-slide-in-right {
+    animation: slideInRight 0.2s ease-out;
   }
 
-  .animate-glow-pulse {
-    animation: glowPulse 2s ease-in-out infinite;
+  .animate-snap {
+    animation: snap 0.15s ease-out;
   }
 }
 
@@ -249,7 +222,7 @@
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -257,191 +230,208 @@
   }
 }
 
-@keyframes scaleIn {
+@keyframes slideInRight {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: translateX(-8px);
   }
   to {
     opacity: 1;
-    transform: scale(1);
+    transform: translateX(0);
   }
 }
 
-@keyframes glowPulse {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(245, 158, 11, 0.4);
-  }
+@keyframes snap {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+@keyframes pulse-velocity {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(249, 115, 22, 0); }
 }
 
 /* ========== COMPONENT STYLES ========== */
 @layer components {
-  /* Buttons */
+  /* Primary Button - Velocity Orange with snap */
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           bg-gradient-to-b from-canopy-600 to-canopy-700
-           text-white font-medium rounded-lg
-           shadow-md hover:shadow-lg hover:from-canopy-500 hover:to-canopy-600
-           active:scale-[0.98] transition-all duration-150;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
+           bg-velocity-500 text-white font-semibold uppercase tracking-wide text-sm
+           rounded-md shadow-md
+           hover:bg-velocity-600 hover:shadow-lg
+           active:scale-95
+           transition-all duration-150;
   }
 
+  /* Secondary Button - Obsidian outlined */
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           bg-paper-white border border-mithril-300
-           text-mithril-700 font-medium rounded-lg
-           shadow-sm hover:bg-mithril-50 hover:border-mithril-400
-           active:scale-[0.98] transition-all duration-150;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
+           bg-transparent border-2 border-obsidian-300
+           text-obsidian-700 font-semibold uppercase tracking-wide text-sm
+           rounded-md
+           hover:bg-obsidian-50 hover:border-obsidian-400
+           active:scale-95
+           transition-all duration-150;
   }
 
+  /* Ghost Button */
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           text-mithril-600 font-medium rounded-lg
-           hover:bg-mithril-100 hover:text-mithril-900
-           active:scale-[0.98] transition-all duration-150;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2
+           text-obsidian-600 font-medium
+           rounded-md
+           hover:bg-obsidian-100 hover:text-obsidian-800
+           active:scale-95
+           transition-all duration-150;
   }
 
-  .btn-arcane {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           bg-gradient-to-b from-arcane-500 to-arcane-600
-           text-white font-medium rounded-lg
-           shadow-md hover:shadow-lg hover:from-arcane-400 hover:to-arcane-500
-           active:scale-[0.98] transition-all duration-150;
-  }
-
-  .btn-arcane:hover {
-    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3), 0 4px 12px rgba(0,0,0,0.15);
-  }
-
+  /* Danger Button */
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           bg-gradient-to-b from-error-500 to-error-600
-           text-white font-medium rounded-lg
-           shadow-md hover:shadow-lg hover:from-error-400 hover:to-error-500
-           active:scale-[0.98] transition-all duration-150;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5
+           bg-error-500 text-white font-semibold uppercase tracking-wide text-sm
+           rounded-md shadow-md
+           hover:bg-error-600 hover:shadow-lg
+           active:scale-95
+           transition-all duration-150;
   }
 
-  /* Cards */
+  /* Icon Button */
+  .btn-icon {
+    @apply inline-flex items-center justify-center p-2
+           text-obsidian-500 rounded-md
+           hover:bg-obsidian-100 hover:text-obsidian-700
+           active:scale-90
+           transition-all duration-100;
+  }
+
+  /* Cards - Clean, architectural */
   .card {
-    @apply bg-paper-white rounded-xl border border-mithril-200 shadow-sm;
+    @apply bg-white rounded-lg border border-tungsten-200 shadow-sm;
   }
 
-  .card-hover {
-    @apply bg-paper-white rounded-xl border border-mithril-200 shadow-sm
-           transition-all duration-200
-           hover:shadow-md hover:border-canopy-300 hover:-translate-y-0.5;
+  .card-elevated {
+    @apply bg-white rounded-lg shadow-md border border-tungsten-100;
   }
 
-  .card-glass {
-    @apply rounded-xl shadow-lg;
-    background: rgba(255, 255, 255, 0.75);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+  .card-dark {
+    @apply bg-obsidian-900 rounded-lg border border-obsidian-700 text-tungsten-100;
   }
 
-  /* Stat blocks (D&D style) */
+  /* Data Card - High info density style */
+  .data-card {
+    @apply bg-white rounded-lg border border-tungsten-200 shadow-sm overflow-hidden;
+  }
+
+  .data-card-header {
+    @apply px-4 py-3 bg-obsidian-900 text-white;
+  }
+
+  .data-card-header h3 {
+    @apply font-display text-sm font-semibold tracking-wider uppercase;
+  }
+
+  .data-card-body {
+    @apply p-4;
+  }
+
+  /* Stat Block - Scoreboard style */
   .stat-block {
-    @apply bg-paper-white rounded-lg border-2 border-mithril-200
-           shadow-sm overflow-hidden;
+    @apply bg-obsidian-900 rounded-lg p-4 text-center;
   }
 
-  .stat-block-header {
-    @apply px-4 py-2 bg-gradient-to-r from-canopy-900 to-canopy-800
-           text-canopy-100 font-display text-sm font-semibold uppercase tracking-wider;
+  .stat-block .stat-value {
+    @apply text-white;
   }
 
-  .stat-block-body {
-    @apply p-4 space-y-3;
+  .stat-block .stat-label {
+    @apply text-obsidian-400;
   }
 
-  .stat-block-divider {
-    @apply border-t border-dashed border-mithril-300 my-3;
-  }
-
-  /* Inputs */
+  /* Inputs - Clean and functional */
   .input {
-    @apply w-full px-4 py-2.5 bg-paper-white border border-mithril-300 rounded-lg
-           font-mono text-sm text-mithril-900 placeholder:text-mithril-400
-           focus:border-canopy-500 focus:ring-2 focus:ring-canopy-500/20
+    @apply w-full px-4 py-2.5 bg-white border border-tungsten-300 rounded-md
+           text-obsidian-900 placeholder:text-tungsten-400
+           focus:border-velocity-500 focus:ring-2 focus:ring-velocity-500/20
            transition-all duration-150;
   }
 
   .input-label {
-    @apply block font-display text-sm font-medium text-mithril-700 mb-1.5;
+    @apply block text-sm font-semibold text-obsidian-700 uppercase tracking-wide mb-1.5;
   }
 
-  /* Badges */
+  /* Badges - Compact, readable */
   .badge {
     @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-mono uppercase tracking-wide rounded-full;
+           text-xs font-semibold uppercase tracking-wide rounded;
   }
 
-  .badge-canopy {
+  .badge-velocity {
     @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-mono uppercase tracking-wide rounded-full
-           bg-canopy-100 text-canopy-800 border border-canopy-200;
+           text-xs font-semibold uppercase tracking-wide rounded
+           bg-velocity-100 text-velocity-700 border border-velocity-200;
   }
 
-  .badge-mithril {
+  .badge-obsidian {
     @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-mono uppercase tracking-wide rounded-full
-           bg-mithril-100 text-mithril-700 border border-mithril-200;
+           text-xs font-semibold uppercase tracking-wide rounded
+           bg-obsidian-100 text-obsidian-700 border border-obsidian-200;
   }
 
-  .badge-arcane {
+  .badge-success {
     @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-mono uppercase tracking-wide rounded-full
-           bg-arcane-100 text-arcane-800 border border-arcane-200;
+           text-xs font-semibold uppercase tracking-wide rounded
+           bg-success-100 text-success-700 border border-success-400/30;
   }
 
-  .badge-ether {
+  .badge-error {
     @apply inline-flex items-center gap-1 px-2 py-0.5
-           text-xs font-mono uppercase tracking-wide rounded-full
-           bg-ether-100 text-ether-800 border border-ether-200;
+           text-xs font-semibold uppercase tracking-wide rounded
+           bg-error-100 text-error-700 border border-error-400/30;
   }
 
-  /* Progress bars */
+  /* Progress bars - Athletic */
   .progress-bar {
-    @apply h-2 bg-mithril-200 rounded-full overflow-hidden;
+    @apply h-2 bg-tungsten-200 rounded-full overflow-hidden;
   }
 
   .progress-bar-fill {
-    @apply h-full bg-gradient-to-r from-canopy-500 to-canopy-400 rounded-full
+    @apply h-full bg-gradient-to-r from-velocity-500 to-velocity-400 rounded-full
            transition-all duration-500 ease-out;
-  }
-
-  .progress-bar-arcane .progress-bar-fill {
-    @apply from-arcane-500 to-arcane-400;
   }
 
   /* Navigation items */
   .nav-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg
-           text-mithril-600 font-medium
-           hover:bg-canopy-50 hover:text-canopy-700
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-md
+           text-obsidian-400 font-medium text-sm
+           hover:bg-obsidian-800 hover:text-white
            transition-all duration-150;
   }
 
   .nav-item-active {
-    @apply bg-canopy-100 text-canopy-800
-           border-l-3 border-arcane-500 -ml-px;
+    @apply bg-obsidian-800 text-white border-l-3 border-velocity-500;
   }
 
-  /* Skeleton loading */
-  .skeleton {
-    @apply bg-mithril-200 rounded animate-pulse;
+  /* Tables - High density */
+  .table-compact {
+    @apply w-full text-sm;
   }
 
-  .skeleton-shimmer {
-    @apply bg-gradient-to-r from-mithril-200 via-mithril-100 to-mithril-200
-           bg-[length:200%_100%] animate-[shimmer_1.5s_infinite];
+  .table-compact th {
+    @apply px-3 py-2 text-left font-semibold uppercase tracking-wide text-xs
+           text-obsidian-500 bg-tungsten-50 border-b border-tungsten-200;
+  }
+
+  .table-compact td {
+    @apply px-3 py-2 border-b border-tungsten-100;
+  }
+
+  .table-compact tr:hover td {
+    @apply bg-velocity-50/50;
+  }
+
+  /* Sparkline placeholder */
+  .sparkline {
+    @apply inline-block w-16 h-4 bg-tungsten-100 rounded;
   }
 }
 
@@ -455,18 +445,18 @@
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to bottom, var(--color-canopy-500), var(--color-canopy-600));
+  background: var(--color-obsidian-700);
   border-radius: 4px;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(to bottom, var(--color-canopy-400), var(--color-canopy-500));
+  background: var(--color-obsidian-600);
 }
 
 /* Firefox */
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-canopy-500) transparent;
+  scrollbar-color: var(--color-obsidian-700) transparent;
 }
 
 /* Hidden scrollbar (still scrollable) */
@@ -487,14 +477,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-paper-cream);
+  background: var(--color-tungsten-100);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-mithril-300);
+  background: var(--color-tungsten-300);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-mithril-400);
+  background: var(--color-tungsten-400);
 }
