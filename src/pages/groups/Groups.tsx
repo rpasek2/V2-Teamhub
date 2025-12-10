@@ -64,11 +64,11 @@ export default function Groups() {
     const canCreateGroup = ['owner', 'admin', 'director', 'coach'].includes(currentRole || '');
 
     return (
-        <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <div className="animate-fade-in">
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
-                    <h1 className="text-2xl font-semibold text-slate-900">Groups</h1>
-                    <p className="mt-2 text-sm text-slate-700">
+                    <h1 className="text-2xl font-semibold text-chalk-50">Groups</h1>
+                    <p className="mt-2 text-sm text-slate-400">
                         Connect with your team, parents, and coaches in dedicated spaces.
                     </p>
                 </div>
@@ -76,9 +76,9 @@ export default function Groups() {
                     <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="inline-flex items-center justify-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 sm:w-auto"
+                            className="btn-primary"
                         >
-                            <Plus className="mr-2 h-4 w-4" />
+                            <Plus className="h-4 w-4" />
                             Create Group
                         </button>
                     </div>
@@ -88,11 +88,11 @@ export default function Groups() {
             <div className="mt-6 flex items-center">
                 <div className="relative w-full max-w-md">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <Search className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                        <Search className="h-5 w-5 text-slate-500" aria-hidden="true" />
                     </div>
                     <input
                         type="text"
-                        className="block w-full rounded-md border-slate-300 pl-10 focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+                        className="input pl-10"
                         placeholder="Search groups..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -104,10 +104,10 @@ export default function Groups() {
                 {loading ? (
                     // Skeleton loading
                     [...Array(3)].map((_, i) => (
-                        <div key={i} className="animate-pulse rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-                            <div className="h-4 w-1/3 rounded bg-slate-200"></div>
-                            <div className="mt-4 h-4 w-full rounded bg-slate-200"></div>
-                            <div className="mt-2 h-4 w-2/3 rounded bg-slate-200"></div>
+                        <div key={i} className="animate-pulse card p-6">
+                            <div className="h-4 w-1/3 rounded bg-slate-700"></div>
+                            <div className="mt-4 h-4 w-full rounded bg-slate-700"></div>
+                            <div className="mt-2 h-4 w-2/3 rounded bg-slate-700"></div>
                         </div>
                     ))
                 ) : filteredGroups.length > 0 ? (
@@ -115,33 +115,33 @@ export default function Groups() {
                         <Link
                             key={group.id}
                             to={`/hub/${hub?.id}/groups/${group.id}`}
-                            className="group relative flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm hover:border-brand-300 hover:shadow-md transition-all"
+                            className="group card hover:border-mint-500/50 transition-all"
                         >
                             <div className="flex flex-1 flex-col p-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50">
-                                            <Users className="h-6 w-6 text-brand-600" />
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-mint-500/10 border border-mint-500/30">
+                                            <Users className="h-5 w-5 text-mint-400" />
                                         </div>
-                                        <h3 className="ml-3 text-lg font-medium text-slate-900 group-hover:text-brand-600">
+                                        <h3 className="ml-3 text-lg font-medium text-chalk-50 group-hover:text-mint-400 transition-colors">
                                             {group.name}
                                         </h3>
                                     </div>
                                     {group.type === 'private' ? (
-                                        <Lock className="h-4 w-4 text-slate-400" />
+                                        <Lock className="h-4 w-4 text-slate-500" />
                                     ) : (
-                                        <Globe className="h-4 w-4 text-slate-400" />
+                                        <Globe className="h-4 w-4 text-slate-500" />
                                     )}
                                 </div>
-                                <p className="mt-4 flex-1 text-sm text-slate-500 line-clamp-2">
+                                <p className="mt-4 flex-1 text-sm text-slate-400 line-clamp-2">
                                     {group.description || 'No description provided.'}
                                 </p>
                                 <div className="mt-6 flex items-center justify-between">
-                                    <div className="flex items-center text-sm text-slate-500">
-                                        <Users className="mr-1.5 h-4 w-4 flex-shrink-0 text-slate-400" />
+                                    <div className="flex items-center text-sm text-slate-400">
+                                        <Users className="mr-1.5 h-4 w-4 flex-shrink-0 text-slate-500" />
                                         {group._count?.members || 0} members
                                     </div>
-                                    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-800">
+                                    <span className="badge-slate">
                                         {group.type}
                                     </span>
                                 </div>
@@ -149,19 +149,19 @@ export default function Groups() {
                         </Link>
                     ))
                 ) : (
-                    <div className="col-span-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
-                        <Users className="mx-auto h-12 w-12 text-slate-400" />
-                        <h3 className="mt-2 text-sm font-medium text-slate-900">No groups found</h3>
-                        <p className="mt-1 text-sm text-slate-500">
+                    <div className="col-span-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-700 p-12 text-center">
+                        <Users className="mx-auto h-12 w-12 text-slate-600" />
+                        <h3 className="mt-2 text-sm font-medium text-chalk-50">No groups found</h3>
+                        <p className="mt-1 text-sm text-slate-400">
                             {searchQuery ? 'Try adjusting your search terms.' : 'Get started by creating a new group.'}
                         </p>
                         {canCreateGroup && !searchQuery && (
                             <div className="mt-6">
                                 <button
                                     onClick={() => setIsCreateModalOpen(true)}
-                                    className="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                                    className="btn-primary"
                                 >
-                                    <Plus className="-ml-1 mr-2 h-5 w-5" aria-hidden="true" />
+                                    <Plus className="h-4 w-4" />
                                     Create Group
                                 </button>
                             </div>

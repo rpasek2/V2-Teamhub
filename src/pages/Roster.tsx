@@ -195,11 +195,11 @@ export function Roster() {
 
     const getSortIcon = (column: SortColumn) => {
         if (sortColumn !== column) {
-            return <ChevronsUpDown className="h-4 w-4 text-slate-400" />;
+            return <ChevronsUpDown className="h-4 w-4 text-slate-500" />;
         }
         return sortDirection === 'asc'
-            ? <ChevronUp className="h-4 w-4 text-brand-600" />
-            : <ChevronDown className="h-4 w-4 text-brand-600" />;
+            ? <ChevronUp className="h-4 w-4 text-mint-400" />
+            : <ChevronDown className="h-4 w-4 text-mint-400" />;
     };
 
     // Memoized filtering and sorting
@@ -276,14 +276,14 @@ export function Roster() {
         });
     }, [members, searchTerm, activeTab, sortColumn, sortDirection, getPermissionScope, linkedGymnasts, user?.id, hub?.settings?.levels]);
 
-    if (loading) return <div className="p-8">Loading roster...</div>;
+    if (loading) return <div className="p-8 text-slate-400">Loading roster...</div>;
 
     return (
-        <div>
+        <div className="animate-fade-in">
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
-                    <h1 className="text-2xl font-bold text-slate-900">Roster</h1>
-                    <p className="mt-2 text-sm text-slate-700">
+                    <h1 className="text-2xl font-semibold text-chalk-50">Roster</h1>
+                    <p className="mt-2 text-sm text-slate-400">
                         Manage your team members, assign roles, and view contact info.
                     </p>
                 </div>
@@ -291,9 +291,9 @@ export function Roster() {
                     <button
                         type="button"
                         onClick={() => setIsAddModalOpen(true)}
-                        className="block rounded-md bg-brand-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                        className="btn-primary"
                     >
-                        <Plus className="inline-block -ml-0.5 mr-1.5 h-4 w-4" />
+                        <Plus className="h-4 w-4" />
                         Add Member
                     </button>
                 </div>
@@ -301,18 +301,18 @@ export function Roster() {
 
             <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 {/* Tabs */}
-                <div className="flex space-x-1 rounded-xl bg-slate-100 p-1">
+                <div className="flex space-x-1 rounded-lg bg-slate-800 p-1">
                     {tabs.map((tab) => (
                         <button
                             key={tab.name}
                             onClick={() => setActiveTab(tab.name)}
                             className={`
-                w-full rounded-lg py-2.5 px-4 text-sm font-medium leading-5 ring-white ring-opacity-60 ring-offset-2 ring-offset-brand-400 focus:outline-none focus:ring-2
-                ${activeTab === tab.name
-                                    ? 'bg-white text-brand-700 shadow'
-                                    : 'text-slate-600 hover:bg-white/[0.12] hover:text-slate-800'
+                                rounded-md py-2 px-4 text-sm font-medium transition-all
+                                ${activeTab === tab.name
+                                    ? 'bg-slate-700 text-chalk-50 shadow'
+                                    : 'text-slate-400 hover:text-chalk-50 hover:bg-slate-700/50'
                                 }
-              `}
+                            `}
                         >
                             {tab.name}
                         </button>
@@ -322,11 +322,11 @@ export function Roster() {
                 {/* Search */}
                 <div className="relative w-full max-w-xs">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <Search className="h-5 w-5 text-slate-400" aria-hidden="true" />
+                        <Search className="h-5 w-5 text-slate-500" aria-hidden="true" />
                     </div>
                     <input
                         type="text"
-                        className="block w-full rounded-md border-0 py-1.5 pl-10 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-600 sm:text-sm sm:leading-6"
+                        className="input pl-10"
                         placeholder="Search members..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
@@ -337,13 +337,13 @@ export function Roster() {
             <div className="mt-8 flow-root">
                 <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                        <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-                            <table className="min-w-full divide-y divide-slate-300">
-                                <thead className="bg-slate-50">
+                        <div className="overflow-hidden card">
+                            <table className="min-w-full divide-y divide-slate-700/50">
+                                <thead className="bg-slate-800/50">
                                     <tr>
                                         <th
                                             scope="col"
-                                            className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-slate-900 sm:pl-6 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            className="py-3.5 pl-4 pr-3 text-left text-sm font-medium text-slate-400 sm:pl-6 cursor-pointer hover:bg-slate-700/50 transition-colors"
                                             onClick={() => handleSort('id')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -353,7 +353,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
                                             onClick={() => handleSort('name')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -363,7 +363,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
                                             onClick={() => handleSort('role')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -373,7 +373,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
                                             onClick={() => handleSort('level')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -383,7 +383,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
                                             onClick={() => handleSort('guardian')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -393,7 +393,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-semibold text-slate-900 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
                                             onClick={() => handleSort('contact')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -406,7 +406,7 @@ export function Roster() {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-200 bg-white">
+                                <tbody className="divide-y divide-slate-700/50">
                                     {filteredMembers.length > 0 ? (
                                         filteredMembers.map((member) => (
                                             <tr
@@ -416,27 +416,27 @@ export function Roster() {
                                                         setSelectedGymnast(member.full_profile);
                                                     }
                                                 }}
-                                                className={member.type === 'gymnast_profile' ? 'cursor-pointer hover:bg-slate-50' : ''}
+                                                className={member.type === 'gymnast_profile' ? 'cursor-pointer hover:bg-slate-700/30' : ''}
                                             >
-                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-slate-500 sm:pl-6">
+                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-slate-400 sm:pl-6">
                                                     {member.type === 'gymnast_profile' ? member.gymnast_id : '-'}
                                                 </td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900">
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-chalk-50">
                                                     {member.name}
                                                 </td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 capitalize">
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-400 capitalize">
                                                     {member.role}
                                                 </td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-400">
                                                     {member.level || '-'}
                                                 </td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-400">
                                                     {member.guardian_name || '-'}
                                                 </td>
-                                                <td className="px-3 py-4 text-sm text-slate-500">
+                                                <td className="px-3 py-4 text-sm text-slate-400">
                                                     <div>{member.type === 'gymnast_profile' ? member.guardian_phone : member.email}</div>
                                                     {member.type === 'gymnast_profile' && member.email && (
-                                                        <div className="text-xs text-slate-400">{member.email}</div>
+                                                        <div className="text-xs text-slate-500">{member.email}</div>
                                                     )}
                                                 </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
@@ -447,13 +447,13 @@ export function Roster() {
                                                                     e.stopPropagation();
                                                                     setOpenMenuId(openMenuId === member.id ? null : member.id);
                                                                 }}
-                                                                className="text-slate-400 hover:text-slate-600 p-1 rounded hover:bg-slate-100"
+                                                                className="text-slate-500 hover:text-chalk-50 p-1 rounded hover:bg-slate-700"
                                                             >
                                                                 <MoreHorizontal className="h-5 w-5" />
                                                             </button>
 
                                                             {openMenuId === member.id && (
-                                                                <div className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                                                <div className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-lg bg-slate-800 shadow-lg ring-1 ring-slate-700 focus:outline-none">
                                                                     <div className="py-1">
                                                                         <button
                                                                             onClick={(e) => {
@@ -462,7 +462,7 @@ export function Roster() {
                                                                                 setIsAddModalOpen(true);
                                                                                 setOpenMenuId(null);
                                                                             }}
-                                                                            className="flex w-full items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                                                                            className="flex w-full items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
                                                                         >
                                                                             <Pencil className="mr-3 h-4 w-4 text-slate-400" />
                                                                             Edit
@@ -472,7 +472,7 @@ export function Roster() {
                                                                                 e.stopPropagation();
                                                                                 handleDeleteMember(member);
                                                                             }}
-                                                                            className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                                            className="flex w-full items-center px-4 py-2 text-sm text-error-400 hover:bg-error-500/10"
                                                                         >
                                                                             <Trash2 className="mr-3 h-4 w-4" />
                                                                             Remove
