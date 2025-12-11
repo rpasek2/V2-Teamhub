@@ -139,23 +139,23 @@ export default function Marketplace() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen">
             {/* Header */}
-            <div className="bg-white border-b border-slate-200">
+            <div className="bg-slate-800 border-b border-slate-700/50 rounded-t-xl">
                 <div className="px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
-                            <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-                                <ShoppingBag className="h-7 w-7 text-brand-600" />
+                            <h1 className="text-2xl font-bold text-chalk-50 flex items-center gap-2">
+                                <ShoppingBag className="h-7 w-7 text-mint-400" />
                                 Marketplace
                             </h1>
-                            <p className="mt-1 text-sm text-slate-500">
+                            <p className="mt-1 text-sm text-slate-400">
                                 Buy and sell gear with your team community
                             </p>
                         </div>
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-brand-700 transition-colors"
+                            className="btn-primary"
                         >
                             <Plus className="mr-2 h-4 w-4" />
                             List an Item
@@ -172,19 +172,19 @@ export default function Marketplace() {
                                 placeholder="Search items..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                className="input w-full pl-10"
                             />
                         </div>
 
                         {/* Filter Toggle (Mobile) */}
                         <button
                             onClick={() => setShowFilters(!showFilters)}
-                            className="sm:hidden inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50"
+                            className="sm:hidden inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700"
                         >
                             <Filter className="h-4 w-4" />
                             Filters
                             {selectedCategory !== 'all' && (
-                                <span className="ml-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-brand-100 text-brand-700 text-xs font-medium">
+                                <span className="ml-1 inline-flex items-center justify-center h-5 w-5 rounded-full bg-mint-900/30 text-mint-400 text-xs font-medium">
                                     1
                                 </span>
                             )}
@@ -197,7 +197,7 @@ export default function Marketplace() {
                                 <select
                                     value={hubFilter}
                                     onChange={(e) => setHubFilter(e.target.value as HubFilter)}
-                                    className="rounded-lg border border-slate-300 px-3 py-2.5 pr-8 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                    className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 pr-8 text-sm text-chalk-50 focus:border-mint-500 focus:ring-1 focus:ring-mint-500"
                                 >
                                     <option value="all">All Linked Hubs</option>
                                     <option value="this_hub">This Hub Only</option>
@@ -207,7 +207,7 @@ export default function Marketplace() {
                             <select
                                 value={selectedCategory}
                                 onChange={(e) => setSelectedCategory(e.target.value as MarketplaceCategory | 'all')}
-                                className="rounded-lg border border-slate-300 px-3 py-2.5 pr-8 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 pr-8 text-sm text-chalk-50 focus:border-mint-500 focus:ring-1 focus:ring-mint-500"
                             >
                                 <option value="all">All Categories</option>
                                 {Object.entries(MARKETPLACE_CATEGORIES).map(([key, { label }]) => (
@@ -220,7 +220,7 @@ export default function Marketplace() {
                             <select
                                 value={sortBy}
                                 onChange={(e) => setSortBy(e.target.value as SortOption)}
-                                className="rounded-lg border border-slate-300 px-3 py-2.5 pr-8 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-2.5 pr-8 text-sm text-chalk-50 focus:border-mint-500 focus:ring-1 focus:ring-mint-500"
                             >
                                 <option value="newest">Newest First</option>
                                 <option value="price_low">Price: Low to High</option>
@@ -231,17 +231,17 @@ export default function Marketplace() {
 
                     {/* Mobile Filters */}
                     {showFilters && (
-                        <div className="sm:hidden mt-4 p-4 rounded-lg bg-slate-50 border border-slate-200 space-y-3">
+                        <div className="sm:hidden mt-4 p-4 rounded-lg bg-slate-900/50 border border-slate-700/50 space-y-3">
                             {/* Hub Filter - only show if there are linked hubs */}
                             {hasLinkedHubs && (
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                                    <label className="block text-sm font-medium text-slate-300 mb-1">
                                         Hub
                                     </label>
                                     <select
                                         value={hubFilter}
                                         onChange={(e) => setHubFilter(e.target.value as HubFilter)}
-                                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                                        className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-chalk-50"
                                     >
                                         <option value="all">All Linked Hubs</option>
                                         <option value="this_hub">This Hub Only</option>
@@ -249,13 +249,13 @@ export default function Marketplace() {
                                 </div>
                             )}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label className="block text-sm font-medium text-slate-300 mb-1">
                                     Category
                                 </label>
                                 <select
                                     value={selectedCategory}
                                     onChange={(e) => setSelectedCategory(e.target.value as MarketplaceCategory | 'all')}
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                                    className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-chalk-50"
                                 >
                                     <option value="all">All Categories</option>
                                     {Object.entries(MARKETPLACE_CATEGORIES).map(([key, { label }]) => (
@@ -266,13 +266,13 @@ export default function Marketplace() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label className="block text-sm font-medium text-slate-300 mb-1">
                                     Sort By
                                 </label>
                                 <select
                                     value={sortBy}
                                     onChange={(e) => setSortBy(e.target.value as SortOption)}
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                                    className="w-full rounded-lg border border-slate-600 bg-slate-800 px-3 py-2 text-sm text-chalk-50"
                                 >
                                     <option value="newest">Newest First</option>
                                     <option value="price_low">Price: Low to High</option>
@@ -285,11 +285,11 @@ export default function Marketplace() {
                     {/* Active Filters */}
                     {selectedCategory !== 'all' && (
                         <div className="mt-4 flex flex-wrap gap-2">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-100 text-brand-800 text-sm">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-mint-900/30 text-mint-400 text-sm">
                                 {MARKETPLACE_CATEGORIES[selectedCategory].label}
                                 <button
                                     onClick={() => setSelectedCategory('all')}
-                                    className="hover:text-brand-900"
+                                    className="hover:text-mint-300"
                                 >
                                     <X className="h-3.5 w-3.5" />
                                 </button>
@@ -305,12 +305,12 @@ export default function Marketplace() {
                     // Skeleton loading
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {[...Array(8)].map((_, i) => (
-                            <div key={i} className="animate-pulse rounded-xl bg-white shadow-sm overflow-hidden">
-                                <div className="aspect-square bg-slate-200" />
+                            <div key={i} className="animate-pulse rounded-xl bg-slate-800 shadow-sm overflow-hidden border border-slate-700/50">
+                                <div className="aspect-square bg-slate-700" />
                                 <div className="p-4 space-y-3">
-                                    <div className="h-4 bg-slate-200 rounded w-3/4" />
-                                    <div className="h-6 bg-slate-200 rounded w-1/3" />
-                                    <div className="h-3 bg-slate-200 rounded w-1/2" />
+                                    <div className="h-4 bg-slate-700 rounded w-3/4" />
+                                    <div className="h-6 bg-slate-700 rounded w-1/3" />
+                                    <div className="h-3 bg-slate-700 rounded w-1/2" />
                                 </div>
                             </div>
                         ))}
@@ -328,13 +328,13 @@ export default function Marketplace() {
                     </div>
                 ) : (
                     <div className="text-center py-16">
-                        <ShoppingBag className="mx-auto h-12 w-12 text-slate-400" />
-                        <h3 className="mt-4 text-lg font-medium text-slate-900">
+                        <ShoppingBag className="mx-auto h-12 w-12 text-slate-500" />
+                        <h3 className="mt-4 text-lg font-medium text-chalk-50">
                             {searchQuery || selectedCategory !== 'all'
                                 ? 'No items found'
                                 : 'No items listed yet'}
                         </h3>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <p className="mt-2 text-sm text-slate-400">
                             {searchQuery || selectedCategory !== 'all'
                                 ? 'Try adjusting your search or filters'
                                 : 'Be the first to list an item for sale!'}
@@ -342,7 +342,7 @@ export default function Marketplace() {
                         {!searchQuery && selectedCategory === 'all' && (
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
-                                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+                                className="btn-primary mt-6"
                             >
                                 <Plus className="h-4 w-4" />
                                 List an Item

@@ -140,25 +140,25 @@ export function Scores() {
     if (loading) {
         return (
             <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-mint-500 border-t-transparent"></div>
             </div>
         );
     }
 
     return (
         <div className="h-full flex flex-col">
-            <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-                <h1 className="text-2xl font-bold text-slate-900">Scores</h1>
+            <header className="flex items-center justify-between border-b border-slate-700/50 bg-slate-800 px-6 py-4 rounded-t-xl">
+                <h1 className="text-2xl font-bold text-chalk-50">Scores</h1>
             </header>
 
             <main className="flex-1 overflow-y-auto p-6">
                 {competitions.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center text-center">
-                        <div className="rounded-full bg-slate-100 p-4">
+                        <div className="rounded-full bg-slate-700 p-4">
                             <Trophy className="h-8 w-8 text-slate-400" />
                         </div>
-                        <h3 className="mt-4 text-lg font-semibold text-slate-900">No competitions yet</h3>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <h3 className="mt-4 text-lg font-semibold text-chalk-50">No competitions yet</h3>
+                        <p className="mt-2 text-sm text-slate-400">
                             Scores will appear here once competitions are created.
                         </p>
                     </div>
@@ -173,7 +173,7 @@ export function Scores() {
                                         const comp = competitions.find(c => c.id === e.target.value);
                                         setSelectedCompetition(comp || null);
                                     }}
-                                    className="block w-full sm:w-80 appearance-none rounded-lg border border-slate-300 bg-white py-2.5 pl-4 pr-10 text-sm font-medium text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                    className="block w-full sm:w-80 appearance-none rounded-lg border border-slate-600 bg-slate-800 py-2.5 pl-4 pr-10 text-sm font-medium text-chalk-50 shadow-sm focus:border-mint-500 focus:outline-none focus:ring-1 focus:ring-mint-500"
                                 >
                                     {competitions.map((comp) => (
                                         <option key={comp.id} value={comp.id}>
@@ -185,14 +185,14 @@ export function Scores() {
                             </div>
 
                             {/* Gender Tabs */}
-                            <div className="flex rounded-lg bg-slate-100 p-1">
+                            <div className="flex rounded-lg bg-slate-700 p-1">
                                 <button
                                     onClick={() => setActiveGender('Female')}
                                     disabled={!hasGender('Female')}
                                     className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                                         activeGender === 'Female'
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-slate-600 hover:text-slate-900'
+                                            ? 'bg-slate-600 text-chalk-50 shadow-sm'
+                                            : 'text-slate-400 hover:text-chalk-50'
                                     } ${!hasGender('Female') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     Women's
@@ -202,8 +202,8 @@ export function Scores() {
                                     disabled={!hasGender('Male')}
                                     className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                                         activeGender === 'Male'
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-slate-600 hover:text-slate-900'
+                                            ? 'bg-slate-600 text-chalk-50 shadow-sm'
+                                            : 'text-slate-400 hover:text-chalk-50'
                                     } ${!hasGender('Male') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     Men's

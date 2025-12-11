@@ -181,24 +181,24 @@ export function Skills() {
     if (loading && !selectedLevel) {
         return (
             <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-600 border-t-transparent"></div>
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-mint-500 border-t-transparent"></div>
             </div>
         );
     }
 
     return (
         <div className="h-full flex flex-col">
-            <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-                <h1 className="text-2xl font-bold text-slate-900">Skills</h1>
+            <header className="flex items-center justify-between border-b border-slate-700/50 bg-slate-800 px-6 py-4 rounded-t-xl">
+                <h1 className="text-2xl font-bold text-chalk-50">Skills</h1>
 
                 {/* Gender Toggle */}
-                <div className="flex rounded-lg bg-slate-100 p-1">
+                <div className="flex rounded-lg bg-slate-700 p-1">
                     <button
                         onClick={() => setActiveGender('Female')}
                         className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                             activeGender === 'Female'
-                                ? 'bg-white text-slate-900 shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-slate-600 text-chalk-50 shadow-sm'
+                                : 'text-slate-400 hover:text-chalk-50'
                         }`}
                     >
                         Girls
@@ -207,8 +207,8 @@ export function Skills() {
                         onClick={() => setActiveGender('Male')}
                         className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                             activeGender === 'Male'
-                                ? 'bg-white text-slate-900 shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-slate-600 text-chalk-50 shadow-sm'
+                                : 'text-slate-400 hover:text-chalk-50'
                         }`}
                     >
                         Boys
@@ -219,11 +219,11 @@ export function Skills() {
             <main className="flex-1 overflow-y-auto p-6">
                 {levels.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center text-center">
-                        <div className="rounded-full bg-slate-100 p-4">
+                        <div className="rounded-full bg-slate-700 p-4">
                             <Sparkles className="h-8 w-8 text-slate-400" />
                         </div>
-                        <h3 className="mt-4 text-lg font-semibold text-slate-900">No levels configured</h3>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <h3 className="mt-4 text-lg font-semibold text-chalk-50">No levels configured</h3>
+                        <p className="mt-2 text-sm text-slate-400">
                             Add levels in hub settings to start tracking skills.
                         </p>
                     </div>
@@ -237,8 +237,8 @@ export function Skills() {
                                     onClick={() => setSelectedLevel(level)}
                                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                                         selectedLevel === level
-                                            ? 'bg-brand-600 text-white'
-                                            : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                            ? 'bg-mint-500 text-white'
+                                            : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                                     }`}
                                 >
                                     {level}
@@ -254,8 +254,8 @@ export function Skills() {
                                     onClick={() => setSelectedEvent(event)}
                                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                                         selectedEvent === event
-                                            ? 'bg-purple-600 text-white'
-                                            : 'bg-purple-50 text-purple-700 hover:bg-purple-100'
+                                            ? 'bg-indigo-600 text-white'
+                                            : 'bg-indigo-900/30 text-indigo-300 hover:bg-indigo-900/50'
                                     }`}
                                 >
                                     {EVENT_FULL_NAMES[event]}
@@ -266,7 +266,7 @@ export function Skills() {
                             {isStaff && selectedLevel && selectedEvent && (
                                 <button
                                     onClick={() => setIsManageModalOpen(true)}
-                                    className="ml-auto flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                    className="ml-auto flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-slate-700"
                                 >
                                     <Settings2 className="h-4 w-4" />
                                     Manage Skills
@@ -278,22 +278,22 @@ export function Skills() {
                         {selectedLevel && selectedEvent && (
                             <>
                                 {gymnasts.length === 0 ? (
-                                    <div className="rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
-                                        <Sparkles className="mx-auto h-12 w-12 text-slate-400" />
-                                        <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                                    <div className="rounded-lg border-2 border-dashed border-slate-600 p-12 text-center">
+                                        <Sparkles className="mx-auto h-12 w-12 text-slate-500" />
+                                        <h3 className="mt-4 text-lg font-semibold text-chalk-50">
                                             No {activeGender === 'Female' ? 'girls' : 'boys'} at {selectedLevel}
                                         </h3>
-                                        <p className="mt-2 text-sm text-slate-500">
+                                        <p className="mt-2 text-sm text-slate-400">
                                             Add gymnasts to this level in the roster to track their skills.
                                         </p>
                                     </div>
                                 ) : skills.length === 0 ? (
-                                    <div className="rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
-                                        <Sparkles className="mx-auto h-12 w-12 text-slate-400" />
-                                        <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                                    <div className="rounded-lg border-2 border-dashed border-slate-600 p-12 text-center">
+                                        <Sparkles className="mx-auto h-12 w-12 text-slate-500" />
+                                        <h3 className="mt-4 text-lg font-semibold text-chalk-50">
                                             No skills defined
                                         </h3>
-                                        <p className="mt-2 text-sm text-slate-500">
+                                        <p className="mt-2 text-sm text-slate-400">
                                             {isStaff
                                                 ? 'Click "Manage Skills" to add skills for this event.'
                                                 : 'Skills have not been configured for this event yet.'}
@@ -301,7 +301,7 @@ export function Skills() {
                                         {isStaff && (
                                             <button
                                                 onClick={() => setIsManageModalOpen(true)}
-                                                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700"
+                                                className="btn-primary mt-4"
                                             >
                                                 <Settings2 className="h-4 w-4" />
                                                 Manage Skills

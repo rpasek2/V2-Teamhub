@@ -143,18 +143,18 @@ export function Staff() {
 
     const getRoleBadgeColor = (role: string) => {
         switch (role) {
-            case 'owner': return 'bg-amber-100 text-amber-700';
-            case 'director': return 'bg-purple-100 text-purple-700';
-            case 'admin': return 'bg-blue-100 text-blue-700';
-            case 'coach': return 'bg-green-100 text-green-700';
-            default: return 'bg-slate-100 text-slate-700';
+            case 'owner': return 'bg-amber-900/50 text-amber-300';
+            case 'director': return 'bg-purple-900/50 text-purple-300';
+            case 'admin': return 'bg-blue-900/50 text-blue-300';
+            case 'coach': return 'bg-green-900/50 text-green-300';
+            default: return 'bg-slate-700 text-slate-300';
         }
     };
 
     if (!isStaff) {
         return (
             <div className="flex items-center justify-center h-64">
-                <p className="text-slate-500">You don't have permission to view this page.</p>
+                <p className="text-slate-400">You don't have permission to view this page.</p>
             </div>
         );
     }
@@ -164,19 +164,19 @@ export function Staff() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-teal-100 rounded-lg">
-                        <Users className="w-6 h-6 text-teal-600" />
+                    <div className="p-2 bg-teal-900/30 rounded-lg">
+                        <Users className="w-6 h-6 text-teal-400" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-800">Staff</h1>
-                        <p className="text-sm text-slate-500">{staffMembers.length} staff members</p>
+                        <h1 className="text-2xl font-bold text-chalk-50">Staff</h1>
+                        <p className="text-sm text-slate-400">{staffMembers.length} staff members</p>
                     </div>
                 </div>
 
                 {isOwner && (
                     <button
                         onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+                        className="btn-primary"
                     >
                         <Plus className="w-4 h-4" />
                         <span>Add Staff Profile</span>
@@ -194,7 +194,7 @@ export function Staff() {
                         placeholder="Search staff..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                        className="input w-full pl-10"
                     />
                 </div>
 
@@ -206,8 +206,8 @@ export function Staff() {
                             onClick={() => setRoleFilter(role)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                                 roleFilter === role
-                                    ? 'bg-brand-600 text-white'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    ? 'bg-mint-500 text-white'
+                                    : 'bg-slate-700 text-slate-300 hover:bg-slate-600'
                             }`}
                         >
                             {role === 'all' ? 'All' : role.charAt(0).toUpperCase() + role.slice(1) + 's'}
@@ -219,13 +219,13 @@ export function Staff() {
             {/* Staff List */}
             {loading ? (
                 <div className="flex items-center justify-center h-64">
-                    <Loader2 className="w-8 h-8 text-brand-600 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-mint-500 animate-spin" />
                 </div>
             ) : filteredStaff.length === 0 ? (
                 <div className="text-center py-12">
-                    <Users className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-600 mb-2">No staff members found</h3>
-                    <p className="text-slate-500">
+                    <Users className="w-12 h-12 text-slate-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-chalk-50 mb-2">No staff members found</h3>
+                    <p className="text-slate-400">
                         {searchQuery || roleFilter !== 'all'
                             ? 'Try adjusting your search or filters'
                             : 'Add staff profiles to get started'}
