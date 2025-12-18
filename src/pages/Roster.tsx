@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
-import { GymnastProfileModal } from '../components/gymnast/GymnastProfileModal';
 import type { GymnastProfile } from '../types';
 
 type SortColumn = 'id' | 'name' | 'role' | 'level' | 'guardian' | 'contact';
@@ -27,13 +27,13 @@ interface DisplayMember {
 type TabType = 'All' | 'Admins' | 'Coaches' | 'Gymnasts' | 'Parents';
 
 export function Roster() {
+    const navigate = useNavigate();
     const { hub, getPermissionScope, linkedGymnasts, user, currentRole } = useHub();
     const [members, setMembers] = useState<DisplayMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<TabType>('All');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [selectedGymnast, setSelectedGymnast] = useState<GymnastProfile | null>(null);
     const [editingMember, setEditingMember] = useState<DisplayMember | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [sortColumn, setSortColumn] = useState<SortColumn>('level');
@@ -52,30 +52,6 @@ export function Roster() {
     }, []);
 
     const canManageMembers = ['owner', 'director', 'admin'].includes(currentRole || '');
-
-    // Determine if user can view medical info for selected gymnast
-    // Admins, directors, owners, and coaches can always see medical info
-    // Parents can only see medical info for their own linked gymnasts
-    const canViewMedical = useMemo(() => {
-        if (!selectedGymnast) return false;
-
-        // Staff roles can always view medical info
-        const staffRoles = ['owner', 'director', 'admin', 'coach'];
-        if (currentRole && staffRoles.includes(currentRole)) return true;
-
-        // Parents can only view medical info for their linked gymnasts
-        if (currentRole === 'parent') {
-            return linkedGymnasts.some(g => g.id === selectedGymnast.id);
-        }
-
-        return false;
-    }, [selectedGymnast, currentRole, linkedGymnasts]);
-
-    // Determine if user can report injuries (staff only)
-    const canReportInjury = useMemo(() => {
-        const staffRoles = ['owner', 'director', 'admin', 'coach'];
-        return currentRole ? staffRoles.includes(currentRole) : false;
-    }, [currentRole]);
 
     useEffect(() => {
         if (hub) {
@@ -412,8 +388,8 @@ export function Roster() {
                                             <tr
                                                 key={member.id}
                                                 onClick={() => {
-                                                    if (member.type === 'gymnast_profile' && member.full_profile) {
-                                                        setSelectedGymnast(member.full_profile);
+                                                    if (member.type === 'gymnast_profile') {
+                                                        navigate(`/hub/${hub?.id}/roster/${member.id}`);
                                                     }
                                                 }}
                                                 className={member.type === 'gymnast_profile' ? 'cursor-pointer hover:bg-slate-700/30' : ''}
@@ -507,15 +483,6 @@ export function Roster() {
                 }}
                 onMemberAdded={fetchMembers}
                 initialData={editingMember}
-            />
-
-            <GymnastProfileModal
-                gymnast={selectedGymnast}
-                isOpen={!!selectedGymnast}
-                onClose={() => setSelectedGymnast(null)}
-                canViewMedical={canViewMedical}
-                canReportInjury={canReportInjury}
-                onInjuryReported={fetchMembers}
             />
         </div>
     );

@@ -23,6 +23,7 @@ const Mentorship = lazy(() => import('./pages/Mentorship').then(m => ({ default:
 const Staff = lazy(() => import('./pages/Staff').then(m => ({ default: m.Staff })));
 const Assignments = lazy(() => import('./pages/Assignments').then(m => ({ default: m.Assignments })));
 const Resources = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
+const GymnastDetails = lazy(() => import('./pages/GymnastDetails').then(m => ({ default: m.GymnastDetails })));
 const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./pages/auth/Register').then(m => ({ default: m.Register })));
 const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
@@ -50,6 +51,7 @@ function App() {
               <Route path="/hub/:hubId" element={<HubLayout />}>
                 <Route index element={<Dashboard />} />
                 <Route path="roster" element={<Roster />} />
+                <Route path="roster/:gymnastId" element={<GymnastDetails />} />
                 <Route path="calendar" element={<Calendar />} />
                 <Route path="messages" element={<Messages />} />
                 <Route path="competitions" element={<Competitions />} />
