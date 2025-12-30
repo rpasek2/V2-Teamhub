@@ -265,22 +265,22 @@ export function Mentorship() {
             {/* Header */}
             <div>
                 <div className="flex items-center gap-3">
-                    <HeartHandshake className="h-8 w-8 text-pink-400" />
-                    <h1 className="text-2xl font-bold text-chalk-50">Mentorship</h1>
+                    <HeartHandshake className="h-8 w-8 text-pink-500" />
+                    <h1 className="text-2xl font-bold text-slate-900">Mentorship</h1>
                 </div>
-                <p className="mt-1 text-sm text-slate-400">
+                <p className="mt-1 text-sm text-slate-500">
                     Manage pairings, events, and mentorship programs
                 </p>
             </div>
 
             {/* Mobile Tab Navigation */}
-            <div className="lg:hidden flex border-b border-slate-700/50">
+            <div className="lg:hidden flex border-b border-slate-200">
                 <button
                     onClick={() => setMobileTab('pairings')}
                     className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
                         mobileTab === 'pairings'
-                            ? 'border-pink-400 text-pink-400'
-                            : 'border-transparent text-slate-400 hover:text-slate-300'
+                            ? 'border-pink-500 text-pink-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-700'
                     }`}
                 >
                     <Users className="inline-block h-4 w-4 mr-2" />
@@ -290,8 +290,8 @@ export function Mentorship() {
                     onClick={() => setMobileTab('events')}
                     className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
                         mobileTab === 'events'
-                            ? 'border-pink-400 text-pink-400'
-                            : 'border-transparent text-slate-400 hover:text-slate-300'
+                            ? 'border-pink-500 text-pink-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-700'
                     }`}
                 >
                     <Calendar className="inline-block h-4 w-4 mr-2" />
@@ -303,16 +303,16 @@ export function Mentorship() {
             <div className="lg:flex lg:gap-6">
                 {/* Pairings Section */}
                 <div className={`lg:flex-1 lg:w-2/3 ${mobileTab !== 'pairings' ? 'hidden lg:block' : ''}`}>
-                    <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700/50">
+                    <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                         {/* Pairings Header */}
-                        <div className="p-4 border-b border-slate-700/50">
+                        <div className="p-4 border-b border-slate-200">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold text-chalk-50">Pairings</h2>
+                                <h2 className="text-lg font-semibold text-slate-900">Pairings</h2>
                                 {isStaff && (
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setShowRandomAssignModal(true)}
-                                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-pink-400 bg-pink-900/30 border border-pink-800/50 rounded-lg hover:bg-pink-900/50"
+                                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-pink-600 bg-pink-50 border border-pink-200 rounded-lg hover:bg-pink-100"
                                         >
                                             <Shuffle className="h-4 w-4" />
                                             Random Assign
@@ -345,7 +345,7 @@ export function Mentorship() {
                                     <select
                                         value={statusFilter}
                                         onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                                        className="pl-10 pr-8 py-2 text-sm border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent appearance-none bg-slate-800 text-chalk-50"
+                                        className="pl-10 pr-8 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent appearance-none bg-white text-slate-900"
                                     >
                                         <option value="active">Active</option>
                                         <option value="inactive">Inactive</option>
@@ -384,11 +384,11 @@ export function Mentorship() {
 
                 {/* Events Section */}
                 <div className={`lg:w-1/3 mt-6 lg:mt-0 ${mobileTab !== 'events' ? 'hidden lg:block' : ''}`}>
-                    <div className="bg-slate-800 rounded-lg shadow-sm border border-slate-700/50">
+                    <div className="bg-white rounded-lg shadow-sm border border-slate-200">
                         {/* Events Header */}
-                        <div className="p-4 border-b border-slate-700/50">
+                        <div className="p-4 border-b border-slate-200">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-semibold text-chalk-50">Upcoming Events</h2>
+                                <h2 className="text-lg font-semibold text-slate-900">Upcoming Events</h2>
                                 {isStaff && (
                                     <button
                                         onClick={() => setShowCreateEventModal(true)}
@@ -423,11 +423,11 @@ export function Mentorship() {
                                 <div className="pt-4">
                                     <button
                                         onClick={() => setShowPastEvents(!showPastEvents)}
-                                        className="w-full text-sm text-slate-400 hover:text-slate-300 flex items-center justify-center gap-2"
+                                        className="w-full text-sm text-slate-500 hover:text-slate-700 flex items-center justify-center gap-2"
                                     >
-                                        <div className="h-px flex-1 bg-slate-700/50" />
+                                        <div className="h-px flex-1 bg-slate-200" />
                                         <span>{showPastEvents ? 'Hide' : 'Show'} Past Events ({pastEvents.length})</span>
-                                        <div className="h-px flex-1 bg-slate-700/50" />
+                                        <div className="h-px flex-1 bg-slate-200" />
                                     </button>
 
                                     {showPastEvents && (

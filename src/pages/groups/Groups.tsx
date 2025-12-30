@@ -67,8 +67,8 @@ export default function Groups() {
         <div className="animate-fade-in">
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
-                    <h1 className="text-2xl font-semibold text-chalk-50">Groups</h1>
-                    <p className="mt-2 text-sm text-slate-400">
+                    <h1 className="text-2xl font-semibold text-slate-900">Groups</h1>
+                    <p className="mt-2 text-sm text-slate-500">
                         Connect with your team, parents, and coaches in dedicated spaces.
                     </p>
                 </div>
@@ -105,9 +105,9 @@ export default function Groups() {
                     // Skeleton loading
                     [...Array(3)].map((_, i) => (
                         <div key={i} className="animate-pulse card p-6">
-                            <div className="h-4 w-1/3 rounded bg-slate-700"></div>
-                            <div className="mt-4 h-4 w-full rounded bg-slate-700"></div>
-                            <div className="mt-2 h-4 w-2/3 rounded bg-slate-700"></div>
+                            <div className="h-4 w-1/3 rounded bg-slate-200"></div>
+                            <div className="mt-4 h-4 w-full rounded bg-slate-200"></div>
+                            <div className="mt-2 h-4 w-2/3 rounded bg-slate-200"></div>
                         </div>
                     ))
                 ) : filteredGroups.length > 0 ? (
@@ -115,30 +115,30 @@ export default function Groups() {
                         <Link
                             key={group.id}
                             to={`/hub/${hub?.id}/groups/${group.id}`}
-                            className="group card hover:border-mint-500/50 transition-all"
+                            className="group card hover:border-mint-500 transition-all"
                         >
                             <div className="flex flex-1 flex-col p-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-mint-500/10 border border-mint-500/30">
-                                            <Users className="h-5 w-5 text-mint-400" />
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-mint-100 border border-mint-200">
+                                            <Users className="h-5 w-5 text-mint-600" />
                                         </div>
-                                        <h3 className="ml-3 text-lg font-medium text-chalk-50 group-hover:text-mint-400 transition-colors">
+                                        <h3 className="ml-3 text-lg font-medium text-slate-900 group-hover:text-mint-600 transition-colors">
                                             {group.name}
                                         </h3>
                                     </div>
                                     {group.type === 'private' ? (
-                                        <Lock className="h-4 w-4 text-slate-500" />
+                                        <Lock className="h-4 w-4 text-slate-400" />
                                     ) : (
-                                        <Globe className="h-4 w-4 text-slate-500" />
+                                        <Globe className="h-4 w-4 text-slate-400" />
                                     )}
                                 </div>
-                                <p className="mt-4 flex-1 text-sm text-slate-400 line-clamp-2">
+                                <p className="mt-4 flex-1 text-sm text-slate-500 line-clamp-2">
                                     {group.description || 'No description provided.'}
                                 </p>
                                 <div className="mt-6 flex items-center justify-between">
-                                    <div className="flex items-center text-sm text-slate-400">
-                                        <Users className="mr-1.5 h-4 w-4 flex-shrink-0 text-slate-500" />
+                                    <div className="flex items-center text-sm text-slate-500">
+                                        <Users className="mr-1.5 h-4 w-4 flex-shrink-0 text-slate-400" />
                                         {group._count?.members || 0} members
                                     </div>
                                     <span className="badge-slate">
@@ -149,10 +149,10 @@ export default function Groups() {
                         </Link>
                     ))
                 ) : (
-                    <div className="col-span-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-700 p-12 text-center">
-                        <Users className="mx-auto h-12 w-12 text-slate-600" />
-                        <h3 className="mt-2 text-sm font-medium text-chalk-50">No groups found</h3>
-                        <p className="mt-1 text-sm text-slate-400">
+                    <div className="col-span-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 p-12 text-center">
+                        <Users className="mx-auto h-12 w-12 text-slate-400" />
+                        <h3 className="mt-2 text-sm font-medium text-slate-900">No groups found</h3>
+                        <p className="mt-1 text-sm text-slate-500">
                             {searchQuery ? 'Try adjusting your search terms.' : 'Get started by creating a new group.'}
                         </p>
                         {canCreateGroup && !searchQuery && (

@@ -1,8 +1,48 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
-import { Loader2, Check, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Loader2, Check, ChevronRight, ArrowLeft, X } from 'lucide-react';
 import teamhubLogo from '../../assets/teamhub-logo.svg';
+
+// Password strength validation
+interface PasswordStrength {
+    score: number; // 0-4
+    label: string;
+    color: string;
+    requirements: {
+        minLength: boolean;
+        hasUppercase: boolean;
+        hasLowercase: boolean;
+        hasNumber: boolean;
+    };
+}
+
+function getPasswordStrength(password: string): PasswordStrength {
+    const requirements = {
+        minLength: password.length >= 8,
+        hasUppercase: /[A-Z]/.test(password),
+        hasLowercase: /[a-z]/.test(password),
+        hasNumber: /[0-9]/.test(password),
+    };
+
+    const score = Object.values(requirements).filter(Boolean).length;
+
+    let label = 'Too weak';
+    let color = 'bg-red-500';
+
+    if (score === 4) {
+        label = 'Strong';
+        color = 'bg-green-500';
+    } else if (score === 3) {
+        label = 'Good';
+        color = 'bg-yellow-500';
+    } else if (score === 2) {
+        label = 'Fair';
+        color = 'bg-orange-500';
+    }
+
+    return { score, label, color, requirements };
+}
 
 const benefits = [
     'Unlimited team members and athletes',
@@ -22,8 +62,18 @@ export function Register() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
+    const isPasswordValid = passwordStrength.score >= 3; // Require at least "Good" strength
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate password strength before submitting
+        if (!isPasswordValid) {
+            setError('Please create a stronger password that meets all requirements');
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -183,9 +233,70 @@ export function Register() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                             />
-                            <p className="mt-1.5 text-xs text-slate-500">
-                                Must be at least 6 characters
-                            </p>
+
+                            {/* Password Strength Indicator */}
+                            {password.length > 0 && (
+                                <div className="mt-3 space-y-2">
+                                    {/* Strength Bar */}
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                            <div
+                                                className={`h-full transition-all duration-300 ${passwordStrength.color}`}
+                                                style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
+                                            />
+                                        </div>
+                                        <span className={`text-xs font-medium ${
+                                            passwordStrength.score >= 3 ? 'text-green-600' : 'text-slate-500'
+                                        }`}>
+                                            {passwordStrength.label}
+                                        </span>
+                                    </div>
+
+                                    {/* Requirements Checklist */}
+                                    <div className="grid grid-cols-2 gap-1">
+                                        <div className={`flex items-center gap-1 text-xs ${
+                                            passwordStrength.requirements.minLength ? 'text-green-600' : 'text-slate-400'
+                                        }`}>
+                                            {passwordStrength.requirements.minLength ? (
+                                                <Check className="w-3 h-3" />
+                                            ) : (
+                                                <X className="w-3 h-3" />
+                                            )}
+                                            8+ characters
+                                        </div>
+                                        <div className={`flex items-center gap-1 text-xs ${
+                                            passwordStrength.requirements.hasUppercase ? 'text-green-600' : 'text-slate-400'
+                                        }`}>
+                                            {passwordStrength.requirements.hasUppercase ? (
+                                                <Check className="w-3 h-3" />
+                                            ) : (
+                                                <X className="w-3 h-3" />
+                                            )}
+                                            Uppercase letter
+                                        </div>
+                                        <div className={`flex items-center gap-1 text-xs ${
+                                            passwordStrength.requirements.hasLowercase ? 'text-green-600' : 'text-slate-400'
+                                        }`}>
+                                            {passwordStrength.requirements.hasLowercase ? (
+                                                <Check className="w-3 h-3" />
+                                            ) : (
+                                                <X className="w-3 h-3" />
+                                            )}
+                                            Lowercase letter
+                                        </div>
+                                        <div className={`flex items-center gap-1 text-xs ${
+                                            passwordStrength.requirements.hasNumber ? 'text-green-600' : 'text-slate-400'
+                                        }`}>
+                                            {passwordStrength.requirements.hasNumber ? (
+                                                <Check className="w-3 h-3" />
+                                            ) : (
+                                                <X className="w-3 h-3" />
+                                            )}
+                                            Number
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div>

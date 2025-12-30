@@ -450,8 +450,8 @@ export function Settings() {
     return (
         <div className="space-y-4">
             <div>
-                <h1 className="text-2xl font-bold text-chalk-50">Settings</h1>
-                <p className="text-slate-400">Manage your hub settings.</p>
+                <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+                <p className="text-slate-500">Manage your hub settings.</p>
             </div>
 
             {/* Hub Information - Always visible, not collapsible */}
@@ -463,26 +463,26 @@ export function Settings() {
             >
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <div>
-                        <label className="block text-sm font-medium text-slate-400">Hub Name</label>
-                        <div className="mt-1 text-sm text-chalk-50">{hub?.name}</div>
+                        <label className="block text-sm font-medium text-slate-500">Hub Name</label>
+                        <div className="mt-1 text-sm text-slate-900">{hub?.name}</div>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-400">Hub ID</label>
-                        <div className="mt-1 text-sm text-slate-400 font-mono text-xs">{hub?.id}</div>
+                        <label className="block text-sm font-medium text-slate-500">Hub ID</label>
+                        <div className="mt-1 text-sm text-slate-500 font-mono text-xs">{hub?.id}</div>
                     </div>
                     {ownerInfo && (
                         <>
                             <div>
-                                <label className="block text-sm font-medium text-slate-400">Owner</label>
-                                <div className="mt-1 flex items-center gap-1.5 text-sm text-chalk-50">
+                                <label className="block text-sm font-medium text-slate-500">Owner</label>
+                                <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-900">
                                     <User className="h-4 w-4 text-slate-400" />
                                     {ownerInfo.name}
                                 </div>
                             </div>
                             {ownerInfo.organization && (
                                 <div>
-                                    <label className="block text-sm font-medium text-slate-400">Organization</label>
-                                    <div className="mt-1 flex items-center gap-1.5 text-sm text-chalk-50">
+                                    <label className="block text-sm font-medium text-slate-500">Organization</label>
+                                    <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-900">
                                         <Building2 className="h-4 w-4 text-slate-400" />
                                         {ownerInfo.organization}
                                     </div>
@@ -538,25 +538,25 @@ export function Settings() {
                                     disabled={isLastEnabled}
                                     className={`flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-all ${
                                         isEnabled
-                                            ? 'border-mint-500 bg-mint-900/20'
-                                            : 'border-slate-700 bg-slate-900/50 opacity-60'
+                                            ? 'border-mint-500 bg-mint-50'
+                                            : 'border-slate-200 bg-slate-50 opacity-60'
                                     } ${isLastEnabled ? 'cursor-not-allowed' : 'hover:border-mint-400'}`}
                                     title={isLastEnabled ? 'At least one tab must be enabled' : undefined}
                                 >
                                     <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
                                         isEnabled
                                             ? 'bg-mint-500 border-mint-500'
-                                            : 'border-slate-600 bg-slate-800'
+                                            : 'border-slate-300 bg-white'
                                     }`}>
                                         {isEnabled && (
                                             <Check className="h-3.5 w-3.5 text-white" />
                                         )}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`text-sm font-medium ${isEnabled ? 'text-chalk-50' : 'text-slate-500'}`}>
+                                        <p className={`text-sm font-medium ${isEnabled ? 'text-slate-900' : 'text-slate-500'}`}>
                                             {tab.label}
                                         </p>
-                                        <p className="text-xs text-slate-400 mt-0.5">
+                                        <p className="text-xs text-slate-500 mt-0.5">
                                             {tab.description}
                                         </p>
                                     </div>
@@ -629,21 +629,21 @@ export function Settings() {
                             <Loader2 className="animate-spin h-6 w-6 text-slate-400 mx-auto" />
                         </div>
                     ) : invites.length === 0 ? (
-                        <div className="text-center py-6 bg-slate-900/50 rounded-lg border-2 border-dashed border-slate-700">
-                            <Link className="mx-auto h-8 w-8 text-slate-500" />
-                            <p className="mt-2 text-sm text-slate-400">No invite codes yet.</p>
-                            <p className="text-xs text-slate-500">Create an invite code above to get started.</p>
+                        <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+                            <Link className="mx-auto h-8 w-8 text-slate-400" />
+                            <p className="mt-2 text-sm text-slate-500">No invite codes yet.</p>
+                            <p className="text-xs text-slate-400">Create an invite code above to get started.</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
                             {invites.map((invite) => (
                                 <div
                                     key={invite.id}
-                                    className={`flex items-center justify-between rounded-lg px-4 py-3 border ${invite.is_active ? 'bg-slate-800 border-slate-700' : 'bg-slate-900/50 border-slate-700 opacity-60'}`}
+                                    className={`flex items-center justify-between rounded-lg px-4 py-3 border ${invite.is_active ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-200 opacity-60'}`}
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="flex items-center gap-2">
-                                            <code className="text-lg font-mono font-bold text-chalk-50 tracking-wider">
+                                            <code className="text-lg font-mono font-bold text-slate-900 tracking-wider">
                                                 {invite.code}
                                             </code>
                                             <button
@@ -744,21 +744,21 @@ export function Settings() {
 
                     {/* Levels list */}
                     {levels.length === 0 ? (
-                        <div className="text-center py-6 bg-slate-900/50 rounded-lg border-2 border-dashed border-slate-700">
-                            <ListOrdered className="mx-auto h-8 w-8 text-slate-500" />
-                            <p className="mt-2 text-sm text-slate-400">No levels defined yet.</p>
-                            <p className="text-xs text-slate-500">Add levels above to get started.</p>
+                        <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+                            <ListOrdered className="mx-auto h-8 w-8 text-slate-400" />
+                            <p className="mt-2 text-sm text-slate-500">No levels defined yet.</p>
+                            <p className="text-xs text-slate-400">Add levels above to get started.</p>
                         </div>
                     ) : (
                         <ul className="space-y-2">
                             {levels.map((level, index) => (
                                 <li
                                     key={level}
-                                    className="flex items-center justify-between bg-slate-800 rounded-lg px-4 py-3 border border-slate-700"
+                                    className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-slate-200"
                                 >
                                     <div className="flex items-center">
-                                        <GripVertical className="h-4 w-4 text-slate-500 mr-3" />
-                                        <span className="text-sm font-medium text-chalk-50">{level}</span>
+                                        <GripVertical className="h-4 w-4 text-slate-400 mr-3" />
+                                        <span className="text-sm font-medium text-slate-900">{level}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <button
@@ -850,21 +850,21 @@ export function Settings() {
                             <Loader2 className="animate-spin h-6 w-6 text-slate-400 mx-auto" />
                         </div>
                     ) : channels.length === 0 ? (
-                        <div className="text-center py-6 bg-slate-900/50 rounded-lg border-2 border-dashed border-slate-700">
-                            <Hash className="mx-auto h-8 w-8 text-slate-500" />
-                            <p className="mt-2 text-sm text-slate-400">No channels yet.</p>
-                            <p className="text-xs text-slate-500">Add a channel above to get started.</p>
+                        <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
+                            <Hash className="mx-auto h-8 w-8 text-slate-400" />
+                            <p className="mt-2 text-sm text-slate-500">No channels yet.</p>
+                            <p className="text-xs text-slate-400">Add a channel above to get started.</p>
                         </div>
                     ) : (
                         <ul className="space-y-2">
                             {channels.map((channel) => (
                                 <li
                                     key={channel.id}
-                                    className="flex items-center justify-between bg-slate-800 rounded-lg px-4 py-3 border border-slate-700"
+                                    className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-slate-200"
                                 >
                                     <div className="flex items-center">
-                                        <Hash className="h-4 w-4 text-slate-500 mr-2" />
-                                        <span className="text-sm font-medium text-chalk-50">{channel.name}</span>
+                                        <Hash className="h-4 w-4 text-slate-400 mr-2" />
+                                        <span className="text-sm font-medium text-slate-900">{channel.name}</span>
                                     </div>
                                     <button
                                         type="button"
@@ -916,23 +916,23 @@ export function Settings() {
                     )}
 
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-slate-700">
+                        <table className="min-w-full divide-y divide-slate-200">
                             <thead>
                                 <tr>
-                                    <th className="px-6 py-3 bg-slate-900/50 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                    <th className="px-6 py-3 bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                                         Feature
                                     </th>
                                     {ROLES.map(role => (
-                                        <th key={role} className="px-6 py-3 bg-slate-900/50 text-left text-xs font-medium text-slate-400 uppercase tracking-wider">
+                                        <th key={role} className="px-6 py-3 bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
                                             {role}
                                         </th>
                                     ))}
                                 </tr>
                             </thead>
-                            <tbody className="bg-slate-800 divide-y divide-slate-700">
+                            <tbody className="bg-white divide-y divide-slate-200">
                                 {FEATURES.map(feature => (
                                     <tr key={feature}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-chalk-50 capitalize">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">
                                             {feature}
                                         </td>
                                         {ROLES.map(role => (

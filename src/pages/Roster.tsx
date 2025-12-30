@@ -69,7 +69,7 @@ export function Roster() {
                     .eq('hub_id', hub?.id),
                 supabase
                     .from('gymnast_profiles')
-                    .select('*')
+                    .select('id, gymnast_id, first_name, last_name, gender, level, guardian_1, guardian_2')
                     .eq('hub_id', hub?.id)
                     .order('gymnast_id', { ascending: true })
             ]);
@@ -89,7 +89,7 @@ export function Roster() {
                 type: 'hub_member' as const,
             }));
 
-            const gymnastMembers: DisplayMember[] = (gymnastProfilesData || []).map((g: GymnastProfile) => {
+            const gymnastMembers: DisplayMember[] = (gymnastProfilesData || []).map((g: any) => {
                 // Handle both guardian name formats: {name: "..."} or {first_name: "...", last_name: "..."}
                 let guardianName = '';
                 if (g.guardian_1) {
@@ -171,11 +171,11 @@ export function Roster() {
 
     const getSortIcon = (column: SortColumn) => {
         if (sortColumn !== column) {
-            return <ChevronsUpDown className="h-4 w-4 text-slate-500" />;
+            return <ChevronsUpDown className="h-4 w-4 text-slate-400" />;
         }
         return sortDirection === 'asc'
-            ? <ChevronUp className="h-4 w-4 text-mint-400" />
-            : <ChevronDown className="h-4 w-4 text-mint-400" />;
+            ? <ChevronUp className="h-4 w-4 text-mint-600" />
+            : <ChevronDown className="h-4 w-4 text-mint-600" />;
     };
 
     // Memoized filtering and sorting
@@ -252,14 +252,14 @@ export function Roster() {
         });
     }, [members, searchTerm, activeTab, sortColumn, sortDirection, getPermissionScope, linkedGymnasts, user?.id, hub?.settings?.levels]);
 
-    if (loading) return <div className="p-8 text-slate-400">Loading roster...</div>;
+    if (loading) return <div className="p-8 text-slate-500">Loading roster...</div>;
 
     return (
         <div className="animate-fade-in">
             <div className="sm:flex sm:items-center">
                 <div className="sm:flex-auto">
-                    <h1 className="text-2xl font-semibold text-chalk-50">Roster</h1>
-                    <p className="mt-2 text-sm text-slate-400">
+                    <h1 className="text-2xl font-semibold text-slate-900">Roster</h1>
+                    <p className="mt-2 text-sm text-slate-500">
                         Manage your team members, assign roles, and view contact info.
                     </p>
                 </div>
@@ -277,7 +277,7 @@ export function Roster() {
 
             <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 {/* Tabs */}
-                <div className="flex space-x-1 rounded-lg bg-slate-800 p-1">
+                <div className="flex space-x-1 rounded-lg bg-slate-100 p-1">
                     {tabs.map((tab) => (
                         <button
                             key={tab.name}
@@ -285,8 +285,8 @@ export function Roster() {
                             className={`
                                 rounded-md py-2 px-4 text-sm font-medium transition-all
                                 ${activeTab === tab.name
-                                    ? 'bg-slate-700 text-chalk-50 shadow'
-                                    : 'text-slate-400 hover:text-chalk-50 hover:bg-slate-700/50'
+                                    ? 'bg-white text-slate-900 shadow-sm'
+                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'
                                 }
                             `}
                         >
@@ -314,12 +314,12 @@ export function Roster() {
                 <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                         <div className="overflow-hidden card">
-                            <table className="min-w-full divide-y divide-slate-700/50">
-                                <thead className="bg-slate-800/50">
+                            <table className="min-w-full divide-y divide-slate-200">
+                                <thead className="bg-slate-50">
                                     <tr>
                                         <th
                                             scope="col"
-                                            className="py-3.5 pl-4 pr-3 text-left text-sm font-medium text-slate-400 sm:pl-6 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                                            className="py-3.5 pl-4 pr-3 text-left text-sm font-medium text-slate-500 sm:pl-6 cursor-pointer hover:bg-slate-100 transition-colors"
                                             onClick={() => handleSort('id')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -329,7 +329,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-500 cursor-pointer hover:bg-slate-100 transition-colors"
                                             onClick={() => handleSort('name')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -339,7 +339,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-500 cursor-pointer hover:bg-slate-100 transition-colors"
                                             onClick={() => handleSort('role')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -349,7 +349,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-500 cursor-pointer hover:bg-slate-100 transition-colors"
                                             onClick={() => handleSort('level')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -359,7 +359,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-500 cursor-pointer hover:bg-slate-100 transition-colors"
                                             onClick={() => handleSort('guardian')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -369,7 +369,7 @@ export function Roster() {
                                         </th>
                                         <th
                                             scope="col"
-                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-400 cursor-pointer hover:bg-slate-700/50 transition-colors"
+                                            className="px-3 py-3.5 text-left text-sm font-medium text-slate-500 cursor-pointer hover:bg-slate-100 transition-colors"
                                             onClick={() => handleSort('contact')}
                                         >
                                             <div className="flex items-center gap-1">
@@ -382,7 +382,7 @@ export function Roster() {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-700/50">
+                                <tbody className="divide-y divide-slate-200 bg-white">
                                     {filteredMembers.length > 0 ? (
                                         filteredMembers.map((member) => (
                                             <tr
@@ -392,27 +392,27 @@ export function Roster() {
                                                         navigate(`/hub/${hub?.id}/roster/${member.id}`);
                                                     }
                                                 }}
-                                                className={member.type === 'gymnast_profile' ? 'cursor-pointer hover:bg-slate-700/30' : ''}
+                                                className={member.type === 'gymnast_profile' ? 'cursor-pointer hover:bg-slate-50' : ''}
                                             >
-                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-slate-400 sm:pl-6">
+                                                <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-slate-500 sm:pl-6">
                                                     {member.type === 'gymnast_profile' ? member.gymnast_id : '-'}
                                                 </td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-chalk-50">
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm font-medium text-slate-900">
                                                     {member.name}
                                                 </td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-400 capitalize">
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500 capitalize">
                                                     {member.role}
                                                 </td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-400">
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
                                                     {member.level || '-'}
                                                 </td>
-                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-400">
+                                                <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
                                                     {member.guardian_name || '-'}
                                                 </td>
-                                                <td className="px-3 py-4 text-sm text-slate-400">
+                                                <td className="px-3 py-4 text-sm text-slate-500">
                                                     <div>{member.type === 'gymnast_profile' ? member.guardian_phone : member.email}</div>
                                                     {member.type === 'gymnast_profile' && member.email && (
-                                                        <div className="text-xs text-slate-500">{member.email}</div>
+                                                        <div className="text-xs text-slate-400">{member.email}</div>
                                                     )}
                                                 </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
@@ -423,13 +423,13 @@ export function Roster() {
                                                                     e.stopPropagation();
                                                                     setOpenMenuId(openMenuId === member.id ? null : member.id);
                                                                 }}
-                                                                className="text-slate-500 hover:text-chalk-50 p-1 rounded hover:bg-slate-700"
+                                                                className="text-slate-400 hover:text-slate-900 p-1 rounded hover:bg-slate-100"
                                                             >
                                                                 <MoreHorizontal className="h-5 w-5" />
                                                             </button>
 
                                                             {openMenuId === member.id && (
-                                                                <div className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-lg bg-slate-800 shadow-lg ring-1 ring-slate-700 focus:outline-none">
+                                                                <div className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-slate-200 focus:outline-none">
                                                                     <div className="py-1">
                                                                         <button
                                                                             onClick={(e) => {
@@ -438,7 +438,7 @@ export function Roster() {
                                                                                 setIsAddModalOpen(true);
                                                                                 setOpenMenuId(null);
                                                                             }}
-                                                                            className="flex w-full items-center px-4 py-2 text-sm text-slate-300 hover:bg-slate-700"
+                                                                            className="flex w-full items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
                                                                         >
                                                                             <Pencil className="mr-3 h-4 w-4 text-slate-400" />
                                                                             Edit
@@ -448,7 +448,7 @@ export function Roster() {
                                                                                 e.stopPropagation();
                                                                                 handleDeleteMember(member);
                                                                             }}
-                                                                            className="flex w-full items-center px-4 py-2 text-sm text-error-400 hover:bg-error-500/10"
+                                                                            className="flex w-full items-center px-4 py-2 text-sm text-error-600 hover:bg-error-50"
                                                                         >
                                                                             <Trash2 className="mr-3 h-4 w-4" />
                                                                             Remove

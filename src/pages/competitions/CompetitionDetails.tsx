@@ -254,13 +254,13 @@ export function CompetitionDetails() {
     }
 
     return (
-        <div className="flex h-full flex-col bg-slate-800">
+        <div className="flex h-full flex-col bg-white rounded-xl border border-slate-200">
             {/* Header */}
-            <div className="border-b border-slate-700/50 px-6 py-4">
+            <div className="border-b border-slate-200 px-6 py-4">
                 <div className="mb-4">
                     <Link
                         to={`/hub/${competition.hub_id}/competitions`}
-                        className="inline-flex items-center text-sm text-slate-500 hover:text-brand-600"
+                        className="inline-flex items-center text-sm text-slate-500 hover:text-mint-600"
                     >
                         <ArrowLeft className="mr-1 h-4 w-4" />
                         Back to Competitions
@@ -268,7 +268,7 @@ export function CompetitionDetails() {
                 </div>
                 <div className="flex items-start justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-chalk-50">{competition.name}</h1>
+                        <h1 className="text-2xl font-bold text-slate-900">{competition.name}</h1>
                         <div className="mt-2 flex items-center space-x-4 text-sm text-slate-500">
                             <div className="flex items-center">
                                 <Calendar className="mr-1.5 h-4 w-4 text-slate-400" />
@@ -286,13 +286,13 @@ export function CompetitionDetails() {
             </div>
 
             {/* Tabs */}
-            <div className="border-b border-slate-700/50 px-6">
+            <div className="border-b border-slate-200 px-6">
                 <nav className="-mb-px flex space-x-8">
                     <button
                         onClick={() => setActiveTab('roster')}
                         className={clsx(
                             activeTab === 'roster'
-                                ? 'border-brand-500 text-brand-600'
+                                ? 'border-mint-500 text-mint-600'
                                 : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700',
                             'flex items-center whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium'
                         )}
@@ -307,7 +307,7 @@ export function CompetitionDetails() {
                         onClick={() => setActiveTab('sessions')}
                         className={clsx(
                             activeTab === 'sessions'
-                                ? 'border-brand-500 text-brand-600'
+                                ? 'border-mint-500 text-mint-600'
                                 : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700',
                             'flex items-center whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium'
                         )}
@@ -319,7 +319,7 @@ export function CompetitionDetails() {
                         onClick={() => setActiveTab('documents')}
                         className={clsx(
                             activeTab === 'documents'
-                                ? 'border-brand-500 text-brand-600'
+                                ? 'border-mint-500 text-mint-600'
                                 : 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700',
                             'flex items-center whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium'
                         )}
@@ -338,7 +338,7 @@ export function CompetitionDetails() {
                             <div className="mb-4 flex justify-end">
                                 <button
                                     onClick={() => setIsManageRosterModalOpen(true)}
-                                    className="inline-flex items-center rounded-md bg-slate-800 px-3 py-2 text-sm font-semibold text-chalk-50 shadow-sm ring-1 ring-inset ring-slate-600 hover:bg-slate-900/50"
+                                    className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
                                 >
                                     <Plus className="-ml-0.5 mr-1.5 h-4 w-4 text-slate-400" />
                                     Manage Roster
@@ -346,17 +346,17 @@ export function CompetitionDetails() {
                             </div>
                         )}
                         {roster.length === 0 ? (
-                            <div className="overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800 shadow-sm p-8 text-center text-slate-500">
+                            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm p-8 text-center text-slate-500">
                                 No gymnasts assigned to this competition yet.
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {Object.entries(rosterByLevel).map(([level, gymnasts]) => (
-                                    <div key={level} className="overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800 shadow-sm">
+                                    <div key={level} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
                                         {/* Level Header */}
                                         <button
                                             onClick={() => toggleLevelCollapse(level)}
-                                            className="flex w-full items-center justify-between bg-slate-900/50 px-4 py-3 text-left hover:bg-slate-700"
+                                            className="flex w-full items-center justify-between bg-slate-50 px-4 py-3 text-left hover:bg-slate-100"
                                         >
                                             <div className="flex items-center gap-2">
                                                 {collapsedLevels.has(level) ? (
@@ -364,7 +364,7 @@ export function CompetitionDetails() {
                                                 ) : (
                                                     <ChevronDown className="h-4 w-4 text-slate-400" />
                                                 )}
-                                                <span className="text-sm font-semibold text-chalk-50">{level}</span>
+                                                <span className="text-sm font-semibold text-slate-900">{level}</span>
                                                 <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
                                                     {gymnasts.length}
                                                 </span>
@@ -372,16 +372,16 @@ export function CompetitionDetails() {
                                         </button>
                                         {/* Gymnasts List */}
                                         {!collapsedLevels.has(level) && (
-                                            <ul className="divide-y divide-slate-200">
+                                            <ul className="divide-y divide-slate-100">
                                                 {gymnasts.map((gymnast) => {
                                                     const availableEvents = getEventsForGender(gymnast.gymnast_profiles.gender);
                                                     return (
-                                                        <li key={gymnast.gymnast_profile_id} className="flex items-center justify-between p-3 hover:bg-slate-900/50">
+                                                        <li key={gymnast.gymnast_profile_id} className="flex items-center justify-between p-3 hover:bg-slate-50">
                                                             <div className="flex items-center">
-                                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-mint-900/30 text-mint-400 text-sm font-semibold">
+                                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-mint-100 text-mint-700 text-sm font-semibold">
                                                                     {gymnast.gymnast_profiles.first_name[0]}{gymnast.gymnast_profiles.last_name[0]}
                                                                 </div>
-                                                                <p className="ml-3 text-sm font-medium text-chalk-50">
+                                                                <p className="ml-3 text-sm font-medium text-slate-900">
                                                                     {gymnast.gymnast_profiles.first_name} {gymnast.gymnast_profiles.last_name}
                                                                 </p>
                                                             </div>
@@ -401,9 +401,9 @@ export function CompetitionDetails() {
                                                                             className={clsx(
                                                                                 'px-2 py-1 text-xs font-semibold rounded transition-colors',
                                                                                 isActive
-                                                                                    ? 'bg-brand-600 text-white'
+                                                                                    ? 'bg-mint-500 text-white'
                                                                                     : 'bg-slate-100 text-slate-400',
-                                                                                canManageRoster && 'hover:bg-brand-500 hover:text-white cursor-pointer',
+                                                                                canManageRoster && 'hover:bg-mint-400 hover:text-white cursor-pointer',
                                                                                 !canManageRoster && 'cursor-default'
                                                                             )}
                                                                             title={canManageRoster ? `Toggle ${EVENT_LABELS[event]}` : EVENT_LABELS[event]}
@@ -440,12 +440,12 @@ export function CompetitionDetails() {
                         )}
                         <div className="space-y-4">
                             {sessions.map((session) => (
-                                <div key={session.id} className="overflow-hidden rounded-lg border border-slate-700/50 bg-slate-800 shadow-sm">
+                                <div key={session.id} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
                                     {/* Session Header */}
-                                    <div className="border-b border-slate-700/30 bg-slate-900/50 px-4 py-3 sm:px-6">
+                                    <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 sm:px-6">
                                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                             <div className="flex items-center gap-4">
-                                                <h3 className="text-base font-semibold leading-6 text-chalk-50">{session.name}</h3>
+                                                <h3 className="text-base font-semibold leading-6 text-slate-900">{session.name}</h3>
                                                 <div className="flex items-center gap-3 text-sm text-slate-500">
                                                     <span className="flex items-center">
                                                         <Calendar className="mr-1 h-4 w-4 text-slate-400" />
@@ -473,7 +473,7 @@ export function CompetitionDetails() {
                                                             setSelectedSession(session);
                                                             setIsAssignCoachModalOpen(true);
                                                         }}
-                                                        className="text-brand-600 hover:text-brand-500"
+                                                        className="text-mint-600 hover:text-mint-500"
                                                         title="Assign coaches"
                                                     >
                                                         <UserPlus className="h-4 w-4" />
@@ -499,7 +499,7 @@ export function CompetitionDetails() {
                                                                         setSelectedSession(session);
                                                                         setIsAssignGymnastsModalOpen(true);
                                                                     }}
-                                                                    className="text-xs text-brand-600 hover:text-brand-500 flex items-center"
+                                                                    className="text-xs text-mint-600 hover:text-mint-500 flex items-center"
                                                                 >
                                                                     <Users className="h-3 w-3 mr-1" />
                                                                     Manage
@@ -508,11 +508,11 @@ export function CompetitionDetails() {
                                                         </div>
                                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                                                             {gymnasts.map((gymnast) => (
-                                                                <div key={gymnast.gymnast_profile_id} className="flex items-center gap-2 rounded-lg bg-slate-900/50 px-3 py-2">
-                                                                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-mint-900/30 text-mint-400 text-xs font-semibold">
+                                                                <div key={gymnast.gymnast_profile_id} className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2">
+                                                                    <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-mint-100 text-mint-700 text-xs font-semibold">
                                                                         {gymnast.gymnast_profiles.first_name[0]}{gymnast.gymnast_profiles.last_name[0]}
                                                                     </div>
-                                                                    <span className="text-sm font-medium text-chalk-50 truncate">
+                                                                    <span className="text-sm font-medium text-slate-900 truncate">
                                                                         {gymnast.gymnast_profiles.first_name} {gymnast.gymnast_profiles.last_name}
                                                                     </span>
                                                                 </div>
@@ -530,7 +530,7 @@ export function CompetitionDetails() {
                                                             setSelectedSession(session);
                                                             setIsAssignGymnastsModalOpen(true);
                                                         }}
-                                                        className="text-xs text-brand-600 hover:text-brand-500 flex items-center"
+                                                        className="text-xs text-mint-600 hover:text-mint-500 flex items-center"
                                                     >
                                                         <Users className="h-3 w-3 mr-1" />
                                                         Manage
@@ -542,9 +542,9 @@ export function CompetitionDetails() {
                                 </div>
                             ))}
                             {sessions.length === 0 && (
-                                <div className="rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
+                                <div className="rounded-lg border-2 border-dashed border-slate-200 p-12 text-center">
                                     <Clock className="mx-auto h-12 w-12 text-slate-400" />
-                                    <h3 className="mt-2 text-sm font-semibold text-chalk-50">No sessions</h3>
+                                    <h3 className="mt-2 text-sm font-semibold text-slate-900">No sessions</h3>
                                     <p className="mt-1 text-sm text-slate-500">
                                         {canManageRoster ? 'Get started by creating a new session.' : 'No sessions have been scheduled yet.'}
                                     </p>

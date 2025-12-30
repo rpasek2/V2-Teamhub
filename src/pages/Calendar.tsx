@@ -48,12 +48,12 @@ type ViewType = 'month' | 'week' | 'agenda';
 type EventType = 'all' | 'practice' | 'competition' | 'mentorship' | 'meeting' | 'social' | 'other';
 
 const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-    practice: { bg: 'bg-blue-900/50', text: 'text-blue-300', dot: 'bg-blue-400' },
-    competition: { bg: 'bg-purple-900/50', text: 'text-purple-300', dot: 'bg-purple-400' },
-    mentorship: { bg: 'bg-pink-900/50', text: 'text-pink-300', dot: 'bg-pink-400' },
-    meeting: { bg: 'bg-amber-900/50', text: 'text-amber-300', dot: 'bg-amber-400' },
-    social: { bg: 'bg-green-900/50', text: 'text-green-300', dot: 'bg-green-400' },
-    other: { bg: 'bg-slate-700/50', text: 'text-slate-300', dot: 'bg-slate-400' }
+    practice: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
+    competition: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
+    mentorship: { bg: 'bg-pink-100', text: 'text-pink-700', dot: 'bg-pink-500' },
+    meeting: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
+    social: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
+    other: { bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-500' }
 };
 
 // Holiday definitions with emoji icons
@@ -112,33 +112,33 @@ function getUSHolidays(year: number): Map<string, Holiday> {
         holidays.set(key, { name, emoji, bgColor, textColor });
     };
 
-    // Fixed date holidays - dark theme compatible
-    addHoliday(new Date(year, 0, 1), "New Year's Day", '🎉', 'bg-yellow-900/30', 'text-yellow-300');
-    addHoliday(new Date(year, 1, 14), "Valentine's Day", '💕', 'bg-pink-900/30', 'text-pink-300');
-    addHoliday(new Date(year, 2, 17), "St. Patrick's Day", '☘️', 'bg-emerald-900/30', 'text-emerald-300');
-    addHoliday(new Date(year, 6, 4), "Independence Day", '🇺🇸', 'bg-blue-900/30', 'text-blue-300');
-    addHoliday(new Date(year, 9, 31), "Halloween", '🎃', 'bg-orange-900/30', 'text-orange-300');
-    addHoliday(new Date(year, 10, 11), "Veterans Day", '🎖️', 'bg-red-900/30', 'text-red-300');
-    addHoliday(new Date(year, 11, 25), "Christmas Day", '🎄', 'bg-red-900/30', 'text-red-300');
-    addHoliday(new Date(year, 11, 31), "New Year's Eve", '🥳', 'bg-purple-900/30', 'text-purple-300');
-    addHoliday(new Date(year, 11, 24), "Christmas Eve", '🎅', 'bg-red-900/20', 'text-red-300');
+    // Fixed date holidays - light theme compatible
+    addHoliday(new Date(year, 0, 1), "New Year's Day", '🎉', 'bg-yellow-50', 'text-yellow-700');
+    addHoliday(new Date(year, 1, 14), "Valentine's Day", '💕', 'bg-pink-50', 'text-pink-700');
+    addHoliday(new Date(year, 2, 17), "St. Patrick's Day", '☘️', 'bg-emerald-50', 'text-emerald-700');
+    addHoliday(new Date(year, 6, 4), "Independence Day", '🇺🇸', 'bg-blue-50', 'text-blue-700');
+    addHoliday(new Date(year, 9, 31), "Halloween", '🎃', 'bg-orange-50', 'text-orange-700');
+    addHoliday(new Date(year, 10, 11), "Veterans Day", '🎖️', 'bg-red-50', 'text-red-700');
+    addHoliday(new Date(year, 11, 25), "Christmas Day", '🎄', 'bg-red-50', 'text-red-700');
+    addHoliday(new Date(year, 11, 31), "New Year's Eve", '🥳', 'bg-purple-50', 'text-purple-700');
+    addHoliday(new Date(year, 11, 24), "Christmas Eve", '🎅', 'bg-red-50', 'text-red-700');
 
     // Floating holidays
-    addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", '✊', 'bg-slate-700/50', 'text-slate-300');
-    addHoliday(getNthWeekdayOfMonth(year, 1, 1, 3), "Presidents' Day", '🏛️', 'bg-blue-900/30', 'text-blue-300');
-    addHoliday(getNthWeekdayOfMonth(year, 4, 0, 2), "Mother's Day", '💐', 'bg-pink-900/30', 'text-pink-300');
-    addHoliday(getLastWeekdayOfMonth(year, 4, 1), "Memorial Day", '🇺🇸', 'bg-red-900/30', 'text-red-300');
-    addHoliday(getNthWeekdayOfMonth(year, 5, 0, 3), "Father's Day", '👔', 'bg-blue-900/30', 'text-blue-300');
-    addHoliday(getNthWeekdayOfMonth(year, 8, 1, 1), "Labor Day", '⚒️', 'bg-amber-900/30', 'text-amber-300');
-    addHoliday(getNthWeekdayOfMonth(year, 9, 1, 2), "Columbus Day", '🧭', 'bg-indigo-900/30', 'text-indigo-300');
-    addHoliday(getNthWeekdayOfMonth(year, 10, 4, 4), "Thanksgiving", '🦃', 'bg-orange-900/30', 'text-orange-300');
+    addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", '✊', 'bg-slate-100', 'text-slate-700');
+    addHoliday(getNthWeekdayOfMonth(year, 1, 1, 3), "Presidents' Day", '🏛️', 'bg-blue-50', 'text-blue-700');
+    addHoliday(getNthWeekdayOfMonth(year, 4, 0, 2), "Mother's Day", '💐', 'bg-pink-50', 'text-pink-700');
+    addHoliday(getLastWeekdayOfMonth(year, 4, 1), "Memorial Day", '🇺🇸', 'bg-red-50', 'text-red-700');
+    addHoliday(getNthWeekdayOfMonth(year, 5, 0, 3), "Father's Day", '👔', 'bg-blue-50', 'text-blue-700');
+    addHoliday(getNthWeekdayOfMonth(year, 8, 1, 1), "Labor Day", '⚒️', 'bg-amber-50', 'text-amber-700');
+    addHoliday(getNthWeekdayOfMonth(year, 9, 1, 2), "Columbus Day", '🧭', 'bg-indigo-50', 'text-indigo-700');
+    addHoliday(getNthWeekdayOfMonth(year, 10, 4, 4), "Thanksgiving", '🦃', 'bg-orange-50', 'text-orange-700');
 
     // Easter (calculated)
     const easter = getEasterSunday(year);
-    addHoliday(easter, "Easter Sunday", '🐰', 'bg-pink-900/30', 'text-pink-300');
+    addHoliday(easter, "Easter Sunday", '🐰', 'bg-pink-50', 'text-pink-700');
 
     // Juneteenth
-    addHoliday(new Date(year, 5, 19), "Juneteenth", '✊', 'bg-red-900/30', 'text-red-300');
+    addHoliday(new Date(year, 5, 19), "Juneteenth", '✊', 'bg-red-50', 'text-red-700');
 
     return holidays;
 }
@@ -327,32 +327,32 @@ export function Calendar() {
     };
 
     return (
-        <div className="flex h-full flex-col bg-slate-800 rounded-xl shadow-sm border border-slate-700/50 overflow-hidden">
+        <div className="flex h-full flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             {/* Header */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-700/50 px-4 sm:px-6 py-4 gap-4">
+            <header className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 px-4 sm:px-6 py-4 gap-4">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-xl font-bold text-chalk-50">
+                    <h1 className="text-xl font-bold text-slate-900">
                         <time dateTime={format(currentDate, 'yyyy-MM')}>{getHeaderText()}</time>
                     </h1>
-                    <div className="flex items-center rounded-lg bg-slate-900 p-0.5">
+                    <div className="flex items-center rounded-lg bg-slate-100 p-0.5">
                         <button
                             type="button"
                             onClick={prevPeriod}
-                            className="p-1.5 rounded-md text-slate-400 hover:bg-slate-800 hover:text-chalk-50 transition-all"
+                            className="p-1.5 rounded-md text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
                         >
                             <ChevronLeft className="h-5 w-5" />
                         </button>
                         <button
                             type="button"
                             onClick={goToToday}
-                            className="px-3 py-1 text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-chalk-50 rounded-md transition-all"
+                            className="px-3 py-1 text-sm font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-900 rounded-md transition-all"
                         >
                             Today
                         </button>
                         <button
                             type="button"
                             onClick={nextPeriod}
-                            className="p-1.5 rounded-md text-slate-400 hover:bg-slate-800 hover:text-chalk-50 transition-all"
+                            className="p-1.5 rounded-md text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
                         >
                             <ChevronRight className="h-5 w-5" />
                         </button>
@@ -368,8 +368,8 @@ export function Calendar() {
                             className={cn(
                                 "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all",
                                 filterType !== 'all'
-                                    ? "bg-mint-900/30 border-mint-700/50 text-mint-400"
-                                    : "bg-slate-900 border-slate-700/50 text-slate-300 hover:bg-slate-800"
+                                    ? "bg-mint-100 border-mint-300 text-mint-700"
+                                    : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
                             )}
                         >
                             <Filter className="h-4 w-4" />
@@ -380,7 +380,7 @@ export function Calendar() {
                         {showFilter && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-                                <div className="absolute right-0 mt-2 w-48 bg-slate-800 rounded-xl shadow-lg border border-slate-700/50 py-2 z-20">
+                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-20">
                                     {['all', 'practice', 'competition', 'meeting', 'social', 'other'].map((type) => (
                                         <button
                                             key={type}
@@ -390,7 +390,7 @@ export function Calendar() {
                                             }}
                                             className={cn(
                                                 "w-full px-4 py-2 text-left text-sm flex items-center gap-3",
-                                                filterType === type ? "bg-mint-900/30 text-mint-400" : "text-slate-300 hover:bg-slate-700"
+                                                filterType === type ? "bg-mint-100 text-mint-700" : "text-slate-700 hover:bg-slate-100"
                                             )}
                                         >
                                             {type !== 'all' && (
@@ -405,13 +405,13 @@ export function Calendar() {
                     </div>
 
                     {/* View Toggle */}
-                    <div className="flex rounded-lg bg-slate-900 p-0.5">
+                    <div className="flex rounded-lg bg-slate-100 p-0.5">
                         <button
                             type="button"
                             onClick={() => setView('month')}
                             className={cn(
                                 "p-2 rounded-md text-sm font-medium transition-all",
-                                view === 'month' ? 'bg-slate-700 text-chalk-50' : 'text-slate-400 hover:text-chalk-50'
+                                view === 'month' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                             )}
                             title="Month View"
                         >
@@ -422,7 +422,7 @@ export function Calendar() {
                             onClick={() => setView('week')}
                             className={cn(
                                 "p-2 rounded-md text-sm font-medium transition-all",
-                                view === 'week' ? 'bg-slate-700 text-chalk-50' : 'text-slate-400 hover:text-chalk-50'
+                                view === 'week' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                             )}
                             title="Week View"
                         >
@@ -433,7 +433,7 @@ export function Calendar() {
                             onClick={() => setView('agenda')}
                             className={cn(
                                 "p-2 rounded-md text-sm font-medium transition-all",
-                                view === 'agenda' ? 'bg-slate-700 text-chalk-50' : 'text-slate-400 hover:text-chalk-50'
+                                view === 'agenda' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
                             )}
                             title="Agenda View"
                         >
@@ -462,9 +462,9 @@ export function Calendar() {
             {view === 'month' || view === 'week' ? (
                 <div className="flex-1 flex flex-col overflow-hidden">
                     {/* Day Headers */}
-                    <div className="grid grid-cols-7 border-b border-slate-700/50 bg-slate-900">
+                    <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
                         {(isMobile ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((day, idx) => (
-                            <div key={idx} className="py-2 sm:py-3 text-center text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                            <div key={idx} className="py-2 sm:py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide">
                                 {day}
                             </div>
                         ))}
@@ -487,10 +487,10 @@ export function Calendar() {
                                     key={day.toString()}
                                     onClick={() => handleDayClick(day)}
                                     className={cn(
-                                        "min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border-b border-r border-slate-700/30 transition-colors relative overflow-hidden",
-                                        isCurrentMonth ? 'bg-slate-800' : 'bg-slate-900/50',
-                                        (canAddEvents || isMobile) && 'cursor-pointer hover:bg-slate-700/50',
-                                        isSelected && 'bg-mint-900/30 ring-2 ring-inset ring-mint-500',
+                                        "min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border-b border-r border-slate-200 transition-colors relative overflow-hidden",
+                                        isCurrentMonth ? 'bg-white' : 'bg-slate-50',
+                                        (canAddEvents || isMobile) && 'cursor-pointer hover:bg-slate-100',
+                                        isSelected && 'bg-mint-100 ring-2 ring-inset ring-mint-500',
                                         idx % 7 === 0 && 'border-l-0',
                                         holiday && !isSelected && holiday.bgColor
                                     )}
@@ -513,8 +513,8 @@ export function Calendar() {
                                                         : holiday
                                                             ? holiday.textColor
                                                             : isCurrentMonth
-                                                                ? 'text-chalk-50'
-                                                                : 'text-slate-500'
+                                                                ? 'text-slate-900'
+                                                                : 'text-slate-400'
                                                 )}
                                             >
                                                 {format(day, 'd')}
@@ -590,13 +590,13 @@ export function Calendar() {
 
                     {/* Mobile: Selected Day Events Panel */}
                     {isMobile && selectedDayForMobile && (
-                        <div className="border-t border-slate-700/50 bg-slate-800">
+                        <div className="border-t border-slate-200 bg-white">
                             <div className={cn(
-                                "px-4 py-3 flex items-center justify-between border-b border-slate-700/30",
+                                "px-4 py-3 flex items-center justify-between border-b border-slate-200",
                                 getHolidayForDay(selectedDayForMobile)?.bgColor
                             )}>
                                 <div>
-                                    <h3 className="font-semibold text-chalk-50 flex items-center gap-2">
+                                    <h3 className="font-semibold text-slate-900 flex items-center gap-2">
                                         {format(selectedDayForMobile, 'EEEE, MMMM d')}
                                         {getHolidayForDay(selectedDayForMobile) && (
                                             <span className="text-lg">{getHolidayForDay(selectedDayForMobile)?.emoji}</span>
@@ -624,7 +624,7 @@ export function Calendar() {
                                     )}
                                     <button
                                         onClick={() => setSelectedDayForMobile(null)}
-                                        className="p-1.5 text-slate-400 hover:text-chalk-50"
+                                        className="p-1.5 text-slate-400 hover:text-slate-900"
                                     >
                                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -634,7 +634,7 @@ export function Calendar() {
                             </div>
                             <div className="max-h-48 overflow-y-auto">
                                 {getEventsForDay(selectedDayForMobile).length > 0 ? (
-                                    <div className="divide-y divide-slate-700/30">
+                                    <div className="divide-y divide-slate-200">
                                         {getEventsForDay(selectedDayForMobile).map((event) => {
                                             const colors = getEventColors(event.type);
                                             return (
@@ -644,12 +644,12 @@ export function Calendar() {
                                                         setSelectedEvent(event);
                                                         setIsDetailsModalOpen(true);
                                                     }}
-                                                    className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-slate-700/50 active:bg-slate-700 transition-colors"
+                                                    className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-slate-50 active:bg-slate-100 transition-colors"
                                                 >
                                                     <div className={cn("w-1 h-full min-h-[40px] rounded-full flex-shrink-0", colors.dot)} />
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="font-medium text-chalk-50 text-sm truncate">{event.title}</p>
-                                                        <div className="flex items-center gap-2 mt-1 text-xs text-slate-400">
+                                                        <p className="font-medium text-slate-900 text-sm truncate">{event.title}</p>
+                                                        <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
                                                             <Clock className="h-3 w-3" />
                                                             <span>{format(parseISO(event.start_time), 'h:mm a')}</span>
                                                             {event.location && (
@@ -673,11 +673,11 @@ export function Calendar() {
                                     </div>
                                 ) : (
                                     <div className="px-4 py-8 text-center">
-                                        <p className="text-sm text-slate-400">No events scheduled</p>
+                                        <p className="text-sm text-slate-500">No events scheduled</p>
                                         {canAddEvents && (
                                             <button
                                                 onClick={handleMobileAddEvent}
-                                                className="mt-2 text-sm text-mint-400 font-medium"
+                                                className="mt-2 text-sm text-mint-600 font-medium"
                                             >
                                                 Add an event
                                             </button>
@@ -690,12 +690,12 @@ export function Calendar() {
                 </div>
             ) : (
                 /* Agenda View */
-                <div className="flex-1 overflow-y-auto">
+                <div className="flex-1 overflow-y-auto bg-slate-50">
                     <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6">
                         {loading ? (
                             <div className="text-center py-12">
                                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-mint-500 border-r-transparent"></div>
-                                <p className="mt-4 text-sm text-slate-400">Loading events...</p>
+                                <p className="mt-4 text-sm text-slate-500">Loading events...</p>
                             </div>
                         ) : filteredEvents.length > 0 ? (
                             <div className="space-y-4">
@@ -708,7 +708,7 @@ export function Calendar() {
                                                 setSelectedEvent(event);
                                                 setIsDetailsModalOpen(true);
                                             }}
-                                            className="group flex gap-4 rounded-xl border border-slate-700/50 p-4 shadow-sm hover:shadow-md hover:border-slate-600 transition-all cursor-pointer bg-slate-800"
+                                            className="group flex gap-4 rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer bg-white"
                                         >
                                             {/* Date Badge */}
                                             <div className="flex-shrink-0 text-center">
@@ -728,7 +728,7 @@ export function Calendar() {
                                             {/* Event Details */}
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-start justify-between gap-2">
-                                                    <h3 className="text-base font-semibold text-chalk-50 group-hover:text-mint-400 transition-colors">
+                                                    <h3 className="text-base font-semibold text-slate-900 group-hover:text-mint-600 transition-colors">
                                                         {event.title}
                                                     </h3>
                                                     <span className={cn(
@@ -740,7 +740,7 @@ export function Calendar() {
                                                     </span>
                                                 </div>
 
-                                                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-400">
+                                                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
                                                     <span className="flex items-center gap-1">
                                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -759,7 +759,7 @@ export function Calendar() {
                                                 </div>
 
                                                 {event.description && (
-                                                    <p className="mt-2 text-sm text-slate-400 line-clamp-2">
+                                                    <p className="mt-2 text-sm text-slate-500 line-clamp-2">
                                                         {event.description}
                                                     </p>
                                                 )}
@@ -770,11 +770,11 @@ export function Calendar() {
                             </div>
                         ) : (
                             <div className="text-center py-16">
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-700 mb-4">
+                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
                                     <CalendarIcon className="h-8 w-8 text-slate-400" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-chalk-50">No events</h3>
-                                <p className="mt-1 text-sm text-slate-400">
+                                <h3 className="text-lg font-semibold text-slate-900">No events</h3>
+                                <p className="mt-1 text-sm text-slate-500">
                                     {filterType !== 'all'
                                         ? `No ${filterType} events scheduled.`
                                         : `No upcoming events scheduled.`
@@ -796,11 +796,11 @@ export function Calendar() {
             )}
 
             {/* Legend - Desktop always visible, Mobile scrollable */}
-            <div className="flex items-center justify-start sm:justify-center gap-4 sm:gap-6 py-2 sm:py-3 px-4 sm:px-0 border-t border-slate-700/50 bg-slate-900/50 overflow-x-auto">
+            <div className="flex items-center justify-start sm:justify-center gap-4 sm:gap-6 py-2 sm:py-3 px-4 sm:px-0 border-t border-slate-200 bg-slate-50 overflow-x-auto">
                 {Object.entries(EVENT_TYPE_COLORS).map(([type, colors]) => (
                     <div key={type} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                         <span className={cn("w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full", colors.dot)} />
-                        <span className="text-[10px] sm:text-xs font-medium text-slate-400 capitalize">{type}</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-slate-500 capitalize">{type}</span>
                     </div>
                 ))}
             </div>

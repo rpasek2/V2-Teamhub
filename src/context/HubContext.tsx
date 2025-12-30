@@ -45,10 +45,10 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         if (showLoading) setLoading(true);
         setError(null);
         try {
-            // 1. Fetch Hub Details
+            // 1. Fetch Hub Details (optimized: only select needed columns)
             const { data: hubData, error: hubError } = await supabase
                 .from('hubs')
-                .select('*')
+                .select('id, organization_id, name, slug, settings, sport_type')
                 .eq('id', hubId)
                 .maybeSingle();
 
@@ -73,25 +73,18 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
                 setMember(memberData);
 
                 // 3. Auto-link Gymnasts for parents based on guardian email
+                // Uses database function for efficient filtering instead of client-side
                 if (memberData && memberData.role === 'parent') {
-                    const userEmail = currentUser.email?.toLowerCase();
+                    const userEmail = currentUser.email;
                     let linked: GymnastProfile[] = [];
 
                     if (userEmail) {
-                        // Fetch profiles where guardian email matches
-                        // We fetch all profiles for the hub and filter in memory to ensure case-insensitive matching
-                        // This is safer than trying to construct a complex JSONB query
-                        const { data: allProfiles } = await supabase
-                            .from('gymnast_profiles')
-                            .select('*')
-                            .eq('hub_id', hubId);
-
-                        if (allProfiles) {
-                            linked = allProfiles.filter(p =>
-                                p.guardian_1?.email?.toLowerCase() === userEmail ||
-                                p.guardian_2?.email?.toLowerCase() === userEmail
-                            );
-                        }
+                        const { data: linkedProfiles } = await supabase
+                            .rpc('get_linked_gymnasts', {
+                                p_hub_id: hubId,
+                                p_email: userEmail
+                            });
+                        linked = (linkedProfiles as GymnastProfile[]) || [];
                     }
                     setLinkedGymnasts(linked);
                 }

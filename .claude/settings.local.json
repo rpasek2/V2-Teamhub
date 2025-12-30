@@ -43,7 +43,12 @@
       "Bash(del \"c:\\Users\\Roger\\Desktop\\Teamhub V2\\src\\components\\scores\\EnterScoreModal.tsx\")",
       "Bash(findstr:*)",
       "Bash(npx supabase --version)",
-      "Bash(firebase deploy:*)"
+      "Bash(firebase deploy:*)",
+      "Bash(cd:*)",
+      "Bash(powershell -Command:*)",
+      "Skill(frontend-design)",
+      "Bash(wc:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

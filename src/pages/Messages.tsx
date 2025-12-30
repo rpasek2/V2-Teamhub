@@ -300,15 +300,15 @@ export default function Messages() {
     );
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-slate-800 shadow-sm ring-1 ring-slate-700/50 sm:rounded-xl">
+        <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-white shadow-sm ring-1 ring-slate-200 sm:rounded-xl">
             {/* Sidebar */}
-            <div className="w-64 border-r border-slate-700/50 bg-slate-900 flex flex-col">
-                <div className="p-4 border-b border-slate-700/50 flex justify-between items-center">
-                    <h2 className="font-semibold text-chalk-50">Messages</h2>
+            <div className="w-64 border-r border-slate-200 bg-slate-50 flex flex-col">
+                <div className="p-4 border-b border-slate-200 flex justify-between items-center">
+                    <h2 className="font-semibold text-slate-900">Messages</h2>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2 space-y-1">
                     {/* Channels Section */}
-                    <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
                         <span>Channels</span>
                     </div>
 
@@ -318,8 +318,8 @@ export default function Messages() {
                             key={channel.id}
                             onClick={() => setSelectedChannel(channel)}
                             className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${selectedChannel?.id === channel.id
-                                ? 'bg-slate-800 text-mint-400'
-                                : 'text-slate-300 hover:bg-slate-800/50'
+                                ? 'bg-white text-mint-600 shadow-sm'
+                                : 'text-slate-600 hover:bg-slate-100'
                                 }`}
                         >
                             <Hash className="mr-2 h-4 w-4 opacity-50" />
@@ -333,8 +333,8 @@ export default function Messages() {
                             key={channel.id}
                             onClick={() => setSelectedChannel(channel)}
                             className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${selectedChannel?.id === channel.id
-                                ? 'bg-slate-800 text-mint-400'
-                                : 'text-slate-300 hover:bg-slate-800/50'
+                                ? 'bg-white text-mint-600 shadow-sm'
+                                : 'text-slate-600 hover:bg-slate-100'
                                 }`}
                         >
                             <Users className="mr-2 h-4 w-4 opacity-50" />
@@ -343,11 +343,11 @@ export default function Messages() {
                     ))}
 
                     {/* Direct Messages Section */}
-                    <div className="px-3 py-2 mt-4 text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+                    <div className="px-3 py-2 mt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
                         <span>Direct Messages</span>
                         <button
                             onClick={openNewDmModal}
-                            className="p-1 rounded hover:bg-slate-700 transition-colors text-slate-400 hover:text-chalk-50"
+                            className="p-1 rounded hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-900"
                             title="New message"
                         >
                             <Plus className="h-3.5 w-3.5" />
@@ -355,18 +355,18 @@ export default function Messages() {
                     </div>
 
                     {dmChannels.length === 0 ? (
-                        <p className="px-3 py-2 text-xs text-slate-500">No conversations yet</p>
+                        <p className="px-3 py-2 text-xs text-slate-400">No conversations yet</p>
                     ) : (
                         dmChannels.map((channel) => (
                             <button
                                 key={channel.id}
                                 onClick={() => setSelectedChannel(channel)}
                                 className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${selectedChannel?.id === channel.id
-                                    ? 'bg-slate-800 text-mint-400'
-                                    : 'text-slate-300 hover:bg-slate-800/50'
+                                    ? 'bg-white text-mint-600 shadow-sm'
+                                    : 'text-slate-600 hover:bg-slate-100'
                                     }`}
                             >
-                                <div className="h-6 w-6 rounded-full bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-300 mr-2">
+                                <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2">
                                     {channel.dm_other_user?.full_name?.[0] || '?'}
                                 </div>
                                 <span className="truncate">{channel.dm_other_user?.full_name || 'Unknown'}</span>
@@ -377,17 +377,17 @@ export default function Messages() {
             </div>
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="flex-1 flex flex-col min-w-0 bg-white">
                 {selectedChannel ? (
                     <>
                         {/* Header */}
-                        <div className="px-6 py-4 border-b border-slate-700/50 flex items-center">
+                        <div className="px-6 py-4 border-b border-slate-200 flex items-center">
                             {selectedChannel.dm_participant_ids ? (
                                 <>
-                                    <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-slate-300 mr-3">
+                                    <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium text-slate-600 mr-3">
                                         {selectedChannel.dm_other_user?.full_name?.[0] || '?'}
                                     </div>
-                                    <h3 className="text-lg font-medium text-chalk-50">
+                                    <h3 className="text-lg font-medium text-slate-900">
                                         {selectedChannel.dm_other_user?.full_name || 'Unknown'}
                                     </h3>
                                 </>
@@ -398,9 +398,9 @@ export default function Messages() {
                                     ) : (
                                         <Hash className="mr-2 h-5 w-5 text-slate-400" />
                                     )}
-                                    <h3 className="text-lg font-medium text-chalk-50">{selectedChannel.name}</h3>
+                                    <h3 className="text-lg font-medium text-slate-900">{selectedChannel.name}</h3>
                                     {selectedChannel.group_id && (
-                                        <span className="ml-2 text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded-full">
+                                        <span className="ml-2 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
                                             Group
                                         </span>
                                     )}
@@ -409,11 +409,11 @@ export default function Messages() {
                         </div>
 
                         {/* Messages List */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50">
                             {messages.length === 0 ? (
                                 <div className="text-center py-12">
-                                    <MessageSquare className="mx-auto h-12 w-12 text-slate-600" />
-                                    <p className="mt-2 text-sm text-slate-400">
+                                    <MessageSquare className="mx-auto h-12 w-12 text-slate-300" />
+                                    <p className="mt-2 text-sm text-slate-500">
                                         {selectedChannel.dm_participant_ids
                                             ? `Start a conversation with ${selectedChannel.dm_other_user?.full_name || 'this user'}`
                                             : 'No messages yet. Start the conversation!'}
@@ -429,7 +429,7 @@ export default function Messages() {
                                             <div className={`flex max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                                 <div className={`flex-shrink-0 ${isMe ? 'ml-3' : 'mr-3'}`}>
                                                     {showHeader && (
-                                                        <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-medium text-slate-300">
+                                                        <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600">
                                                             {message.profiles?.full_name?.[0] || message.profiles?.email?.[0] || '?'}
                                                         </div>
                                                     )}
@@ -438,10 +438,10 @@ export default function Messages() {
                                                 <div>
                                                     {showHeader && (
                                                         <div className={`flex items-baseline mb-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                                            <span className="text-sm font-medium text-chalk-50 mr-2">
+                                                            <span className="text-sm font-medium text-slate-900 mr-2">
                                                                 {message.profiles?.full_name || 'Unknown'}
                                                             </span>
-                                                            <span className="text-xs text-slate-500">
+                                                            <span className="text-xs text-slate-400">
                                                                 {format(new Date(message.created_at), 'h:mm a')}
                                                             </span>
                                                         </div>
@@ -449,7 +449,7 @@ export default function Messages() {
                                                     <div
                                                         className={`px-4 py-2 rounded-lg text-sm ${isMe
                                                             ? 'bg-mint-500 text-white rounded-tr-none'
-                                                            : 'bg-slate-700 text-slate-200 rounded-tl-none'
+                                                            : 'bg-white text-slate-700 border border-slate-200 rounded-tl-none'
                                                             }`}
                                                     >
                                                         {message.content}
@@ -464,7 +464,7 @@ export default function Messages() {
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-4 border-t border-slate-700/50 bg-slate-800">
+                        <div className="p-4 border-t border-slate-200 bg-white">
                             <form onSubmit={sendMessage} className="flex gap-2">
                                 <input
                                     type="text"
@@ -490,9 +490,9 @@ export default function Messages() {
                 ) : (
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center">
-                            <MessageSquare className="mx-auto h-12 w-12 text-slate-600" />
-                            <h3 className="mt-2 text-sm font-semibold text-chalk-50">No conversation selected</h3>
-                            <p className="mt-1 text-sm text-slate-400">Select a channel or start a new message.</p>
+                            <MessageSquare className="mx-auto h-12 w-12 text-slate-300" />
+                            <h3 className="mt-2 text-sm font-semibold text-slate-900">No conversation selected</h3>
+                            <p className="mt-1 text-sm text-slate-500">Select a channel or start a new message.</p>
                         </div>
                     </div>
                 )}
@@ -502,15 +502,15 @@ export default function Messages() {
             {showNewDmModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div
-                        className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm"
+                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
                         onClick={() => setShowNewDmModal(false)}
                     />
-                    <div className="relative w-full max-w-md bg-slate-800 rounded-xl shadow-2xl border border-slate-700/50">
-                        <div className="flex items-center justify-between border-b border-slate-700/50 px-6 py-4">
-                            <h3 className="text-lg font-semibold text-chalk-50">New Message</h3>
+                    <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200">
+                        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                            <h3 className="text-lg font-semibold text-slate-900">New Message</h3>
                             <button
                                 onClick={() => setShowNewDmModal(false)}
-                                className="rounded-full p-1 text-slate-400 hover:bg-slate-700 hover:text-chalk-50"
+                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -529,23 +529,23 @@ export default function Messages() {
                             </div>
                             <div className="mt-4 max-h-64 overflow-y-auto">
                                 {loadingMembers ? (
-                                    <p className="text-center py-4 text-sm text-slate-400">Loading...</p>
+                                    <p className="text-center py-4 text-sm text-slate-500">Loading...</p>
                                 ) : filteredMembers.length === 0 ? (
-                                    <p className="text-center py-4 text-sm text-slate-400">No members found</p>
+                                    <p className="text-center py-4 text-sm text-slate-500">No members found</p>
                                 ) : (
                                     <div className="space-y-1">
                                         {filteredMembers.map((member) => (
                                             <button
                                                 key={member.user_id}
                                                 onClick={() => startDmWithUser(member.user_id)}
-                                                className="w-full flex items-center px-3 py-2 rounded-md hover:bg-slate-700 transition-colors"
+                                                className="w-full flex items-center px-3 py-2 rounded-md hover:bg-slate-100 transition-colors"
                                             >
-                                                <div className="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-sm font-medium text-slate-300 mr-3">
+                                                <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium text-slate-600 mr-3">
                                                     {member.full_name[0]}
                                                 </div>
                                                 <div className="text-left">
-                                                    <p className="text-sm font-medium text-chalk-50">{member.full_name}</p>
-                                                    <p className="text-xs text-slate-400">{member.email}</p>
+                                                    <p className="text-sm font-medium text-slate-900">{member.full_name}</p>
+                                                    <p className="text-xs text-slate-500">{member.email}</p>
                                                 </div>
                                             </button>
                                         ))}

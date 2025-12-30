@@ -43,9 +43,9 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
-            {/* Backdrop - dark with blur */}
+            {/* Backdrop - light with blur */}
             <div
-                className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity animate-fade-in"
+                className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity animate-fade-in"
                 onClick={onClose}
                 aria-hidden="true"
             />
@@ -55,20 +55,20 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                 ref={modalRef}
                 tabIndex={-1}
                 className={clsx(
-                    "relative w-full transform rounded-xl bg-slate-800 shadow-xl transition-all animate-scale-in",
-                    "border border-slate-700/50",
+                    "relative w-full transform rounded-xl bg-white shadow-xl transition-all animate-scale-in",
+                    "border border-slate-200",
                     sizeClasses[size]
                 )}
             >
                 {/* Header */}
                 {title && (
-                    <div className="flex items-center justify-between border-b border-slate-700/50 px-6 py-4">
-                        <h3 className="text-lg font-semibold text-chalk-50">{title}</h3>
+                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
                         <button
                             onClick={onClose}
                             className={clsx(
                                 "rounded-lg p-2 text-slate-400 transition-all duration-150",
-                                "hover:bg-slate-700 hover:text-chalk-50",
+                                "hover:bg-slate-100 hover:text-slate-900",
                                 "focus:outline-none focus:ring-2 focus:ring-mint-500/50"
                             )}
                         >

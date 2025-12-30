@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { Tag, Clock, Link2 } from 'lucide-react';
 import type { MarketplaceItem } from '../../types';
@@ -9,7 +10,15 @@ interface MarketplaceItemCardProps {
     onClick: () => void;
 }
 
-export function MarketplaceItemCard({ item, currentHubId, onClick }: MarketplaceItemCardProps) {
+// Default placeholder image (defined outside component to avoid recreation)
+const defaultImage = 'data:image/svg+xml,' + encodeURIComponent(`
+    <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
+        <rect width="400" height="400" fill="#f1f5f9"/>
+        <text x="200" y="200" text-anchor="middle" dominant-baseline="middle" font-family="system-ui" font-size="48" fill="#94a3b8">No Image</text>
+    </svg>
+`);
+
+export const MarketplaceItemCard = memo(function MarketplaceItemCard({ item, currentHubId, onClick }: MarketplaceItemCardProps) {
     const category = MARKETPLACE_CATEGORIES[item.category];
     const condition = MARKETPLACE_CONDITIONS[item.condition];
     const isFromLinkedHub = currentHubId && item.hub_id !== currentHubId;
@@ -18,13 +27,6 @@ export function MarketplaceItemCard({ item, currentHubId, onClick }: Marketplace
         if (price === 0) return 'Free';
         return `$${price.toFixed(2)}`;
     };
-
-    const defaultImage = 'data:image/svg+xml,' + encodeURIComponent(`
-        <svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400">
-            <rect width="400" height="400" fill="#f1f5f9"/>
-            <text x="200" y="200" text-anchor="middle" dominant-baseline="middle" font-family="system-ui" font-size="48" fill="#94a3b8">No Image</text>
-        </svg>
-    `);
 
     return (
         <button
@@ -36,6 +38,7 @@ export function MarketplaceItemCard({ item, currentHubId, onClick }: Marketplace
                 <img
                     src={item.images[0] || defaultImage}
                     alt={item.title}
+                    loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 {/* Badges */}
@@ -87,4 +90,4 @@ export function MarketplaceItemCard({ item, currentHubId, onClick }: Marketplace
             </div>
         </button>
     );
-}
+});

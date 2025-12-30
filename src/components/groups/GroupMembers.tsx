@@ -400,6 +400,7 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
                                                     <img
                                                         src={member.profiles.avatar_url}
                                                         alt=""
+                                                        loading="lazy"
                                                         className="h-10 w-10 rounded-full"
                                                     />
                                                 ) : (
@@ -496,6 +497,7 @@ function MemberRow({ member, currentUserId, isAdmin, actionLoading, showMenu, se
                     <img
                         src={member.profiles.avatar_url}
                         alt=""
+                        loading="lazy"
                         className="h-11 w-11 rounded-full ring-2 ring-white"
                     />
                 ) : (

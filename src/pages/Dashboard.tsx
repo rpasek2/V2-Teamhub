@@ -295,10 +295,10 @@ export function Dashboard() {
         <div className="animate-fade-in">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-2xl font-semibold text-chalk-50">
+                <h1 className="text-2xl font-semibold text-slate-900">
                     {getGreeting()}{userName ? `, ${userName}` : ''}
                 </h1>
-                <p className="text-slate-400 mt-1">
+                <p className="text-slate-500 mt-1">
                     Welcome to {hub.name} • {format(new Date(), 'EEEE, MMMM d')}
                 </p>
             </div>
@@ -314,7 +314,7 @@ export function Dashboard() {
                             <span className="stat-label">{item.name}</span>
                             <item.icon className="h-5 w-5 text-slate-500" />
                         </div>
-                        <p className="stat-value text-mint-400">{item.value}</p>
+                        <p className="stat-value text-mint-600">{item.value}</p>
                         <p className="text-sm text-slate-500 mt-1 truncate">{item.subtitle}</p>
                     </div>
                 ))}
@@ -323,8 +323,8 @@ export function Dashboard() {
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 {/* Recent Activity */}
                 <div className="card">
-                    <div className="px-6 py-4 border-b border-slate-700/50">
-                        <h2 className="text-lg font-semibold text-chalk-50">Recent Activity</h2>
+                    <div className="px-6 py-4 border-b border-slate-200">
+                        <h2 className="text-lg font-semibold text-slate-900">Recent Activity</h2>
                     </div>
                     <div className="p-6">
                         {loadingStats ? (
@@ -344,22 +344,22 @@ export function Dashboard() {
                                         activity.type === 'competition' ? Trophy :
                                         activity.type === 'member' ? UserPlus : FileText;
 
-                                    const iconColor = activity.type === 'event' ? 'text-indigo-400' :
-                                        activity.type === 'post' ? 'text-mint-400' :
-                                        activity.type === 'competition' ? 'text-mint-400' :
-                                        activity.type === 'member' ? 'text-mint-400' :
-                                        'text-slate-400';
+                                    const iconColor = activity.type === 'event' ? 'text-indigo-600' :
+                                        activity.type === 'post' ? 'text-mint-600' :
+                                        activity.type === 'competition' ? 'text-mint-600' :
+                                        activity.type === 'member' ? 'text-mint-600' :
+                                        'text-slate-500';
 
                                     const activityContent = (
                                         <div className="flex items-center gap-3 py-3">
                                             <div className={clsx(
                                                 "flex h-9 w-9 items-center justify-center rounded-lg",
-                                                "bg-slate-700/50"
+                                                "bg-slate-100"
                                             )}>
                                                 <ActivityIcon className={clsx("h-4 w-4", iconColor)} />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-chalk-400 truncate">{activity.description}</p>
+                                                <p className="text-sm font-medium text-slate-700 truncate">{activity.description}</p>
                                                 {activity.content && (
                                                     <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{activity.content}</p>
                                                 )}
@@ -379,7 +379,7 @@ export function Dashboard() {
                                             {activity.link ? (
                                                 <Link
                                                     to={activity.link}
-                                                    className="block rounded-lg hover:bg-slate-700/30 transition-colors -mx-3 px-3"
+                                                    className="block rounded-lg hover:bg-slate-100 transition-colors -mx-3 px-3"
                                                 >
                                                     {activityContent}
                                                 </Link>
@@ -398,8 +398,8 @@ export function Dashboard() {
 
                 {/* Upcoming Schedule */}
                 <div className="card">
-                    <div className="px-6 py-4 border-b border-slate-700/50">
-                        <h2 className="text-lg font-semibold text-chalk-50">Upcoming Schedule</h2>
+                    <div className="px-6 py-4 border-b border-slate-200">
+                        <h2 className="text-lg font-semibold text-slate-900">Upcoming Schedule</h2>
                     </div>
                     <div className="p-6">
                         {loadingStats ? (
@@ -423,12 +423,12 @@ export function Dashboard() {
                                             to={`calendar?event=${event.id}`}
                                             className={clsx(
                                                 "group flex items-center justify-between rounded-lg px-4 py-3",
-                                                "bg-slate-700/30 border border-slate-700/50",
-                                                "hover:bg-slate-700/50 hover:border-slate-600 transition-all duration-150"
+                                                "bg-slate-50 border border-slate-200",
+                                                "hover:bg-slate-100 hover:border-slate-300 transition-all duration-150"
                                             )}
                                         >
                                             <div className="min-w-0 flex-1">
-                                                <p className="font-medium text-sm text-chalk-400 truncate">
+                                                <p className="font-medium text-sm text-slate-700 truncate">
                                                     {event.title}
                                                 </p>
                                                 <span className={clsx(
@@ -440,14 +440,14 @@ export function Dashboard() {
                                             </div>
                                             <div className="ml-4 text-right flex items-center gap-3">
                                                 <div>
-                                                    <p className="text-sm font-medium text-chalk-400">
+                                                    <p className="text-sm font-medium text-slate-700">
                                                         {format(parseISO(event.start_time), 'EEE, MMM d')}
                                                     </p>
                                                     <p className="text-xs text-slate-500">
                                                         {format(parseISO(event.start_time), 'h:mm a')}
                                                     </p>
                                                 </div>
-                                                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-mint-400 transition-colors" />
+                                                <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-mint-600 transition-colors" />
                                             </div>
                                         </Link>
                                     </li>
@@ -457,7 +457,7 @@ export function Dashboard() {
                     </div>
 
                     {upcomingEvents.length > 0 && (
-                        <div className="px-6 py-4 border-t border-slate-700/50">
+                        <div className="px-6 py-4 border-t border-slate-200">
                             <Link
                                 to="calendar"
                                 className="btn-primary w-full"

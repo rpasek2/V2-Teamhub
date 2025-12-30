@@ -1,44 +1,107 @@
-import { ClipboardCheck, Construction } from 'lucide-react';
+import { useState } from 'react';
+import { LayoutDashboard, Edit3, FileText } from 'lucide-react';
+import { useHub } from '../context/HubContext';
+import {
+    CoachDashboard,
+    CoachMode,
+    TemplatesManager,
+    ParentDashboard,
+    ParentAssignmentView
+} from '../components/assignments';
+import type { GymnastAssignment } from '../types';
+
+type CoachTab = 'dashboard' | 'coach-mode' | 'templates';
 
 export function Assignments() {
+    const { currentRole } = useHub();
+    const [coachTab, setCoachTab] = useState<CoachTab>('dashboard');
+    const [parentViewingAssignment, setParentViewingAssignment] = useState<GymnastAssignment | null>(null);
+
+    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+
+    // Parent View
+    if (!isStaff) {
+        if (parentViewingAssignment) {
+            return (
+                <div className="animate-fade-in">
+                    <ParentAssignmentView
+                        assignment={parentViewingAssignment}
+                        onBack={() => setParentViewingAssignment(null)}
+                    />
+                </div>
+            );
+        }
+
+        return (
+            <div className="animate-fade-in">
+                <ParentDashboard
+                    onAssignmentClick={(assignment) => setParentViewingAssignment(assignment)}
+                />
+            </div>
+        );
+    }
+
+    // Staff/Coach View
     return (
-        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-            <div className="relative mb-6">
-                <div className="p-4 bg-amber-100 rounded-full">
-                    <ClipboardCheck className="w-12 h-12 text-amber-600" />
-                </div>
-                <div className="absolute -bottom-1 -right-1 p-1.5 bg-slate-100 rounded-full border-2 border-white">
-                    <Construction className="w-4 h-4 text-slate-500" />
+        <div className="animate-fade-in">
+            <div className="sm:flex sm:items-center sm:justify-between mb-6">
+                <div>
+                    <h1 className="text-2xl font-semibold text-slate-900">Assignments</h1>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Create and manage gymnast training assignments
+                    </p>
                 </div>
             </div>
 
-            <h1 className="text-2xl font-bold text-slate-800 mb-2">Assignments</h1>
-            <p className="text-slate-500 max-w-md mb-6">
-                Coming soon! This feature will allow coaches to assign homework, drills, and conditioning
-                to gymnasts and track their completion.
-            </p>
-
-            <div className="bg-slate-50 rounded-lg border border-slate-200 p-4 max-w-sm">
-                <h3 className="text-sm font-medium text-slate-700 mb-2">Planned Features</h3>
-                <ul className="text-sm text-slate-500 text-left space-y-1">
-                    <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
-                        Assign drills and conditioning
-                    </li>
-                    <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
-                        Track completion status
-                    </li>
-                    <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
-                        Due dates and reminders
-                    </li>
-                    <li className="flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
-                        Video upload for form checks
-                    </li>
-                </ul>
+            {/* Tab Navigation */}
+            <div className="flex space-x-1 rounded-lg bg-slate-100 p-1 mb-6">
+                <button
+                    onClick={() => setCoachTab('dashboard')}
+                    className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all flex-1 justify-center ${
+                        coachTab === 'dashboard'
+                            ? 'bg-white text-slate-900 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+                    }`}
+                >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span className="hidden sm:inline">Dashboard</span>
+                </button>
+                <button
+                    onClick={() => setCoachTab('coach-mode')}
+                    className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all flex-1 justify-center ${
+                        coachTab === 'coach-mode'
+                            ? 'bg-mint-100 text-mint-700 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+                    }`}
+                >
+                    <Edit3 className="w-4 h-4" />
+                    <span className="hidden sm:inline">Coach Mode</span>
+                </button>
+                <button
+                    onClick={() => setCoachTab('templates')}
+                    className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all flex-1 justify-center ${
+                        coachTab === 'templates'
+                            ? 'bg-white text-slate-900 shadow-sm'
+                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200'
+                    }`}
+                >
+                    <FileText className="w-4 h-4" />
+                    <span className="hidden sm:inline">Templates</span>
+                </button>
             </div>
+
+            {/* Tab Content */}
+            {coachTab === 'dashboard' && (
+                <CoachDashboard />
+            )}
+
+            {coachTab === 'coach-mode' && (
+                <CoachMode />
+            )}
+
+            {coachTab === 'templates' && (
+                <TemplatesManager />
+            )}
         </div>
     );
 }

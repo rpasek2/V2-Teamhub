@@ -4,7 +4,7 @@
 @import "tailwindcss";
 
 /* ============================================
-   THE DIGITAL GYM DESIGN SYSTEM
+   THE DIGITAL GYM DESIGN SYSTEM - LIGHT MODE
    "Calm, focused, and professional"
    ============================================ */
 
@@ -70,6 +70,7 @@
   --color-success-700: #047857;
   --color-error-50: #fef2f2;
   --color-error-100: #fee2e2;
+  --color-error-300: #fca5a5;
   --color-error-400: #f87171;
   --color-error-500: #ef4444;
   --color-error-600: #dc2626;
@@ -97,9 +98,9 @@
   /* ========== SHADOWS - Soft, modern ========== */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.08), 0 10px 10px rgba(0, 0, 0, 0.03);
   --shadow-glow-mint: 0 0 20px rgba(16, 185, 129, 0.15);
   --shadow-glow-indigo: 0 0 20px rgba(99, 102, 241, 0.15);
 
@@ -119,12 +120,12 @@
   }
 
   body {
-    @apply bg-slate-900 text-chalk-400 antialiased;
+    @apply bg-slate-50 text-slate-700 antialiased;
   }
 
   /* Headings */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight text-chalk-50;
+    @apply font-semibold tracking-tight text-slate-900;
   }
 
   /* Tabular figures for numbers */
@@ -134,12 +135,12 @@
 
   /* Focus styles - mint accent */
   :focus-visible {
-    @apply outline-none ring-2 ring-mint-500/50 ring-offset-2 ring-offset-slate-900;
+    @apply outline-none ring-2 ring-mint-500/50 ring-offset-2 ring-offset-white;
   }
 
   /* Selection */
   ::selection {
-    @apply bg-mint-500/30 text-chalk-50;
+    @apply bg-mint-500/30 text-slate-900;
   }
 }
 
@@ -147,7 +148,7 @@
 @layer utilities {
   /* Subtle gradient backgrounds */
   .bg-gradient-slate {
-    background: linear-gradient(180deg, var(--color-slate-900) 0%, var(--color-slate-950) 100%);
+    background: linear-gradient(180deg, var(--color-slate-50) 0%, var(--color-white, #ffffff) 100%);
   }
 
   /* Glow effects */
@@ -161,7 +162,7 @@
 
   /* Glass effect for cards */
   .glass {
-    background: rgba(30, 41, 59, 0.8);
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(12px);
   }
 
@@ -227,29 +228,29 @@
   /* Primary Button - Electric Mint */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           bg-mint-500 text-slate-900 font-medium
+           bg-mint-500 text-white font-medium
            rounded-lg shadow-sm
-           hover:bg-mint-400
-           active:bg-mint-600
+           hover:bg-mint-600
+           active:bg-mint-700
            transition-all duration-150;
   }
 
   /* Secondary Button - Outlined */
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           bg-transparent border border-slate-600
-           text-chalk-400 font-medium
+           bg-transparent border border-slate-300
+           text-slate-700 font-medium
            rounded-lg
-           hover:bg-slate-800 hover:border-slate-500 hover:text-chalk-50
+           hover:bg-slate-100 hover:border-slate-400 hover:text-slate-900
            transition-all duration-150;
   }
 
   /* Ghost Button */
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2
-           text-chalk-500 font-medium
+           text-slate-600 font-medium
            rounded-lg
-           hover:bg-slate-800 hover:text-chalk-50
+           hover:bg-slate-100 hover:text-slate-900
            transition-all duration-150;
   }
 
@@ -265,36 +266,36 @@
   /* Icon Button */
   .btn-icon {
     @apply inline-flex items-center justify-center p-2
-           text-slate-400 rounded-lg
-           hover:bg-slate-800 hover:text-chalk-50
+           text-slate-500 rounded-lg
+           hover:bg-slate-100 hover:text-slate-900
            transition-all duration-150;
   }
 
-  /* Cards - Rounded Geometry, Matte Finish */
+  /* Cards - Rounded Geometry, Light backgrounds */
   .card {
-    @apply bg-slate-800 rounded-xl border border-slate-700/50 shadow-lg;
+    @apply bg-white rounded-xl border border-slate-200 shadow-sm;
   }
 
   .card-elevated {
-    @apply bg-slate-800 rounded-xl shadow-xl border border-slate-700/50;
+    @apply bg-white rounded-xl shadow-lg border border-slate-200;
   }
 
   .card-glass {
-    @apply rounded-xl border border-slate-700/50 shadow-lg;
-    background: rgba(30, 41, 59, 0.8);
+    @apply rounded-xl border border-slate-200/50 shadow-lg;
+    background: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(12px);
   }
 
   /* Inputs */
   .input {
-    @apply w-full px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-lg
-           text-chalk-50 placeholder:text-slate-500
+    @apply w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg
+           text-slate-900 placeholder:text-slate-400
            focus:border-mint-500 focus:ring-2 focus:ring-mint-500/20
            transition-all duration-150;
   }
 
   .input-label {
-    @apply block text-sm font-medium text-chalk-400 mb-1.5;
+    @apply block text-sm font-medium text-slate-700 mb-1.5;
   }
 
   /* Status Pills/Badges */
@@ -306,75 +307,75 @@
   .badge-mint {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-mint-500/15 text-mint-400 border border-mint-500/30;
+           bg-mint-100 text-mint-700 border border-mint-300;
   }
 
   .badge-indigo {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-indigo-500/15 text-indigo-400 border border-indigo-500/30;
+           bg-indigo-100 text-indigo-700 border border-indigo-300;
   }
 
   .badge-slate {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-slate-700 text-slate-300 border border-slate-600;
+           bg-slate-100 text-slate-700 border border-slate-300;
   }
 
   .badge-success {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-mint-500/15 text-mint-400 border border-mint-500/30;
+           bg-mint-100 text-mint-700 border border-mint-300;
   }
 
   .badge-error {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-error-500/15 text-error-400 border border-error-500/30;
+           bg-error-100 text-error-700 border border-error-300;
   }
 
   /* Skill Status Pills */
   .skill-incomplete {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-transparent text-slate-500 border border-slate-600;
+           bg-transparent text-slate-400 border border-slate-300;
   }
 
   .skill-learning {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-indigo-500/15 text-indigo-400 border border-indigo-500/30;
+           bg-indigo-100 text-indigo-700 border border-indigo-300;
   }
 
   .skill-mastered {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-mint-500/15 text-mint-400 border border-mint-500/30;
+           bg-mint-100 text-mint-700 border border-mint-300;
   }
 
   /* Navigation items */
   .nav-item {
     @apply flex items-center gap-3 px-3 py-2.5 rounded-lg
-           text-slate-400 font-medium text-sm
-           hover:bg-slate-800 hover:text-chalk-50
+           text-slate-600 font-medium text-sm
+           hover:bg-slate-100 hover:text-slate-900
            transition-all duration-150;
   }
 
   .nav-item-active {
-    @apply bg-slate-800 text-chalk-50;
+    @apply bg-slate-100 text-slate-900;
   }
 
   /* Stat blocks - for scores */
   .stat-block {
-    @apply bg-slate-800 rounded-xl p-5 border border-slate-700/50;
+    @apply bg-white rounded-xl p-5 border border-slate-200 shadow-sm;
   }
 
   .stat-value {
-    @apply text-4xl font-bold tracking-tight tabular-nums text-chalk-50;
+    @apply text-4xl font-bold tracking-tight tabular-nums text-slate-900;
   }
 
   .stat-label {
-    @apply text-sm text-slate-400;
+    @apply text-sm text-slate-500;
   }
 
   /* Tables */
@@ -384,25 +385,25 @@
 
   .table-compact th {
     @apply px-4 py-3 text-left font-medium text-xs uppercase tracking-wider
-           text-slate-400 bg-slate-800/50 border-b border-slate-700;
+           text-slate-500 bg-slate-50 border-b border-slate-200;
   }
 
   .table-compact td {
-    @apply px-4 py-3 border-b border-slate-700/50;
+    @apply px-4 py-3 border-b border-slate-200;
   }
 
   .table-compact tr:hover td {
-    @apply bg-slate-800/30;
+    @apply bg-slate-50;
   }
 
   /* Score display - tabular nums aligned */
   .score-display {
-    @apply font-mono tabular-nums text-chalk-50;
+    @apply font-mono tabular-nums text-slate-900;
   }
 
   /* Progress bars */
   .progress-bar {
-    @apply h-2 bg-slate-700 rounded-full overflow-hidden;
+    @apply h-2 bg-slate-200 rounded-full overflow-hidden;
   }
 
   .progress-bar-fill {
@@ -426,18 +427,18 @@
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-slate-700);
+  background: var(--color-slate-300);
   border-radius: 4px;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-slate-600);
+  background: var(--color-slate-400);
 }
 
 /* Firefox */
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-slate-700) transparent;
+  scrollbar-color: var(--color-slate-300) transparent;
 }
 
 /* Hidden scrollbar */
@@ -458,14 +459,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-slate-900);
+  background: var(--color-slate-50);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-slate-700);
+  background: var(--color-slate-300);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-slate-600);
+  background: var(--color-slate-400);
 }

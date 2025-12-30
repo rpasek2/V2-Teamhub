@@ -7,7 +7,7 @@ import { PageLoader } from '../ui/PageLoader';
 export function HubLayout() {
     return (
         <HubProvider>
-            <div className="flex h-screen overflow-hidden bg-slate-900">
+            <div className="flex h-screen overflow-hidden bg-slate-50">
                 <Sidebar />
                 <main className="flex-1 overflow-y-auto p-8">
                     <Suspense fallback={<PageLoader />}>

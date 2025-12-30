@@ -4,6 +4,7 @@ import { X, Loader2, ImagePlus, Trash2, DollarSign, AlertCircle } from 'lucide-r
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useHub } from '../../context/HubContext';
+import { validateFile, generateSecureFileName, FILE_LIMITS } from '../../utils/fileValidation';
 import type { MarketplaceCategory, MarketplaceCondition } from '../../types';
 import { MARKETPLACE_CATEGORIES, MARKETPLACE_CONDITIONS } from '../../types';
 
@@ -62,13 +63,24 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
             return;
         }
 
+        // Validate all files first
+        const validFiles: File[] = [];
+        for (const file of Array.from(files)) {
+            const validation = validateFile(file, 'marketplaceImage');
+            if (validation.valid) {
+                validFiles.push(file);
+            } else {
+                setError(validation.error || 'Invalid image file');
+                return;
+            }
+        }
+
         setUploadingImages(true);
         setError(null);
 
         try {
-            const uploadPromises = Array.from(files).map(async (file) => {
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${user.id}/${crypto.randomUUID()}.${fileExt}`;
+            const uploadPromises = validFiles.map(async (file) => {
+                const fileName = `${user.id}/${generateSecureFileName(file.name)}`;
 
                 const { error: uploadError } = await supabase.storage
                     .from('marketplace-images')
@@ -228,7 +240,7 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                 )}
                             </div>
                             <p className="mt-2 text-xs text-slate-500">
-                                Add up to 5 photos. First photo will be the main image.
+                                Add up to 5 photos (max {FILE_LIMITS.marketplaceImage.maxSizeLabel} each). First photo will be the main image.
                             </p>
                             <input
                                 ref={fileInputRef}

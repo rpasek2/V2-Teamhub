@@ -1,9 +1,13 @@
 import { useState } from 'react';
-import { X, Calendar, Mail, Phone, User, AlertCircle, Shield, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, Calendar, Mail, Phone, User, AlertCircle, Shield, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList } from 'lucide-react';
 import { Modal } from '../ui/Modal';
 import { ReportInjuryModal } from './ReportInjuryModal';
+import { GoalsSection } from './GoalsSection';
+import { AssessmentSection } from './AssessmentSection';
 import { format, parseISO } from 'date-fns';
 import type { GymnastProfile } from '../../types';
+
+type ModalTab = 'profile' | 'goals' | 'assessment';
 
 interface GymnastProfileModalProps {
     gymnast: GymnastProfile | null;
@@ -11,12 +15,14 @@ interface GymnastProfileModalProps {
     onClose: () => void;
     canViewMedical?: boolean; // Whether user can view medical info (admin/coach or own child)
     canReportInjury?: boolean; // Whether user can report injuries (staff only)
+    canEditAssessment?: boolean; // Whether user can edit assessment (staff only)
     onInjuryReported?: () => void; // Callback after injury is reported
 }
 
-export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical = true, canReportInjury = false, onInjuryReported }: GymnastProfileModalProps) {
+export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical = true, canReportInjury = false, canEditAssessment = false, onInjuryReported }: GymnastProfileModalProps) {
     const [isReportInjuryOpen, setIsReportInjuryOpen] = useState(false);
     const [showInjuryHistory, setShowInjuryHistory] = useState(false);
+    const [activeTab, setActiveTab] = useState<ModalTab>('profile');
 
     if (!gymnast) return null;
 
@@ -83,8 +89,64 @@ export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical =
                     </div>
                 </div>
 
+                {/* Tab Navigation */}
+                <div className="flex border-b border-slate-200 -mx-6 px-6 mt-4">
+                    <button
+                        onClick={() => setActiveTab('profile')}
+                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                            activeTab === 'profile'
+                                ? 'border-brand-500 text-brand-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        <User className="h-4 w-4" />
+                        Profile
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('goals')}
+                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                            activeTab === 'goals'
+                                ? 'border-brand-500 text-brand-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        <Target className="h-4 w-4" />
+                        Goals
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('assessment')}
+                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                            activeTab === 'assessment'
+                                ? 'border-brand-500 text-brand-600'
+                                : 'border-transparent text-slate-500 hover:text-slate-700'
+                        }`}
+                    >
+                        <ClipboardList className="h-4 w-4" />
+                        Assessment
+                    </button>
+                </div>
+
                 {/* Content */}
                 <div className="pt-6 pb-2 space-y-4 max-h-[60vh] overflow-y-auto px-1 -mx-1">
+                    {/* Goals Tab */}
+                    {activeTab === 'goals' && (
+                        <GoalsSection
+                            gymnastProfileId={gymnast.id}
+                            readOnly={!canEditAssessment}
+                        />
+                    )}
+
+                    {/* Assessment Tab */}
+                    {activeTab === 'assessment' && (
+                        <AssessmentSection
+                            gymnastProfileId={gymnast.id}
+                            readOnly={!canEditAssessment}
+                        />
+                    )}
+
+                    {/* Profile Tab */}
+                    {activeTab === 'profile' && (
+                    <>
                     {/* Basic Information Card */}
                     <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-sm">
                         <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
@@ -462,6 +524,8 @@ export function GymnastProfileModal({ gymnast, isOpen, onClose, canViewMedical =
                             )}
                         </div>
                     </div>
+                    </>
+                    )}
                 </div>
 
                 {/* Footer */}

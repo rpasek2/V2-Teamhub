@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, ExternalLink, FileText, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { validateFile, generateSecureFileName, FILE_LIMITS } from '../../utils/fileValidation';
 
 interface CompetitionDocument {
     id: string;
@@ -51,10 +52,21 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setSelectedFile(e.target.files[0]);
+            const file = e.target.files[0];
+
+            // Validate file
+            const validation = validateFile(file, 'competitionDoc');
+            if (!validation.valid) {
+                setError(validation.error || 'Invalid file');
+                e.target.value = '';
+                return;
+            }
+
+            setSelectedFile(file);
+            setError(null);
             // Auto-fill name if empty
             if (!newDocName) {
-                setNewDocName(e.target.files[0].name);
+                setNewDocName(file.name);
             }
         }
     };
@@ -73,8 +85,7 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
 
             if (docType === 'file' && selectedFile) {
                 setUploading(true);
-                const fileExt = selectedFile.name.split('.').pop();
-                const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+                const fileName = generateSecureFileName(selectedFile.name);
                 const filePath = `${competitionId}/${fileName}`;
 
                 const { error: uploadError } = await supabase.storage
@@ -242,14 +253,20 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
                             </div>
                         ) : (
                             <div>
-                                <label htmlFor="doc-file" className="block text-xs font-medium text-slate-700">File</label>
+                                <label htmlFor="doc-file" className="block text-xs font-medium text-slate-700">
+                                    File <span className="text-slate-400">(max {FILE_LIMITS.competitionDoc.maxSizeLabel})</span>
+                                </label>
                                 <input
                                     type="file"
                                     id="doc-file"
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                                     onChange={handleFileChange}
                                     className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
                                     required
                                 />
+                                <p className="mt-1 text-xs text-slate-500">
+                                    Accepted: PDF, Word, Excel, JPG, PNG
+                                </p>
                             </div>
                         )}
 

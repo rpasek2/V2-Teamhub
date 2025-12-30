@@ -63,6 +63,7 @@ export function ImageGallery({ urls }: ImageGalleryProps) {
                         <img
                             src={url}
                             alt=""
+                            loading="lazy"
                             className="w-full h-full object-cover transition-transform group-hover:scale-105"
                         />
                         {/* Show count overlay on last visible image if there are more */}
@@ -132,7 +133,7 @@ export function ImageGallery({ urls }: ImageGalleryProps) {
                                             : 'border-transparent opacity-60 hover:opacity-100'
                                     }`}
                                 >
-                                    <img src={url} alt="" className="w-full h-full object-cover" />
+                                    <img src={url} alt="" loading="lazy" className="w-full h-full object-cover" />
                                 </button>
                             ))}
                         </div>

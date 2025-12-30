@@ -3,6 +3,7 @@ import { X, Loader2, Image as ImageIcon, Paperclip, BarChart3, ClipboardList, Ca
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { PollCreator, SignupCreator, RsvpCreator } from './attachments';
+import { validateFile, generateSecureFileName, FILE_LIMITS } from '../../utils/fileValidation';
 import type { PostAttachment, FileAttachment, PollSettings, SignupSlot } from '../../types';
 
 interface CreatePostModalProps {
@@ -45,14 +46,35 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        const imageFiles = files.filter(f => f.type.startsWith('image/'));
-        setSelectedImages(prev => [...prev, ...imageFiles].slice(0, 10)); // Max 10 images
+        const validImages: File[] = [];
+
+        for (const file of files) {
+            const validation = validateFile(file, 'postImage');
+            if (validation.valid) {
+                validImages.push(file);
+            } else {
+                setError(validation.error || 'Invalid image file');
+            }
+        }
+
+        setSelectedImages(prev => [...prev, ...validImages].slice(0, 10)); // Max 10 images
         e.target.value = '';
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
-        setSelectedFiles(prev => [...prev, ...files].slice(0, 5)); // Max 5 files
+        const validFiles: File[] = [];
+
+        for (const file of files) {
+            const validation = validateFile(file, 'postFile');
+            if (validation.valid) {
+                validFiles.push(file);
+            } else {
+                setError(validation.error || 'Invalid file');
+            }
+        }
+
+        setSelectedFiles(prev => [...prev, ...validFiles].slice(0, 5)); // Max 5 files
         e.target.value = '';
     };
 
@@ -103,8 +125,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
             if (selectedImages.length > 0) {
                 const imageUrls: string[] = [];
                 for (const image of selectedImages) {
-                    const fileExt = image.name.split('.').pop();
-                    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+                    const fileName = generateSecureFileName(image.name);
                     const filePath = `posts/${groupId}/${fileName}`;
 
                     const { error: uploadError } = await supabase.storage
@@ -129,8 +150,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
             if (selectedFiles.length > 0) {
                 const fileAttachments: FileAttachment[] = [];
                 for (const file of selectedFiles) {
-                    const fileExt = file.name.split('.').pop();
-                    const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+                    const fileName = generateSecureFileName(file.name);
                     const filePath = `posts/${groupId}/files/${fileName}`;
 
                     const { error: uploadError } = await supabase.storage
@@ -412,7 +432,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                 onClick={() => imageInputRef.current?.click()}
                                 disabled={selectedImages.length >= 10 || loading}
                                 className="p-2.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-brand-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Add images"
+                                title={`Add images (max ${FILE_LIMITS.postImage.maxSizeLabel} each)`}
                             >
                                 <ImageIcon className="h-5 w-5" />
                             </button>
@@ -429,7 +449,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={selectedFiles.length >= 5 || loading}
                                 className="p-2.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-brand-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                                title="Add files"
+                                title={`Add files (max ${FILE_LIMITS.postFile.maxSizeLabel} each)`}
                             >
                                 <Paperclip className="h-5 w-5" />
                             </button>

@@ -51,6 +51,7 @@ export function StaffCard({ member, getRoleBadgeColor, onClick }: StaffCardProps
                     <img
                         src={member.profile.avatar_url}
                         alt={member.profile.full_name}
+                        loading="lazy"
                         className="w-14 h-14 rounded-full object-cover"
                     />
                 ) : (

@@ -51,6 +51,8 @@ export interface HubSettings {
     permissions?: HubPermissions;
     levels?: string[];
     enabledTabs?: HubFeatureTab[];
+    allowParentToggle?: boolean;
+    allowGymnastToggle?: boolean;
 }
 
 export interface Hub {
@@ -565,3 +567,174 @@ export const SKILL_STATUS_CONFIG: Record<SkillStatus, { label: string; icon: str
     achieved: { label: 'Achieved', icon: '✓', color: 'text-green-500', bgColor: 'bg-green-50' },
     mastered: { label: 'Mastered', icon: '★', color: 'text-yellow-500', bgColor: 'bg-yellow-50' }
 };
+
+// ============================================
+// Assignment Types
+// ============================================
+
+// Assignment event types (training events, not competition events)
+export type AssignmentEventType =
+    | 'vault' | 'bars' | 'beam' | 'floor'
+    | 'strength' | 'flexibility' | 'conditioning';
+
+export const ASSIGNMENT_EVENTS: AssignmentEventType[] = [
+    'vault', 'bars', 'beam', 'floor', 'strength', 'flexibility', 'conditioning'
+];
+
+export const ASSIGNMENT_EVENT_LABELS: Record<AssignmentEventType, string> = {
+    vault: 'Vault',
+    bars: 'Bars',
+    beam: 'Beam',
+    floor: 'Floor',
+    strength: 'Strength',
+    flexibility: 'Flexibility',
+    conditioning: 'Conditioning'
+};
+
+export const ASSIGNMENT_EVENT_COLORS: Record<AssignmentEventType, { bg: string; border: string; text: string }> = {
+    vault: { bg: 'bg-emerald-900/30', border: 'border-emerald-700/50', text: 'text-emerald-400' },
+    bars: { bg: 'bg-sky-900/30', border: 'border-sky-700/50', text: 'text-sky-400' },
+    beam: { bg: 'bg-pink-900/30', border: 'border-pink-700/50', text: 'text-pink-400' },
+    floor: { bg: 'bg-amber-900/30', border: 'border-amber-700/50', text: 'text-amber-400' },
+    strength: { bg: 'bg-red-900/30', border: 'border-red-700/50', text: 'text-red-400' },
+    flexibility: { bg: 'bg-violet-900/30', border: 'border-violet-700/50', text: 'text-violet-400' },
+    conditioning: { bg: 'bg-cyan-900/30', border: 'border-cyan-700/50', text: 'text-cyan-400' }
+};
+
+// Completed items tracking: { "vault": [0, 2, 4], "bars": [1, 3] }
+export interface CompletedItems {
+    [eventKey: string]: number[];
+}
+
+export interface GymnastAssignment {
+    id: string;
+    hub_id: string;
+    gymnast_profile_id: string;
+    date: string;
+    vault: string;
+    bars: string;
+    beam: string;
+    floor: string;
+    strength: string;
+    flexibility: string;
+    conditioning: string;
+    completed_items: CompletedItems;
+    notes: string;
+    created_by: string | null;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    gymnast_profiles?: GymnastProfile;
+}
+
+// Station assignments for level-wide training
+export interface SideStation {
+    id: string;
+    content: string;
+}
+
+export interface MainStation {
+    id: string;
+    content: string;
+    side_stations: SideStation[];
+}
+
+export interface StationAssignment {
+    id: string;
+    hub_id: string;
+    date: string;
+    level: string;
+    event: AssignmentEventType;
+    stations: MainStation[];
+    created_by: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+// Template types
+export type AssignmentTemplateType = 'checklist' | 'stations';
+
+// Reusable exercise templates
+export interface AssignmentTemplate {
+    id: string;
+    hub_id: string;
+    name: string;
+    event: AssignmentEventType;
+    template_type: AssignmentTemplateType;
+    exercises: string; // For checklist templates
+    stations: MainStation[] | null; // For station templates
+    created_by: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+// ============================================
+// Goals & Assessment Types
+// ============================================
+
+export interface GymnastGoal {
+    id: string;
+    gymnast_profile_id: string;
+    title: string;
+    description: string | null;
+    event: string | null; // NULL for overall goals
+    target_date: string | null;
+    completed_at: string | null;
+    created_by: string | null;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    subgoals?: GymnastSubgoal[];
+}
+
+export interface GymnastSubgoal {
+    id: string;
+    goal_id: string;
+    title: string;
+    target_date: string | null;
+    completed_at: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface GymnastAssessment {
+    id: string;
+    gymnast_profile_id: string;
+    strengths: string;
+    weaknesses: string;
+    overall_plan: string;
+    injuries: string;
+    created_at: string;
+    updated_at: string;
+}
+
+// ============================================
+// Resource Types
+// ============================================
+
+export type ResourceType = 'link' | 'file';
+
+export interface HubResource {
+    id: string;
+    hub_id: string;
+    name: string;
+    description: string | null;
+    url: string;
+    type: ResourceType;
+    category: string | null;
+    file_type: string | null;
+    file_size: number | null;
+    created_by: string | null;
+    created_at: string;
+    updated_at: string | null;
+    // Joined data
+    profiles?: { full_name: string; avatar_url: string | null };
+}
+
+export interface HubResourceCategory {
+    id: string;
+    hub_id: string;
+    name: string;
+    display_order: number;
+    created_at: string;
+}

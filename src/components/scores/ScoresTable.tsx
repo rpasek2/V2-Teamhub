@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, memo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import type {
@@ -39,8 +39,8 @@ interface TeamScoreData {
     allAroundTotal: number | null;
 }
 
-// Inline editable team placement cell component
-function InlineTeamPlacementCell({
+// Inline editable team placement cell component (memoized for performance)
+const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
     competitionId,
     level,
     gender,
@@ -196,10 +196,10 @@ function InlineTeamPlacementCell({
             {formatPlacement(currentPlacement)}
         </button>
     );
-}
+});
 
-// Inline editable cell component
-function InlineScoreCell({
+// Inline editable cell component (memoized for performance)
+const InlineScoreCell = memo(function InlineScoreCell({
     gymnastId,
     event,
     currentScore,
@@ -413,7 +413,7 @@ function InlineScoreCell({
             </div>
         </div>
     );
-}
+});
 
 export function ScoresTable({
     competition,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, Trash2, User, Pin, MoreHorizontal, Heart, ThumbsUp, PartyPopper, PinOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -26,7 +26,7 @@ interface PostCardProps {
     isAdmin: boolean;
 }
 
-export function PostCard({ post, onDelete, onPinToggle, currentUserId, isAdmin }: PostCardProps) {
+export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, currentUserId, isAdmin }: PostCardProps) {
     const [showComments, setShowComments] = useState(false);
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState('');
@@ -223,6 +223,7 @@ export function PostCard({ post, onDelete, onPinToggle, currentUserId, isAdmin }
                                 className="h-11 w-11 rounded-full ring-2 ring-white"
                                 src={post.profiles.avatar_url}
                                 alt=""
+                                loading="lazy"
                             />
                         ) : (
                             <div className="h-11 w-11 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center ring-2 ring-white">
@@ -450,6 +451,7 @@ export function PostCard({ post, onDelete, onPinToggle, currentUserId, isAdmin }
                                                 className="h-8 w-8 rounded-full"
                                                 src={comment.profiles.avatar_url}
                                                 alt=""
+                                                loading="lazy"
                                             />
                                         ) : (
                                             <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
@@ -504,4 +506,4 @@ export function PostCard({ post, onDelete, onPinToggle, currentUserId, isAdmin }
             )}
         </div>
     );
-}
+});
