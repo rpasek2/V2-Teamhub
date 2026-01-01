@@ -33,18 +33,18 @@ export interface HubPermissions {
 export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'skills' | 'marketplace' | 'groups' | 'mentorship' | 'staff' | 'assignments' | 'resources';
 
 export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: string }[] = [
-    { id: 'roster', label: 'Roster', description: 'Manage gymnast profiles and team roster' },
-    { id: 'calendar', label: 'Calendar', description: 'Schedule practices, meets, and events' },
-    { id: 'messages', label: 'Messages', description: 'Team messaging and direct messages' },
-    { id: 'competitions', label: 'Competitions', description: 'Track competitions and sessions' },
-    { id: 'scores', label: 'Scores', description: 'Record and view competition scores' },
-    { id: 'skills', label: 'Skills', description: 'Track gymnast skill progression by event' },
-    { id: 'marketplace', label: 'Marketplace', description: 'Buy and sell team gear' },
-    { id: 'groups', label: 'Groups', description: 'Create groups for team communication' },
-    { id: 'mentorship', label: 'Mentorship', description: 'Manage mentorship pairings and programs' },
-    { id: 'staff', label: 'Staff', description: 'Manage staff profiles, schedules, and tasks' },
-    { id: 'assignments', label: 'Assignments', description: 'Assign and track homework and drills' },
-    { id: 'resources', label: 'Resources', description: 'Share documents, videos, and helpful links' },
+    { id: 'roster', label: 'Roster', description: 'View and manage gymnast profiles including contact info, emergency contacts, medical details, sizing, and parent/guardian information' },
+    { id: 'calendar', label: 'Calendar', description: 'Create and manage practices, competitions, team events, and fundraisers with RSVP tracking and schedule visibility for the whole team' },
+    { id: 'messages', label: 'Messages', description: 'Send direct messages between members and create group channels for team-wide or private communication' },
+    { id: 'competitions', label: 'Competitions', description: 'Organize meets with session management, competition rosters, warm-up times, coach assignments, and event schedules' },
+    { id: 'scores', label: 'Scores', description: 'Enter and track competition scores by event, view score history, and analyze performance trends over time' },
+    { id: 'skills', label: 'Skills', description: 'Track skill progression across events with customizable skill lists, proficiency levels, and individual athlete skill matrices' },
+    { id: 'marketplace', label: 'Marketplace', description: 'A member-to-member marketplace where parents and families can buy, sell, and trade used leotards, grips, and gear with each other' },
+    { id: 'groups', label: 'Groups', description: 'Organize members into specific collections like individual levels or training groups, each with its own wall-style feed for announcements, discussions, polls, and sign-ups' },
+    { id: 'mentorship', label: 'Mentorship', description: 'Pair experienced athletes with newer team members through a Big/Little program with scheduled events and relationship tracking' },
+    { id: 'staff', label: 'Staff', description: 'Manage coach and staff profiles, work schedules, responsibilities, task assignments, time-off requests, and internal notes' },
+    { id: 'assignments', label: 'Assignments', description: 'Manage daily practice assignments and workouts for gymnasts, track completions, and organize conditioning drills and training tasks by athlete' },
+    { id: 'resources', label: 'Resources', description: 'Share documents, educational links, and team resources organized by category for easy access' },
 ];
 
 export interface HubSettings {
@@ -53,6 +53,7 @@ export interface HubSettings {
     enabledTabs?: HubFeatureTab[];
     allowParentToggle?: boolean;
     allowGymnastToggle?: boolean;
+    showBirthdays?: boolean;
 }
 
 export interface Hub {
@@ -263,6 +264,12 @@ export interface Guardian {
     relationship?: string;
 }
 
+export interface EmergencyContact {
+    name: string;
+    phone: string;
+    relationship?: string;
+}
+
 export interface InjuryReport {
     id: string;
     date: string;
@@ -303,6 +310,8 @@ export interface GymnastProfile {
     gender: 'Male' | 'Female' | null;
     guardian_1: Guardian | null;
     guardian_2: Guardian | null;
+    emergency_contact_1: EmergencyContact | null;
+    emergency_contact_2: EmergencyContact | null;
     medical_info: MedicalInfo | null;
     created_at: string;
     updated_at: string;

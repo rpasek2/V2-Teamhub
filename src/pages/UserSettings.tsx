@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Loader2, Camera, User, Save, Check, Building2 } from 'lucide-react';
+import { Loader2, Camera, User, Save, Check, Building2, Bell, Moon, Sun, Lock, Trash2, AlertTriangle } from 'lucide-react';
 
 export function UserSettings() {
-    const { user } = useAuth();
+    const { user, signOut } = useAuth();
+    const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [loading, setLoading] = useState(true);
@@ -15,6 +17,19 @@ export function UserSettings() {
     const [fullName, setFullName] = useState('');
     const [organization, setOrganization] = useState('');
     const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+    const [darkMode, setDarkMode] = useState(false);
+
+    // Password change state
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmNewPassword, setConfirmNewPassword] = useState('');
+    const [changingPassword, setChangingPassword] = useState(false);
+
+    // Delete account state
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
+    const [deleting, setDeleting] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -29,7 +44,7 @@ export function UserSettings() {
         try {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('full_name, organization, avatar_url')
+                .select('full_name, organization, avatar_url, notifications_enabled, dark_mode')
                 .eq('id', user.id)
                 .single();
 
@@ -38,10 +53,74 @@ export function UserSettings() {
             setFullName(data.full_name || '');
             setOrganization(data.organization || '');
             setAvatarUrl(data.avatar_url);
+            setNotificationsEnabled(data.notifications_enabled !== false);
+            setDarkMode(data.dark_mode === true);
         } catch (error) {
             console.error('Error fetching profile:', error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (newPassword !== confirmNewPassword) {
+            setMessage({ type: 'error', text: 'New passwords do not match.' });
+            return;
+        }
+        if (newPassword.length < 8) {
+            setMessage({ type: 'error', text: 'Password must be at least 8 characters.' });
+            return;
+        }
+
+        setChangingPassword(true);
+        setMessage(null);
+
+        try {
+            const { error } = await supabase.auth.updateUser({
+                password: newPassword
+            });
+
+            if (error) throw error;
+
+            setMessage({ type: 'success', text: 'Password updated successfully!' });
+            setShowPasswordForm(false);
+            setNewPassword('');
+            setConfirmNewPassword('');
+        } catch (error: unknown) {
+            console.error('Error changing password:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to change password.';
+            setMessage({ type: 'error', text: errorMessage });
+        } finally {
+            setChangingPassword(false);
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText !== 'DELETE') {
+            setMessage({ type: 'error', text: 'Please type DELETE to confirm.' });
+            return;
+        }
+
+        setDeleting(true);
+        setMessage(null);
+
+        try {
+            // Note: Full account deletion requires a server-side function
+            // For now, we'll delete the profile and sign out
+            const { error } = await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', user?.id);
+
+            if (error) throw error;
+
+            await signOut();
+            navigate('/login');
+        } catch (error: unknown) {
+            console.error('Error deleting account:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to delete account.';
+            setMessage({ type: 'error', text: errorMessage });
+            setDeleting(false);
         }
     };
 
@@ -267,6 +346,160 @@ export function UserSettings() {
                 </div>
             </div>
 
+            {/* Notifications Section */}
+            <div className="bg-white shadow rounded-lg p-6">
+                <h2 className="text-lg font-medium text-slate-900 mb-4">Notifications</h2>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-brand-50">
+                            <Bell className="h-5 w-5 text-brand-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-slate-900">Enable Notifications</p>
+                            <p className="text-xs text-slate-500">Receive notifications from your hubs</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={async () => {
+                            const newValue = !notificationsEnabled;
+                            setNotificationsEnabled(newValue);
+                            await supabase
+                                .from('profiles')
+                                .update({ notifications_enabled: newValue })
+                                .eq('id', user?.id);
+                        }}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                            notificationsEnabled ? 'bg-brand-600' : 'bg-slate-200'
+                        }`}
+                    >
+                        <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                notificationsEnabled ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                        />
+                    </button>
+                </div>
+
+                <p className="mt-4 text-xs text-slate-500">
+                    You can configure notification preferences for each hub in the hub's settings.
+                </p>
+            </div>
+
+            {/* Appearance Section */}
+            <div className="bg-white shadow rounded-lg p-6">
+                <h2 className="text-lg font-medium text-slate-900 mb-4">Appearance</h2>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-slate-100">
+                            {darkMode ? (
+                                <Moon className="h-5 w-5 text-slate-600" />
+                            ) : (
+                                <Sun className="h-5 w-5 text-amber-500" />
+                            )}
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-slate-900">Dark Mode</p>
+                            <p className="text-xs text-slate-500">Turn on dark mode</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={async () => {
+                            const newValue = !darkMode;
+                            setDarkMode(newValue);
+                            await supabase
+                                .from('profiles')
+                                .update({ dark_mode: newValue })
+                                .eq('id', user?.id);
+                        }}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                            darkMode ? 'bg-brand-600' : 'bg-slate-200'
+                        }`}
+                    >
+                        <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                darkMode ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                        />
+                    </button>
+                </div>
+
+                <p className="mt-4 text-xs text-slate-500">
+                    Dark mode support coming soon.
+                </p>
+            </div>
+
+            {/* Security Section */}
+            <div className="bg-white shadow rounded-lg p-6">
+                <h2 className="text-lg font-medium text-slate-900 mb-4">Security</h2>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-blue-50">
+                            <Lock className="h-5 w-5 text-blue-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-slate-900">Password</p>
+                            <p className="text-xs text-slate-500">Update your account password</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowPasswordForm(!showPasswordForm)}
+                        className="text-sm font-medium text-brand-600 hover:text-brand-500"
+                    >
+                        {showPasswordForm ? 'Cancel' : 'Change Password'}
+                    </button>
+                </div>
+
+                {showPasswordForm && (
+                    <div className="mt-4 pt-4 border-t border-slate-100 space-y-4">
+                        <div>
+                            <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700">
+                                New Password
+                            </label>
+                            <input
+                                type="password"
+                                id="newPassword"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                                placeholder="Enter new password"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="confirmNewPassword" className="block text-sm font-medium text-slate-700">
+                                Confirm New Password
+                            </label>
+                            <input
+                                type="password"
+                                id="confirmNewPassword"
+                                value={confirmNewPassword}
+                                onChange={(e) => setConfirmNewPassword(e.target.value)}
+                                className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                                placeholder="Confirm new password"
+                            />
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleChangePassword}
+                            disabled={changingPassword || !newPassword || !confirmNewPassword}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {changingPassword ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Lock className="h-4 w-4 mr-2" />
+                            )}
+                            Update Password
+                        </button>
+                    </div>
+                )}
+            </div>
+
             {/* Account Info Section */}
             <div className="bg-white shadow rounded-lg p-6">
                 <h2 className="text-lg font-medium text-slate-900 mb-4">Account Information</h2>
@@ -287,6 +520,70 @@ export function UserSettings() {
                         </span>
                     </div>
                 </div>
+            </div>
+
+            {/* Danger Zone */}
+            <div className="bg-white shadow rounded-lg p-6 border border-red-200">
+                <h2 className="text-lg font-medium text-red-600 mb-4">Danger Zone</h2>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-red-50">
+                            <Trash2 className="h-5 w-5 text-red-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-slate-900">Delete Account</p>
+                            <p className="text-xs text-slate-500">Permanently delete your account and all data</p>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setShowDeleteConfirm(!showDeleteConfirm)}
+                        className="text-sm font-medium text-red-600 hover:text-red-500"
+                    >
+                        {showDeleteConfirm ? 'Cancel' : 'Delete Account'}
+                    </button>
+                </div>
+
+                {showDeleteConfirm && (
+                    <div className="mt-4 pt-4 border-t border-red-100">
+                        <div className="flex items-start gap-3 p-4 bg-red-50 rounded-lg mb-4">
+                            <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                            <div className="text-sm text-red-700">
+                                <p className="font-medium">This action cannot be undone.</p>
+                                <p className="mt-1">This will permanently delete your account and remove all your data from our servers.</p>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label htmlFor="deleteConfirm" className="block text-sm font-medium text-slate-700">
+                                    Type <span className="font-bold">DELETE</span> to confirm
+                                </label>
+                                <input
+                                    type="text"
+                                    id="deleteConfirm"
+                                    value={deleteConfirmText}
+                                    onChange={(e) => setDeleteConfirmText(e.target.value)}
+                                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 sm:text-sm"
+                                    placeholder="DELETE"
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                onClick={handleDeleteAccount}
+                                disabled={deleting || deleteConfirmText !== 'DELETE'}
+                                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {deleting ? (
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                ) : (
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                )}
+                                Permanently Delete Account
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

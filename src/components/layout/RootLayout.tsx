@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { LayoutDashboard, Settings2, LogOut } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../context/AuthContext';
+import { supabase } from '../../lib/supabase';
 
 const navigation = [
     { name: 'Overview', href: '/', icon: LayoutDashboard },
@@ -11,14 +13,33 @@ const navigation = [
 
 export function RootLayout() {
     const location = useLocation();
-    const { signOut } = useAuth();
+    const { user, signOut } = useAuth();
+    const [organization, setOrganization] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchOrganization = async () => {
+            if (!user) return;
+            const { data } = await supabase
+                .from('profiles')
+                .select('organization')
+                .eq('id', user.id)
+                .single();
+            if (data?.organization) {
+                setOrganization(data.organization);
+            }
+        };
+        fetchOrganization();
+    }, [user]);
 
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50">
             {/* Minimal Sidebar */}
             <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200">
-                <div className="flex h-16 items-center px-6 border-b border-slate-200">
+                <div className="flex flex-col justify-center h-16 px-6 border-b border-slate-200">
                     <span className="text-xl font-bold text-brand-600">Teamhub</span>
+                    {organization && (
+                        <span className="text-xs text-slate-500 truncate">{organization}</span>
+                    )}
                 </div>
                 <div className="flex-1 overflow-y-auto py-4">
                     <nav className="space-y-1 px-3">

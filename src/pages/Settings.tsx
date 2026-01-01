@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
-import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, LayoutGrid, Info } from 'lucide-react';
+import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, LayoutGrid, Info, AlertTriangle, Calendar, Cake } from 'lucide-react';
 import type { HubPermissions, RolePermissions, PermissionScope, HubInvite, HubRole, HubFeatureTab } from '../types';
 import { HUB_FEATURE_TABS } from '../types';
 import { LinkedHubsSettings } from '../components/marketplace/LinkedHubsSettings';
 import { CollapsibleSection } from '../components/ui/CollapsibleSection';
+import { DeleteHubModal } from '../components/hubs/DeleteHubModal';
 
 const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'marketplace', 'groups', 'mentorship'] as const;
 const ROLES = ['admin', 'coach', 'parent'] as const;
@@ -20,7 +22,11 @@ interface HubChannel {
 }
 
 export function Settings() {
+    const navigate = useNavigate();
     const { hub, currentRole, refreshHub } = useHub();
+
+    // Delete hub modal state
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [permissions, setPermissions] = useState<HubPermissions>({});
     const [levels, setLevels] = useState<string[]>([]);
     const [newLevel, setNewLevel] = useState('');
@@ -53,6 +59,11 @@ export function Settings() {
     const [savingTabs, setSavingTabs] = useState(false);
     const [tabsMessage, setTabsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+    // Calendar settings state
+    const [showBirthdays, setShowBirthdays] = useState(false);
+    const [savingCalendarSettings, setSavingCalendarSettings] = useState(false);
+    const [calendarSettingsMessage, setCalendarSettingsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
     useEffect(() => {
         if (hub?.settings?.permissions) {
             setPermissions(hub.settings.permissions);
@@ -82,6 +93,13 @@ export function Settings() {
         } else {
             // Default: all tabs enabled
             setEnabledTabs(new Set(HUB_FEATURE_TABS.map(t => t.id)));
+        }
+
+        // Load calendar settings
+        if (hub?.settings?.showBirthdays !== undefined) {
+            setShowBirthdays(hub.settings.showBirthdays);
+        } else {
+            setShowBirthdays(false);
         }
 
         // Load channels, invites, and owner info
@@ -447,6 +465,37 @@ export function Settings() {
         }
     };
 
+    const handleToggleBirthdays = async () => {
+        if (!hub) return;
+        setSavingCalendarSettings(true);
+        setCalendarSettingsMessage(null);
+
+        const newValue = !showBirthdays;
+
+        try {
+            const updatedSettings = {
+                ...hub.settings,
+                showBirthdays: newValue
+            };
+
+            const { error } = await supabase
+                .from('hubs')
+                .update({ settings: updatedSettings })
+                .eq('id', hub.id);
+
+            if (error) throw error;
+
+            setShowBirthdays(newValue);
+            await refreshHub();
+            setCalendarSettingsMessage({ type: 'success', text: `Birthdays ${newValue ? 'enabled' : 'disabled'} on calendar.` });
+        } catch (err: unknown) {
+            console.error('Error saving calendar settings:', err);
+            setCalendarSettingsMessage({ type: 'error', text: 'Failed to save calendar settings.' });
+        } finally {
+            setSavingCalendarSettings(false);
+        }
+    };
+
     return (
         <div className="space-y-4">
             <div>
@@ -563,6 +612,52 @@ export function Settings() {
                                 </button>
                             );
                         })}
+                    </div>
+                </CollapsibleSection>
+            )}
+
+            {/* Calendar Settings Section */}
+            {canManagePermissions && (
+                <CollapsibleSection
+                    title="Calendar Settings"
+                    icon={Calendar}
+                    description="Configure calendar display options"
+                >
+                    {calendarSettingsMessage && (
+                        <div className={`mb-4 p-4 rounded-md ${calendarSettingsMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                            {calendarSettingsMessage.text}
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
+                        {/* Show Birthdays Toggle */}
+                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-pink-100 rounded-lg">
+                                    <Cake className="h-5 w-5 text-pink-600" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900">Show Birthdays</p>
+                                    <p className="text-xs text-slate-500">Display roster birthdays on the calendar</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={showBirthdays}
+                                onClick={handleToggleBirthdays}
+                                disabled={savingCalendarSettings}
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 ${
+                                    showBirthdays ? 'bg-brand-600' : 'bg-slate-200'
+                                }`}
+                            >
+                                <span
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                        showBirthdays ? 'translate-x-5' : 'translate-x-0'
+                                    }`}
+                                />
+                            </button>
+                        </div>
                     </div>
                 </CollapsibleSection>
             )}
@@ -956,6 +1051,45 @@ export function Settings() {
                         </table>
                     </div>
                 </CollapsibleSection>
+            )}
+
+            {/* Danger Zone - Only visible to hub owner */}
+            {currentRole === 'owner' && hub && (
+                <CollapsibleSection
+                    title="Danger Zone"
+                    icon={AlertTriangle}
+                    description="Irreversible actions for your hub"
+                >
+                    <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-200">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-red-100">
+                                <Trash2 className="h-5 w-5 text-red-600" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-medium text-slate-900">Delete Hub</p>
+                                <p className="text-xs text-slate-500">Permanently delete this hub and all its data</p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setIsDeleteModalOpen(true)}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                        >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete Hub
+                        </button>
+                    </div>
+                </CollapsibleSection>
+            )}
+
+            {/* Delete Hub Modal */}
+            {hub && (
+                <DeleteHubModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={() => setIsDeleteModalOpen(false)}
+                    hub={{ id: hub.id, name: hub.name, role: currentRole || '' }}
+                    onHubDeleted={() => navigate('/')}
+                />
             )}
         </div>
     );

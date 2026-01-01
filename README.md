@@ -37,9 +37,9 @@ npm run lint
 | Feature | Description |
 |---------|-------------|
 | **Dashboard** | Overview stats, upcoming events, recent activity feed |
-| **Roster** | Gymnast list with dedicated profile pages, medical info, guardians, apparel sizes |
+| **Roster** | Gymnast list with dedicated profile pages, medical info, guardians, emergency contacts, apparel sizes |
 | **Gymnast Profile** | Full-page view with Profile, Goals, and Assessment tabs |
-| **Calendar** | Events with RSVP, color-coded types, US holidays |
+| **Calendar** | Events with RSVP, color-coded types, US holidays, optional birthday display |
 | **Messages** | Real-time chat and direct messaging |
 | **Competitions** | Sessions, rosters, coaches, document management |
 | **Scores** | Individual and team scores for WAG/MAG events |
@@ -95,18 +95,33 @@ Permission scopes per feature:
 
 ## Design System
 
-**Digital Gym** - A calm, focused, professional dark theme.
+**Digital Gym** - A clean, professional light theme with brand accents.
 
 ### Colors
-- **Background:** Carbon Slate (`slate-900`, `slate-950`)
-- **Text:** Chalk White (`chalk-50` to `chalk-400`)
-- **Primary:** Electric Mint (`mint-400` to `mint-600`)
-- **Secondary:** Muted Indigo (`indigo-400` to `indigo-600`)
+- **Background:** Light slate (`slate-50` main content, `white` cards/sidebars)
+- **Text:** Dark slate (`slate-900` headings, `slate-700` body, `slate-500` muted)
+- **Primary Accent:** Brand green (`brand-500` to `brand-700`) - buttons, links, highlights
+- **Secondary:** Indigo (`indigo-500` to `indigo-700`) - info, selected states
+- **Semantic:** `error-*` (red), `success-*` (green), `warning-*` / `amber-*` (yellow/orange)
+
+### Color Usage
+```
+Backgrounds:      bg-slate-50, bg-white, bg-slate-100
+Card headers:     bg-slate-50 border-b border-slate-200
+Text primary:     text-slate-900
+Text secondary:   text-slate-700
+Text muted:       text-slate-500
+Links/actions:    text-brand-600 hover:text-brand-700
+Active tabs:      border-brand-500 text-brand-600
+Icon backgrounds: bg-brand-50, bg-purple-50, bg-blue-50, etc.
+Icon colors:      text-brand-600, text-purple-600, text-blue-600, etc.
+Badges:           bg-brand-100 text-brand-700, bg-slate-100 text-slate-600
+```
 
 ### Component Classes
 - Buttons: `.btn-primary`, `.btn-secondary`, `.btn-ghost`, `.btn-danger`
-- Cards: `.card`, `.card-elevated`, `.card-glass`
-- Inputs: `.input`, `.input-label`
+- Cards: `.card` (white bg, rounded-xl, slate-200 border)
+- Inputs: `.input` (slate border, brand focus ring)
 - Badges: `.badge-mint`, `.badge-indigo`, `.badge-slate`
 
 ## Database

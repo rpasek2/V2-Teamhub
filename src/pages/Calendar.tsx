@@ -151,12 +151,21 @@ for (let year = 2020; year <= 2035; year++) {
     yearHolidays.forEach((holiday, key) => ALL_HOLIDAYS_MAP.set(key, holiday));
 }
 
+// Birthday type for calendar display
+interface Birthday {
+    id: string;
+    name: string;
+    date: string; // MM-DD format for matching
+    fullDate: string; // Original DOB
+}
+
 export function Calendar() {
     const { hub, currentRole } = useHub();
     const [searchParams, setSearchParams] = useSearchParams();
     const isMobile = useIsMobile();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [events, setEvents] = useState<Event[]>([]);
+    const [birthdays, setBirthdays] = useState<Birthday[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -171,17 +180,58 @@ export function Calendar() {
     // Permission check - admins, directors, owners, and coaches can add events
     const canAddEvents = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
 
+    // Check if birthdays should be shown
+    const showBirthdays = hub?.settings?.showBirthdays === true;
+
     // Helper to get holiday for a day (uses pre-computed module-level holidays)
     const getHolidayForDay = (day: Date): Holiday | undefined => {
         const key = format(day, 'yyyy-MM-dd');
         return ALL_HOLIDAYS_MAP.get(key);
     };
 
+    // Helper to get birthdays for a day
+    const getBirthdaysForDay = (day: Date): Birthday[] => {
+        if (!showBirthdays) return [];
+        const monthDay = format(day, 'MM-dd');
+        return birthdays.filter(b => b.date === monthDay);
+    };
+
+    // Fetch birthdays from gymnast profiles
+    const fetchBirthdays = async () => {
+        if (!hub || !showBirthdays) {
+            setBirthdays([]);
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from('gymnast_profiles')
+                .select('id, first_name, last_name, date_of_birth')
+                .eq('hub_id', hub.id)
+                .not('date_of_birth', 'is', null);
+
+            if (error) throw error;
+
+            const birthdayData: Birthday[] = (data || []).map(g => ({
+                id: g.id,
+                name: `${g.first_name} ${g.last_name}`.trim(),
+                date: format(parseISO(g.date_of_birth), 'MM-dd'),
+                fullDate: g.date_of_birth
+            }));
+
+            setBirthdays(birthdayData);
+        } catch (err) {
+            console.error('Error fetching birthdays:', err);
+            setBirthdays([]);
+        }
+    };
+
     useEffect(() => {
         if (hub) {
             fetchEvents();
+            fetchBirthdays();
         }
-    }, [hub, currentDate, view]);
+    }, [hub, currentDate, view, showBirthdays]);
 
     // Handle opening event from URL query param
     useEffect(() => {
@@ -477,10 +527,12 @@ export function Calendar() {
                     )}>
                         {calendarDays.map((day, idx) => {
                             const dayEvents = getEventsForDay(day);
+                            const dayBirthdays = getBirthdaysForDay(day);
                             const isCurrentMonth = view === 'week' || isSameMonth(day, currentDate);
                             const isCurrentDay = isToday(day);
                             const isSelected = selectedDayForMobile && isSameDay(day, selectedDayForMobile);
                             const holiday = getHolidayForDay(day);
+                            const hasBirthday = dayBirthdays.length > 0;
 
                             return (
                                 <div
@@ -523,6 +575,10 @@ export function Calendar() {
                                             {isMobile && holiday && (
                                                 <span className="text-sm">{holiday.emoji}</span>
                                             )}
+                                            {/* Birthday cake indicator (mobile) */}
+                                            {isMobile && hasBirthday && (
+                                                <span className="text-sm" title={dayBirthdays.map(b => b.name).join(', ')}>🎂</span>
+                                            )}
                                         </div>
                                         {/* Mobile: Show dot indicators for events */}
                                         {isMobile && dayEvents.length > 0 && (
@@ -554,6 +610,27 @@ export function Calendar() {
                                         )}>
                                             <span>{holiday.emoji}</span>
                                             <span className="truncate">{holiday.name}</span>
+                                        </div>
+                                    )}
+
+                                    {/* Desktop: Show birthday banners */}
+                                    {!isMobile && hasBirthday && (
+                                        <div className="space-y-0.5 mb-1">
+                                            {dayBirthdays.slice(0, 2).map((birthday) => (
+                                                <div
+                                                    key={birthday.id}
+                                                    className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-pink-50 text-pink-700 truncate"
+                                                    title={`${birthday.name}'s Birthday`}
+                                                >
+                                                    <span>🎂</span>
+                                                    <span className="truncate">{birthday.name}</span>
+                                                </div>
+                                            ))}
+                                            {dayBirthdays.length > 2 && (
+                                                <div className="text-[10px] text-pink-600 px-1.5">
+                                                    +{dayBirthdays.length - 2} more
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
@@ -601,6 +678,9 @@ export function Calendar() {
                                         {getHolidayForDay(selectedDayForMobile) && (
                                             <span className="text-lg">{getHolidayForDay(selectedDayForMobile)?.emoji}</span>
                                         )}
+                                        {getBirthdaysForDay(selectedDayForMobile).length > 0 && (
+                                            <span className="text-lg">🎂</span>
+                                        )}
                                     </h3>
                                     {getHolidayForDay(selectedDayForMobile) ? (
                                         <p className={cn("text-xs font-medium", getHolidayForDay(selectedDayForMobile)?.textColor)}>
@@ -633,6 +713,17 @@ export function Calendar() {
                                 </div>
                             </div>
                             <div className="max-h-48 overflow-y-auto">
+                                {/* Birthdays for selected day */}
+                                {getBirthdaysForDay(selectedDayForMobile).length > 0 && (
+                                    <div className="px-4 py-2 bg-pink-50 border-b border-pink-100">
+                                        {getBirthdaysForDay(selectedDayForMobile).map((birthday) => (
+                                            <div key={birthday.id} className="flex items-center gap-2 py-1">
+                                                <span className="text-lg">🎂</span>
+                                                <span className="text-sm font-medium text-pink-700">{birthday.name}'s Birthday</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 {getEventsForDay(selectedDayForMobile).length > 0 ? (
                                     <div className="divide-y divide-slate-200">
                                         {getEventsForDay(selectedDayForMobile).map((event) => {

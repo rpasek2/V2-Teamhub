@@ -57,6 +57,7 @@ export function Register() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
     const [fullName, setFullName] = useState('');
     const [organization, setOrganization] = useState('');
     const [loading, setLoading] = useState(false);
@@ -71,6 +72,12 @@ export function Register() {
         // Validate password strength before submitting
         if (!isPasswordValid) {
             setError('Please create a stronger password that meets all requirements');
+            return;
+        }
+
+        // Validate passwords match
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
             return;
         }
 
@@ -300,6 +307,41 @@ export function Register() {
                         </div>
 
                         <div>
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Confirm password
+                            </label>
+                            <input
+                                id="confirmPassword"
+                                name="confirmPassword"
+                                type="password"
+                                autoComplete="new-password"
+                                required
+                                className={`block w-full px-4 py-3 rounded-xl border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow ${
+                                    confirmPassword && password !== confirmPassword
+                                        ? 'border-red-300 bg-red-50'
+                                        : confirmPassword && password === confirmPassword
+                                        ? 'border-green-300 bg-green-50'
+                                        : 'border-slate-300'
+                                }`}
+                                placeholder="Re-enter your password"
+                                value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)}
+                            />
+                            {confirmPassword && password !== confirmPassword && (
+                                <p className="mt-1.5 text-xs text-red-600 flex items-center gap-1">
+                                    <X className="w-3 h-3" />
+                                    Passwords do not match
+                                </p>
+                            )}
+                            {confirmPassword && password === confirmPassword && password.length > 0 && (
+                                <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
+                                    <Check className="w-3 h-3" />
+                                    Passwords match
+                                </p>
+                            )}
+                        </div>
+
+                        <div>
                             <label htmlFor="organization" className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Organization name <span className="text-slate-400 font-normal">(optional)</span>
                             </label>
@@ -322,7 +364,7 @@ export function Register() {
 
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !isPasswordValid || password !== confirmPassword}
                             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
                         >
                             {loading ? (

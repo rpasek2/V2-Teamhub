@@ -78,21 +78,39 @@ src/
 - Local state via useState/useEffect
 - No Redux or Zustand
 
-### Styling (Digital Gym Design System)
-- **Background:** `slate-900`, `slate-950` (dark theme)
-- **Text:** `chalk-50` (headings), `chalk-400` (body), `slate-400`/`slate-500` (muted)
-- **Primary Accent:** `mint-400` to `mint-600` (buttons, highlights)
-- **Secondary:** `indigo-400` to `indigo-600` (info, selected)
-- **Semantic:** `success-*`, `error-*`, `warning-*`
+### Styling (Digital Gym Design System - Light Theme)
+- **Background:** `slate-50` (main content), `white` (cards, sidebars, modals)
+- **Text:** `slate-900` (headings), `slate-700` (body), `slate-500` (muted/labels)
+- **Primary Accent:** `brand-500` to `brand-700` (buttons, links, active states)
+- **Secondary:** `indigo-500` to `indigo-700` (info, selected items)
+- **Semantic:** `success-*`, `error-*`, `warning-*`, `amber-*`
+
+### Color Patterns
+```
+Page background:    bg-slate-50
+Cards/modals:       bg-white border border-slate-200
+Card headers:       bg-slate-50 border-b border-slate-200
+Headings:           text-slate-900
+Body text:          text-slate-700
+Muted text:         text-slate-500
+Links:              text-brand-600 hover:text-brand-700
+Active tabs:        border-brand-500 text-brand-600
+Inactive tabs:      text-slate-500 hover:text-slate-900
+Icon backgrounds:   bg-brand-50, bg-purple-50, bg-blue-50, bg-emerald-50
+Icon colors:        text-brand-600, text-purple-600, text-blue-600
+Badges:             bg-brand-100 text-brand-700 (primary)
+                    bg-slate-100 text-slate-600 (neutral)
+Inputs:             border-slate-300 focus:border-brand-500 focus:ring-brand-500
+```
 
 ### Component Classes
 ```css
-.btn-primary    /* Mint background, dark text */
-.btn-secondary  /* Outlined, slate border */
+.btn-primary    /* Brand background, white text */
+.btn-secondary  /* Outlined, slate border, white bg */
 .btn-ghost      /* Text only, hover background */
 .btn-danger     /* Red/error color */
-.card           /* slate-800 bg, rounded-xl, border */
-.input          /* Dark input with mint focus ring */
+.card           /* white bg, rounded-xl, slate-200 border */
+.input          /* Light input with brand focus ring */
 .badge-mint     /* Green/success badge */
 .badge-indigo   /* Blue/info badge */
 .badge-slate    /* Neutral badge */
@@ -103,9 +121,9 @@ src/
 ### Core
 - `profiles` - User data (id, email, full_name, avatar_url)
 - `organizations` - Top-level entities
-- `hubs` - Programs/teams (settings JSONB for permissions, levels, enabledTabs)
+- `hubs` - Programs/teams (settings JSONB for permissions, levels, enabledTabs, showBirthdays)
 - `hub_members` - Membership with role enum (owner, director, admin, coach, parent, gymnast)
-- `gymnast_profiles` - Extended athlete info (DOB, level, sizes, guardians JSONB, medical_info JSONB)
+- `gymnast_profiles` - Extended athlete info (DOB, level, sizes, guardians JSONB, emergency_contact_1/2 JSONB, medical_info JSONB)
 
 ### Features
 - `events`, `event_rsvps` - Calendar with RSVP
@@ -202,7 +220,8 @@ const [result1, result2] = await Promise.all([
 - Do NOT use `console.log` in production (use `console.error` for errors only)
 - Do NOT create new files unless necessary - prefer editing existing files
 - Do NOT add features beyond what was requested - keep changes minimal
-- Do NOT use light theme colors - the app uses a dark theme
+- Do NOT use dark theme colors (slate-800/900, chalk-50) - the app uses a light theme
+- Do NOT use `mint-*` colors directly - use `brand-*` instead for consistency
 
 ## MCP Servers
 

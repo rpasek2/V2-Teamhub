@@ -21,6 +21,9 @@ const sizeClasses = {
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
 
+    // Track if we've already focused the modal to avoid stealing focus on re-renders
+    const hasFocused = useRef(false);
+
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
@@ -29,8 +32,14 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
         if (isOpen) {
             document.addEventListener('keydown', handleEscape);
             document.body.style.overflow = 'hidden';
-            // Focus the modal for accessibility
-            modalRef.current?.focus();
+            // Only focus the modal once when it first opens
+            if (!hasFocused.current) {
+                modalRef.current?.focus();
+                hasFocused.current = true;
+            }
+        } else {
+            // Reset the focus flag when modal closes
+            hasFocused.current = false;
         }
 
         return () => {
@@ -57,12 +66,13 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                 className={clsx(
                     "relative w-full transform rounded-xl bg-white shadow-xl transition-all animate-scale-in",
                     "border border-slate-200",
+                    "max-h-[90vh] flex flex-col",
                     sizeClasses[size]
                 )}
             >
                 {/* Header */}
                 {title && (
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 flex-shrink-0">
                         <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
                         <button
                             onClick={onClose}
@@ -78,7 +88,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                 )}
 
                 {/* Body */}
-                <div className="p-6">
+                <div className="p-6 overflow-y-auto">
                     {children}
                 </div>
             </div>

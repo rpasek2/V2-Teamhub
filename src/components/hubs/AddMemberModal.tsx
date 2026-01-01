@@ -180,24 +180,22 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
         const doc = parser.parseFromString(htmlContent, 'text/html');
         const gymnasts: any[] = [];
 
-        // Find all headers that define a class section
-        const headers = doc.querySelectorAll('.full-width-header');
+        // Find all page sections (each class is in a page-break div)
+        // iClass Pro structure: div[style*="page-break"] contains .full-width-header and .table-roll-sheet
+        const pageSections = doc.querySelectorAll('div[style*="page-break"]');
 
-        headers.forEach((header) => {
-            // Extract class/level name for this section
-            const classNameElement = header.querySelector('span');
-            const className = classNameElement?.textContent?.trim() || '';
+        pageSections.forEach((section) => {
+            // Extract class/level name from the .full-width-header in this section
+            // The class name is in a span inside a table inside the header
+            const header = section.querySelector('.full-width-header');
+            const classNameSpan = header?.querySelector('td span');
+            const className = classNameSpan?.textContent?.trim() || '';
 
-            if (!className) return;
+            // Skip if no class name or if it looks like a date range
+            if (!className || className.includes('→')) return;
 
-            // Find the container for this page/section
-            // The header is inside a div that contains the table for this class
-            const pageContainer = header.parentElement;
-
-            if (!pageContainer) return;
-
-            // Find all student rows within this specific page/section
-            const studentCells = pageContainer.querySelectorAll('td.student');
+            // Find all student rows within this specific section's roll sheet table
+            const studentCells = section.querySelectorAll('td.student');
 
             studentCells.forEach((studentCell) => {
                 try {
@@ -221,19 +219,21 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                     }
 
                     // Get student info (gender and birthdate)
+                    // iClass Pro format: "10y 2m • Female 10/05/2015" or multiline
                     const infoElement = studentCell.querySelector('.student-info');
                     const infoText = infoElement?.textContent?.trim() || '';
-                    const infoLines = infoText.split('\n').map(l => l.trim()).filter(l => l);
+                    // Split by newlines, bullets, and multiple spaces
+                    const infoTokens = infoText.split(/[\n•]+/).flatMap(s => s.trim().split(/\s+/)).filter(t => t);
 
                     let gender: 'Male' | 'Female' | '' = '';
                     let dateOfBirth = '';
 
-                    infoLines.forEach(line => {
-                        if (line === 'Male' || line === 'Female') {
-                            gender = line;
-                        } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(line)) {
+                    infoTokens.forEach(token => {
+                        if (token === 'Male' || token === 'Female') {
+                            gender = token;
+                        } else if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(token)) {
                             // Convert MM/DD/YYYY to YYYY-MM-DD
-                            const [month, day, year] = line.split('/');
+                            const [month, day, year] = token.split('/');
                             dateOfBirth = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
                         }
                     });

@@ -15,8 +15,8 @@ interface CreateEventModalProps {
 
 const EVENT_TYPES = [
     { value: 'practice', label: 'Practice', icon: '🏋️', color: 'bg-blue-100 border-blue-300 text-blue-700' },
-    { value: 'competition', label: 'Competition', icon: '🏆', color: 'bg-purple-100 border-purple-300 text-purple-700' },
-    { value: 'mentorship', label: 'Mentorship', icon: '💕', color: 'bg-pink-100 border-pink-300 text-pink-700' },
+    { value: 'competition', label: 'Comp', icon: '🏆', color: 'bg-purple-100 border-purple-300 text-purple-700' },
+    { value: 'mentorship', label: 'Mentor', icon: '💕', color: 'bg-pink-100 border-pink-300 text-pink-700' },
     { value: 'meeting', label: 'Meeting', icon: '👥', color: 'bg-amber-100 border-amber-300 text-amber-700' },
     { value: 'social', label: 'Social', icon: '🎉', color: 'bg-green-100 border-green-300 text-green-700' },
     { value: 'other', label: 'Other', icon: '📌', color: 'bg-slate-100 border-slate-300 text-slate-700' },
@@ -207,20 +207,20 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 Event Type
                             </label>
-                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                            <div className="grid grid-cols-6 gap-1.5">
                                 {EVENT_TYPES.map((type) => (
                                     <button
                                         key={type.value}
                                         type="button"
                                         onClick={() => setFormData({ ...formData, type: type.value })}
-                                        className={`flex flex-col items-center gap-1 p-3 rounded-xl border-2 transition-all ${
+                                        className={`flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg border-2 transition-all aspect-square ${
                                             formData.type === type.value
                                                 ? type.color + ' border-current shadow-sm'
                                                 : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
                                         }`}
                                     >
-                                        <span className="text-xl">{type.icon}</span>
-                                        <span className="text-xs font-medium">{type.label}</span>
+                                        <span className="text-lg leading-none">{type.icon}</span>
+                                        <span className="text-[10px] font-medium leading-tight">{type.label}</span>
                                     </button>
                                 ))}
                             </div>
