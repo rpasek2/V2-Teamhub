@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText, ChevronRight } from 'lucide-react';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, subWeeks } from 'date-fns';
 import { clsx } from 'clsx';
 
 interface DashboardStats {
@@ -95,16 +95,19 @@ export function Dashboard() {
             const competitionsCount = competitionsResult.count;
 
             // Group 2: Activity queries (all independent) - run in parallel
+            // Limit activity to the past 2 weeks
+            const twoWeeksAgo = subWeeks(new Date(), 2).toISOString();
+
             const recentEventsQuery = supabase.from('events').select('id, title, created_at')
-                .eq('hub_id', hub.id).order('created_at', { ascending: false }).limit(5);
+                .eq('hub_id', hub.id).gte('created_at', twoWeeksAgo).order('created_at', { ascending: false }).limit(5);
             const recentCompsQuery = supabase.from('competitions').select('id, name, created_at')
-                .eq('hub_id', hub.id).order('created_at', { ascending: false }).limit(5);
+                .eq('hub_id', hub.id).gte('created_at', twoWeeksAgo).order('created_at', { ascending: false }).limit(5);
             const groupsQuery = supabase.from('groups').select('id').eq('hub_id', hub.id);
             const memberGroupsQuery = supabase.from('group_members').select('group_id, groups!inner(hub_id)')
                 .eq('user_id', user.id).eq('groups.hub_id', hub.id);
             const publicGroupsQuery = supabase.from('groups').select('id').eq('hub_id', hub.id).eq('type', 'public');
             const recentMembersQuery = supabase.from('hub_members').select(`user_id, created_at, role, profiles:user_id (full_name)`)
-                .eq('hub_id', hub.id).order('created_at', { ascending: false }).limit(5);
+                .eq('hub_id', hub.id).gte('created_at', twoWeeksAgo).order('created_at', { ascending: false }).limit(5);
 
             let activityResults: any[];
             if (isStaff) {
@@ -175,6 +178,7 @@ export function Dashboard() {
                         groups:group_id (name)
                     `)
                     .in('group_id', accessibleGroupIds)
+                    .gte('created_at', twoWeeksAgo)
                     .order('created_at', { ascending: false })
                     .limit(5);
 
