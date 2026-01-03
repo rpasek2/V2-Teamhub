@@ -108,12 +108,12 @@ export function Register() {
     return (
         <div className="min-h-screen flex">
             {/* Left Side - Hero Section */}
-            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-purple-600 via-brand-600 to-brand-700 relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-pink-300 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
-                    <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-purple-300 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-300 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+                    <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-brand-200 rounded-full blur-3xl" />
                 </div>
 
                 {/* Content */}
@@ -125,9 +125,9 @@ export function Register() {
                         </div>
                         <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
                             Start Managing<br />
-                            <span className="text-purple-200">Your Team Today</span>
+                            <span className="text-brand-200">Your Team Today</span>
                         </h1>
-                        <p className="text-lg text-purple-100 max-w-md">
+                        <p className="text-lg text-brand-100 max-w-md">
                             Join thousands of coaches and team managers who trust TeamHub for their organization needs.
                         </p>
                     </div>
@@ -140,14 +140,14 @@ export function Register() {
                                 <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
                                     <Check className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-purple-100">{benefit}</span>
+                                <span className="text-brand-100">{benefit}</span>
                             </div>
                         ))}
                     </div>
 
                     {/* Quote */}
                     <div className="mt-12 pt-8 border-t border-white/10">
-                        <blockquote className="text-purple-100 italic text-lg">
+                        <blockquote className="text-brand-100 italic text-lg">
                             "TeamHub transformed how we manage our gymnastics program. Everything is organized and accessible."
                         </blockquote>
                         <div className="mt-4 flex items-center gap-3">
@@ -156,7 +156,7 @@ export function Register() {
                             </div>
                             <div>
                                 <div className="text-white font-medium">Jane Doe</div>
-                                <div className="text-purple-200 text-sm">Head Coach, Elite Gymnastics</div>
+                                <div className="text-brand-200 text-sm">Head Coach, Elite Gymnastics</div>
                             </div>
                         </div>
                     </div>

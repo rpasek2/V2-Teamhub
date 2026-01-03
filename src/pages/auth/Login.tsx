@@ -57,12 +57,12 @@ export function Login() {
     return (
         <div className="min-h-screen flex">
             {/* Left Side - Hero Section */}
-            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-brand-600 via-brand-700 to-purple-800 relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-300 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-                    <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-300 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-300 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+                    <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-brand-200 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
                 </div>
 
                 {/* Content */}
