@@ -45,10 +45,22 @@ export function GymnasticsSidebar() {
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
 
     // Get badge value for a nav item
+    // Coaches/owners/directors/admins only see badges for: messages, groups, marketplace
+    // Parents/gymnasts see badges for all tabs (assignments, scores, skills, etc. are relevant to them)
     const getBadgeValue = (itemName: string): number | boolean => {
         if (!notifications) return false;
         const feature = TAB_TO_NOTIFICATION[itemName];
         if (!feature) return false;
+
+        // Staff roles only need notifications for messages, groups, and marketplace
+        const isStaffRole = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+        if (isStaffRole) {
+            const staffRelevantFeatures: NotificationFeature[] = ['messages', 'groups', 'marketplace'];
+            if (!staffRelevantFeatures.includes(feature)) {
+                return false;
+            }
+        }
+
         return notifications.counts[feature];
     };
 
