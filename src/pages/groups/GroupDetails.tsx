@@ -34,8 +34,24 @@ export default function GroupDetails() {
             fetchPosts();
             checkMembership();
             fetchMemberCount();
+            markGroupAsViewed();
         }
     }, [groupId, user]);
+
+    // Mark the group as viewed to clear unread count
+    const markGroupAsViewed = async () => {
+        if (!groupId || !user?.id) return;
+
+        const { error } = await supabase
+            .from('group_members')
+            .update({ last_viewed_at: new Date().toISOString() })
+            .eq('group_id', groupId)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('Error marking group as viewed:', error);
+        }
+    };
 
     // Handle scrolling to highlighted post from URL query param
     useEffect(() => {

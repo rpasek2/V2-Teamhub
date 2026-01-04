@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, FolderOpen, Settings, Loader2 } from 'lucide-react';
 import { useHub } from '../context/HubContext';
+import { useNotifications } from '../context/NotificationContext';
 import { useResources, useResourceCategories, useDeleteResource } from '../hooks/useResources';
 import { ResourceCard } from '../components/resources/ResourceCard';
 import { CreateResourceModal } from '../components/resources/CreateResourceModal';
@@ -8,6 +9,7 @@ import { ManageCategoriesModal } from '../components/resources/ManageCategoriesM
 
 export function Resources() {
     const { hub, currentRole } = useHub();
+    const { markAsViewed } = useNotifications();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -21,6 +23,13 @@ export function Resources() {
     const { deleteResource } = useDeleteResource();
 
     const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+
+    // Mark resources as viewed when page loads
+    useEffect(() => {
+        if (hub) {
+            markAsViewed('resources');
+        }
+    }, [hub, markAsViewed]);
 
     // Filter resources by search query
     const filteredResources = useMemo(() => {

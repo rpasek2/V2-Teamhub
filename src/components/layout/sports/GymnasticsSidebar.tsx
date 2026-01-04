@@ -4,8 +4,10 @@ import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
 import { useHub } from '../../../context/HubContext';
+import { useNotificationsSafe } from '../../../context/NotificationContext';
 import { supabase } from '../../../lib/supabase';
-import type { HubFeatureTab } from '../../../types';
+import { NotificationBadge } from '../../ui/NotificationBadge';
+import type { HubFeatureTab, NotificationFeature } from '../../../types';
 
 interface UserProfile {
     full_name: string | null;
@@ -20,13 +22,40 @@ const SPORT_ICONS: Record<string, LucideIcon> = {
     Swords
 };
 
+// Map tab names to notification feature keys
+const TAB_TO_NOTIFICATION: Record<string, NotificationFeature> = {
+    'Messages': 'messages',
+    'Groups': 'groups',
+    'Calendar': 'calendar',
+    'Competitions': 'competitions',
+    'Scores': 'scores',
+    'Skills': 'skills',
+    'Assignments': 'assignments',
+    'Marketplace': 'marketplace',
+    'Resources': 'resources',
+};
+
 export function GymnasticsSidebar() {
     const location = useLocation();
     const { hubId } = useParams();
     const { signOut, user } = useAuth();
     const { hasPermission, currentRole, hub, sportConfig } = useHub();
+    const notifications = useNotificationsSafe();
     const [isExpanded, setIsExpanded] = useState(false);
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+    // Get badge value for a nav item
+    const getBadgeValue = (itemName: string): number | boolean => {
+        if (!notifications) return false;
+        const feature = TAB_TO_NOTIFICATION[itemName];
+        if (!feature) return false;
+        return notifications.counts[feature];
+    };
+
+    // Get badge type for a nav item
+    const getBadgeType = (itemName: string): 'count' | 'dot' => {
+        return itemName === 'Messages' ? 'count' : 'dot';
+    };
 
     // Fetch user profile
     useEffect(() => {
@@ -147,6 +176,10 @@ export function GymnasticsSidebar() {
                 <nav className="space-y-1">
                     {filteredNavigation.map((item) => {
                         const isActive = location.pathname === item.href;
+                        const badgeValue = getBadgeValue(item.name);
+                        const badgeType = getBadgeType(item.name);
+                        const hasBadge = badgeType === 'count' ? (badgeValue as number) > 0 : badgeValue === true;
+
                         return (
                             <Link
                                 key={item.name}
@@ -160,7 +193,7 @@ export function GymnasticsSidebar() {
                                 )}
                             >
                                 <div className={clsx(
-                                    "flex h-8 w-8 items-center justify-center flex-shrink-0 ml-1.5",
+                                    "relative flex h-8 w-8 items-center justify-center flex-shrink-0 ml-1.5",
                                     isActive && "ml-0.5"
                                 )}>
                                     {isActive && (
@@ -175,6 +208,14 @@ export function GymnasticsSidebar() {
                                         )}
                                         aria-hidden="true"
                                     />
+                                    {/* Badge when collapsed */}
+                                    {!isExpanded && hasBadge && (
+                                        <NotificationBadge
+                                            type={badgeType}
+                                            value={badgeValue}
+                                            collapsed={true}
+                                        />
+                                    )}
                                 </div>
                                 <span
                                     className="whitespace-nowrap overflow-hidden ml-2 text-sm"
@@ -186,6 +227,14 @@ export function GymnasticsSidebar() {
                                 >
                                     {item.name}
                                 </span>
+                                {/* Badge when expanded */}
+                                {isExpanded && hasBadge && (
+                                    <NotificationBadge
+                                        type={badgeType}
+                                        value={badgeValue}
+                                        collapsed={false}
+                                    />
+                                )}
                             </Link>
                         );
                     })}

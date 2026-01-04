@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { CreateCompetitionModal } from '../../components/competitions/CreateCompetitionModal';
 import type { Competition as BaseCompetition } from '../../types';
 
@@ -14,11 +15,19 @@ interface CompetitionWithCount extends BaseCompetition {
 
 export function Competitions() {
     const { hub, currentRole } = useHub();
+    const { markAsViewed } = useNotifications();
     const [competitions, setCompetitions] = useState<CompetitionWithCount[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+
+    // Mark competitions as viewed when page loads
+    useEffect(() => {
+        if (hub) {
+            markAsViewed('competitions');
+        }
+    }, [hub, markAsViewed]);
 
     useEffect(() => {
         if (hub) {

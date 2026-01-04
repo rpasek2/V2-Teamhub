@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LayoutDashboard, Edit3, FileText } from 'lucide-react';
 import { useHub } from '../context/HubContext';
+import { useNotifications } from '../context/NotificationContext';
 import {
     CoachDashboard,
     CoachMode,
@@ -13,11 +14,19 @@ import type { GymnastAssignment } from '../types';
 type CoachTab = 'dashboard' | 'coach-mode' | 'templates';
 
 export function Assignments() {
-    const { currentRole } = useHub();
+    const { hub, currentRole } = useHub();
+    const { markAsViewed } = useNotifications();
     const [coachTab, setCoachTab] = useState<CoachTab>('dashboard');
     const [parentViewingAssignment, setParentViewingAssignment] = useState<GymnastAssignment | null>(null);
 
     const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+
+    // Mark assignments as viewed when page loads
+    useEffect(() => {
+        if (hub) {
+            markAsViewed('assignments');
+        }
+    }, [hub, markAsViewed]);
 
     // Parent View
     if (!isStaff) {

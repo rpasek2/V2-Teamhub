@@ -54,6 +54,7 @@ export interface HubSettings {
     allowParentToggle?: boolean;
     allowGymnastToggle?: boolean;
     showBirthdays?: boolean;
+    anonymous_reports_enabled?: boolean;
 }
 
 export interface Hub {
@@ -543,7 +544,7 @@ export interface MentorshipEvent {
 }
 
 // Skills Types
-export type SkillStatus = 'none' | 'learning' | 'achieved' | 'mastered';
+export type SkillStatus = 'none' | 'learning' | 'achieved' | 'mastered' | 'injured';
 
 export interface HubEventSkill {
     id: string;
@@ -574,7 +575,8 @@ export const SKILL_STATUS_CONFIG: Record<SkillStatus, { label: string; icon: str
     none: { label: 'Not Started', icon: '', color: 'text-slate-300', bgColor: 'bg-slate-50' },
     learning: { label: 'Learning', icon: '◐', color: 'text-amber-500', bgColor: 'bg-amber-50' },
     achieved: { label: 'Achieved', icon: '✓', color: 'text-green-500', bgColor: 'bg-green-50' },
-    mastered: { label: 'Mastered', icon: '★', color: 'text-yellow-500', bgColor: 'bg-yellow-50' }
+    mastered: { label: 'Mastered', icon: '★', color: 'text-yellow-500', bgColor: 'bg-yellow-50' },
+    injured: { label: 'Injured', icon: '⚠', color: 'text-red-500', bgColor: 'bg-red-50' }
 };
 
 // ============================================
@@ -601,13 +603,13 @@ export const ASSIGNMENT_EVENT_LABELS: Record<AssignmentEventType, string> = {
 };
 
 export const ASSIGNMENT_EVENT_COLORS: Record<AssignmentEventType, { bg: string; border: string; text: string }> = {
-    vault: { bg: 'bg-emerald-900/30', border: 'border-emerald-700/50', text: 'text-emerald-400' },
-    bars: { bg: 'bg-sky-900/30', border: 'border-sky-700/50', text: 'text-sky-400' },
-    beam: { bg: 'bg-pink-900/30', border: 'border-pink-700/50', text: 'text-pink-400' },
-    floor: { bg: 'bg-amber-900/30', border: 'border-amber-700/50', text: 'text-amber-400' },
-    strength: { bg: 'bg-red-900/30', border: 'border-red-700/50', text: 'text-red-400' },
-    flexibility: { bg: 'bg-violet-900/30', border: 'border-violet-700/50', text: 'text-violet-400' },
-    conditioning: { bg: 'bg-cyan-900/30', border: 'border-cyan-700/50', text: 'text-cyan-400' }
+    vault: { bg: 'bg-emerald-100', border: 'border-emerald-300', text: 'text-emerald-700' },
+    bars: { bg: 'bg-sky-100', border: 'border-sky-300', text: 'text-sky-700' },
+    beam: { bg: 'bg-pink-100', border: 'border-pink-300', text: 'text-pink-700' },
+    floor: { bg: 'bg-amber-100', border: 'border-amber-300', text: 'text-amber-700' },
+    strength: { bg: 'bg-red-100', border: 'border-red-300', text: 'text-red-700' },
+    flexibility: { bg: 'bg-violet-100', border: 'border-violet-300', text: 'text-violet-700' },
+    conditioning: { bg: 'bg-cyan-100', border: 'border-cyan-300', text: 'text-cyan-700' }
 };
 
 // Completed items tracking: { "vault": [0, 2, 4], "bars": [1, 3] }
@@ -746,4 +748,48 @@ export interface HubResourceCategory {
     name: string;
     display_order: number;
     created_at: string;
+}
+
+// ============================================
+// Notification Types
+// ============================================
+
+export type NotificationFeature =
+    | 'messages'
+    | 'groups'
+    | 'calendar'
+    | 'competitions'
+    | 'scores'
+    | 'skills'
+    | 'assignments'
+    | 'marketplace'
+    | 'resources';
+
+export interface NotificationCounts {
+    messages: number;       // Count of unread messages
+    groups: boolean;        // Has new posts
+    calendar: boolean;      // Has new events
+    competitions: boolean;  // Has new/updated competitions
+    scores: boolean;        // Has new scores
+    skills: boolean;        // Has skill updates
+    assignments: boolean;   // Has new assignments
+    marketplace: boolean;   // Has new items
+    resources: boolean;     // Has new resources
+}
+
+export interface UserHubNotification {
+    id: string;
+    user_id: string;
+    hub_id: string;
+    messages_last_viewed_at: string | null;
+    groups_last_viewed_at: string | null;
+    calendar_last_viewed_at: string | null;
+    competitions_last_viewed_at: string | null;
+    scores_last_viewed_at: string | null;
+    skills_last_viewed_at: string | null;
+    assignments_last_viewed_at: string | null;
+    marketplace_last_viewed_at: string | null;
+    resources_last_viewed_at: string | null;
+    created_at: string;
+    updated_at: string;
 }

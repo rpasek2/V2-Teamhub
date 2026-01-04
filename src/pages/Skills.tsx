@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Sparkles, Settings2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
+import { useNotifications } from '../context/NotificationContext';
 import { SkillsTable } from '../components/skills/SkillsTable';
 import { ManageSkillsModal } from '../components/skills/ManageSkillsModal';
 import type { GymnastProfile, HubEventSkill, GymnastSkill, GymEvent } from '../types';
@@ -9,48 +10,78 @@ import { WAG_EVENTS, MAG_EVENTS, EVENT_FULL_NAMES } from '../types';
 
 export function Skills() {
     const { hub, currentRole, getPermissionScope, linkedGymnasts } = useHub();
+    const { markAsViewed } = useNotifications();
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
     const [selectedEvent, setSelectedEvent] = useState<GymEvent | ''>('');
     const [allGymnasts, setAllGymnasts] = useState<GymnastProfile[]>([]);
     const [skills, setSkills] = useState<HubEventSkill[]>([]);
     const [gymnastSkills, setGymnastSkills] = useState<GymnastSkill[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
 
     const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+    const isParent = currentRole === 'parent';
     const levels = hub?.settings?.levels || [];
     const events = activeGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
 
     // Get permission scope for skills
     const skillsScope = getPermissionScope('skills');
 
+    // For parents, get the linked gymnast's info
+    const linkedGymnast = isParent && linkedGymnasts.length > 0 ? linkedGymnasts[0] : null;
+    const parentGender = linkedGymnast?.gender || 'Female';
+    const parentLevel = linkedGymnast?.level || '';
+    const parentEvents = parentGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
+
     // Filter gymnasts based on permission scope
     const gymnasts = useMemo(() => {
         if (skillsScope === 'none') return [];
-        if (skillsScope === 'own') {
-            // Only show linked gymnasts for this level/gender
+        if (skillsScope === 'own' || isParent) {
+            // Only show linked gymnasts
             const linkedIds = linkedGymnasts.map(g => g.id);
             return allGymnasts.filter(g => linkedIds.includes(g.id));
         }
         // 'all' scope - show all gymnasts
         return allGymnasts;
-    }, [allGymnasts, skillsScope, linkedGymnasts]);
+    }, [allGymnasts, skillsScope, linkedGymnasts, isParent]);
 
-    // Set default level when hub loads
+    // Mark skills as viewed when page loads
     useEffect(() => {
-        if (levels.length > 0 && !selectedLevel) {
+        if (hub) {
+            markAsViewed('skills');
+        }
+    }, [hub, markAsViewed]);
+
+    // Set default level when hub loads (staff only)
+    useEffect(() => {
+        if (!isParent && levels.length > 0 && !selectedLevel) {
             setSelectedLevel(levels[0]);
         }
-    }, [levels, selectedLevel]);
+    }, [levels, selectedLevel, isParent]);
+
+    // For parents, use their gymnast's level
+    useEffect(() => {
+        if (isParent && parentLevel) {
+            setSelectedLevel(parentLevel);
+            setActiveGender(parentGender as 'Female' | 'Male');
+        }
+    }, [isParent, parentLevel, parentGender]);
 
     // Set default event when gender changes
     useEffect(() => {
         const genderEvents = activeGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
-        if (genderEvents.length > 0) {
+        if (genderEvents.length > 0 && !selectedEvent) {
             setSelectedEvent(genderEvents[0]);
         }
-    }, [activeGender]);
+    }, [activeGender, selectedEvent]);
+
+    // For parents, set default event based on their gymnast's gender
+    useEffect(() => {
+        if (isParent && parentEvents.length > 0 && !selectedEvent) {
+            setSelectedEvent(parentEvents[0]);
+        }
+    }, [isParent, parentEvents, selectedEvent]);
 
     // Fetch gymnasts for selected level and gender
     useEffect(() => {
@@ -77,7 +108,6 @@ export function Skills() {
 
     const fetchGymnasts = async () => {
         if (!hub || !selectedLevel) return;
-        setLoading(true);
 
         const { data, error } = await supabase
             .from('gymnast_profiles')
@@ -92,7 +122,7 @@ export function Skills() {
         } else {
             setAllGymnasts((data || []) as GymnastProfile[]);
         }
-        setLoading(false);
+        setInitialLoading(false);
     };
 
     const fetchSkills = async () => {
@@ -178,14 +208,91 @@ export function Skills() {
         fetchSkills();
     };
 
-    if (loading && !selectedLevel) {
+    // Show loading state only on initial page load
+    if (initialLoading && selectedLevel) {
         return (
             <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-mint-500 border-t-transparent"></div>
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
             </div>
         );
     }
 
+    // Parent view - simplified with just gymnast name and event tabs
+    if (isParent) {
+        return (
+            <div className="h-full flex flex-col">
+                <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
+                    <div>
+                        <h1 className="text-2xl font-bold text-slate-900">Skills</h1>
+                        {linkedGymnast && (
+                            <p className="text-sm text-slate-500 mt-1">
+                                {linkedGymnast.first_name} {linkedGymnast.last_name} · {linkedGymnast.level}
+                            </p>
+                        )}
+                    </div>
+                </header>
+
+                <main className="flex-1 overflow-y-auto p-6">
+                    {!linkedGymnast ? (
+                        <div className="flex h-full flex-col items-center justify-center text-center">
+                            <div className="rounded-full bg-slate-100 p-4">
+                                <Sparkles className="h-8 w-8 text-slate-400" />
+                            </div>
+                            <h3 className="mt-4 text-lg font-semibold text-slate-900">No gymnast linked</h3>
+                            <p className="mt-2 text-sm text-slate-500">
+                                Contact your coach to link your gymnast to your account.
+                            </p>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {/* Event Tabs */}
+                            <div className="flex flex-wrap gap-2">
+                                {parentEvents.map((event) => (
+                                    <button
+                                        key={event}
+                                        onClick={() => setSelectedEvent(event)}
+                                        className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+                                            selectedEvent === event
+                                                ? 'bg-brand-500 text-white'
+                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        }`}
+                                    >
+                                        {EVENT_FULL_NAMES[event]}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Skills Table */}
+                            {selectedEvent && gymnasts.length > 0 && (
+                                <SkillsTable
+                                    gymnasts={gymnasts}
+                                    skills={skills}
+                                    gymnastSkills={gymnastSkills}
+                                    canEdit={false}
+                                    onSkillStatusChange={handleSkillStatusChange}
+                                />
+                            )}
+
+                            {/* No skills message */}
+                            {selectedEvent && skills.length === 0 && (
+                                <div className="rounded-lg border-2 border-dashed border-slate-200 p-12 text-center">
+                                    <Sparkles className="mx-auto h-12 w-12 text-slate-400" />
+                                    <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                                        No skills defined yet
+                                    </h3>
+                                    <p className="mt-2 text-sm text-slate-500">
+                                        Your coach hasn't added skills for {EVENT_FULL_NAMES[selectedEvent]} at {linkedGymnast.level} yet.
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </main>
+            </div>
+        );
+    }
+
+    // Staff view - full controls with level and gender filters
     return (
         <div className="h-full flex flex-col">
             <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
@@ -237,7 +344,7 @@ export function Skills() {
                                     onClick={() => setSelectedLevel(level)}
                                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                                         selectedLevel === level
-                                            ? 'bg-mint-500 text-white'
+                                            ? 'bg-brand-500 text-white'
                                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                     }`}
                                 >
@@ -287,27 +394,6 @@ export function Skills() {
                                             Add gymnasts to this level in the roster to track their skills.
                                         </p>
                                     </div>
-                                ) : skills.length === 0 ? (
-                                    <div className="rounded-lg border-2 border-dashed border-slate-200 p-12 text-center">
-                                        <Sparkles className="mx-auto h-12 w-12 text-slate-400" />
-                                        <h3 className="mt-4 text-lg font-semibold text-slate-900">
-                                            No skills defined
-                                        </h3>
-                                        <p className="mt-2 text-sm text-slate-500">
-                                            {isStaff
-                                                ? 'Click "Manage Skills" to add skills for this event.'
-                                                : 'Skills have not been configured for this event yet.'}
-                                        </p>
-                                        {isStaff && (
-                                            <button
-                                                onClick={() => setIsManageModalOpen(true)}
-                                                className="btn-primary mt-4"
-                                            >
-                                                <Settings2 className="h-4 w-4" />
-                                                Manage Skills
-                                            </button>
-                                        )}
-                                    </div>
                                 ) : (
                                     <SkillsTable
                                         gymnasts={gymnasts}
@@ -315,6 +401,7 @@ export function Skills() {
                                         gymnastSkills={gymnastSkills}
                                         canEdit={isStaff}
                                         onSkillStatusChange={handleSkillStatusChange}
+                                        onManageSkills={() => setIsManageModalOpen(true)}
                                     />
                                 )}
                             </>

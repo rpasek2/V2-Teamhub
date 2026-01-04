@@ -3,6 +3,7 @@ import { Plus, Search, Filter, ShoppingBag, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { MarketplaceItemCard } from '../components/marketplace/MarketplaceItemCard';
 import { CreateItemModal } from '../components/marketplace/CreateItemModal';
 import { ItemDetailModal } from '../components/marketplace/ItemDetailModal';
@@ -15,6 +16,7 @@ type HubFilter = 'all' | 'this_hub';
 export default function Marketplace() {
     const { hub, currentRole } = useHub();
     const { user } = useAuth();
+    const { markAsViewed } = useNotifications();
     const [items, setItems] = useState<MarketplaceItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
@@ -25,6 +27,13 @@ export default function Marketplace() {
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<MarketplaceItem | null>(null);
     const [linkedHubIds, setLinkedHubIds] = useState<string[]>([]);
+
+    // Mark marketplace as viewed when page loads
+    useEffect(() => {
+        if (hub) {
+            markAsViewed('marketplace');
+        }
+    }, [hub, markAsViewed]);
 
     useEffect(() => {
         if (hub) {

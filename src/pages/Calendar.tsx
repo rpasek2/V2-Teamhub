@@ -22,6 +22,7 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
+import { useNotifications } from '../context/NotificationContext';
 import { CreateEventModal } from '../components/calendar/CreateEventModal';
 import { EventDetailsModal } from '../components/calendar/EventDetailsModal';
 import type { Event } from '../types';
@@ -161,6 +162,7 @@ interface Birthday {
 
 export function Calendar() {
     const { hub, currentRole } = useHub();
+    const { markAsViewed } = useNotifications();
     const [searchParams, setSearchParams] = useSearchParams();
     const isMobile = useIsMobile();
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -182,6 +184,13 @@ export function Calendar() {
 
     // Check if birthdays should be shown
     const showBirthdays = hub?.settings?.showBirthdays === true;
+
+    // Mark calendar as viewed when page loads
+    useEffect(() => {
+        if (hub) {
+            markAsViewed('calendar');
+        }
+    }, [hub, markAsViewed]);
 
     // Helper to get holiday for a day (uses pre-computed module-level holidays)
     const getHolidayForDay = (day: Date): Holiday | undefined => {

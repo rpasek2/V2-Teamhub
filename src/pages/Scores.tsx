@@ -3,6 +3,7 @@ import { Trophy, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { ScoresTable } from '../components/scores/ScoresTable';
 import type { Competition, GymnastProfile, CompetitionScore, CompetitionTeamPlacement } from '../types';
 
@@ -16,6 +17,7 @@ interface CompetitionWithGymnasts extends Competition {
 export function Scores() {
     const { hub, currentRole } = useHub();
     const { user } = useAuth();
+    const { markAsViewed } = useNotifications();
     const [competitions, setCompetitions] = useState<CompetitionWithGymnasts[]>([]);
     const [selectedCompetition, setSelectedCompetition] = useState<CompetitionWithGymnasts | null>(null);
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
@@ -26,6 +28,13 @@ export function Scores() {
 
     const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
     const isParent = currentRole === 'parent';
+
+    // Mark scores as viewed when page loads
+    useEffect(() => {
+        if (hub) {
+            markAsViewed('scores');
+        }
+    }, [hub, markAsViewed]);
 
     useEffect(() => {
         if (hub) {

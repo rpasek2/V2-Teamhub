@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { Plus, Users, Search, Lock, Globe } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
+import { useAuth } from '../../context/AuthContext';
+import { useNotifications } from '../../context/NotificationContext';
 import { CreateGroupModal } from '../../components/groups/CreateGroupModal';
 import type { Group as GroupType } from '../../types';
 
@@ -10,14 +12,24 @@ interface Group extends GroupType {
     _count?: {
         members: number;
     };
+    unread_count?: number;
 }
 
 export default function Groups() {
     const { hub, currentRole } = useHub();
+    const { user } = useAuth();
+    const { markAsViewed } = useNotifications();
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+
+    // Mark groups as viewed when page loads
+    useEffect(() => {
+        if (hub) {
+            markAsViewed('groups');
+        }
+    }, [hub, markAsViewed]);
 
     useEffect(() => {
         if (hub) {
@@ -26,26 +38,40 @@ export default function Groups() {
     }, [hub]);
 
     const fetchGroups = async () => {
-        if (!hub?.id) return;
+        if (!hub?.id || !user?.id) return;
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('groups')
-                .select(`
-                    *,
-                    members:group_members(count)
-                `)
-                .eq('hub_id', hub?.id)
-                .order('created_at', { ascending: false });
+            // Fetch groups and unread counts in parallel
+            const [groupsResult, unreadResult] = await Promise.all([
+                supabase
+                    .from('groups')
+                    .select(`
+                        *,
+                        members:group_members(count)
+                    `)
+                    .eq('hub_id', hub.id)
+                    .order('created_at', { ascending: false }),
+                supabase.rpc('get_group_unread_counts', {
+                    p_user_id: user.id,
+                    p_hub_id: hub.id
+                })
+            ]);
 
-            if (error) throw error;
+            if (groupsResult.error) throw groupsResult.error;
 
-            // Transform data to include member count
-            const groupsWithCount = data?.map(g => ({
+            // Create a map of group_id -> unread_count
+            const unreadMap = new Map<string, number>();
+            (unreadResult.data || []).forEach((item: { group_id: string; unread_count: number }) => {
+                unreadMap.set(item.group_id, item.unread_count);
+            });
+
+            // Transform data to include member count and unread count
+            const groupsWithCount = groupsResult.data?.map(g => ({
                 ...g,
                 _count: {
                     members: g.members?.[0]?.count || 0
-                }
+                },
+                unread_count: unreadMap.get(g.id) || 0
             })) || [];
 
             setGroups(groupsWithCount);
@@ -115,8 +141,14 @@ export default function Groups() {
                         <Link
                             key={group.id}
                             to={`/hub/${hub?.id}/groups/${group.id}`}
-                            className="group card hover:border-mint-500 transition-all"
+                            className="group card hover:border-mint-500 transition-all relative"
                         >
+                            {/* Unread badge */}
+                            {group.unread_count !== undefined && group.unread_count > 0 && (
+                                <span className="absolute -top-2 -right-2 h-6 min-w-6 px-2 text-xs font-bold text-white bg-error-500 rounded-full flex items-center justify-center z-10">
+                                    {group.unread_count > 99 ? '99+' : group.unread_count}
+                                </span>
+                            )}
                             <div className="flex flex-1 flex-col p-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center">

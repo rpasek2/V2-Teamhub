@@ -1,9 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Hash, MessageSquare, Users, Plus, X, Search } from 'lucide-react';
+import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
+import { AnonymousReportModal } from '../components/messages/AnonymousReportModal';
+
+interface AnonymousReport {
+    id: string;
+    hub_id: string;
+    message: string;
+    read_at: string | null;
+    created_at: string;
+}
+
+interface OwnerInfo {
+    user_id: string;
+    full_name: string;
+}
 
 interface Channel {
     id: string;
@@ -17,6 +32,8 @@ interface Channel {
         full_name: string;
         email: string;
     };
+    // Unread message count for this channel
+    unread_count?: number;
 }
 
 interface HubMemberOption {
@@ -37,8 +54,9 @@ interface Message {
 }
 
 export default function Messages() {
-    const { hub } = useHub();
+    const { hub, currentRole } = useHub();
     const { user } = useAuth();
+    const { markAsViewed } = useNotifications();
     const [channels, setChannels] = useState<Channel[]>([]);
     const [dmChannels, setDmChannels] = useState<Channel[]>([]);
     const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
@@ -52,11 +70,44 @@ export default function Messages() {
     const [dmSearchTerm, setDmSearchTerm] = useState('');
     const [loadingMembers, setLoadingMembers] = useState(false);
 
+    // Mark messages as viewed when page loads
+    useEffect(() => {
+        if (hub) {
+            markAsViewed('messages');
+        }
+    }, [hub, markAsViewed]);
+
+    // Anonymous reports state
+    const [anonymousReports, setAnonymousReports] = useState<AnonymousReport[]>([]);
+    const [ownerInfo, setOwnerInfo] = useState<OwnerInfo | null>(null);
+    const [showAnonymousReportModal, setShowAnonymousReportModal] = useState(false);
+    const [viewingAnonymousReports, setViewingAnonymousReports] = useState(false);
+    const [loadingReports, setLoadingReports] = useState(false);
+    const [selectedReport, setSelectedReport] = useState<AnonymousReport | null>(null);
+
+    const isOwner = currentRole === 'owner';
+    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+    const anonymousReportsEnabled = hub?.settings?.anonymous_reports_enabled !== false; // Default to enabled
+
     useEffect(() => {
         if (hub && user) {
             fetchChannels();
         }
     }, [hub, user]);
+
+    // Fetch owner info for non-staff (to show who receives anonymous reports)
+    useEffect(() => {
+        if (hub && !isStaff && anonymousReportsEnabled) {
+            fetchOwnerInfo();
+        }
+    }, [hub, isStaff, anonymousReportsEnabled]);
+
+    // Fetch anonymous reports for owner
+    useEffect(() => {
+        if (hub && isOwner) {
+            fetchAnonymousReports();
+        }
+    }, [hub, isOwner]);
 
     useEffect(() => {
         if (selectedChannel) {
@@ -75,23 +126,40 @@ export default function Messages() {
     const fetchChannels = async () => {
         if (!hub || !user) return;
 
-        // Fetch all channels (RLS will filter)
-        const { data, error } = await supabase
-            .from('channels')
-            .select('id, name, type, group_id, dm_participant_ids')
-            .eq('hub_id', hub.id)
-            .order('name');
+        // Fetch all channels (RLS will filter) and unread counts in parallel
+        const [channelsResult, unreadResult] = await Promise.all([
+            supabase
+                .from('channels')
+                .select('id, name, type, group_id, dm_participant_ids')
+                .eq('hub_id', hub.id)
+                .order('name'),
+            supabase.rpc('get_channel_unread_counts', {
+                p_user_id: user.id,
+                p_hub_id: hub.id
+            })
+        ]);
 
-        if (error) {
-            console.error('Error fetching channels:', error);
+        if (channelsResult.error) {
+            console.error('Error fetching channels:', channelsResult.error);
             return;
         }
 
-        const allChannels = data || [];
+        const allChannels = channelsResult.data || [];
+        const unreadCounts = unreadResult.data || [];
 
-        // Separate DM channels from regular channels
-        const regularChannels: Channel[] = allChannels.filter(c => !c.dm_participant_ids) as Channel[];
-        const dmChans: Channel[] = allChannels.filter(c => c.dm_participant_ids) as Channel[];
+        // Create a map of channel_id -> unread_count
+        const unreadMap = new Map<string, number>();
+        unreadCounts.forEach((item: { channel_id: string; unread_count: number }) => {
+            unreadMap.set(item.channel_id, item.unread_count);
+        });
+
+        // Separate DM channels from regular channels and attach unread counts
+        const regularChannels: Channel[] = allChannels
+            .filter(c => !c.dm_participant_ids)
+            .map(c => ({ ...c, unread_count: unreadMap.get(c.id) || 0 })) as Channel[];
+        const dmChans: Channel[] = allChannels
+            .filter(c => c.dm_participant_ids)
+            .map(c => ({ ...c, unread_count: unreadMap.get(c.id) || 0 })) as Channel[];
 
         // For DM channels, fetch the other user's profile
         if (dmChans.length > 0) {
@@ -214,6 +282,110 @@ export default function Messages() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // Mark a channel as read by updating last_read_at in channel_members
+    const markChannelAsRead = async (channelId: string) => {
+        if (!user) return;
+
+        const { error } = await supabase
+            .from('channel_members')
+            .update({ last_read_at: new Date().toISOString() })
+            .eq('channel_id', channelId)
+            .eq('user_id', user.id);
+
+        if (error) {
+            console.error('Error marking channel as read:', error);
+        } else {
+            // Optimistically update local state to clear the badge
+            setChannels(prev => prev.map(c =>
+                c.id === channelId ? { ...c, unread_count: 0 } : c
+            ));
+            setDmChannels(prev => prev.map(c =>
+                c.id === channelId ? { ...c, unread_count: 0 } : c
+            ));
+        }
+    };
+
+    // Fetch owner info for non-staff users
+    const fetchOwnerInfo = async () => {
+        if (!hub) return;
+
+        const { data, error } = await supabase
+            .from('hub_members')
+            .select(`
+                user_id,
+                profile:profiles (
+                    full_name
+                )
+            `)
+            .eq('hub_id', hub.id)
+            .eq('role', 'owner')
+            .single();
+
+        if (error) {
+            console.error('Error fetching owner info:', error);
+        } else if (data) {
+            setOwnerInfo({
+                user_id: data.user_id,
+                full_name: (data.profile as any)?.full_name || 'Hub Owner'
+            });
+        }
+    };
+
+    // Fetch anonymous reports for owner
+    const fetchAnonymousReports = async () => {
+        if (!hub) return;
+        setLoadingReports(true);
+
+        const { data, error } = await supabase
+            .from('anonymous_reports')
+            .select('*')
+            .eq('hub_id', hub.id)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching anonymous reports:', error);
+        } else {
+            setAnonymousReports(data || []);
+        }
+        setLoadingReports(false);
+    };
+
+    // Mark a report as read
+    const markReportAsRead = async (reportId: string) => {
+        const { error } = await supabase
+            .from('anonymous_reports')
+            .update({ read_at: new Date().toISOString() })
+            .eq('id', reportId);
+
+        if (error) {
+            console.error('Error marking report as read:', error);
+        } else {
+            setAnonymousReports(prev =>
+                prev.map(r => r.id === reportId ? { ...r, read_at: new Date().toISOString() } : r)
+            );
+        }
+    };
+
+    // Delete a report
+    const deleteReport = async (reportId: string) => {
+        const { error } = await supabase
+            .from('anonymous_reports')
+            .delete()
+            .eq('id', reportId);
+
+        if (error) {
+            console.error('Error deleting report:', error);
+        } else {
+            setAnonymousReports(prev => prev.filter(r => r.id !== reportId));
+            if (selectedReport?.id === reportId) {
+                setSelectedReport(null);
+            }
+        }
+    };
+
+    // Count unread reports
+    const unreadReportsCount = anonymousReports.filter(r => !r.read_at).length;
+
     // Fetch hub members for new DM modal
     const fetchHubMembers = async () => {
         if (!hub || !user) return;
@@ -316,14 +488,28 @@ export default function Messages() {
                     {channels.filter(c => !c.group_id).map((channel) => (
                         <button
                             key={channel.id}
-                            onClick={() => setSelectedChannel(channel)}
-                            className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${selectedChannel?.id === channel.id
-                                ? 'bg-white text-mint-600 shadow-sm'
-                                : 'text-slate-600 hover:bg-slate-100'
-                                }`}
+                            onClick={() => {
+                                setSelectedChannel(channel);
+                                setViewingAnonymousReports(false);
+                                if (channel.unread_count && channel.unread_count > 0) {
+                                    markChannelAsRead(channel.id);
+                                }
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                                selectedChannel?.id === channel.id && !viewingAnonymousReports
+                                    ? 'bg-white text-brand-600 shadow-sm'
+                                    : 'text-slate-600 hover:bg-slate-100'
+                            }`}
                         >
-                            <Hash className="mr-2 h-4 w-4 opacity-50" />
-                            {channel.name}
+                            <div className="flex items-center min-w-0">
+                                <Hash className="mr-2 h-4 w-4 opacity-50 flex-shrink-0" />
+                                <span className="truncate">{channel.name}</span>
+                            </div>
+                            {channel.unread_count !== undefined && channel.unread_count > 0 && (
+                                <span className="ml-2 h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    {channel.unread_count > 99 ? '99+' : channel.unread_count}
+                                </span>
+                            )}
                         </button>
                     ))}
 
@@ -331,14 +517,28 @@ export default function Messages() {
                     {channels.filter(c => c.group_id).map((channel) => (
                         <button
                             key={channel.id}
-                            onClick={() => setSelectedChannel(channel)}
-                            className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${selectedChannel?.id === channel.id
-                                ? 'bg-white text-mint-600 shadow-sm'
-                                : 'text-slate-600 hover:bg-slate-100'
-                                }`}
+                            onClick={() => {
+                                setSelectedChannel(channel);
+                                setViewingAnonymousReports(false);
+                                if (channel.unread_count && channel.unread_count > 0) {
+                                    markChannelAsRead(channel.id);
+                                }
+                            }}
+                            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                                selectedChannel?.id === channel.id && !viewingAnonymousReports
+                                    ? 'bg-white text-brand-600 shadow-sm'
+                                    : 'text-slate-600 hover:bg-slate-100'
+                            }`}
                         >
-                            <Users className="mr-2 h-4 w-4 opacity-50" />
-                            {channel.name}
+                            <div className="flex items-center min-w-0">
+                                <Users className="mr-2 h-4 w-4 opacity-50 flex-shrink-0" />
+                                <span className="truncate">{channel.name}</span>
+                            </div>
+                            {channel.unread_count !== undefined && channel.unread_count > 0 && (
+                                <span className="ml-2 h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                    {channel.unread_count > 99 ? '99+' : channel.unread_count}
+                                </span>
+                            )}
                         </button>
                     ))}
 
@@ -360,25 +560,195 @@ export default function Messages() {
                         dmChannels.map((channel) => (
                             <button
                                 key={channel.id}
-                                onClick={() => setSelectedChannel(channel)}
-                                className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${selectedChannel?.id === channel.id
-                                    ? 'bg-white text-mint-600 shadow-sm'
-                                    : 'text-slate-600 hover:bg-slate-100'
-                                    }`}
+                                onClick={() => {
+                                    setSelectedChannel(channel);
+                                    setViewingAnonymousReports(false);
+                                    if (channel.unread_count && channel.unread_count > 0) {
+                                        markChannelAsRead(channel.id);
+                                    }
+                                }}
+                                className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    selectedChannel?.id === channel.id && !viewingAnonymousReports
+                                        ? 'bg-white text-brand-600 shadow-sm'
+                                        : 'text-slate-600 hover:bg-slate-100'
+                                }`}
                             >
-                                <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2">
-                                    {channel.dm_other_user?.full_name?.[0] || '?'}
+                                <div className="flex items-center min-w-0">
+                                    <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2 flex-shrink-0">
+                                        {channel.dm_other_user?.full_name?.[0] || '?'}
+                                    </div>
+                                    <span className="truncate">{channel.dm_other_user?.full_name || 'Unknown'}</span>
                                 </div>
-                                <span className="truncate">{channel.dm_other_user?.full_name || 'Unknown'}</span>
+                                {channel.unread_count !== undefined && channel.unread_count > 0 && (
+                                    <span className="ml-2 h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                        {channel.unread_count > 99 ? '99+' : channel.unread_count}
+                                    </span>
+                                )}
                             </button>
                         ))
+                    )}
+
+                    {/* Anonymous Reports Section - For Owner */}
+                    {isOwner && (
+                        <>
+                            <div className="px-3 py-2 mt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <span>Anonymous Reports</span>
+                            </div>
+                            <button
+                                onClick={() => {
+                                    setViewingAnonymousReports(true);
+                                    setSelectedChannel(null);
+                                    setSelectedReport(null);
+                                }}
+                                className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    viewingAnonymousReports && !selectedReport
+                                        ? 'bg-white text-purple-600 shadow-sm'
+                                        : 'text-slate-600 hover:bg-slate-100'
+                                }`}
+                            >
+                                <div className="flex items-center">
+                                    <ShieldAlert className="mr-2 h-4 w-4 opacity-50" />
+                                    <span>View Reports</span>
+                                </div>
+                                {unreadReportsCount > 0 && (
+                                    <span className="bg-purple-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
+                                        {unreadReportsCount}
+                                    </span>
+                                )}
+                            </button>
+                        </>
+                    )}
+
+                    {/* Submit Anonymous Report - For Non-Staff */}
+                    {!isStaff && anonymousReportsEnabled && ownerInfo && (
+                        <>
+                            <div className="px-3 py-2 mt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                <span>Anonymous</span>
+                            </div>
+                            <button
+                                onClick={() => setShowAnonymousReportModal(true)}
+                                className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-purple-600 hover:bg-purple-50"
+                            >
+                                <ShieldAlert className="mr-2 h-4 w-4" />
+                                <span>Submit Report</span>
+                            </button>
+                        </>
                     )}
                 </div>
             </div>
 
             {/* Main Chat Area */}
             <div className="flex-1 flex flex-col min-w-0 bg-white">
-                {selectedChannel ? (
+                {/* Anonymous Reports View - For Owner */}
+                {viewingAnonymousReports && isOwner ? (
+                    <>
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-slate-200 flex items-center">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 mr-3">
+                                <ShieldAlert className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <h3 className="text-lg font-medium text-slate-900">Anonymous Reports</h3>
+                            <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                                {anonymousReports.length} report{anonymousReports.length !== 1 ? 's' : ''}
+                            </span>
+                        </div>
+
+                        {/* Reports List */}
+                        <div className="flex-1 overflow-y-auto bg-slate-50">
+                            {loadingReports ? (
+                                <div className="flex items-center justify-center h-full">
+                                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                                </div>
+                            ) : anonymousReports.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-full text-center p-6">
+                                    <div className="rounded-full bg-purple-100 p-4 mb-4">
+                                        <ShieldAlert className="h-8 w-8 text-purple-400" />
+                                    </div>
+                                    <h3 className="text-lg font-medium text-slate-900">No anonymous reports</h3>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        When members submit anonymous reports, they'll appear here.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-slate-200">
+                                    {anonymousReports.map((report) => (
+                                        <div
+                                            key={report.id}
+                                            className={`p-4 hover:bg-white transition-colors cursor-pointer ${
+                                                !report.read_at ? 'bg-purple-50' : ''
+                                            } ${selectedReport?.id === report.id ? 'bg-white ring-1 ring-purple-200' : ''}`}
+                                            onClick={() => {
+                                                setSelectedReport(report);
+                                                if (!report.read_at) {
+                                                    markReportAsRead(report.id);
+                                                }
+                                            }}
+                                        >
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        {!report.read_at && (
+                                                            <span className="h-2 w-2 rounded-full bg-purple-500 flex-shrink-0" />
+                                                        )}
+                                                        <span className="text-xs text-slate-500">
+                                                            {format(new Date(report.created_at), 'MMM d, yyyy · h:mm a')}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-sm text-slate-700 line-clamp-2">
+                                                        {report.message}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-1 flex-shrink-0">
+                                                    {report.read_at && (
+                                                        <span className="text-xs text-slate-400 flex items-center gap-1">
+                                                            <Check className="h-3 w-3" />
+                                                            Read
+                                                        </span>
+                                                    )}
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            if (confirm('Delete this report?')) {
+                                                                deleteReport(report.id);
+                                                            }
+                                                        }}
+                                                        className="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                                        title="Delete report"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Selected Report Detail */}
+                        {selectedReport && (
+                            <div className="border-t border-slate-200 p-6 bg-white">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-xs text-slate-500">
+                                        Received {format(new Date(selectedReport.created_at), 'MMMM d, yyyy · h:mm a')}
+                                    </span>
+                                    {selectedReport.read_at && (
+                                        <span className="text-xs text-green-600 flex items-center gap-1">
+                                            <Check className="h-3 w-3" />
+                                            Marked as read
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedReport.message}</p>
+                                </div>
+                                <p className="mt-3 text-xs text-slate-400">
+                                    This report was submitted anonymously. You cannot reply to the sender.
+                                </p>
+                            </div>
+                        )}
+                    </>
+                ) : selectedChannel ? (
                     <>
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-slate-200 flex items-center">
@@ -555,6 +925,16 @@ export default function Messages() {
                         </div>
                     </div>
                 </div>
+            )}
+
+            {/* Anonymous Report Modal - For Non-Staff */}
+            {hub && ownerInfo && (
+                <AnonymousReportModal
+                    isOpen={showAnonymousReportModal}
+                    onClose={() => setShowAnonymousReportModal(false)}
+                    hubId={hub.id}
+                    ownerName={ownerInfo.full_name}
+                />
             )}
         </div>
     );
