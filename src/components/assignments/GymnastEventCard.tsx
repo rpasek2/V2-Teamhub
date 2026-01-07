@@ -56,7 +56,7 @@ export function GymnastEventCard({ assignment, eventKey, eventColor, borderColor
     }
 
     const handleToggle = async (index: number) => {
-        // Optimistic update
+        // Optimistic update - no need to refetch since we update local state
         const newCompleted = localCompleted.includes(index)
             ? localCompleted.filter(i => i !== index)
             : [...localCompleted, index];
@@ -70,9 +70,7 @@ export function GymnastEventCard({ assignment, eventKey, eventColor, borderColor
             completedItems
         );
 
-        if (result) {
-            onUpdate?.();
-        } else {
+        if (!result) {
             // Revert on failure
             setLocalCompleted(localCompleted);
         }

@@ -1,15 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList, Pencil, X, Check, Loader2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList, Pencil, X, Check, Loader2, ListChecks } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { ReportInjuryModal } from '../components/gymnast/ReportInjuryModal';
 import { GoalsSection } from '../components/gymnast/GoalsSection';
 import { AssessmentSection } from '../components/gymnast/AssessmentSection';
+import { GymnastAssignmentStats } from '../components/gymnast/GymnastAssignmentStats';
 import type { GymnastProfile } from '../types';
 
-type PageTab = 'profile' | 'goals' | 'assessment';
+type PageTab = 'profile' | 'goals' | 'assessment' | 'assignments';
 type EditSection = 'basic' | 'membership' | 'apparel' | 'guardians' | 'emergency' | 'medical' | null;
 
 export function GymnastDetails() {
@@ -378,6 +379,17 @@ export function GymnastDetails() {
                     <ClipboardList className="h-4 w-4" />
                     Assessment
                 </button>
+                <button
+                    onClick={() => setActiveTab('assignments')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'assignments'
+                            ? 'border-brand-500 text-brand-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                    }`}
+                >
+                    <ListChecks className="h-4 w-4" />
+                    Assignments
+                </button>
             </div>
 
             {/* Content */}
@@ -396,6 +408,11 @@ export function GymnastDetails() {
                         gymnastProfileId={gymnast.id}
                         readOnly={!canEditAssessment}
                     />
+                )}
+
+                {/* Assignments Tab */}
+                {activeTab === 'assignments' && (
+                    <GymnastAssignmentStats gymnastProfileId={gymnast.id} />
                 )}
 
                 {/* Profile Tab */}
@@ -670,13 +687,12 @@ export function GymnastDetails() {
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                             >
                                                 <option value="">Select...</option>
-                                                <optgroup label="Child Sizes">
-                                                    <option value="CXXS">CXXS (Child XXS)</option>
-                                                    <option value="CXS">CXS (Child XS)</option>
-                                                    <option value="CS">CS (Child S)</option>
-                                                    <option value="CM">CM (Child M)</option>
-                                                    <option value="CL">CL (Child L)</option>
-                                                    <option value="CXL">CXL (Child XL)</option>
+                                                <optgroup label="Youth Sizes">
+                                                    <option value="YXS">YXS (Youth XS)</option>
+                                                    <option value="YS">YS (Youth S)</option>
+                                                    <option value="YM">YM (Youth M)</option>
+                                                    <option value="YL">YL (Youth L)</option>
+                                                    <option value="YXL">YXL (Youth XL)</option>
                                                 </optgroup>
                                                 <optgroup label="Adult Sizes">
                                                     <option value="AXS">AXS (Adult XS)</option>
@@ -697,20 +713,22 @@ export function GymnastDetails() {
                                             >
                                                 <option value="">Select...</option>
                                                 <optgroup label="Child Sizes">
-                                                    <option value="CXXS">CXXS (Child XXS)</option>
-                                                    <option value="CXS">CXS (Child XS)</option>
-                                                    <option value="CS">CS (Child S)</option>
-                                                    <option value="CM">CM (Child M)</option>
-                                                    <option value="CL">CL (Child L)</option>
-                                                    <option value="CXL">CXL (Child XL)</option>
+                                                    <option value="CXXS">CXXS</option>
+                                                    <option value="CXS">CXS</option>
+                                                    <option value="CS">CS</option>
+                                                    <option value="CM">CM</option>
+                                                    <option value="CL">CL</option>
+                                                    <option value="CXL">CXL</option>
                                                 </optgroup>
                                                 <optgroup label="Adult Sizes">
-                                                    <option value="AXS">AXS (Adult XS)</option>
-                                                    <option value="AS">AS (Adult S)</option>
-                                                    <option value="AM">AM (Adult M)</option>
-                                                    <option value="AL">AL (Adult L)</option>
-                                                    <option value="AXL">AXL (Adult XL)</option>
-                                                    <option value="AXXL">AXXL (Adult XXL)</option>
+                                                    <option value="AXS">AXS</option>
+                                                    <option value="AS">AS</option>
+                                                    <option value="AM">AM</option>
+                                                    <option value="AL">AL</option>
+                                                    <option value="AXL">AXL</option>
+                                                    <option value="AXXL">AXXL</option>
+                                                    <option value="A3XL">A3XL</option>
+                                                    <option value="A4XL">A4XL</option>
                                                 </optgroup>
                                             </select>
                                         </div>
