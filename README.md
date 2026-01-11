@@ -38,16 +38,20 @@ npm run lint
 |---------|-------------|
 | **Dashboard** | Overview stats, upcoming events, recent activity feed |
 | **Roster** | Gymnast list with dedicated profile pages, medical info, guardians, emergency contacts, apparel sizes |
-| **Gymnast Profile** | Full-page view with Profile, Goals, and Assessment tabs |
+| **Gymnast Profile** | Full-page view with Profile, Goals, Assignments, and Assessment tabs |
 | **Calendar** | Events with RSVP, color-coded types, US holidays, optional birthday display |
-| **Messages** | Real-time chat and direct messaging |
+| **Messages** | Real-time chat, direct messaging, anonymous reporting |
 | **Competitions** | Sessions, rosters, coaches, document management |
 | **Scores** | Individual and team scores for WAG/MAG events |
 | **Skills** | Skill tracking matrix by level and event |
 | **Groups** | Social posts with polls, sign-ups, RSVPs, files |
 | **Marketplace** | Buy/sell team gear with cross-hub linking |
-| **Mentorship** | Big/Little sister pairing program |
-| **Staff** | Staff profiles, schedules, responsibilities |
+| **Mentorship** | Big/Little pairing with random assignment and event tracking |
+| **Assignments** | Coach-mode assignments with templates and progress tracking |
+| **Resources** | Shared files and documents organized by category |
+| **Schedule** | Weekly practice times by level/group with daily rotation grid |
+| **Attendance** | Daily attendance tracking with metrics and absence warnings |
+| **Staff** | Staff profiles, schedules, responsibilities, time-off requests |
 | **Settings** | Hub configuration, permissions, feature toggles |
 
 ## Architecture
@@ -69,17 +73,31 @@ src/
 ├── index.css               # Digital Gym design system
 ├── context/
 │   ├── AuthContext.tsx     # Authentication state
-│   └── HubContext.tsx      # Hub data and permissions
-├── pages/                  # Page components (lazy loaded)
-│   ├── GymnastDetails.tsx  # Gymnast profile page (/roster/:gymnastId)
-├── components/             # Reusable UI components
+│   ├── HubContext.tsx      # Hub data and permissions
+│   └── NotificationContext.tsx  # Real-time notification badges
+├── pages/                  # 20+ page components (lazy loaded)
+│   ├── Dashboard.tsx       # Hub overview
+│   ├── Roster.tsx          # Gymnast list
+│   ├── GymnastDetails.tsx  # Gymnast profile (/roster/:gymnastId)
+│   ├── Schedule.tsx        # Practice schedules & rotations
+│   ├── Attendance.tsx      # Daily attendance & metrics
+│   ├── Assignments.tsx     # Coach assignments
+│   ├── Staff.tsx           # Staff list
+│   ├── StaffDetails.tsx    # Staff profile (/staff/:staffUserId)
+│   └── ...
+├── components/             # 80+ reusable components
 │   ├── layout/             # App shell, sidebar
-│   ├── calendar/           # Calendar components
+│   ├── attendance/         # Daily attendance, metrics
+│   ├── assignments/        # Coach dashboard, templates
+│   ├── schedule/           # Weekly schedule, rotation grid
+│   ├── calendar/           # Event modals
 │   ├── competitions/       # Competition management
 │   ├── groups/             # Social/groups features
+│   ├── mentorship/         # Pairing management
 │   ├── scores/             # Score tables
 │   ├── skills/             # Skills tracking
-│   └── ...
+│   ├── staff/              # Staff profiles, schedules
+│   └── ui/                 # Modal, badges, loaders
 ├── types/index.ts          # TypeScript type definitions
 └── lib/supabase.ts         # Supabase client singleton
 ```
@@ -126,13 +144,16 @@ Badges:           bg-brand-100 text-brand-700, bg-slate-100 text-slate-600
 
 ## Database
 
-PostgreSQL via Supabase with 47 tables including:
+PostgreSQL via Supabase with 55+ tables including:
 - `profiles`, `organizations`, `hubs`, `hub_members`
 - `gymnast_profiles`, `events`, `competitions`, `competition_scores`
 - `groups`, `posts`, `channels`, `messages`
 - `hub_event_skills`, `gymnast_skills`
-- `marketplace_items`, `mentorship_pairs`
-- `staff_profiles`, `staff_schedules`, `staff_tasks`
+- `marketplace_items`, `mentorship_pairs`, `mentorship_events`
+- `staff_profiles`, `staff_schedules`, `staff_tasks`, `staff_time_off`
+- `practice_schedules`, `rotation_events`, `rotation_blocks`
+- `attendance_records`
+- `assignments`, `assignment_templates`
 
 All tables use Row Level Security (RLS) policies.
 

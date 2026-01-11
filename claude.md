@@ -22,10 +22,12 @@ src/
 ├── index.css                  # Digital Gym design system
 ├── context/
 │   ├── AuthContext.tsx        # Auth state (user, session, signOut)
-│   └── HubContext.tsx         # Hub data, permissions, linked gymnasts
-├── pages/                     # 16+ page components
+│   ├── HubContext.tsx         # Hub data, permissions, linked gymnasts
+│   └── NotificationContext.tsx # Realtime notification badges
+├── pages/                     # 20+ page components
 │   ├── Dashboard.tsx
 │   ├── Roster.tsx
+│   ├── GymnastDetails.tsx     # Gymnast profile (/roster/:gymnastId)
 │   ├── Calendar.tsx
 │   ├── Messages.tsx
 │   ├── Scores.tsx
@@ -33,32 +35,40 @@ src/
 │   ├── Marketplace.tsx
 │   ├── Mentorship.tsx
 │   ├── Staff.tsx
-│   ├── Assignments.tsx        # Skeleton - needs implementation
-│   ├── Resources.tsx          # Skeleton - needs implementation
+│   ├── StaffDetails.tsx       # Staff profile (/staff/:staffUserId)
+│   ├── Assignments.tsx        # Coach assignments with templates
+│   ├── Resources.tsx          # Shared files and documents
+│   ├── Schedule.tsx           # Practice times and rotation grid
+│   ├── Attendance.tsx         # Daily attendance and metrics
 │   ├── Settings.tsx
 │   ├── UserSettings.tsx
 │   ├── auth/                  # Login, Register
 │   ├── competitions/          # Competitions, CompetitionDetails
 │   ├── groups/                # Groups, GroupDetails
 │   └── hubs/                  # HubSelection
-├── components/                # 62+ components
+├── components/                # 80+ components
 │   ├── layout/
 │   │   ├── HubLayout.tsx      # Main app shell (Sidebar + Outlet)
 │   │   ├── RootLayout.tsx     # Root layout for hub selection
 │   │   ├── Sidebar.tsx        # Sport-specific sidebar router
 │   │   └── sports/GymnasticsSidebar.tsx  # Main navigation
 │   ├── auth/                  # ProtectedRoute
+│   ├── attendance/            # DailyAttendanceTab, AttendanceMetricsTab
+│   ├── assignments/           # CoachDashboard, TemplatesManager
 │   ├── calendar/              # Event modals
 │   ├── competitions/          # Session, roster, coach management
 │   ├── groups/                # Posts, attachments (polls, RSVPs, signups)
 │   ├── gymnast/               # Profile modal, injury reports
 │   ├── hubs/                  # Hub creation, member management
 │   ├── marketplace/           # Item listings, hub linking
-│   ├── mentorship/            # Pairing management
+│   ├── mentorship/            # Pairing management, random assignment
+│   ├── messages/              # AnonymousReportModal
+│   ├── roster/                # ManageLevelsModal
+│   ├── schedule/              # WeeklyScheduleTab, RotationGrid
 │   ├── scores/                # Score tables
 │   ├── skills/                # Skills matrix
-│   ├── staff/                 # Staff profiles
-│   └── ui/                    # Modal, PageLoader, CollapsibleSection
+│   ├── staff/                 # Staff profiles, schedules
+│   └── ui/                    # Modal, PageLoader, NotificationBadge
 ├── types/index.ts             # All TypeScript interfaces
 ├── hooks/                     # useFormSubmit, useToggleSelection
 └── lib/supabase.ts            # Supabase client singleton
@@ -135,6 +145,9 @@ Inputs:             border-slate-300 focus:border-brand-500 focus:ring-brand-500
 - `marketplace_items`, `marketplace_hub_links` - Marketplace
 - `mentorship_pairs`, `mentorship_events` - Big/Little program
 - `staff_profiles`, `staff_schedules`, `staff_responsibilities`, `staff_tasks`, `staff_time_off`, `staff_notes`
+- `practice_schedules`, `rotation_events`, `rotation_blocks` - Weekly schedule and daily rotations
+- `attendance_records` - Daily attendance tracking (status: present, late, left_early, absent)
+- `assignments`, `assignment_templates` - Coach assignments with template support
 
 ## Permission System
 - **Roles (hierarchical):** owner > director > admin > coach > parent > gymnast
