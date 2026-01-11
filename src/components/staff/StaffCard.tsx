@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from 'react-router-dom';
 import { Mail, Phone, Clock, CheckSquare, Calendar } from 'lucide-react';
 
 interface StaffMember {
@@ -25,10 +26,15 @@ interface StaffMember {
 interface StaffCardProps {
     member: StaffMember;
     getRoleBadgeColor: (role: string) => string;
-    onClick: () => void;
 }
 
-export function StaffCard({ member, getRoleBadgeColor, onClick }: StaffCardProps) {
+export function StaffCard({ member, getRoleBadgeColor }: StaffCardProps) {
+    const navigate = useNavigate();
+    const { hubId } = useParams();
+
+    const handleClick = () => {
+        navigate(`/hub/${hubId}/staff/${member.user_id}`);
+    };
     const initials = member.profile?.full_name
         ?.split(' ')
         .map(n => n[0])
@@ -41,7 +47,7 @@ export function StaffCard({ member, getRoleBadgeColor, onClick }: StaffCardProps
 
     return (
         <div
-            onClick={onClick}
+            onClick={handleClick}
             className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-lg hover:border-teal-300 transition-all cursor-pointer"
         >
             {/* Header */}

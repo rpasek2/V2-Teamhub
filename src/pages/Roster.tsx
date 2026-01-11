@@ -1,13 +1,22 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Users, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
+import { ManageLevelsModal } from '../components/roster/ManageLevelsModal';
 import type { GymnastProfile } from '../types';
 
 type SortColumn = 'id' | 'name' | 'role' | 'level' | 'guardian' | 'contact';
 type SortDirection = 'asc' | 'desc';
+
+interface ParentPrivacySettings {
+    user_id: string;
+    show_email: boolean;
+    show_phone: boolean;
+    show_gymnast_level: boolean;
+    show_gymnast_birthday: boolean;
+}
 
 
 
@@ -20,6 +29,7 @@ interface DisplayMember {
     level?: string;
     guardian_name?: string;
     guardian_phone?: string;
+    guardian_email?: string;
     type: 'hub_member' | 'gymnast_profile';
     full_profile?: GymnastProfile;
 }
@@ -34,11 +44,17 @@ export function Roster() {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState<TabType>('All');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [isManageLevelsOpen, setIsManageLevelsOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<DisplayMember | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [sortColumn, setSortColumn] = useState<SortColumn>('level');
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const menuRef = useRef<HTMLDivElement>(null);
+    const [privacySettings, setPrivacySettings] = useState<Map<string, ParentPrivacySettings>>(new Map());
+
+    // Check if current user is staff (can see all info regardless of privacy)
+    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+    const isParent = currentRole === 'parent';
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -61,17 +77,29 @@ export function Roster() {
 
     const fetchMembers = async () => {
         try {
-            // Run both queries in parallel
-            const [hubMembersResult, gymnastProfilesResult] = await Promise.all([
-                supabase
-                    .from('hub_members')
-                    .select(`user_id, role, profile:profiles (full_name, email)`)
-                    .eq('hub_id', hub?.id),
-                supabase
-                    .from('gymnast_profiles')
-                    .select('id, gymnast_id, first_name, last_name, gender, level, guardian_1, guardian_2')
+            // Run queries in parallel - include privacy settings if user is a parent
+            const hubMembersQuery = supabase
+                .from('hub_members')
+                .select(`user_id, role, profile:profiles (full_name, email)`)
+                .eq('hub_id', hub?.id);
+
+            const gymnastProfilesQuery = supabase
+                .from('gymnast_profiles')
+                .select('id, gymnast_id, first_name, last_name, gender, level, guardian_1, guardian_2')
+                .eq('hub_id', hub?.id)
+                .order('gymnast_id', { ascending: true });
+
+            const privacyQuery = isParent
+                ? supabase
+                    .from('parent_privacy_settings')
+                    .select('user_id, show_email, show_phone, show_gymnast_level, show_gymnast_birthday')
                     .eq('hub_id', hub?.id)
-                    .order('gymnast_id', { ascending: true })
+                : null;
+
+            const [hubMembersResult, gymnastProfilesResult, privacyResult] = await Promise.all([
+                hubMembersQuery,
+                gymnastProfilesQuery,
+                privacyQuery,
             ]);
 
             if (hubMembersResult.error) throw hubMembersResult.error;
@@ -79,6 +107,23 @@ export function Roster() {
 
             const hubMembersData = hubMembersResult.data;
             const gymnastProfilesData = gymnastProfilesResult.data;
+
+            // Build privacy settings map (keyed by guardian email for gymnast lookup)
+            if (privacyResult?.data) {
+                const settingsMap = new Map<string, ParentPrivacySettings>();
+                privacyResult.data.forEach((s: ParentPrivacySettings) => {
+                    settingsMap.set(s.user_id, s);
+                });
+                setPrivacySettings(settingsMap);
+            }
+
+            // Build a map of user emails to user IDs (for matching gymnast guardians to privacy settings)
+            const emailToUserId = new Map<string, string>();
+            (hubMembersData || []).forEach((m: any) => {
+                if (m.profile?.email) {
+                    emailToUserId.set(m.profile.email.toLowerCase(), m.user_id);
+                }
+            });
 
             // Combine both into DisplayMember format
             const hubMembers: DisplayMember[] = (hubMembersData || []).map((m: any) => ({
@@ -100,15 +145,18 @@ export function Roster() {
                     }
                 }
 
+                const guardianEmail = g.guardian_1?.email || '';
+
                 return {
                     id: g.id,
                     name: `${g.first_name} ${g.last_name}`,
-                    email: g.guardian_1?.email || '',
+                    email: guardianEmail,
                     role: 'gymnast',
                     gymnast_id: g.gymnast_id,
                     level: g.level || '',
                     guardian_name: guardianName || '-',
                     guardian_phone: g.guardian_1?.phone || '-',
+                    guardian_email: guardianEmail,
                     type: 'gymnast_profile' as const,
                     full_profile: g,
                 };
@@ -176,6 +224,62 @@ export function Roster() {
         return sortDirection === 'asc'
             ? <ChevronUp className="h-4 w-4 text-mint-600" />
             : <ChevronDown className="h-4 w-4 text-mint-600" />;
+    };
+
+    // Helper to check if we should show a field based on privacy settings
+    // Returns true if the field should be shown, false if hidden
+    const shouldShowField = (member: DisplayMember, field: 'email' | 'phone' | 'level'): boolean => {
+        // Staff always sees everything
+        if (isStaff) return true;
+
+        // If not a gymnast profile, show everything (hub members like parents don't have privacy settings)
+        if (member.type !== 'gymnast_profile') return true;
+
+        // If this is the parent's own linked gymnast, show everything
+        const isOwnGymnast = linkedGymnasts.some(g => g.id === member.id);
+        if (isOwnGymnast) return true;
+
+        // If parent is viewing another parent's gymnast, check privacy settings
+        // Find the parent user ID from the guardian email
+        const guardianEmail = member.guardian_email?.toLowerCase();
+        if (!guardianEmail) return true; // No guardian email, show by default
+
+        // Find parent's privacy settings by looking up their user_id via email match
+        // We need to find which hub_member has this email
+        const parentMember = members.find(m =>
+            m.type === 'hub_member' &&
+            m.role === 'parent' &&
+            m.email?.toLowerCase() === guardianEmail
+        );
+
+        if (!parentMember) return true; // No parent account found, show by default
+
+        const settings = privacySettings.get(parentMember.id);
+
+        // If no privacy settings, use defaults (email=false, phone=false, level=true)
+        if (!settings) {
+            return field === 'level'; // Default: only show level
+        }
+
+        switch (field) {
+            case 'email': return settings.show_email;
+            case 'phone': return settings.show_phone;
+            case 'level': return settings.show_gymnast_level;
+            default: return true;
+        }
+    };
+
+    // Render a field with privacy consideration
+    const renderPrivateField = (member: DisplayMember, field: 'email' | 'phone' | 'level', value: string | undefined) => {
+        if (shouldShowField(member, field)) {
+            return value || '-';
+        }
+        return (
+            <span className="flex items-center gap-1 text-slate-400" title="Hidden by parent's privacy settings">
+                <EyeOff className="h-3 w-3" />
+                <span className="text-xs">Hidden</span>
+            </span>
+        );
     };
 
     // Memoized filtering and sorting
@@ -263,7 +367,17 @@ export function Roster() {
                         Manage your team members, assign roles, and view contact info.
                     </p>
                 </div>
-                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+                <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
+                    {canManageMembers && (
+                        <button
+                            type="button"
+                            onClick={() => setIsManageLevelsOpen(true)}
+                            className="btn-secondary"
+                        >
+                            <Users className="h-4 w-4" />
+                            Manage Levels
+                        </button>
+                    )}
                     <button
                         type="button"
                         onClick={() => setIsAddModalOpen(true)}
@@ -384,15 +498,21 @@ export function Roster() {
                                 </thead>
                                 <tbody className="divide-y divide-slate-200 bg-white">
                                     {filteredMembers.length > 0 ? (
-                                        filteredMembers.map((member) => (
+                                        filteredMembers.map((member) => {
+                                            // Determine if user can click to view gymnast profile
+                                            // Staff can view all, parents can only view their linked gymnasts
+                                            const isOwnGymnast = member.type === 'gymnast_profile' && linkedGymnasts.some(g => g.id === member.id);
+                                            const canViewProfile = member.type === 'gymnast_profile' && (isStaff || isOwnGymnast);
+
+                                            return (
                                             <tr
                                                 key={member.id}
                                                 onClick={() => {
-                                                    if (member.type === 'gymnast_profile') {
+                                                    if (canViewProfile) {
                                                         navigate(`/hub/${hub?.id}/roster/${member.id}`);
                                                     }
                                                 }}
-                                                className={member.type === 'gymnast_profile' ? 'cursor-pointer hover:bg-slate-50' : ''}
+                                                className={canViewProfile ? 'cursor-pointer hover:bg-slate-50' : ''}
                                             >
                                                 <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm text-slate-500 sm:pl-6">
                                                     {member.type === 'gymnast_profile' ? member.gymnast_id : '-'}
@@ -404,15 +524,24 @@ export function Roster() {
                                                     {member.role}
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
-                                                    {member.level || '-'}
+                                                    {member.type === 'gymnast_profile'
+                                                        ? renderPrivateField(member, 'level', member.level)
+                                                        : (member.level || '-')
+                                                    }
                                                 </td>
                                                 <td className="whitespace-nowrap px-3 py-4 text-sm text-slate-500">
                                                     {member.guardian_name || '-'}
                                                 </td>
                                                 <td className="px-3 py-4 text-sm text-slate-500">
-                                                    <div>{member.type === 'gymnast_profile' ? member.guardian_phone : member.email}</div>
-                                                    {member.type === 'gymnast_profile' && member.email && (
-                                                        <div className="text-xs text-slate-400">{member.email}</div>
+                                                    {member.type === 'gymnast_profile' ? (
+                                                        <>
+                                                            <div>{renderPrivateField(member, 'phone', member.guardian_phone)}</div>
+                                                            {shouldShowField(member, 'email') && member.email && (
+                                                                <div className="text-xs text-slate-400">{member.email}</div>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <div>{member.email}</div>
                                                     )}
                                                 </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
@@ -460,7 +589,8 @@ export function Roster() {
                                                     )}
                                                 </td>
                                             </tr>
-                                        ))
+                                            );
+                                        })
                                     ) : (
                                         <tr>
                                             <td colSpan={7} className="py-8 text-center text-sm text-slate-500">
@@ -483,6 +613,17 @@ export function Roster() {
                 }}
                 onMemberAdded={fetchMembers}
                 initialData={editingMember}
+            />
+
+            <ManageLevelsModal
+                isOpen={isManageLevelsOpen}
+                onClose={() => setIsManageLevelsOpen(false)}
+                gymnasts={members
+                    .filter(m => m.type === 'gymnast_profile' && m.full_profile)
+                    .map(m => m.full_profile as GymnastProfile)}
+                levels={hub?.settings?.levels || []}
+                hubId={hub?.id || ''}
+                onUpdated={fetchMembers}
             />
         </div>
     );

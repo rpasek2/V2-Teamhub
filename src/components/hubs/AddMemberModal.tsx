@@ -32,8 +32,8 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
     const [level, setLevel] = useState('');
     const [memberId, setMemberId] = useState('');
     const [memberIdType, setMemberIdType] = useState<'USAG' | 'AAU' | 'Other' | ''>('');
-    const [tshirtSize, setTshirtSize] = useState<'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | ''>('');
-    const [leoSize, setLeoSize] = useState<'XS' | 'S' | 'M' | 'L' | 'XL' | 'AS' | 'AM' | 'AL' | 'AXL' | ''>('');
+    const [tshirtSize, setTshirtSize] = useState('');
+    const [leoSize, setLeoSize] = useState('');
 
     // Guardian 1
     const [g1FirstName, setG1FirstName] = useState('');
@@ -843,41 +843,79 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                                 </div>
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-4">
                                             <div>
                                                 <label className="block text-xs font-medium text-slate-600 mb-1.5">T-Shirt Size</label>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {['XS', 'S', 'M', 'L', 'XL', 'XXL'].map((size) => (
-                                                        <button
-                                                            key={size}
-                                                            type="button"
-                                                            onClick={() => setTshirtSize(tshirtSize === size ? '' : size as any)}
-                                                            className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-all ${tshirtSize === size
-                                                                    ? 'bg-brand-600 text-white border-brand-600'
-                                                                    : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
-                                                                }`}
-                                                        >
-                                                            {size}
-                                                        </button>
-                                                    ))}
+                                                <div className="space-y-1.5">
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        <span className="text-[10px] text-slate-400 w-full">Youth:</span>
+                                                        {['YXS', 'YS', 'YM', 'YL', 'YXL'].map((size) => (
+                                                            <button
+                                                                key={size}
+                                                                type="button"
+                                                                onClick={() => setTshirtSize(tshirtSize === size ? '' : size)}
+                                                                className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${tshirtSize === size
+                                                                        ? 'bg-brand-600 text-white border-brand-600'
+                                                                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
+                                                                    }`}
+                                                            >
+                                                                {size}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        <span className="text-[10px] text-slate-400 w-full">Adult:</span>
+                                                        {['AXS', 'AS', 'AM', 'AL', 'AXL', 'AXXL'].map((size) => (
+                                                            <button
+                                                                key={size}
+                                                                type="button"
+                                                                onClick={() => setTshirtSize(tshirtSize === size ? '' : size)}
+                                                                className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${tshirtSize === size
+                                                                        ? 'bg-brand-600 text-white border-brand-600'
+                                                                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
+                                                                    }`}
+                                                            >
+                                                                {size}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-medium text-slate-600 mb-1.5">Leo Size</label>
-                                                <div className="flex flex-wrap gap-1.5">
-                                                    {['XS', 'S', 'M', 'L', 'XL', 'AS', 'AM', 'AL', 'AXL'].map((size) => (
-                                                        <button
-                                                            key={size}
-                                                            type="button"
-                                                            onClick={() => setLeoSize(leoSize === size ? '' : size as any)}
-                                                            className={`px-2.5 py-1.5 text-xs font-medium rounded-md border transition-all ${leoSize === size
-                                                                    ? 'bg-brand-600 text-white border-brand-600'
-                                                                    : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
-                                                                }`}
-                                                        >
-                                                            {size}
-                                                        </button>
-                                                    ))}
+                                                <div className="space-y-1.5">
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        <span className="text-[10px] text-slate-400 w-full">Child:</span>
+                                                        {['CXXS', 'CXS', 'CS', 'CM', 'CL', 'CXL'].map((size) => (
+                                                            <button
+                                                                key={size}
+                                                                type="button"
+                                                                onClick={() => setLeoSize(leoSize === size ? '' : size)}
+                                                                className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${leoSize === size
+                                                                        ? 'bg-brand-600 text-white border-brand-600'
+                                                                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
+                                                                    }`}
+                                                            >
+                                                                {size}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        <span className="text-[10px] text-slate-400 w-full">Adult:</span>
+                                                        {['AXS', 'AS', 'AM', 'AL', 'AXL', 'AXXL', 'A3XL', 'A4XL'].map((size) => (
+                                                            <button
+                                                                key={size}
+                                                                type="button"
+                                                                onClick={() => setLeoSize(leoSize === size ? '' : size)}
+                                                                className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${leoSize === size
+                                                                        ? 'bg-brand-600 text-white border-brand-600'
+                                                                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
+                                                                    }`}
+                                                            >
+                                                                {size}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>

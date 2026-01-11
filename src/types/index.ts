@@ -30,7 +30,7 @@ export interface HubPermissions {
 }
 
 // Feature tabs that can be enabled/disabled per hub
-export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'skills' | 'marketplace' | 'groups' | 'mentorship' | 'staff' | 'assignments' | 'resources';
+export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'skills' | 'marketplace' | 'groups' | 'mentorship' | 'staff' | 'assignments' | 'resources' | 'schedule' | 'attendance';
 
 export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: string }[] = [
     { id: 'roster', label: 'Roster', description: 'View and manage gymnast profiles including contact info, emergency contacts, medical details, sizing, and parent/guardian information' },
@@ -45,6 +45,8 @@ export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: 
     { id: 'staff', label: 'Staff', description: 'Manage coach and staff profiles, work schedules, responsibilities, task assignments, time-off requests, and internal notes' },
     { id: 'assignments', label: 'Assignments', description: 'Manage daily practice assignments and workouts for gymnasts, track completions, and organize conditioning drills and training tasks by athlete' },
     { id: 'resources', label: 'Resources', description: 'Share documents, educational links, and team resources organized by category for easy access' },
+    { id: 'schedule', label: 'Schedule', description: 'Set up weekly practice schedules per level with A/B groups, and create daily rotation plans with drag-and-drop event blocks' },
+    { id: 'attendance', label: 'Attendance', description: 'Track daily attendance for gymnasts based on practice schedules, view metrics including attendance percentages by level, and monitor consecutive absence alerts' },
 ];
 
 export interface HubSettings {
@@ -304,6 +306,7 @@ export interface GymnastProfile {
     last_name: string;
     date_of_birth: string;
     level: string;
+    schedule_group: string | null; // For A/B schedule groups
     member_id: string;
     member_id_type: 'USAG' | 'AAU' | 'Other' | null;
     tshirt_size: 'XS' | 'S' | 'M' | 'L' | 'XL' | 'XXL' | null;
@@ -792,4 +795,127 @@ export interface UserHubNotification {
     resources_last_viewed_at: string | null;
     created_at: string;
     updated_at: string;
+}
+
+// ============================================
+// Schedule Types
+// ============================================
+
+// Weekly practice schedule for levels
+export interface PracticeSchedule {
+    id: string;
+    hub_id: string;
+    level: string;
+    schedule_group: string; // 'A', 'B', etc.
+    group_label: string | null; // Custom label like "Level 5A - Mon/Wed"
+    day_of_week: number; // 0 = Sunday, 6 = Saturday
+    start_time: string; // TIME format: "16:00:00"
+    end_time: string;
+    created_by: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+// Rotation events (activities like Vault, Bars, custom events)
+export interface RotationEvent {
+    id: string;
+    hub_id: string;
+    name: string;
+    color: string; // Hex color like "#10b981"
+    is_default: boolean;
+    display_order: number;
+    created_by: string | null;
+    created_at: string;
+}
+
+// Daily rotation blocks (tied to day of week, not specific dates)
+export interface RotationBlock {
+    id: string;
+    hub_id: string;
+    day_of_week: number; // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    level: string;
+    schedule_group: string;
+    rotation_event_id: string | null;
+    event_name: string | null; // Fallback if event is deleted
+    start_time: string; // TIME format: "16:00:00"
+    end_time: string;
+    color: string | null; // Override color, uses event color if null
+    notes: string | null;
+    coach_id: string | null; // Assigned coach
+    created_by: string | null;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    rotation_event?: RotationEvent;
+    coach?: { id: string; full_name: string };
+}
+
+// Color definitions for rotation events
+export const ROTATION_EVENT_COLORS: Record<string, { bg: string; border: string; text: string; hex: string }> = {
+    vault: { bg: 'bg-emerald-100', border: 'border-emerald-300', text: 'text-emerald-700', hex: '#10b981' },
+    bars: { bg: 'bg-sky-100', border: 'border-sky-300', text: 'text-sky-700', hex: '#0ea5e9' },
+    beam: { bg: 'bg-pink-100', border: 'border-pink-300', text: 'text-pink-700', hex: '#ec4899' },
+    floor: { bg: 'bg-amber-100', border: 'border-amber-300', text: 'text-amber-700', hex: '#f59e0b' },
+    strength: { bg: 'bg-red-100', border: 'border-red-300', text: 'text-red-700', hex: '#ef4444' },
+    flexibility: { bg: 'bg-violet-100', border: 'border-violet-300', text: 'text-violet-700', hex: '#8b5cf6' },
+    conditioning: { bg: 'bg-cyan-100', border: 'border-cyan-300', text: 'text-cyan-700', hex: '#06b6d4' },
+};
+
+// Default rotation events to seed for new hubs
+export const DEFAULT_ROTATION_EVENTS = [
+    { name: 'Vault', color: '#10b981', display_order: 0 },
+    { name: 'Bars', color: '#0ea5e9', display_order: 1 },
+    { name: 'Beam', color: '#ec4899', display_order: 2 },
+    { name: 'Floor', color: '#f59e0b', display_order: 3 },
+    { name: 'Strength', color: '#ef4444', display_order: 4 },
+    { name: 'Flexibility', color: '#8b5cf6', display_order: 5 },
+    { name: 'Conditioning', color: '#06b6d4', display_order: 6 },
+];
+
+// Day of week labels
+export const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+export const DAYS_OF_WEEK_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// ============================================
+// Attendance Types
+// ============================================
+
+export type AttendanceStatus = 'present' | 'absent' | 'late' | 'left_early';
+
+export interface AttendanceRecord {
+    id: string;
+    hub_id: string;
+    gymnast_profile_id: string;
+    attendance_date: string; // ISO date string
+    status: AttendanceStatus;
+    check_in_time: string | null;
+    check_out_time: string | null;
+    notes: string | null;
+    marked_by: string | null;
+    marked_at: string;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    gymnast_profile?: GymnastProfile;
+    marked_by_profile?: { id: string; full_name: string };
+}
+
+// Attendance metrics for a gymnast
+export interface AttendanceMetrics {
+    gymnast_profile_id: string;
+    total_scheduled: number;
+    total_present: number;
+    total_late: number;
+    total_absent: number;
+    total_left_early: number;
+    attendance_percentage: number;
+    consecutive_absences: number;
+}
+
+// Level-wide attendance metrics
+export interface LevelAttendanceMetrics {
+    level: string;
+    total_gymnasts: number;
+    average_attendance_percentage: number;
+    gymnasts_with_warnings: number; // 3+ consecutive absences
 }

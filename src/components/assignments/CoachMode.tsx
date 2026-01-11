@@ -362,7 +362,7 @@ export function CoachMode({ onNavigateToTemplates }: CoachModeProps) {
                                     <h3 className="text-base sm:text-lg font-semibold text-slate-900">{level}</h3>
                                     <div className="flex-1 h-px bg-slate-200" />
                                     {station && (
-                                        <span className="px-2 py-0.5 text-xs font-medium bg-amber-500/20 text-amber-400 rounded-full">
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
                                             Stations
                                         </span>
                                     )}
@@ -378,8 +378,8 @@ export function CoachMode({ onNavigateToTemplates }: CoachModeProps) {
                                     <div className={`${eventConfig.bg} rounded-lg border-2 ${eventConfig.border} p-4 mb-4`}>
                                         <div className="flex items-start justify-between gap-3 mb-3">
                                             <div className="flex items-center gap-2">
-                                                <LayoutGrid className="w-4 h-4 text-amber-500 flex-shrink-0" />
-                                                <span className="text-sm font-medium text-slate-300">
+                                                <LayoutGrid className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                                                <span className="text-sm font-medium text-slate-700">
                                                     {station.stations.length} Station{station.stations.length !== 1 ? 's' : ''}
                                                 </span>
                                             </div>
@@ -413,10 +413,10 @@ export function CoachMode({ onNavigateToTemplates }: CoachModeProps) {
                                                     {mainStation.side_stations && mainStation.side_stations.length > 0 && (
                                                         <div className="mt-2 pt-2 border-t border-slate-200 space-y-2">
                                                             {mainStation.side_stations.map((side, sideIndex) => (
-                                                                <div key={side.id} className="bg-amber-500/10 rounded p-2 border border-amber-500/20">
+                                                                <div key={side.id} className="bg-amber-50 rounded p-2 border border-amber-200">
                                                                     <div className="flex items-center gap-1 mb-1">
-                                                                        <ChevronRight className="w-3 h-3 text-amber-500 flex-shrink-0" />
-                                                                        <span className="text-xs font-medium text-amber-400">Side {sideIndex + 1}</span>
+                                                                        <ChevronRight className="w-3 h-3 text-amber-600 flex-shrink-0" />
+                                                                        <span className="text-xs font-medium text-amber-700">Side {sideIndex + 1}</span>
                                                                     </div>
                                                                     <div className="text-xs text-slate-600 whitespace-pre-wrap pl-4">
                                                                         {side.content}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { HeartHandshake, Plus, Search, Filter, Loader2, Calendar, Users, Shuffle } from 'lucide-react';
+import { HeartHandshake, Plus, Search, Loader2, Calendar, Users, Shuffle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { PairingCard } from '../components/mentorship/PairingCard';
@@ -21,7 +21,6 @@ interface CalendarMentorshipEvent {
 }
 
 type MobileTab = 'pairings' | 'events';
-type StatusFilter = 'all' | 'active' | 'inactive';
 
 interface LittleWithCompetition {
     id: string; // pairing id for deletion
@@ -41,13 +40,12 @@ export interface GroupedPairing {
 
 export function Mentorship() {
     const { hubId } = useParams();
-    const { currentRole, getPermissionScope, linkedGymnasts } = useHub();
+    const { hub, currentRole, getPermissionScope, linkedGymnasts } = useHub();
 
     const [groupedPairings, setGroupedPairings] = useState<GroupedPairing[]>([]);
     const [events, setEvents] = useState<CalendarMentorshipEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<StatusFilter>('active');
     const [mobileTab, setMobileTab] = useState<MobileTab>('pairings');
     const [showCreatePairingModal, setShowCreatePairingModal] = useState(false);
     const [showCreateEventModal, setShowCreateEventModal] = useState(false);
@@ -73,10 +71,10 @@ export function Mentorship() {
     }, [groupedPairings, mentorshipScope, linkedGymnasts]);
 
     useEffect(() => {
-        if (hubId) {
+        if (hubId && hub) {
             fetchData();
         }
-    }, [hubId]);
+    }, [hubId, hub]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -158,7 +156,20 @@ export function Mentorship() {
             });
         });
 
-        setGroupedPairings(Array.from(groupedMap.values()));
+        // Sort by big gymnast's level using hub's level order
+        const levelOrder = (hub?.settings?.levels as string[]) || [];
+        const sortedPairings = Array.from(groupedMap.values()).sort((a, b) => {
+            const levelA = a.big_gymnast?.level || '';
+            const levelB = b.big_gymnast?.level || '';
+            const indexA = levelOrder.indexOf(levelA);
+            const indexB = levelOrder.indexOf(levelB);
+            // If level not found in order, put at the end
+            const orderA = indexA === -1 ? levelOrder.length : indexA;
+            const orderB = indexB === -1 ? levelOrder.length : indexB;
+            return orderA - orderB;
+        });
+
+        setGroupedPairings(sortedPairings);
     };
 
     const fetchEvents = async () => {
@@ -229,11 +240,8 @@ export function Mentorship() {
         }
     };
 
-    // Filter visible pairings by search and status
+    // Filter visible pairings by search
     const filteredPairings = visiblePairings.filter(group => {
-        // Status filter
-        if (statusFilter !== 'all' && group.status !== statusFilter) return false;
-
         // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase();
@@ -328,30 +336,16 @@ export function Mentorship() {
                                 )}
                             </div>
 
-                            {/* Search and Filter */}
-                            <div className="flex flex-col sm:flex-row gap-3">
-                                <div className="relative flex-1">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                    <input
-                                        type="text"
-                                        placeholder="Search by name..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        className="input w-full pl-10"
-                                    />
-                                </div>
-                                <div className="relative">
-                                    <Filter className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                                    <select
-                                        value={statusFilter}
-                                        onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                                        className="pl-10 pr-8 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent appearance-none bg-white text-slate-900"
-                                    >
-                                        <option value="active">Active</option>
-                                        <option value="inactive">Inactive</option>
-                                        <option value="all">All</option>
-                                    </select>
-                                </div>
+                            {/* Search */}
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search by name..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="input w-full pl-10"
+                                />
                             </div>
                         </div>
 

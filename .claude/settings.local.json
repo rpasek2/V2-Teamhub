@@ -48,7 +48,10 @@
       "Bash(powershell -Command:*)",
       "Skill(frontend-design)",
       "Bash(wc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__apply_migration"
     ],
     "deny": [],
     "ask": []

@@ -94,6 +94,28 @@ export function GymnastDetails() {
     };
 
     // Permission checks
+    const isStaff = useMemo(() => {
+        const staffRoles = ['owner', 'director', 'admin', 'coach'];
+        return currentRole ? staffRoles.includes(currentRole) : false;
+    }, [currentRole]);
+
+    const isOwnGymnast = useMemo(() => {
+        return linkedGymnasts.some(g => g.id === gymnastId);
+    }, [linkedGymnasts, gymnastId]);
+
+    // Check if user can access this gymnast profile at all
+    // Staff can view all, parents can only view their linked gymnasts
+    const canAccessProfile = useMemo(() => {
+        return isStaff || isOwnGymnast;
+    }, [isStaff, isOwnGymnast]);
+
+    // Redirect if user doesn't have access
+    useEffect(() => {
+        if (!loading && !canAccessProfile && hub) {
+            navigate(`/hub/${hub.id}/roster`, { replace: true });
+        }
+    }, [loading, canAccessProfile, hub, navigate]);
+
     const canViewMedical = useMemo(() => {
         if (!gymnast) return false;
         const staffRoles = ['owner', 'director', 'admin', 'coach'];
@@ -284,6 +306,15 @@ export function GymnastDetails() {
         return (
             <div className="animate-fade-in p-8">
                 <div className="text-slate-400">Loading gymnast profile...</div>
+            </div>
+        );
+    }
+
+    // If user doesn't have access, show access denied (they will be redirected)
+    if (!canAccessProfile) {
+        return (
+            <div className="animate-fade-in p-8">
+                <div className="text-slate-500">You don't have permission to view this profile.</div>
             </div>
         );
     }

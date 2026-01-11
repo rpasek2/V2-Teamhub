@@ -4,7 +4,6 @@ import { Users, Search, Loader2, LayoutGrid, UsersRound, UserPlus } from 'lucide
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { StaffCard } from '../components/staff/StaffCard';
-import { StaffProfileModal } from '../components/staff/StaffProfileModal';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
 import { TeamViewDashboard } from '../components/staff/TeamViewDashboard';
 
@@ -41,7 +40,6 @@ export function Staff() {
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
-    const [selectedStaff, setSelectedStaff] = useState<StaffMember | null>(null);
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [activeTab, setActiveTab] = useState<ViewTab>('individual');
 
@@ -295,23 +293,12 @@ export function Staff() {
                                     key={member.user_id}
                                     member={member}
                                     getRoleBadgeColor={getRoleBadgeColor}
-                                    onClick={() => setSelectedStaff(member)}
                                 />
                             ))}
                         </div>
                     )}
                 </div>
             </div>
-
-            {/* Staff Profile Modal */}
-            {selectedStaff && (
-                <StaffProfileModal
-                    isOpen={!!selectedStaff}
-                    onClose={() => setSelectedStaff(null)}
-                    staffMember={selectedStaff}
-                    onUpdate={fetchStaffMembers}
-                />
-            )}
 
             {/* Invite Staff Modal */}
             {showInviteModal && (

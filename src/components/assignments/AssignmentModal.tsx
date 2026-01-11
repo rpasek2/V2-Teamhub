@@ -603,7 +603,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                                     {station.side_stations.length < 3 && (
                                                         <button
                                                             onClick={() => addSideStation(station.id)}
-                                                            className="text-[10px] text-amber-500 hover:text-amber-400 flex items-center gap-0.5"
+                                                            className="text-[10px] text-amber-600 hover:text-amber-700 flex items-center gap-0.5"
                                                         >
                                                             <Plus className="w-2.5 h-2.5" />
                                                             Add
@@ -618,9 +618,9 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                                 ) : (
                                                     <div className="space-y-1.5">
                                                         {station.side_stations.map((side, sideIdx) => (
-                                                            <div key={side.id} className="bg-amber-500/10 rounded p-2 border border-amber-500/20">
+                                                            <div key={side.id} className="bg-amber-50 rounded p-2 border border-amber-200">
                                                                 <div className="flex items-center justify-between mb-1">
-                                                                    <span className="text-[10px] font-medium text-amber-400">Side {sideIdx + 1}</span>
+                                                                    <span className="text-[10px] font-medium text-amber-700">Side {sideIdx + 1}</span>
                                                                     <button
                                                                         onClick={() => removeSideStation(station.id, side.id)}
                                                                         className="p-0.5 text-slate-400 hover:text-error-400"

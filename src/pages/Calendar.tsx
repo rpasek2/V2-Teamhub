@@ -205,7 +205,7 @@ export function Calendar() {
         return birthdays.filter(b => b.date === monthDay);
     };
 
-    // Fetch birthdays from gymnast profiles
+    // Fetch birthdays from gymnast profiles (respecting parent privacy settings)
     const fetchBirthdays = async () => {
         if (!hub || !showBirthdays) {
             setBirthdays([]);
@@ -213,20 +213,65 @@ export function Calendar() {
         }
 
         try {
-            const { data, error } = await supabase
-                .from('gymnast_profiles')
-                .select('id, first_name, last_name, date_of_birth')
-                .eq('hub_id', hub.id)
-                .not('date_of_birth', 'is', null);
+            // Fetch gymnast profiles with birthdays (including guardian email for privacy lookup)
+            const [gymnastResult, membersResult, privacyResult] = await Promise.all([
+                supabase
+                    .from('gymnast_profiles')
+                    .select('id, first_name, last_name, date_of_birth, guardian_1')
+                    .eq('hub_id', hub.id)
+                    .not('date_of_birth', 'is', null),
+                supabase
+                    .from('hub_members')
+                    .select('user_id, profile:profiles(email)')
+                    .eq('hub_id', hub.id)
+                    .eq('role', 'parent'),
+                supabase
+                    .from('parent_privacy_settings')
+                    .select('user_id, show_gymnast_birthday')
+                    .eq('hub_id', hub.id)
+            ]);
 
-            if (error) throw error;
+            if (gymnastResult.error) throw gymnastResult.error;
 
-            const birthdayData: Birthday[] = (data || []).map(g => ({
-                id: g.id,
-                name: `${g.first_name} ${g.last_name}`.trim(),
-                date: format(parseISO(g.date_of_birth), 'MM-dd'),
-                fullDate: g.date_of_birth
-            }));
+            const gymnasts = gymnastResult.data || [];
+            const parentMembers = membersResult.data || [];
+            const privacySettings = privacyResult.data || [];
+
+            // Build email -> user_id map for parents
+            const emailToUserId = new Map<string, string>();
+            parentMembers.forEach((m: any) => {
+                if (m.profile?.email) {
+                    emailToUserId.set(m.profile.email.toLowerCase(), m.user_id);
+                }
+            });
+
+            // Build user_id -> privacy settings map
+            const userPrivacyMap = new Map<string, boolean>();
+            privacySettings.forEach((p: any) => {
+                userPrivacyMap.set(p.user_id, p.show_gymnast_birthday ?? false);
+            });
+
+            // Filter gymnasts based on parent privacy settings
+            const birthdayData: Birthday[] = gymnasts
+                .filter(g => {
+                    // Get the guardian's email
+                    const guardianEmail = g.guardian_1?.email?.toLowerCase();
+                    if (!guardianEmail) return false; // No guardian email, can't verify privacy
+
+                    // Find the parent's user_id
+                    const parentUserId = emailToUserId.get(guardianEmail);
+                    if (!parentUserId) return false; // Parent not found in hub, don't show
+
+                    // Check privacy settings (default to false if no settings exist)
+                    const showBirthday = userPrivacyMap.get(parentUserId) ?? false;
+                    return showBirthday;
+                })
+                .map(g => ({
+                    id: g.id,
+                    name: `${g.first_name} ${g.last_name}`.trim(),
+                    date: format(parseISO(g.date_of_birth), 'MM-dd'),
+                    fullDate: g.date_of_birth
+                }));
 
             setBirthdays(birthdayData);
         } catch (err) {

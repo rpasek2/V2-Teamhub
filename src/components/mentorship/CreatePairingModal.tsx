@@ -21,7 +21,6 @@ export function CreatePairingModal({ isOpen, onClose, onCreated, hubId }: Create
     const [gymnasts, setGymnasts] = useState<GymnastProfile[]>([]);
     const [bigGymnastId, setBigGymnastId] = useState('');
     const [littleGymnastIds, setLittleGymnastIds] = useState<string[]>([]);
-    const [pairedDate, setPairedDate] = useState(new Date().toISOString().split('T')[0]);
     const [notes, setNotes] = useState('');
 
     const [bigSearch, setBigSearch] = useState('');
@@ -37,7 +36,6 @@ export function CreatePairingModal({ isOpen, onClose, onCreated, hubId }: Create
     const resetForm = () => {
         setBigGymnastId('');
         setLittleGymnastIds([]);
-        setPairedDate(new Date().toISOString().split('T')[0]);
         setNotes('');
         setBigSearch('');
         setLittleSearch('');
@@ -81,7 +79,6 @@ export function CreatePairingModal({ isOpen, onClose, onCreated, hubId }: Create
             hub_id: hubId,
             big_gymnast_id: bigGymnastId,
             little_gymnast_id: littleId,
-            paired_date: pairedDate,
             notes: notes || null,
             created_by: user?.id
         }));
@@ -240,20 +237,6 @@ export function CreatePairingModal({ isOpen, onClose, onCreated, hubId }: Create
                             <p className="mt-1 text-xs text-slate-500">
                                 {littleGymnastIds.length} gymnast{littleGymnastIds.length !== 1 ? 's' : ''} selected
                             </p>
-                        </div>
-
-                        {/* Paired Date */}
-                        <div>
-                            <label htmlFor="pairedDate" className="block text-sm font-medium text-slate-700 mb-1">
-                                Paired Date
-                            </label>
-                            <input
-                                type="date"
-                                id="pairedDate"
-                                value={pairedDate}
-                                onChange={(e) => setPairedDate(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                            />
                         </div>
 
                         {/* Notes */}

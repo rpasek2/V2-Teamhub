@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, type LucideIcon } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
@@ -101,6 +101,8 @@ export function GymnasticsSidebar() {
         { name: 'Mentorship', href: `/hub/${hubId}/mentorship`, icon: HeartHandshake, permission: 'mentorship', tabId: 'mentorship' as HubFeatureTab },
         { name: 'Assignments', href: `/hub/${hubId}/assignments`, icon: ClipboardCheck, permission: 'assignments', tabId: 'assignments' as HubFeatureTab },
         { name: 'Resources', href: `/hub/${hubId}/resources`, icon: FolderOpen, permission: 'resources', tabId: 'resources' as HubFeatureTab },
+        { name: 'Schedule', href: `/hub/${hubId}/schedule`, icon: CalendarClock, permission: 'schedule', tabId: 'schedule' as HubFeatureTab },
+        { name: 'Attendance', href: `/hub/${hubId}/attendance`, icon: UserCheck, permission: 'attendance', tabId: 'attendance' as HubFeatureTab },
         { name: 'Staff', href: `/hub/${hubId}/staff`, icon: UserCog, permission: 'staff', tabId: 'staff' as HubFeatureTab },
         { name: 'Settings', href: `/hub/${hubId}/settings`, icon: Settings2, permission: 'settings', tabId: null },
     ];
@@ -116,9 +118,10 @@ export function GymnasticsSidebar() {
     const filteredNavigation = navigation.filter(item => {
         if (item.name === 'Dashboard') return true;
         if (item.name === 'Settings') {
-            return ['owner', 'director', 'admin'].includes(currentRole || '');
+            // Show settings to admins (hub management) and parents (privacy settings)
+            return ['owner', 'director', 'admin', 'parent'].includes(currentRole || '');
         }
-        if (item.name === 'Staff') {
+        if (item.name === 'Staff' || item.name === 'Schedule' || item.name === 'Attendance') {
             const isStaffRole = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
             return isStaffRole && isTabEnabled(item.tabId);
         }
@@ -198,7 +201,7 @@ export function GymnasticsSidebar() {
                                 to={item.href}
                                 title={!isExpanded ? item.name : undefined}
                                 className={clsx(
-                                    "group flex items-center rounded-lg text-sm font-medium transition-all duration-150 py-2.5 mx-1",
+                                    "group flex items-center rounded-lg text-sm font-medium py-2.5 mx-1",
                                     isActive
                                         ? 'bg-slate-100 text-slate-900'
                                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -213,7 +216,7 @@ export function GymnasticsSidebar() {
                                     )}
                                     <item.icon
                                         className={clsx(
-                                            "h-[18px] w-[18px] transition-all duration-150",
+                                            "h-[18px] w-[18px]",
                                             isActive
                                                 ? 'text-mint-600'
                                                 : 'text-slate-400 group-hover:text-slate-600'
@@ -259,7 +262,7 @@ export function GymnasticsSidebar() {
                 <Link
                     to="/settings"
                     title={!isExpanded ? userProfile?.full_name || 'Profile' : undefined}
-                    className="group flex items-center rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all duration-150 py-2.5 mx-1"
+                    className="group flex items-center rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 py-2.5 mx-1"
                 >
                     <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 ml-1.5">
                         {userProfile?.avatar_url ? (
@@ -290,11 +293,11 @@ export function GymnasticsSidebar() {
                 <button
                     onClick={() => signOut()}
                     title={!isExpanded ? "Sign out" : undefined}
-                    className="group flex w-full items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-error-100 hover:text-error-600 transition-all duration-150 py-2.5 mx-1"
+                    className="group flex w-full items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-error-100 hover:text-error-600 py-2.5 mx-1"
                 >
                     <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 ml-1.5">
                         <LogOut
-                            className="h-[18px] w-[18px] text-slate-400 group-hover:text-error-600 transition-colors"
+                            className="h-[18px] w-[18px] text-slate-400 group-hover:text-error-600"
                             aria-hidden="true"
                         />
                     </div>

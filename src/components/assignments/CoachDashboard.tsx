@@ -29,7 +29,7 @@ export function CoachDashboard() {
     const [expandedEvents, setExpandedEvents] = useState<Set<AssignmentEventType>>(new Set());
 
     const dateString = format(date, 'yyyy-MM-dd');
-    const { assignments } = useAssignments({
+    const { assignments, loading } = useAssignments({
         hubId: hub?.id,
         date: dateString
     });
@@ -197,6 +197,25 @@ export function CoachDashboard() {
             eventStats
         };
     }, [allAssignments, levels]);
+
+    // Show loading skeleton while data loads
+    if (loading && loadingAllAssignments) {
+        return (
+            <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="h-10 bg-slate-200 rounded-lg w-64 animate-pulse" />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="card p-4 animate-pulse">
+                            <div className="h-8 bg-slate-200 rounded w-12 mb-2" />
+                            <div className="h-3 bg-slate-200 rounded w-16" />
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

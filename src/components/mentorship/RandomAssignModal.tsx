@@ -171,7 +171,6 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
                 hub_id: hubId,
                 big_gymnast_id: p.big_gymnast_id,
                 little_gymnast_id: p.little_gymnast_id,
-                paired_date: new Date().toISOString().split('T')[0],
                 notes: 'Randomly assigned',
                 created_by: user?.id,
                 status: 'active'

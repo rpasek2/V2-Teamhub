@@ -21,8 +21,11 @@ const Skills = lazy(() => import('./pages/Skills').then(m => ({ default: m.Skill
 const Marketplace = lazy(() => import('./pages/Marketplace'));
 const Mentorship = lazy(() => import('./pages/Mentorship').then(m => ({ default: m.Mentorship })));
 const Staff = lazy(() => import('./pages/Staff').then(m => ({ default: m.Staff })));
+const StaffDetails = lazy(() => import('./pages/StaffDetails').then(m => ({ default: m.StaffDetails })));
 const Assignments = lazy(() => import('./pages/Assignments').then(m => ({ default: m.Assignments })));
 const Resources = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
+const Schedule = lazy(() => import('./pages/Schedule').then(m => ({ default: m.Schedule })));
+const Attendance = lazy(() => import('./pages/Attendance').then(m => ({ default: m.Attendance })));
 const GymnastDetails = lazy(() => import('./pages/GymnastDetails').then(m => ({ default: m.GymnastDetails })));
 const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./pages/auth/Register').then(m => ({ default: m.Register })));
@@ -64,7 +67,10 @@ function App() {
                 <Route path="mentorship" element={<Mentorship />} />
                 <Route path="assignments" element={<Assignments />} />
                 <Route path="resources" element={<Resources />} />
+                <Route path="schedule" element={<Schedule />} />
+                <Route path="attendance" element={<Attendance />} />
                 <Route path="staff" element={<Staff />} />
+                <Route path="staff/:staffUserId" element={<StaffDetails />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>

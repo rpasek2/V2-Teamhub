@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHub } from '../context/HubContext';
 import { supabase } from '../lib/supabase';
-import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, LayoutGrid, Info, AlertTriangle, Calendar, Cake } from 'lucide-react';
+import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, LayoutGrid, Info, AlertTriangle, Calendar, Cake, ShieldAlert, Mail, Phone, Award } from 'lucide-react';
 import type { HubPermissions, RolePermissions, PermissionScope, HubInvite, HubRole, HubFeatureTab } from '../types';
 import { HUB_FEATURE_TABS } from '../types';
 import { LinkedHubsSettings } from '../components/marketplace/LinkedHubsSettings';
 import { CollapsibleSection } from '../components/ui/CollapsibleSection';
 import { DeleteHubModal } from '../components/hubs/DeleteHubModal';
+import { useAuth } from '../context/AuthContext';
 
 const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'marketplace', 'groups', 'mentorship'] as const;
 const ROLES = ['admin', 'coach', 'parent'] as const;
@@ -21,9 +22,31 @@ interface HubChannel {
     created_at: string;
 }
 
+interface ParentPrivacySettingsData {
+    show_email: boolean;
+    show_phone: boolean;
+    show_gymnast_level: boolean;
+    show_gymnast_birthday: boolean;
+}
+
+const DEFAULT_PRIVACY_SETTINGS: ParentPrivacySettingsData = {
+    show_email: false,
+    show_phone: false,
+    show_gymnast_level: true,
+    show_gymnast_birthday: false,
+};
+
 export function Settings() {
     const navigate = useNavigate();
     const { hub, currentRole, refreshHub } = useHub();
+    const { user } = useAuth();
+
+    // Parent privacy settings state
+    const [privacySettings, setPrivacySettings] = useState<ParentPrivacySettingsData>(DEFAULT_PRIVACY_SETTINGS);
+    const [loadingPrivacy, setLoadingPrivacy] = useState(true);
+    const [savingPrivacy, setSavingPrivacy] = useState(false);
+    const [privacyMessage, setPrivacyMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [hasExistingPrivacyRecord, setHasExistingPrivacyRecord] = useState(false);
 
     // Delete hub modal state
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -64,6 +87,11 @@ export function Settings() {
     const [savingCalendarSettings, setSavingCalendarSettings] = useState(false);
     const [calendarSettingsMessage, setCalendarSettingsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
+    // Messaging settings state
+    const [anonymousReportsEnabled, setAnonymousReportsEnabled] = useState(true);
+    const [savingMessagingSettings, setSavingMessagingSettings] = useState(false);
+    const [messagingSettingsMessage, setMessagingSettingsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
     useEffect(() => {
         if (hub?.settings?.permissions) {
             setPermissions(hub.settings.permissions);
@@ -102,13 +130,107 @@ export function Settings() {
             setShowBirthdays(false);
         }
 
+        // Load messaging settings
+        if (hub?.settings?.anonymous_reports_enabled !== undefined) {
+            setAnonymousReportsEnabled(hub.settings.anonymous_reports_enabled);
+        } else {
+            setAnonymousReportsEnabled(true); // Default to enabled
+        }
+
         // Load channels, invites, and owner info
         if (hub) {
             fetchChannels();
             fetchInvites();
             fetchOwnerInfo();
         }
-    }, [hub]);
+
+        // Load parent privacy settings if user is a parent
+        if (hub && user && currentRole === 'parent') {
+            fetchPrivacySettings();
+        }
+    }, [hub, user, currentRole]);
+
+    // Fetch parent privacy settings
+    const fetchPrivacySettings = async () => {
+        if (!hub || !user) return;
+        setLoadingPrivacy(true);
+
+        try {
+            const { data, error } = await supabase
+                .from('parent_privacy_settings')
+                .select('*')
+                .eq('hub_id', hub.id)
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (data) {
+                setPrivacySettings({
+                    show_email: data.show_email ?? false,
+                    show_phone: data.show_phone ?? false,
+                    show_gymnast_level: data.show_gymnast_level ?? true,
+                    show_gymnast_birthday: data.show_gymnast_birthday ?? false,
+                });
+                setHasExistingPrivacyRecord(true);
+            } else {
+                setPrivacySettings(DEFAULT_PRIVACY_SETTINGS);
+                setHasExistingPrivacyRecord(false);
+            }
+        } catch (error) {
+            console.error('Error fetching privacy settings:', error);
+        } finally {
+            setLoadingPrivacy(false);
+        }
+    };
+
+    // Save parent privacy settings
+    const handleSavePrivacy = async () => {
+        if (!hub || !user) return;
+        setSavingPrivacy(true);
+        setPrivacyMessage(null);
+
+        try {
+            if (hasExistingPrivacyRecord) {
+                const { error } = await supabase
+                    .from('parent_privacy_settings')
+                    .update({
+                        ...privacySettings,
+                        updated_at: new Date().toISOString(),
+                    })
+                    .eq('hub_id', hub.id)
+                    .eq('user_id', user.id);
+
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('parent_privacy_settings')
+                    .insert({
+                        hub_id: hub.id,
+                        user_id: user.id,
+                        ...privacySettings,
+                    });
+
+                if (error) throw error;
+                setHasExistingPrivacyRecord(true);
+            }
+
+            setPrivacyMessage({ type: 'success', text: 'Privacy settings saved!' });
+        } catch (error) {
+            console.error('Error saving privacy settings:', error);
+            setPrivacyMessage({ type: 'error', text: 'Failed to save settings.' });
+        } finally {
+            setSavingPrivacy(false);
+        }
+    };
+
+    // Toggle a privacy setting
+    const handlePrivacyToggle = (key: keyof ParentPrivacySettingsData) => {
+        setPrivacySettings(prev => ({
+            ...prev,
+            [key]: !prev[key],
+        }));
+    };
 
     const fetchOwnerInfo = async () => {
         if (!hub) return;
@@ -270,14 +392,14 @@ export function Settings() {
 
     const getRoleColor = (role: HubRole) => {
         const colors: Record<HubRole, string> = {
-            owner: 'bg-purple-900/50 text-purple-300',
-            director: 'bg-indigo-900/50 text-indigo-300',
-            admin: 'bg-blue-900/50 text-blue-300',
-            coach: 'bg-green-900/50 text-green-300',
-            parent: 'bg-amber-900/50 text-amber-300',
-            gymnast: 'bg-pink-900/50 text-pink-300'
+            owner: 'bg-purple-100 text-purple-700',
+            director: 'bg-indigo-100 text-indigo-700',
+            admin: 'bg-blue-100 text-blue-700',
+            coach: 'bg-green-100 text-green-700',
+            parent: 'bg-amber-100 text-amber-700',
+            gymnast: 'bg-pink-100 text-pink-700'
         };
-        return colors[role] || 'bg-slate-700 text-slate-300';
+        return colors[role] || 'bg-slate-100 text-slate-600';
     };
 
     const handleAddChannel = async () => {
@@ -496,6 +618,254 @@ export function Settings() {
         }
     };
 
+    const handleToggleAnonymousReports = async () => {
+        if (!hub) return;
+        setSavingMessagingSettings(true);
+        setMessagingSettingsMessage(null);
+
+        const newValue = !anonymousReportsEnabled;
+
+        try {
+            const updatedSettings = {
+                ...hub.settings,
+                anonymous_reports_enabled: newValue
+            };
+
+            const { error } = await supabase
+                .from('hubs')
+                .update({ settings: updatedSettings })
+                .eq('id', hub.id);
+
+            if (error) throw error;
+
+            setAnonymousReportsEnabled(newValue);
+            await refreshHub();
+            setMessagingSettingsMessage({ type: 'success', text: `Anonymous reports ${newValue ? 'enabled' : 'disabled'}.` });
+        } catch (err: unknown) {
+            console.error('Error saving messaging settings:', err);
+            setMessagingSettingsMessage({ type: 'error', text: 'Failed to save messaging settings.' });
+        } finally {
+            setSavingMessagingSettings(false);
+        }
+    };
+
+    // Check if user is a parent (shows different settings)
+    const isParent = currentRole === 'parent';
+
+    // Parent Settings View
+    if (isParent) {
+        return (
+            <div className="space-y-4">
+                <div>
+                    <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
+                    <p className="text-slate-500">Manage your privacy and preferences.</p>
+                </div>
+
+                {/* Privacy Settings for Parents */}
+                <CollapsibleSection
+                    title="Privacy Settings"
+                    icon={Shield}
+                    defaultOpen={true}
+                    description="Control what other parents can see about you"
+                >
+                    {loadingPrivacy ? (
+                        <div className="flex items-center justify-center py-8">
+                            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                        </div>
+                    ) : (
+                        <>
+                            {privacyMessage && (
+                                <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${
+                                    privacyMessage.type === 'success'
+                                        ? 'bg-green-50 text-green-700 border border-green-200'
+                                        : 'bg-red-50 text-red-700 border border-red-200'
+                                }`}>
+                                    {privacyMessage.type === 'success' && <Check className="h-4 w-4" />}
+                                    {privacyMessage.text}
+                                </div>
+                            )}
+
+                            <p className="text-sm text-slate-600 mb-4">
+                                Your gymnast's name and your name are always visible to other parents in this hub.
+                                Choose what additional information you'd like to share:
+                            </p>
+
+                            <div className="space-y-3">
+                                {/* Email Toggle */}
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-blue-100 rounded-lg">
+                                            <Mail className="h-4 w-4 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900">Email Address</p>
+                                            <p className="text-xs text-slate-500">Allow other parents to see your email</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={privacySettings.show_email}
+                                        onClick={() => handlePrivacyToggle('show_email')}
+                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                                            privacySettings.show_email ? 'bg-brand-600' : 'bg-slate-200'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                privacySettings.show_email ? 'translate-x-5' : 'translate-x-0'
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* Phone Toggle */}
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-green-100 rounded-lg">
+                                            <Phone className="h-4 w-4 text-green-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900">Phone Number</p>
+                                            <p className="text-xs text-slate-500">Allow other parents to see your phone number</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={privacySettings.show_phone}
+                                        onClick={() => handlePrivacyToggle('show_phone')}
+                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                                            privacySettings.show_phone ? 'bg-brand-600' : 'bg-slate-200'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                privacySettings.show_phone ? 'translate-x-5' : 'translate-x-0'
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* Level Toggle */}
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-purple-100 rounded-lg">
+                                            <Award className="h-4 w-4 text-purple-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900">Gymnast's Level</p>
+                                            <p className="text-xs text-slate-500">Allow other parents to see your gymnast's level</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={privacySettings.show_gymnast_level}
+                                        onClick={() => handlePrivacyToggle('show_gymnast_level')}
+                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                                            privacySettings.show_gymnast_level ? 'bg-brand-600' : 'bg-slate-200'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                privacySettings.show_gymnast_level ? 'translate-x-5' : 'translate-x-0'
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+
+                                {/* Birthday Toggle */}
+                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-pink-100 rounded-lg">
+                                            <Cake className="h-4 w-4 text-pink-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-medium text-slate-900">Gymnast's Birthday</p>
+                                            <p className="text-xs text-slate-500">Allow other parents to see your gymnast's birthday</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={privacySettings.show_gymnast_birthday}
+                                        onClick={() => handlePrivacyToggle('show_gymnast_birthday')}
+                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                                            privacySettings.show_gymnast_birthday ? 'bg-brand-600' : 'bg-slate-200'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                privacySettings.show_gymnast_birthday ? 'translate-x-5' : 'translate-x-0'
+                                            }`}
+                                        />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-4">
+                                <button
+                                    type="button"
+                                    onClick={handleSavePrivacy}
+                                    disabled={savingPrivacy}
+                                    className="btn-primary disabled:opacity-50"
+                                >
+                                    {savingPrivacy ? (
+                                        <>
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Save className="h-4 w-4" />
+                                            Save Settings
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </CollapsibleSection>
+
+                {/* Hub Information for Parents */}
+                <CollapsibleSection
+                    title="Hub Information"
+                    icon={Info}
+                    description="Information about this hub"
+                >
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-500">Hub Name</label>
+                            <div className="mt-1 text-sm text-slate-900">{hub?.name}</div>
+                        </div>
+                        {ownerInfo && (
+                            <>
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-500">Owner</label>
+                                    <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-900">
+                                        <User className="h-4 w-4 text-slate-400" />
+                                        {ownerInfo.name}
+                                    </div>
+                                </div>
+                                {ownerInfo.organization && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-500">Organization</label>
+                                        <div className="mt-1 flex items-center gap-1.5 text-sm text-slate-900">
+                                            <Building2 className="h-4 w-4 text-slate-400" />
+                                            {ownerInfo.organization}
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </CollapsibleSection>
+            </div>
+        );
+    }
+
+    // Owner/Admin/Coach Settings View (original view)
     return (
         <div className="space-y-4">
             <div>
@@ -569,7 +939,7 @@ export function Settings() {
                     }
                 >
                     {tabsMessage && (
-                        <div className={`mb-4 p-4 rounded-md ${tabsMessage.type === 'success' ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                        <div className={`mb-4 p-4 rounded-md ${tabsMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
                             {tabsMessage.text}
                         </div>
                     )}
@@ -662,6 +1032,52 @@ export function Settings() {
                 </CollapsibleSection>
             )}
 
+            {/* Messaging Settings Section - Owner only */}
+            {currentRole === 'owner' && (
+                <CollapsibleSection
+                    title="Messaging Settings"
+                    icon={MessageSquare}
+                    description="Configure messaging and reporting options"
+                >
+                    {messagingSettingsMessage && (
+                        <div className={`mb-4 p-4 rounded-md ${messagingSettingsMessage.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                            {messagingSettingsMessage.text}
+                        </div>
+                    )}
+
+                    <div className="space-y-4">
+                        {/* Anonymous Reports Toggle */}
+                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-purple-100 rounded-lg">
+                                    <ShieldAlert className="h-5 w-5 text-purple-600" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900">Anonymous Reports</p>
+                                    <p className="text-xs text-slate-500">Allow members to submit anonymous reports to you</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={anonymousReportsEnabled}
+                                onClick={handleToggleAnonymousReports}
+                                disabled={savingMessagingSettings}
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 ${
+                                    anonymousReportsEnabled ? 'bg-brand-600' : 'bg-slate-200'
+                                }`}
+                            >
+                                <span
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                        anonymousReportsEnabled ? 'translate-x-5' : 'translate-x-0'
+                                    }`}
+                                />
+                            </button>
+                        </div>
+                    </div>
+                </CollapsibleSection>
+            )}
+
             {/* Invite Codes Section */}
             {canManagePermissions && (
                 <CollapsibleSection
@@ -670,7 +1086,7 @@ export function Settings() {
                     description="Create invite codes to allow new members to join your hub"
                 >
                     {invitesMessage && (
-                        <div className={`mb-4 p-4 rounded-md ${invitesMessage.type === 'success' ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                        <div className={`mb-4 p-4 rounded-md ${invitesMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
                             {invitesMessage.text}
                         </div>
                     )}
@@ -811,7 +1227,7 @@ export function Settings() {
                     }
                 >
                     {levelsMessage && (
-                        <div className={`mb-4 p-4 rounded-md ${levelsMessage.type === 'success' ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                        <div className={`mb-4 p-4 rounded-md ${levelsMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
                             {levelsMessage.text}
                         </div>
                     )}
@@ -902,7 +1318,7 @@ export function Settings() {
                     description="Manage hub-wide channels that all members can access"
                 >
                     {channelsMessage && (
-                        <div className={`mb-4 p-4 rounded-md ${channelsMessage.type === 'success' ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                        <div className={`mb-4 p-4 rounded-md ${channelsMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
                             {channelsMessage.text}
                         </div>
                     )}
@@ -1005,7 +1421,7 @@ export function Settings() {
                     }
                 >
                     {message && (
-                        <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-900/30 text-green-400' : 'bg-red-900/30 text-red-400'}`}>
+                        <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
                             {message.text}
                         </div>
                     )}

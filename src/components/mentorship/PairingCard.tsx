@@ -177,8 +177,8 @@ export function PairingCard({ groupedPairing, onDeleteLittle, onDeleteGroup }: P
                 )}
 
                 {/* Big Gymnast Section */}
-                <div className="flex items-center gap-3">
-                    <div className="flex-shrink-0 w-24">
+                <div className="flex items-stretch gap-3">
+                    <div className="flex-shrink-0 w-24 flex items-center">
                         <BigGymnastInfo
                             gymnast={big_gymnast}
                             nextCompetition={big_next_competition}
@@ -196,8 +196,8 @@ export function PairingCard({ groupedPairing, onDeleteLittle, onDeleteGroup }: P
                     <div className="flex-1 min-w-0">
                         {/* Little(s) Badge - centered above the grid */}
                         <div className="flex items-center justify-center gap-1.5 mb-2">
-                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-wide" style={{ backgroundColor: '#db2777', color: 'white' }}>
-                                <Heart className="h-3 w-3" />
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide" style={{ backgroundColor: '#db2777', color: 'white' }}>
+                                <Heart className="h-2.5 w-2.5" />
                                 LITTLE{littles.length > 1 ? 'S' : ''}
                             </span>
                             {littles.length > 1 && (
