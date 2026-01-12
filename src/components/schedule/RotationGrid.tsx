@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams } from 'react-router-dom';
-import { X, User, Loader2, Link, Unlink } from 'lucide-react';
+import { X, User, Loader2, Link, Unlink, GripVertical } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import type { RotationBlock, RotationEvent } from '../../types';
@@ -11,6 +11,7 @@ interface ActiveLevel {
     schedule_group: string;
     start_time: string;
     end_time: string;
+    is_external_group?: boolean;
 }
 
 interface Coach {
@@ -28,6 +29,8 @@ interface RotationGridProps {
     onBlockDeleted: (blockId: string) => void;
     onBlockUpdated: () => void;
     canManage: boolean;
+    columnOrder?: number[]; // Custom order of columns by index
+    onColumnOrderChange?: (newOrder: number[]) => void;
 }
 
 interface DragState {
@@ -35,6 +38,11 @@ interface DragState {
     scheduleGroup: string;
     startRow: number;
     endRow: number;
+}
+
+interface ColumnDragState {
+    draggedIndex: number;
+    targetIndex: number | null;
 }
 
 // A combined group represents multiple levels merged into one column
@@ -56,7 +64,9 @@ export function RotationGrid({
     onBlockCreated,
     onBlockDeleted,
     onBlockUpdated,
-    canManage
+    canManage,
+    columnOrder,
+    onColumnOrderChange
 }: RotationGridProps) {
     const { hubId } = useParams();
     const { user } = useAuth();
@@ -67,9 +77,68 @@ export function RotationGrid({
     const [savingCoach, setSavingCoach] = useState(false);
     const gridRef = useRef<HTMLDivElement>(null);
 
+    // Column reordering drag state
+    const [columnDragState, setColumnDragState] = useState<ColumnDragState | null>(null);
+
+    // Column drag handlers
+    const handleColumnDragStart = (e: React.DragEvent, index: number) => {
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', index.toString());
+        setColumnDragState({ draggedIndex: index, targetIndex: null });
+    };
+
+    const handleColumnDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (columnDragState && columnDragState.draggedIndex !== index) {
+            setColumnDragState({ ...columnDragState, targetIndex: index });
+        }
+    };
+
+    const handleColumnDragEnd = () => {
+        setColumnDragState(null);
+    };
+
+    const handleColumnDrop = (e: React.DragEvent, targetIndex: number) => {
+        e.preventDefault();
+        const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+
+        if (draggedIndex === targetIndex || isNaN(draggedIndex)) {
+            setColumnDragState(null);
+            return;
+        }
+
+        // Calculate new order
+        const currentOrder = columnOrder && columnOrder.length === activeLevels.length
+            ? [...columnOrder]
+            : activeLevels.map((_, i) => i);
+
+        const [removed] = currentOrder.splice(draggedIndex, 1);
+        currentOrder.splice(targetIndex, 0, removed);
+
+        onColumnOrderChange?.(currentOrder);
+        setColumnDragState(null);
+    };
+
     // Track which columns are combined (stored as sets of indices that are merged together)
     // e.g., [[0,1,2], [3,4]] means levels 0,1,2 are combined, and levels 3,4 are combined
     const [combinedIndices, setCombinedIndices] = useState<number[][]>([]);
+
+    // Get ordered levels based on columnOrder prop or default order
+    const orderedLevels = useMemo(() => {
+        if (!columnOrder || columnOrder.length !== activeLevels.length) {
+            return activeLevels;
+        }
+        return columnOrder.map(i => activeLevels[i]);
+    }, [activeLevels, columnOrder]);
+
+    // Map from ordered index to original index
+    const orderedToOriginal = useMemo(() => {
+        if (!columnOrder || columnOrder.length !== activeLevels.length) {
+            return activeLevels.map((_, i) => i);
+        }
+        return columnOrder;
+    }, [activeLevels, columnOrder]);
 
     // Combine two adjacent columns
     const combineColumns = (leftIndex: number) => {
@@ -429,10 +498,12 @@ export function RotationGrid({
                         <div className="w-20 flex-shrink-0 px-2 py-3 text-sm font-semibold text-slate-700">
                             Time
                         </div>
-                        {activeLevels.map((level, idx) => {
-                            const isCombinedWithPrev = idx > 0 && areColumnsCombined(idx - 1, idx);
-                            const isCombinedWithNext = idx < activeLevels.length - 1 &&
-                                areColumnsCombined(idx, idx + 1);
+                        {orderedLevels.map((level, displayIdx) => {
+                            // Map display index back to original index for combine/split logic
+                            const originalIdx = orderedToOriginal[displayIdx];
+                            const isCombinedWithPrev = originalIdx > 0 && areColumnsCombined(originalIdx - 1, originalIdx);
+                            const isCombinedWithNext = originalIdx < activeLevels.length - 1 &&
+                                areColumnsCombined(originalIdx, originalIdx + 1);
 
                             // Skip rendering if this column is combined with previous (it's collapsed)
                             if (isCombinedWithPrev) {
@@ -440,29 +511,56 @@ export function RotationGrid({
                             }
 
                             // Get all levels in this combined group for display
-                            const combinedGroup = combinedIndices.find(g => g.includes(idx));
+                            const combinedGroup = combinedIndices.find(g => g.includes(originalIdx));
                             const groupLevels = combinedGroup
                                 ? combinedGroup.map(i => activeLevels[i])
                                 : [level];
                             const displayName = groupLevels.map(l => l.level).join('/');
+                            const isExternal = groupLevels.some(l => l.is_external_group);
+
+                            const isDragging = columnDragState?.draggedIndex === displayIdx;
+                            const isDragTarget = columnDragState?.targetIndex === displayIdx;
 
                             return (
                                 <div
                                     key={`${level.level}-${level.schedule_group}`}
-                                    className="flex-1 min-w-[120px] flex items-center border-l border-slate-200"
+                                    draggable={canManage}
+                                    onDragStart={(e) => handleColumnDragStart(e, displayIdx)}
+                                    onDragOver={(e) => handleColumnDragOver(e, displayIdx)}
+                                    onDragEnd={handleColumnDragEnd}
+                                    onDrop={(e) => handleColumnDrop(e, displayIdx)}
+                                    className={`flex-1 min-w-[120px] flex items-center border-l border-slate-200 transition-all ${
+                                        isExternal ? 'bg-purple-50/50' : ''
+                                    } ${isDragging ? 'opacity-50' : ''} ${
+                                        isDragTarget ? 'border-l-4 border-l-brand-500' : ''
+                                    } ${canManage ? 'cursor-grab active:cursor-grabbing' : ''}`}
                                 >
+                                    {/* Drag handle */}
+                                    {canManage && (
+                                        <div className="flex-shrink-0 pl-1 text-slate-400 hover:text-slate-600">
+                                            <GripVertical className="w-4 h-4" />
+                                        </div>
+                                    )}
                                     <div className="flex-1 px-2 py-3 text-center">
-                                        <span className="font-semibold text-slate-700">{displayName}</span>
+                                        <span className={`font-semibold ${isExternal ? 'text-purple-700' : 'text-slate-700'}`}>
+                                            {displayName}
+                                        </span>
                                         {level.schedule_group !== 'A' && (
                                             <span className="ml-1 text-xs text-indigo-600">
                                                 ({level.schedule_group})
                                             </span>
                                         )}
+                                        {isExternal && (
+                                            <span className="ml-1 text-xs text-purple-500">ext</span>
+                                        )}
                                     </div>
                                     {/* Combine/Split button between columns */}
-                                    {canManage && idx < activeLevels.length - 1 && (
+                                    {canManage && originalIdx < activeLevels.length - 1 && (
                                         <button
-                                            onClick={() => isCombinedWithNext ? splitColumns(idx) : combineColumns(idx)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                isCombinedWithNext ? splitColumns(originalIdx) : combineColumns(originalIdx);
+                                            }}
                                             className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded transition-colors ${
                                                 isCombinedWithNext
                                                     ? 'bg-brand-100 text-brand-600 hover:bg-brand-200'
@@ -548,20 +646,20 @@ export function RotationGrid({
                                     {groupBlocks.map(block => {
                                         const style = getBlockStyle(block);
                                         const blockHeight = style.height as number;
-                                        // Priority: event name (always) > coach name (if height >= 48) > time (if height >= 72)
-                                        const showCoach = blockHeight >= 48 && block.coach;
-                                        const showTimeRange = blockHeight >= 72;
+                                        // Priority: event name (always) > coach name (if height >= 56) > time (if height >= 80)
+                                        const showCoach = blockHeight >= 56 && block.coach;
+                                        const showTimeRange = blockHeight >= 80;
                                         return (
                                             <div
                                                 key={block.id}
                                                 onClick={(e) => handleBlockClick(e, block)}
-                                                className={`absolute left-1 right-1 rounded border-2 px-2 py-1 text-xs font-medium overflow-hidden group flex flex-col ${
+                                                className={`absolute left-1 right-1 rounded border-2 px-2.5 py-1.5 overflow-hidden group flex flex-col ${
                                                     canManage ? 'cursor-pointer hover:brightness-95' : ''
                                                 }`}
                                                 style={style}
                                             >
                                                 <div className="flex items-start justify-between flex-shrink-0">
-                                                    <span className="truncate">
+                                                    <span className="text-sm font-semibold truncate">
                                                         {block.event_name || block.rotation_event?.name || 'Event'}
                                                     </span>
                                                     {canManage && (
@@ -569,18 +667,18 @@ export function RotationGrid({
                                                             onClick={(e) => handleDeleteBlock(e, block.id)}
                                                             className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-white/50 rounded transition-opacity flex-shrink-0"
                                                         >
-                                                            <X className="w-3 h-3" />
+                                                            <X className="w-4 h-4" />
                                                         </button>
                                                     )}
                                                 </div>
                                                 {showCoach && (
-                                                    <div className="text-[10px] opacity-75 truncate flex items-center gap-1">
-                                                        <User className="w-2.5 h-2.5 flex-shrink-0" />
+                                                    <div className="text-xs opacity-80 truncate flex items-center gap-1.5 mt-0.5">
+                                                        <User className="w-3.5 h-3.5 flex-shrink-0" />
                                                         {getFirstName(block.coach!.full_name)}
                                                     </div>
                                                 )}
                                                 {showTimeRange && (
-                                                    <div className="mt-auto text-[10px] opacity-75">
+                                                    <div className="mt-auto text-xs font-medium opacity-80">
                                                         {formatBlockTime(block.start_time)} - {formatBlockTime(block.end_time)}
                                                     </div>
                                                 )}

@@ -49,7 +49,7 @@ npm run lint
 | **Mentorship** | Big/Little pairing with random assignment and event tracking |
 | **Assignments** | Coach-mode assignments with templates and progress tracking |
 | **Resources** | Shared files and documents organized by category |
-| **Schedule** | Weekly practice times by level/group with daily rotation grid |
+| **Schedule** | Weekly practice times by level/group with daily rotation grid, fullscreen mode, external groups support, drag-to-reorder columns |
 | **Attendance** | Daily attendance tracking with metrics and absence warnings |
 | **Staff** | Staff profiles, schedules, responsibilities, time-off requests |
 | **Settings** | Hub configuration, permissions, feature toggles |

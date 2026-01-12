@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Loader2, Grid3X3 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Loader2, Grid3X3, Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useAuth } from '../../context/AuthContext';
@@ -33,6 +34,19 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
     const [loading, setLoading] = useState(true);
     const [selectedEvent, setSelectedEvent] = useState<RotationEvent | null>(null);
     const [showCustomEventModal, setShowCustomEventModal] = useState(false);
+    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [columnOrder, setColumnOrder] = useState<number[]>([]);
+
+    // Handle ESC key to exit fullscreen
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape' && isFullscreen) {
+                setIsFullscreen(false);
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isFullscreen]);
 
     useEffect(() => {
         if (hubId) {
@@ -152,14 +166,28 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                         level: schedule.level,
                         schedule_group: schedule.schedule_group,
                         start_time: schedule.start_time,
-                        end_time: schedule.end_time
+                        end_time: schedule.end_time,
+                        is_external_group: schedule.is_external_group || false
                     });
                 }
                 return acc;
-            }, new Map<string, { level: string; schedule_group: string; start_time: string; end_time: string }>());
+            }, new Map<string, { level: string; schedule_group: string; start_time: string; end_time: string; is_external_group: boolean }>());
 
-        return Array.from(levelsWithPractice.values());
+        // Sort: roster levels first, then external groups
+        const result = Array.from(levelsWithPractice.values());
+        result.sort((a, b) => {
+            if (a.is_external_group !== b.is_external_group) {
+                return a.is_external_group ? 1 : -1;
+            }
+            return a.level.localeCompare(b.level);
+        });
+        return result;
     }, [practiceSchedules, selectedDayOfWeek]);
+
+    // Reset column order when the number of active levels changes
+    useEffect(() => {
+        setColumnOrder(activeLevelsForDay.map((_, i) => i));
+    }, [activeLevelsForDay.length, selectedDayOfWeek]);
 
     const handleBlockCreated = async () => {
         await fetchBlocksForDay();
@@ -195,6 +223,120 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
         setShowCustomEventModal(false);
     };
 
+    const goToPreviousDay = useCallback(() => {
+        setSelectedDayOfWeek(prev => (prev === 0 ? 6 : prev - 1));
+    }, []);
+
+    const goToNextDay = useCallback(() => {
+        setSelectedDayOfWeek(prev => (prev === 6 ? 0 : prev + 1));
+    }, []);
+
+    // Fullscreen view component
+    const FullscreenView = () => {
+        if (!isFullscreen) return null;
+
+        return createPortal(
+            <div className="fixed inset-0 z-50 bg-white flex flex-col">
+                {/* Fullscreen Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={goToPreviousDay}
+                            className="p-2 rounded-lg hover:bg-slate-200 text-slate-600"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <div className="text-center">
+                            <h1 className="text-2xl font-bold text-slate-900">
+                                {DAYS_OF_WEEK[selectedDayOfWeek]} Rotations
+                            </h1>
+                        </div>
+                        <button
+                            onClick={goToNextDay}
+                            className="p-2 rounded-lg hover:bg-slate-200 text-slate-600"
+                        >
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        {/* Day quick-select in fullscreen */}
+                        <div className="hidden sm:flex bg-slate-100 rounded-lg p-1">
+                            {DAYS_OF_WEEK.map((day, index) => (
+                                <button
+                                    key={day}
+                                    onClick={() => setSelectedDayOfWeek(index)}
+                                    className={`px-3 py-1.5 text-sm font-medium rounded-md ${
+                                        selectedDayOfWeek === index
+                                            ? 'bg-white text-brand-700 shadow-sm'
+                                            : 'text-slate-600 hover:text-slate-900'
+                                    }`}
+                                >
+                                    {day.slice(0, 3)}
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            onClick={() => setIsFullscreen(false)}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-medium"
+                        >
+                            <Minimize2 className="w-4 h-4" />
+                            <span className="hidden sm:inline">Exit Fullscreen</span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Fullscreen Content */}
+                <div className="flex-1 overflow-auto p-6">
+                    {activeLevelsForDay.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                            <div className="text-center">
+                                <Grid3X3 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                                <h3 className="text-xl font-medium text-slate-900 mb-2">No practice scheduled</h3>
+                                <p className="text-slate-500">
+                                    {DAYS_OF_WEEK[selectedDayOfWeek]} has no practice times set.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <RotationGrid
+                            dayOfWeek={selectedDayOfWeek}
+                            activeLevels={activeLevelsForDay}
+                            blocks={rotationBlocks}
+                            selectedEvent={selectedEvent}
+                            coaches={coaches}
+                            onBlockCreated={handleBlockCreated}
+                            onBlockDeleted={handleBlockDeleted}
+                            onBlockUpdated={handleBlockUpdated}
+                            canManage={canManage}
+                            columnOrder={columnOrder}
+                            onColumnOrderChange={setColumnOrder}
+                        />
+                    )}
+                </div>
+
+                {/* Fullscreen Footer - Event palette for editing */}
+                {canManage && activeLevelsForDay.length > 0 && (
+                    <div className="border-t border-slate-200 bg-slate-50 px-6 py-3">
+                        <EventPalette
+                            events={rotationEvents}
+                            selectedEvent={selectedEvent}
+                            onSelectEvent={setSelectedEvent}
+                            onAddCustom={() => setShowCustomEventModal(true)}
+                            onEventUpdated={handleEventCreated}
+                            canManage={canManage}
+                        />
+                    </div>
+                )}
+
+                {/* ESC hint */}
+                <div className="absolute bottom-4 left-4 text-xs text-slate-400">
+                    Press ESC to exit fullscreen
+                </div>
+            </div>,
+            document.body
+        );
+    };
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
@@ -206,7 +348,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
     return (
         <div className="space-y-6">
             {/* Day of Week Selector */}
-            <div className="flex items-center justify-center">
+            <div className="flex items-center justify-center gap-4">
                 <div className="inline-flex bg-slate-100 rounded-lg p-1">
                     {DAYS_OF_WEEK.map((day, index) => (
                         <button
@@ -222,6 +364,14 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                         </button>
                     ))}
                 </div>
+                <button
+                    onClick={() => setIsFullscreen(true)}
+                    className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+                    title="Fullscreen view"
+                >
+                    <Maximize2 className="w-4 h-4" />
+                    <span className="text-sm font-medium hidden sm:inline">Fullscreen</span>
+                </button>
             </div>
 
             {/* Day Title */}
@@ -230,7 +380,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                     {DAYS_OF_WEEK[selectedDayOfWeek]} Rotations
                 </h2>
                 <p className="text-sm text-slate-500">
-                    Set up the rotation schedule for every {DAYS_OF_WEEK[selectedDayOfWeek]}
+                    {canManage ? 'Set up the rotation schedule for every' : 'Rotation schedule for every'} {DAYS_OF_WEEK[selectedDayOfWeek]}
                 </p>
             </div>
 
@@ -265,6 +415,8 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                     onBlockDeleted={handleBlockDeleted}
                     onBlockUpdated={handleBlockUpdated}
                     canManage={canManage}
+                    columnOrder={columnOrder}
+                    onColumnOrderChange={setColumnOrder}
                 />
             )}
 
@@ -276,6 +428,9 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                     onSaved={handleEventCreated}
                 />
             )}
+
+            {/* Fullscreen View Portal */}
+            <FullscreenView />
         </div>
     );
 }

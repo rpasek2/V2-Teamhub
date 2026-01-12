@@ -77,18 +77,45 @@ export function WeeklyScheduleTab({ canManage }: WeeklyScheduleTabProps) {
             groupMap.get(key)!.schedules.push(schedule);
         });
 
-        // Sort by level order from hub settings, then by group
+        // Sort: roster levels first (by hub settings order), then external groups alphabetically
         groups.sort((a, b) => {
-            const aIndex = levels.indexOf(a.level);
-            const bIndex = levels.indexOf(b.level);
-            const aOrder = aIndex === -1 ? 999 : aIndex;
-            const bOrder = bIndex === -1 ? 999 : bIndex;
-            if (aOrder !== bOrder) return aOrder - bOrder;
+            const aIsExternal = a.schedules[0]?.is_external_group || false;
+            const bIsExternal = b.schedules[0]?.is_external_group || false;
+
+            // External groups go after roster levels
+            if (aIsExternal !== bIsExternal) {
+                return aIsExternal ? 1 : -1;
+            }
+
+            // Within roster levels, sort by hub settings order
+            if (!aIsExternal) {
+                const aIndex = levels.indexOf(a.level);
+                const bIndex = levels.indexOf(b.level);
+                const aOrder = aIndex === -1 ? 999 : aIndex;
+                const bOrder = bIndex === -1 ? 999 : bIndex;
+                if (aOrder !== bOrder) return aOrder - bOrder;
+            }
+
+            // Alphabetically within external groups, or same order roster levels
+            if (a.level !== b.level) {
+                return a.level.localeCompare(b.level);
+            }
             return a.schedule_group.localeCompare(b.schedule_group);
         });
 
         return groups;
     }, [schedules, levels]);
+
+    // Get unique external group names for autocomplete suggestions
+    const externalGroups = useMemo(() => {
+        const groups = new Set<string>();
+        schedules.forEach(s => {
+            if (s.is_external_group) {
+                groups.add(s.level);
+            }
+        });
+        return Array.from(groups).sort();
+    }, [schedules]);
 
     const handleDeleteSchedule = async (id: string) => {
         const { error } = await supabase
@@ -186,13 +213,20 @@ export function WeeklyScheduleTab({ canManage }: WeeklyScheduleTabProps) {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
-                                {levelGroups.map((group) => (
-                                    <tr key={`${group.level}-${group.schedule_group}`} className="hover:bg-slate-50">
+                                {levelGroups.map((group) => {
+                                    const isExternal = group.schedules[0]?.is_external_group || false;
+                                    return (
+                                    <tr key={`${group.level}-${group.schedule_group}`} className={`hover:bg-slate-50 ${isExternal ? 'bg-purple-50/30' : ''}`}>
                                         <td className="px-4 py-3">
                                             <div>
                                                 <span className="font-medium text-slate-900">
                                                     {group.level}
                                                 </span>
+                                                {isExternal && (
+                                                    <span className="ml-2 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+                                                        External
+                                                    </span>
+                                                )}
                                                 {group.schedule_group !== 'A' && (
                                                     <span className="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded">
                                                         Group {group.schedule_group}
@@ -243,7 +277,8 @@ export function WeeklyScheduleTab({ canManage }: WeeklyScheduleTabProps) {
                                             );
                                         })}
                                     </tr>
-                                ))}
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -252,10 +287,14 @@ export function WeeklyScheduleTab({ canManage }: WeeklyScheduleTabProps) {
 
             {/* Legend */}
             {levelGroups.length > 0 && (
-                <div className="flex items-center gap-4 text-sm text-slate-500">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
                     <span className="flex items-center gap-2">
                         <span className="px-2 py-0.5 bg-indigo-100 text-indigo-700 text-xs font-medium rounded">Group B</span>
                         <span>= Alternate schedule group</span>
+                    </span>
+                    <span className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">External</span>
+                        <span>= Groups outside this hub's roster</span>
                     </span>
                 </div>
             )}
@@ -272,6 +311,7 @@ export function WeeklyScheduleTab({ canManage }: WeeklyScheduleTabProps) {
                     editingSchedule={editingSchedule}
                     levels={levels}
                     existingSchedules={schedules}
+                    externalGroups={externalGroups}
                 />
             )}
 

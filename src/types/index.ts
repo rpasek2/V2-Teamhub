@@ -811,6 +811,7 @@ export interface PracticeSchedule {
     day_of_week: number; // 0 = Sunday, 6 = Saturday
     start_time: string; // TIME format: "16:00:00"
     end_time: string;
+    is_external_group: boolean; // True for groups not in hub roster (e.g., Preteam, Boys, Xcel)
     created_by: string | null;
     created_at: string;
     updated_at: string;

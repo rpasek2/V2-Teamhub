@@ -14,6 +14,7 @@ interface AddPracticeModalProps {
     editingSchedule: PracticeSchedule | null;
     levels: string[];
     existingSchedules: PracticeSchedule[];
+    externalGroups?: string[];
 }
 
 export function AddPracticeModal({
@@ -22,12 +23,18 @@ export function AddPracticeModal({
     onSaved,
     editingSchedule,
     levels,
-    existingSchedules
+    existingSchedules,
+    externalGroups = []
 }: AddPracticeModalProps) {
     const { hubId } = useParams();
     const { user } = useAuth();
 
+    // Determine if editing an external group
+    const isEditingExternal = editingSchedule?.is_external_group || false;
+
+    const [isExternalGroup, setIsExternalGroup] = useState(isEditingExternal);
     const [level, setLevel] = useState(editingSchedule?.level || levels[0] || '');
+    const [customLevel, setCustomLevel] = useState(isEditingExternal ? editingSchedule?.level || '' : '');
     const [scheduleGroup, setScheduleGroup] = useState(editingSchedule?.schedule_group || 'A');
     const [groupLabel, setGroupLabel] = useState(editingSchedule?.group_label || '');
     // For editing, use single day; for adding, allow multiple days
@@ -55,7 +62,14 @@ export function AddPracticeModal({
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!hubId || !level) return;
+
+        // Determine the actual level to use
+        const actualLevel = isExternalGroup ? customLevel.trim() : level;
+
+        if (!hubId || !actualLevel) {
+            setError(isExternalGroup ? 'Please enter a group name' : 'Please select a level');
+            return;
+        }
 
         setError('');
         setSaving(true);
@@ -78,7 +92,7 @@ export function AddPracticeModal({
         const conflictingDays: string[] = [];
         for (const dayOfWeek of selectedDays) {
             const conflicting = existingSchedules.find(
-                s => s.level === level &&
+                s => s.level === actualLevel &&
                     s.schedule_group === scheduleGroup &&
                     s.day_of_week === dayOfWeek &&
                     s.id !== editingSchedule?.id
@@ -89,7 +103,7 @@ export function AddPracticeModal({
         }
 
         if (conflictingDays.length > 0) {
-            setError(`A schedule already exists for ${level} Group ${scheduleGroup} on ${conflictingDays.join(', ')}`);
+            setError(`A schedule already exists for ${actualLevel} Group ${scheduleGroup} on ${conflictingDays.join(', ')}`);
             setSaving(false);
             return;
         }
@@ -98,12 +112,13 @@ export function AddPracticeModal({
             // Update single schedule
             const scheduleData = {
                 hub_id: hubId,
-                level,
+                level: actualLevel,
                 schedule_group: scheduleGroup,
                 group_label: groupLabel.trim() || null,
                 day_of_week: selectedDays[0],
                 start_time: startTime + ':00',
                 end_time: endTime + ':00',
+                is_external_group: isExternalGroup,
                 updated_at: new Date().toISOString()
             };
 
@@ -122,12 +137,13 @@ export function AddPracticeModal({
             // Insert multiple schedules (one per selected day)
             const schedulesToInsert = selectedDays.map(dayOfWeek => ({
                 hub_id: hubId,
-                level,
+                level: actualLevel,
                 schedule_group: scheduleGroup,
                 group_label: groupLabel.trim() || null,
                 day_of_week: dayOfWeek,
                 start_time: startTime + ':00',
                 end_time: endTime + ':00',
+                is_external_group: isExternalGroup,
                 created_by: user?.id,
             }));
 
@@ -166,25 +182,86 @@ export function AddPracticeModal({
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Level */}
+                    {/* Group Type Toggle */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
-                            Level *
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Group Type
                         </label>
-                        <select
-                            value={level}
-                            onChange={(e) => setLevel(e.target.value)}
-                            required
-                            className="input w-full"
-                        >
-                            {levels.length === 0 && (
-                                <option value="">No levels configured</option>
-                            )}
-                            {levels.map((lvl) => (
-                                <option key={lvl} value={lvl}>{lvl}</option>
-                            ))}
-                        </select>
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setIsExternalGroup(false)}
+                                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    !isExternalGroup
+                                        ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
+                                        : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                }`}
+                            >
+                                Roster Level
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setIsExternalGroup(true)}
+                                className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                    isExternalGroup
+                                        ? 'bg-purple-100 text-purple-700 border-2 border-purple-300'
+                                        : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                }`}
+                            >
+                                External Group
+                            </button>
+                        </div>
+                        <p className="text-xs text-slate-500 mt-1">
+                            {isExternalGroup
+                                ? 'Add groups not in this hub (e.g., Preteam, Boys, Xcel)'
+                                : 'Select a level from your hub roster'}
+                        </p>
                     </div>
+
+                    {/* Level Selection or Custom Group Name */}
+                    {isExternalGroup ? (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                Group Name *
+                            </label>
+                            <input
+                                type="text"
+                                value={customLevel}
+                                onChange={(e) => setCustomLevel(e.target.value)}
+                                placeholder="e.g., Preteam, Boys Team, Xcel Silver"
+                                className="input w-full"
+                                list="external-groups-list"
+                            />
+                            {externalGroups.length > 0 && (
+                                <datalist id="external-groups-list">
+                                    {externalGroups.map((group) => (
+                                        <option key={group} value={group} />
+                                    ))}
+                                </datalist>
+                            )}
+                            <p className="text-xs text-slate-500 mt-1">
+                                This group will appear on the rotation schedule but not in your roster
+                            </p>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                                Level *
+                            </label>
+                            <select
+                                value={level}
+                                onChange={(e) => setLevel(e.target.value)}
+                                className="input w-full"
+                            >
+                                {levels.length === 0 && (
+                                    <option value="">No levels configured</option>
+                                )}
+                                {levels.map((lvl) => (
+                                    <option key={lvl} value={lvl}>{lvl}</option>
+                                ))}
+                            </select>
+                        </div>
+                    )}
 
                     {/* Schedule Group */}
                     <div>
@@ -300,7 +377,7 @@ export function AddPracticeModal({
                         </button>
                         <button
                             type="submit"
-                            disabled={saving || !level || selectedDays.length === 0}
+                            disabled={saving || selectedDays.length === 0 || (isExternalGroup ? !customLevel.trim() : !level)}
                             className="btn-primary"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
