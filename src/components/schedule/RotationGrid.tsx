@@ -31,6 +31,8 @@ interface RotationGridProps {
     canManage: boolean;
     columnOrder?: number[]; // Custom order of columns by index
     onColumnOrderChange?: (newOrder: number[]) => void;
+    combinedIndices?: number[][]; // Indices of combined columns
+    onCombinedIndicesChange?: (indices: number[][]) => void;
 }
 
 interface DragState {
@@ -66,7 +68,9 @@ export function RotationGrid({
     onBlockUpdated,
     canManage,
     columnOrder,
-    onColumnOrderChange
+    onColumnOrderChange,
+    combinedIndices: externalCombinedIndices,
+    onCombinedIndicesChange
 }: RotationGridProps) {
     const { hubId } = useParams();
     const { user } = useAuth();
@@ -122,7 +126,12 @@ export function RotationGrid({
 
     // Track which columns are combined (stored as sets of indices that are merged together)
     // e.g., [[0,1,2], [3,4]] means levels 0,1,2 are combined, and levels 3,4 are combined
-    const [combinedIndices, setCombinedIndices] = useState<number[][]>([]);
+    // Use external state if provided, otherwise use local state
+    const combinedIndices = externalCombinedIndices || [];
+    const setCombinedIndices = (updater: number[][] | ((prev: number[][]) => number[][])) => {
+        const newValue = typeof updater === 'function' ? updater(combinedIndices) : updater;
+        onCombinedIndicesChange?.(newValue);
+    };
 
     // Get ordered levels based on columnOrder prop or default order
     const orderedLevels = useMemo(() => {
@@ -140,28 +149,25 @@ export function RotationGrid({
         return columnOrder;
     }, [activeLevels, columnOrder]);
 
-    // Combine two adjacent columns
-    const combineColumns = (leftIndex: number) => {
-        const rightIndex = leftIndex + 1;
-        if (rightIndex >= activeLevels.length) return;
-
+    // Combine two adjacent columns by their ORIGINAL indices
+    const combineColumnsByOriginalIndices = (leftOriginalIdx: number, rightOriginalIdx: number) => {
         setCombinedIndices(prev => {
             // Find if either index is already part of a group
-            const leftGroupIdx = prev.findIndex(g => g.includes(leftIndex));
-            const rightGroupIdx = prev.findIndex(g => g.includes(rightIndex));
+            const leftGroupIdx = prev.findIndex(g => g.includes(leftOriginalIdx));
+            const rightGroupIdx = prev.findIndex(g => g.includes(rightOriginalIdx));
 
             if (leftGroupIdx === -1 && rightGroupIdx === -1) {
                 // Neither is in a group, create new group
-                return [...prev, [leftIndex, rightIndex]];
+                return [...prev, [leftOriginalIdx, rightOriginalIdx]];
             } else if (leftGroupIdx !== -1 && rightGroupIdx === -1) {
                 // Left is in a group, add right to it
                 const newGroups = [...prev];
-                newGroups[leftGroupIdx] = [...newGroups[leftGroupIdx], rightIndex].sort((a, b) => a - b);
+                newGroups[leftGroupIdx] = [...newGroups[leftGroupIdx], rightOriginalIdx].sort((a, b) => a - b);
                 return newGroups;
             } else if (leftGroupIdx === -1 && rightGroupIdx !== -1) {
                 // Right is in a group, add left to it
                 const newGroups = [...prev];
-                newGroups[rightGroupIdx] = [leftIndex, ...newGroups[rightGroupIdx]].sort((a, b) => a - b);
+                newGroups[rightGroupIdx] = [leftOriginalIdx, ...newGroups[rightGroupIdx]].sort((a, b) => a - b);
                 return newGroups;
             } else if (leftGroupIdx !== rightGroupIdx) {
                 // Both in different groups, merge the groups
@@ -174,19 +180,16 @@ export function RotationGrid({
         });
     };
 
-    // Split columns at a specific point
-    const splitColumns = (leftIndex: number) => {
-        const rightIndex = leftIndex + 1;
-
+    // Split columns by their ORIGINAL indices
+    const splitColumnsByOriginalIndices = (leftOriginalIdx: number, rightOriginalIdx: number) => {
         setCombinedIndices(prev => {
-            const groupIdx = prev.findIndex(g => g.includes(leftIndex) && g.includes(rightIndex));
+            const groupIdx = prev.findIndex(g => g.includes(leftOriginalIdx) && g.includes(rightOriginalIdx));
             if (groupIdx === -1) return prev;
 
             const group = prev[groupIdx];
-            // Find where to split
-            const splitPoint = group.indexOf(rightIndex);
-            const leftPart = group.slice(0, splitPoint);
-            const rightPart = group.slice(splitPoint);
+            // Split the group into two parts: those with indices <= leftOriginalIdx and those >= rightOriginalIdx
+            const leftPart = group.filter(idx => idx <= leftOriginalIdx);
+            const rightPart = group.filter(idx => idx >= rightOriginalIdx);
 
             const newGroups = prev.filter((_, i) => i !== groupIdx);
             if (leftPart.length > 1) newGroups.push(leftPart);
@@ -196,43 +199,56 @@ export function RotationGrid({
         });
     };
 
-    // Check if two adjacent columns are combined
-    const areColumnsCombined = (leftIndex: number, rightIndex: number) => {
-        return combinedIndices.some(g => g.includes(leftIndex) && g.includes(rightIndex));
+    // Check if two columns (by original indices) are combined
+    const areColumnsCombined = (leftOriginalIdx: number, rightOriginalIdx: number) => {
+        return combinedIndices.some(g => g.includes(leftOriginalIdx) && g.includes(rightOriginalIdx));
     };
 
-    // Build combined groups from activeLevels based on combinedIndices
+    // Get the original index of the next visible column in display order
+    const getNextDisplayOriginalIdx = (currentDisplayIdx: number): number | null => {
+        const nextDisplayIdx = currentDisplayIdx + 1;
+        if (nextDisplayIdx >= orderedLevels.length) return null;
+        return orderedToOriginal[nextDisplayIdx];
+    };
+
+    // Build combined groups from orderedLevels based on combinedIndices
+    // The combinedIndices use ORIGINAL indices (before ordering), so we need to map correctly
     const displayGroups = useMemo((): CombinedGroup[] => {
         const groups: CombinedGroup[] = [];
-        const processed = new Set<number>();
+        const processedOriginalIndices = new Set<number>();
 
-        for (let i = 0; i < activeLevels.length; i++) {
-            if (processed.has(i)) continue;
+        // Iterate in ORDERED sequence (using orderedLevels)
+        for (let displayIdx = 0; displayIdx < orderedLevels.length; displayIdx++) {
+            // Map back to original index
+            const originalIdx = orderedToOriginal[displayIdx];
 
-            // Find if this index is part of a combined group
-            const combinedGroup = combinedIndices.find(g => g.includes(i));
+            if (processedOriginalIndices.has(originalIdx)) continue;
+
+            // Find if this original index is part of a combined group
+            const combinedGroup = combinedIndices.find(g => g.includes(originalIdx));
 
             if (combinedGroup) {
-                // Add all levels in this combined group
+                // Add all levels in this combined group (using original indices to get levels)
                 const levels = combinedGroup.map(idx => activeLevels[idx]);
                 const start_time = levels.reduce((min, l) => l.start_time < min ? l.start_time : min, '23:59:00');
                 const end_time = levels.reduce((max, l) => l.end_time > max ? l.end_time : max, '00:00:00');
 
                 groups.push({ levels, start_time, end_time });
-                combinedGroup.forEach(idx => processed.add(idx));
+                combinedGroup.forEach(idx => processedOriginalIndices.add(idx));
             } else {
-                // Single level
+                // Single level - use the ordered level
+                const level = orderedLevels[displayIdx];
                 groups.push({
-                    levels: [activeLevels[i]],
-                    start_time: activeLevels[i].start_time,
-                    end_time: activeLevels[i].end_time
+                    levels: [level],
+                    start_time: level.start_time,
+                    end_time: level.end_time
                 });
-                processed.add(i);
+                processedOriginalIndices.add(originalIdx);
             }
         }
 
         return groups;
-    }, [activeLevels, combinedIndices]);
+    }, [orderedLevels, orderedToOriginal, activeLevels, combinedIndices]);
 
     // Calculate time range for the grid (earliest start to latest end across all levels)
     const timeRange = useMemo(() => {
@@ -499,11 +515,18 @@ export function RotationGrid({
                             Time
                         </div>
                         {orderedLevels.map((level, displayIdx) => {
-                            // Map display index back to original index for combine/split logic
+                            // Map display index back to original index
                             const originalIdx = orderedToOriginal[displayIdx];
-                            const isCombinedWithPrev = originalIdx > 0 && areColumnsCombined(originalIdx - 1, originalIdx);
-                            const isCombinedWithNext = originalIdx < activeLevels.length - 1 &&
-                                areColumnsCombined(originalIdx, originalIdx + 1);
+
+                            // Check previous display position (not original position)
+                            const prevDisplayOriginalIdx = displayIdx > 0 ? orderedToOriginal[displayIdx - 1] : null;
+                            const isCombinedWithPrev = prevDisplayOriginalIdx !== null &&
+                                areColumnsCombined(prevDisplayOriginalIdx, originalIdx);
+
+                            // Check next display position (not original position)
+                            const nextDisplayOriginalIdx = getNextDisplayOriginalIdx(displayIdx);
+                            const isCombinedWithNext = nextDisplayOriginalIdx !== null &&
+                                areColumnsCombined(originalIdx, nextDisplayOriginalIdx);
 
                             // Skip rendering if this column is combined with previous (it's collapsed)
                             if (isCombinedWithPrev) {
@@ -555,11 +578,15 @@ export function RotationGrid({
                                         )}
                                     </div>
                                     {/* Combine/Split button between columns */}
-                                    {canManage && originalIdx < activeLevels.length - 1 && (
+                                    {canManage && nextDisplayOriginalIdx !== null && (
                                         <button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                isCombinedWithNext ? splitColumns(originalIdx) : combineColumns(originalIdx);
+                                                if (isCombinedWithNext) {
+                                                    splitColumnsByOriginalIndices(originalIdx, nextDisplayOriginalIdx);
+                                                } else {
+                                                    combineColumnsByOriginalIndices(originalIdx, nextDisplayOriginalIdx);
+                                                }
                                             }}
                                             className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded transition-colors ${
                                                 isCombinedWithNext
@@ -646,39 +673,64 @@ export function RotationGrid({
                                     {groupBlocks.map(block => {
                                         const style = getBlockStyle(block);
                                         const blockHeight = style.height as number;
-                                        // Priority: event name (always) > coach name (if height >= 56) > time (if height >= 80)
-                                        const showCoach = blockHeight >= 56 && block.coach;
-                                        const showTimeRange = blockHeight >= 80;
+
+                                        // Scale text size based on block height for visibility from a distance
+                                        // Tiny blocks (< 48px): compact view
+                                        // Small blocks (48-72px): medium text
+                                        // Medium blocks (72-120px): large text with coach
+                                        // Large blocks (>= 120px): extra large text with coach and time
+                                        const isSmall = blockHeight >= 48 && blockHeight < 72;
+                                        const isMedium = blockHeight >= 72 && blockHeight < 120;
+                                        const isLarge = blockHeight >= 120;
+
+                                        const showCoach = (isMedium || isLarge) && block.coach;
+                                        const showTimeRange = isLarge;
+
+                                        // Dynamic text classes based on block size
+                                        const eventTextClass = isLarge
+                                            ? 'text-2xl font-bold'
+                                            : isMedium
+                                                ? 'text-xl font-bold'
+                                                : isSmall
+                                                    ? 'text-lg font-bold'
+                                                    : 'text-sm font-semibold';
+
+                                        const coachTextClass = isLarge
+                                            ? 'text-lg'
+                                            : 'text-base';
+
+                                        const timeTextClass = 'text-base font-semibold';
+
                                         return (
                                             <div
                                                 key={block.id}
                                                 onClick={(e) => handleBlockClick(e, block)}
-                                                className={`absolute left-1 right-1 rounded border-2 px-2.5 py-1.5 overflow-hidden group flex flex-col ${
+                                                className={`absolute left-1 right-1 rounded-lg border-2 px-3 py-2 overflow-hidden group flex flex-col ${
                                                     canManage ? 'cursor-pointer hover:brightness-95' : ''
                                                 }`}
                                                 style={style}
                                             >
                                                 <div className="flex items-start justify-between flex-shrink-0">
-                                                    <span className="text-sm font-semibold truncate">
+                                                    <span className={`${eventTextClass} truncate leading-tight`}>
                                                         {block.event_name || block.rotation_event?.name || 'Event'}
                                                     </span>
                                                     {canManage && (
                                                         <button
                                                             onClick={(e) => handleDeleteBlock(e, block.id)}
-                                                            className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-white/50 rounded transition-opacity flex-shrink-0"
+                                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/50 rounded transition-opacity flex-shrink-0"
                                                         >
-                                                            <X className="w-4 h-4" />
+                                                            <X className="w-5 h-5" />
                                                         </button>
                                                     )}
                                                 </div>
                                                 {showCoach && (
-                                                    <div className="text-xs opacity-80 truncate flex items-center gap-1.5 mt-0.5">
-                                                        <User className="w-3.5 h-3.5 flex-shrink-0" />
+                                                    <div className={`${coachTextClass} opacity-80 truncate flex items-center gap-2 mt-1`}>
+                                                        <User className={`${isLarge ? 'w-5 h-5' : 'w-4 h-4'} flex-shrink-0`} />
                                                         {getFirstName(block.coach!.full_name)}
                                                     </div>
                                                 )}
                                                 {showTimeRange && (
-                                                    <div className="mt-auto text-xs font-medium opacity-80">
+                                                    <div className={`mt-auto ${timeTextClass} opacity-80`}>
                                                         {formatBlockTime(block.start_time)} - {formatBlockTime(block.end_time)}
                                                     </div>
                                                 )}

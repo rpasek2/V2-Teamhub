@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { Loader2, Grid3X3, Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -10,6 +10,16 @@ import type { PracticeSchedule, RotationEvent, RotationBlock } from '../../types
 import { RotationGrid } from './RotationGrid';
 import { EventPalette } from './EventPalette';
 import { CustomEventModal } from './CustomEventModal';
+
+interface RotationGridSettings {
+    id: string;
+    hub_id: string;
+    day_of_week: number;
+    column_order: number[];
+    combined_indices: number[][];
+    updated_by: string | null;
+    updated_at: string;
+}
 
 interface DailyRotationTabProps {
     canManage: boolean;
@@ -36,6 +46,9 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
     const [showCustomEventModal, setShowCustomEventModal] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [columnOrder, setColumnOrder] = useState<number[]>([]);
+    const [combinedIndices, setCombinedIndices] = useState<number[][]>([]);
+    const [gridSettings, setGridSettings] = useState<RotationGridSettings | null>(null);
+    const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Handle ESC key to exit fullscreen
     useEffect(() => {
@@ -48,6 +61,15 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isFullscreen]);
 
+    // Cleanup save timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+            }
+        };
+    }, []);
+
     useEffect(() => {
         if (hubId) {
             fetchData();
@@ -57,8 +79,75 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
     useEffect(() => {
         if (hubId) {
             fetchBlocksForDay();
+            fetchGridSettings();
         }
     }, [hubId, selectedDayOfWeek]);
+
+    // Save grid settings with debounce
+    const saveGridSettings = useCallback(async (newColumnOrder: number[], newCombinedIndices: number[][]) => {
+        if (!hubId || !user) return;
+
+        // Clear any pending save
+        if (saveTimeoutRef.current) {
+            clearTimeout(saveTimeoutRef.current);
+        }
+
+        // Debounce the save
+        saveTimeoutRef.current = setTimeout(async () => {
+            const settingsData = {
+                hub_id: hubId,
+                day_of_week: selectedDayOfWeek,
+                column_order: newColumnOrder,
+                combined_indices: newCombinedIndices,
+                updated_by: user.id,
+                updated_at: new Date().toISOString()
+            };
+
+            if (gridSettings?.id) {
+                // Update existing
+                await supabase
+                    .from('rotation_grid_settings')
+                    .update(settingsData)
+                    .eq('id', gridSettings.id);
+            } else {
+                // Insert new
+                const { data } = await supabase
+                    .from('rotation_grid_settings')
+                    .insert(settingsData)
+                    .select()
+                    .single();
+
+                if (data) {
+                    setGridSettings(data);
+                }
+            }
+        }, 500);
+    }, [hubId, user, selectedDayOfWeek, gridSettings?.id]);
+
+    const fetchGridSettings = async () => {
+        if (!hubId) return;
+
+        const { data, error } = await supabase
+            .from('rotation_grid_settings')
+            .select('*')
+            .eq('hub_id', hubId)
+            .eq('day_of_week', selectedDayOfWeek)
+            .single();
+
+        if (error && error.code !== 'PGRST116') {
+            // PGRST116 = no rows returned, which is fine
+            console.error('Error fetching grid settings:', error);
+        }
+
+        if (data) {
+            setGridSettings(data);
+            setColumnOrder(data.column_order || []);
+            setCombinedIndices(data.combined_indices || []);
+        } else {
+            setGridSettings(null);
+            // Don't reset column order here - let the activeLevelsForDay effect handle defaults
+        }
+    };
 
     const fetchData = async () => {
         if (!hubId) return;
@@ -184,10 +273,24 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
         return result;
     }, [practiceSchedules, selectedDayOfWeek]);
 
-    // Reset column order when the number of active levels changes
+    // Reset column order when the number of active levels changes (only if no saved settings)
     useEffect(() => {
-        setColumnOrder(activeLevelsForDay.map((_, i) => i));
-    }, [activeLevelsForDay.length, selectedDayOfWeek]);
+        // Only reset to default order if there's no saved settings or the count changed
+        if (!gridSettings || columnOrder.length !== activeLevelsForDay.length) {
+            setColumnOrder(activeLevelsForDay.map((_, i) => i));
+            setCombinedIndices([]);
+        }
+    }, [activeLevelsForDay.length]);
+
+    const handleColumnOrderChange = useCallback((newOrder: number[]) => {
+        setColumnOrder(newOrder);
+        saveGridSettings(newOrder, combinedIndices);
+    }, [combinedIndices, saveGridSettings]);
+
+    const handleCombinedIndicesChange = useCallback((newIndices: number[][]) => {
+        setCombinedIndices(newIndices);
+        saveGridSettings(columnOrder, newIndices);
+    }, [columnOrder, saveGridSettings]);
 
     const handleBlockCreated = async () => {
         await fetchBlocksForDay();
@@ -309,7 +412,9 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                             onBlockUpdated={handleBlockUpdated}
                             canManage={canManage}
                             columnOrder={columnOrder}
-                            onColumnOrderChange={setColumnOrder}
+                            onColumnOrderChange={handleColumnOrderChange}
+                            combinedIndices={combinedIndices}
+                            onCombinedIndicesChange={handleCombinedIndicesChange}
                         />
                     )}
                 </div>
@@ -416,7 +521,9 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                     onBlockUpdated={handleBlockUpdated}
                     canManage={canManage}
                     columnOrder={columnOrder}
-                    onColumnOrderChange={setColumnOrder}
+                    onColumnOrderChange={handleColumnOrderChange}
+                    combinedIndices={combinedIndices}
+                    onCombinedIndicesChange={handleCombinedIndicesChange}
                 />
             )}
 
