@@ -79,7 +79,7 @@ export function Staff() {
         const [staffProfilesResult, timeOffResult, tasksResult] = await Promise.all([
             supabase
                 .from('staff_profiles')
-                .select('id, user_id, title, bio, phone, email, hire_date, status')
+                .select('id, user_id, title, bio, phone, email, hire_date, status, emergency_contact')
                 .eq('hub_id', hubId)
                 .in('user_id', userIds),
             supabase

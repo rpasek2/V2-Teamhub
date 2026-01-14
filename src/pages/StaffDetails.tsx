@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, User, Calendar, ClipboardList, CheckSquare, Award,
-    Clock, FileText, Mail, Phone, Loader2, Pencil, X, Check
+    Clock, FileText, Mail, Phone, Loader2, Pencil, X, Check, AlertCircle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
@@ -13,6 +13,13 @@ import { StaffTasksSection } from '../components/staff/StaffTasksSection';
 import { StaffCertificationsSection } from '../components/staff/StaffCertificationsSection';
 import { StaffTimeOffSection } from '../components/staff/StaffTimeOffSection';
 import { StaffNotesSection } from '../components/staff/StaffNotesSection';
+
+interface EmergencyContact {
+    name: string;
+    relationship: string;
+    phone: string;
+    email?: string;
+}
 
 interface StaffMember {
     user_id: string;
@@ -31,6 +38,7 @@ interface StaffMember {
         email: string | null;
         hire_date: string | null;
         status: string;
+        emergency_contact: EmergencyContact | null;
     } | null;
 }
 
@@ -54,6 +62,12 @@ export function StaffDetails() {
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [hireDate, setHireDate] = useState('');
+    const [emergencyContact, setEmergencyContact] = useState<EmergencyContact>({
+        name: '',
+        relationship: '',
+        phone: '',
+        email: '',
+    });
 
     const isOwner = currentRole === 'owner';
     const isSelf = user?.id === staffUserId;
@@ -78,6 +92,12 @@ export function StaffDetails() {
             setPhone(staffMember.staff_profile?.phone || '');
             setEmail(staffMember.staff_profile?.email || '');
             setHireDate(staffMember.staff_profile?.hire_date || '');
+            setEmergencyContact({
+                name: staffMember.staff_profile?.emergency_contact?.name || '',
+                relationship: staffMember.staff_profile?.emergency_contact?.relationship || '',
+                phone: staffMember.staff_profile?.emergency_contact?.phone || '',
+                email: staffMember.staff_profile?.emergency_contact?.email || '',
+            });
             setIsEditing(false);
         }
     }, [staffMember]);
@@ -103,7 +123,7 @@ export function StaffDetails() {
             // Fetch staff profile
             const { data: staffProfile } = await supabase
                 .from('staff_profiles')
-                .select('id, title, bio, phone, email, hire_date, status')
+                .select('id, title, bio, phone, email, hire_date, status, emergency_contact')
                 .eq('hub_id', hubId)
                 .eq('user_id', staffUserId)
                 .single();
@@ -127,6 +147,11 @@ export function StaffDetails() {
         if (!hubId || !staffMember) return;
         setSaving(true);
 
+        // Only save emergency contact if at least name and phone are provided
+        const emergencyContactData = emergencyContact.name && emergencyContact.phone
+            ? emergencyContact
+            : null;
+
         try {
             if (staffMember.staff_profile?.id) {
                 // Update existing profile
@@ -138,6 +163,7 @@ export function StaffDetails() {
                         phone: phone || null,
                         email: email || null,
                         hire_date: hireDate || null,
+                        emergency_contact: emergencyContactData,
                         updated_at: new Date().toISOString(),
                     })
                     .eq('id', staffMember.staff_profile.id);
@@ -155,6 +181,7 @@ export function StaffDetails() {
                         phone: phone || null,
                         email: email || null,
                         hire_date: hireDate || null,
+                        emergency_contact: emergencyContactData,
                     });
 
                 if (error) throw error;
@@ -314,6 +341,12 @@ export function StaffDetails() {
                                             setPhone(staffMember.staff_profile?.phone || '');
                                             setEmail(staffMember.staff_profile?.email || '');
                                             setHireDate(staffMember.staff_profile?.hire_date || '');
+                                            setEmergencyContact({
+                                                name: staffMember.staff_profile?.emergency_contact?.name || '',
+                                                relationship: staffMember.staff_profile?.emergency_contact?.relationship || '',
+                                                phone: staffMember.staff_profile?.emergency_contact?.phone || '',
+                                                email: staffMember.staff_profile?.emergency_contact?.email || '',
+                                            });
                                         }}
                                         disabled={saving}
                                         className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
@@ -386,6 +419,56 @@ export function StaffDetails() {
                                             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
                                         />
                                     </div>
+
+                                    {/* Emergency Contact */}
+                                    <div className="pt-4 border-t border-slate-200">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <AlertCircle className="w-4 h-4 text-red-500" />
+                                            <label className="text-sm font-medium text-slate-700">Emergency Contact</label>
+                                        </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="block text-xs text-slate-500 mb-1">Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={emergencyContact.name}
+                                                    onChange={(e) => setEmergencyContact(prev => ({ ...prev, name: e.target.value }))}
+                                                    placeholder="Contact name"
+                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-slate-500 mb-1">Relationship</label>
+                                                <input
+                                                    type="text"
+                                                    value={emergencyContact.relationship}
+                                                    onChange={(e) => setEmergencyContact(prev => ({ ...prev, relationship: e.target.value }))}
+                                                    placeholder="e.g., Spouse, Parent"
+                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-slate-500 mb-1">Phone</label>
+                                                <input
+                                                    type="tel"
+                                                    value={emergencyContact.phone}
+                                                    onChange={(e) => setEmergencyContact(prev => ({ ...prev, phone: e.target.value }))}
+                                                    placeholder="(555) 123-4567"
+                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-xs text-slate-500 mb-1">Email (optional)</label>
+                                                <input
+                                                    type="email"
+                                                    value={emergencyContact.email || ''}
+                                                    onChange={(e) => setEmergencyContact(prev => ({ ...prev, email: e.target.value }))}
+                                                    placeholder="contact@example.com"
+                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="space-y-6">
@@ -432,6 +515,38 @@ export function StaffDetails() {
                                             </p>
                                         </div>
                                     )}
+
+                                    {/* Emergency Contact */}
+                                    <div className="pt-4 border-t border-slate-200">
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <AlertCircle className="w-4 h-4 text-red-500" />
+                                            <h3 className="text-sm font-medium text-slate-700">Emergency Contact</h3>
+                                        </div>
+                                        {staffMember.staff_profile?.emergency_contact ? (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div className="p-3 bg-red-50 rounded-lg">
+                                                    <p className="text-xs text-red-600 font-medium">Name</p>
+                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.name}</p>
+                                                </div>
+                                                <div className="p-3 bg-red-50 rounded-lg">
+                                                    <p className="text-xs text-red-600 font-medium">Relationship</p>
+                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.relationship || 'Not specified'}</p>
+                                                </div>
+                                                <div className="p-3 bg-red-50 rounded-lg">
+                                                    <p className="text-xs text-red-600 font-medium">Phone</p>
+                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.phone}</p>
+                                                </div>
+                                                {staffMember.staff_profile.emergency_contact.email && (
+                                                    <div className="p-3 bg-red-50 rounded-lg">
+                                                        <p className="text-xs text-red-600 font-medium">Email</p>
+                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.email}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <p className="text-sm text-slate-500 italic">No emergency contact added yet.</p>
+                                        )}
+                                    </div>
                                 </div>
                             )}
                         </div>
