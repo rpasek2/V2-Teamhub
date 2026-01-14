@@ -547,15 +547,17 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                 </p>
             </div>
 
-            {/* Event Palette */}
-            <EventPalette
-                events={rotationEvents}
-                selectedEvent={selectedEvent}
-                onSelectEvent={setSelectedEvent}
-                onAddCustom={() => setShowCustomEventModal(true)}
-                onEventUpdated={handleEventCreated}
-                canManage={canManage}
-            />
+            {/* Event Palette - Sticky */}
+            <div className="sticky top-0 z-10 bg-slate-50 -mx-6 px-6 py-3 border-b border-slate-200 shadow-sm">
+                <EventPalette
+                    events={rotationEvents}
+                    selectedEvent={selectedEvent}
+                    onSelectEvent={setSelectedEvent}
+                    onAddCustom={() => setShowCustomEventModal(true)}
+                    onEventUpdated={handleEventCreated}
+                    canManage={canManage}
+                />
+            </div>
 
             {/* Rotation Grid */}
             {activeLevelsForDay.length === 0 ? (
