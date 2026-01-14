@@ -105,9 +105,9 @@ export function RotationGrid({
 
     const handleColumnDrop = (e: React.DragEvent, targetIndex: number) => {
         e.preventDefault();
-        const draggedIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+        const draggedDisplayIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
 
-        if (draggedIndex === targetIndex || isNaN(draggedIndex)) {
+        if (draggedDisplayIndex === targetIndex || isNaN(draggedDisplayIndex)) {
             setColumnDragState(null);
             return;
         }
@@ -117,16 +117,66 @@ export function RotationGrid({
             ? [...columnOrder]
             : activeLevels.map((_, i) => i);
 
-        const [removed] = currentOrder.splice(draggedIndex, 1);
-        currentOrder.splice(targetIndex, 0, removed);
+        // Get the original index of the dragged column
+        const draggedOriginalIdx = currentOrder[draggedDisplayIndex];
+
+        // Check if the dragged column is part of a combined group
+        const cleanedCombinedIndices = (externalCombinedIndices || [])
+            .map(g => g.filter(idx => idx >= 0 && idx < activeLevels.length))
+            .filter(g => g.length > 1);
+
+        const draggedGroup = cleanedCombinedIndices.find(g => g.includes(draggedOriginalIdx));
+
+        if (draggedGroup) {
+            // Moving a combined group - find all display indices in this group
+            const groupDisplayIndices = draggedGroup
+                .map(origIdx => currentOrder.indexOf(origIdx))
+                .filter(di => di !== -1)
+                .sort((a, b) => a - b);
+
+            if (groupDisplayIndices.length > 1) {
+                // Remove all group members from their current positions (in reverse order to maintain indices)
+                const removedOriginalIndices: number[] = [];
+                for (let i = groupDisplayIndices.length - 1; i >= 0; i--) {
+                    const di = groupDisplayIndices[i];
+                    const [removed] = currentOrder.splice(di, 1);
+                    removedOriginalIndices.unshift(removed);
+                }
+
+                // Calculate adjusted target index after removal
+                let adjustedTarget = targetIndex;
+                const minRemovedIdx = groupDisplayIndices[0];
+                if (targetIndex > minRemovedIdx) {
+                    adjustedTarget = targetIndex - groupDisplayIndices.length;
+                }
+
+                // Insert all group members at the target position
+                currentOrder.splice(adjustedTarget, 0, ...removedOriginalIndices);
+
+                onColumnOrderChange?.(currentOrder);
+                setColumnDragState(null);
+                return;
+            }
+        }
+
+        // Single column move (not part of a group)
+        const [removed] = currentOrder.splice(draggedDisplayIndex, 1);
+
+        // Calculate adjusted target index after removal
+        let adjustedTarget = targetIndex;
+        if (targetIndex > draggedDisplayIndex) {
+            adjustedTarget = targetIndex - 1;
+        }
+
+        currentOrder.splice(adjustedTarget, 0, removed);
 
         onColumnOrderChange?.(currentOrder);
         setColumnDragState(null);
     };
 
-    // Track which columns are combined (stored as sets of indices that are merged together)
-    // e.g., [[0,1,2], [3,4]] means levels 0,1,2 are combined, and levels 3,4 are combined
-    // Use external state if provided, otherwise use local state
+    // Track which columns are combined using level keys (level-scheduleGroup)
+    // This is more robust than indices since it survives reordering
+    // combinedIndices still uses numbers for backward compatibility, but we handle the mapping
     const combinedIndices = externalCombinedIndices || [];
     const setCombinedIndices = (updater: number[][] | ((prev: number[][]) => number[][])) => {
         const newValue = typeof updater === 'function' ? updater(combinedIndices) : updater;
@@ -138,6 +188,11 @@ export function RotationGrid({
         if (!columnOrder || columnOrder.length !== activeLevels.length) {
             return activeLevels;
         }
+        // Validate that all indices in columnOrder are valid
+        const validOrder = columnOrder.every(i => i >= 0 && i < activeLevels.length);
+        if (!validOrder) {
+            return activeLevels;
+        }
         return columnOrder.map(i => activeLevels[i]);
     }, [activeLevels, columnOrder]);
 
@@ -146,50 +201,92 @@ export function RotationGrid({
         if (!columnOrder || columnOrder.length !== activeLevels.length) {
             return activeLevels.map((_, i) => i);
         }
+        const validOrder = columnOrder.every(i => i >= 0 && i < activeLevels.length);
+        if (!validOrder) {
+            return activeLevels.map((_, i) => i);
+        }
         return columnOrder;
     }, [activeLevels, columnOrder]);
 
+    // Clean up combinedIndices to remove any invalid indices
+    const validCombinedIndices = useMemo(() => {
+        return combinedIndices
+            .map(group => group.filter(idx => idx >= 0 && idx < activeLevels.length))
+            .filter(group => group.length > 1);
+    }, [combinedIndices, activeLevels.length]);
+
     // Combine two adjacent columns by their ORIGINAL indices
     const combineColumnsByOriginalIndices = (leftOriginalIdx: number, rightOriginalIdx: number) => {
+        if (leftOriginalIdx < 0 || leftOriginalIdx >= activeLevels.length ||
+            rightOriginalIdx < 0 || rightOriginalIdx >= activeLevels.length) {
+            return;
+        }
+
         setCombinedIndices(prev => {
+            // Clean up any invalid indices first
+            const cleanedPrev = prev
+                .map(g => g.filter(idx => idx >= 0 && idx < activeLevels.length))
+                .filter(g => g.length > 0);
+
             // Find if either index is already part of a group
-            const leftGroupIdx = prev.findIndex(g => g.includes(leftOriginalIdx));
-            const rightGroupIdx = prev.findIndex(g => g.includes(rightOriginalIdx));
+            const leftGroupIdx = cleanedPrev.findIndex(g => g.includes(leftOriginalIdx));
+            const rightGroupIdx = cleanedPrev.findIndex(g => g.includes(rightOriginalIdx));
 
             if (leftGroupIdx === -1 && rightGroupIdx === -1) {
                 // Neither is in a group, create new group
-                return [...prev, [leftOriginalIdx, rightOriginalIdx]];
+                return [...cleanedPrev, [leftOriginalIdx, rightOriginalIdx]];
             } else if (leftGroupIdx !== -1 && rightGroupIdx === -1) {
                 // Left is in a group, add right to it
-                const newGroups = [...prev];
-                newGroups[leftGroupIdx] = [...newGroups[leftGroupIdx], rightOriginalIdx].sort((a, b) => a - b);
+                const newGroups = [...cleanedPrev];
+                newGroups[leftGroupIdx] = [...newGroups[leftGroupIdx], rightOriginalIdx];
                 return newGroups;
             } else if (leftGroupIdx === -1 && rightGroupIdx !== -1) {
                 // Right is in a group, add left to it
-                const newGroups = [...prev];
-                newGroups[rightGroupIdx] = [leftOriginalIdx, ...newGroups[rightGroupIdx]].sort((a, b) => a - b);
+                const newGroups = [...cleanedPrev];
+                newGroups[rightGroupIdx] = [leftOriginalIdx, ...newGroups[rightGroupIdx]];
                 return newGroups;
             } else if (leftGroupIdx !== rightGroupIdx) {
                 // Both in different groups, merge the groups
-                const newGroups = prev.filter((_, i) => i !== leftGroupIdx && i !== rightGroupIdx);
-                const merged = [...prev[leftGroupIdx], ...prev[rightGroupIdx]].sort((a, b) => a - b);
+                const newGroups = cleanedPrev.filter((_, i) => i !== leftGroupIdx && i !== rightGroupIdx);
+                const merged = [...cleanedPrev[leftGroupIdx], ...cleanedPrev[rightGroupIdx]];
                 return [...newGroups, merged];
             }
             // Already in same group, nothing to do
-            return prev;
+            return cleanedPrev;
         });
     };
 
-    // Split columns by their ORIGINAL indices
+    // Split columns by their ORIGINAL indices - split at the boundary between left and right
     const splitColumnsByOriginalIndices = (leftOriginalIdx: number, rightOriginalIdx: number) => {
         setCombinedIndices(prev => {
             const groupIdx = prev.findIndex(g => g.includes(leftOriginalIdx) && g.includes(rightOriginalIdx));
             if (groupIdx === -1) return prev;
 
             const group = prev[groupIdx];
-            // Split the group into two parts: those with indices <= leftOriginalIdx and those >= rightOriginalIdx
-            const leftPart = group.filter(idx => idx <= leftOriginalIdx);
-            const rightPart = group.filter(idx => idx >= rightOriginalIdx);
+
+            // Find the position of these two indices in the current display order
+            const leftDisplayIdx = orderedToOriginal.indexOf(leftOriginalIdx);
+            const rightDisplayIdx = orderedToOriginal.indexOf(rightOriginalIdx);
+
+            if (leftDisplayIdx === -1 || rightDisplayIdx === -1) return prev;
+
+            // Get all group indices and their display positions
+            const groupWithDisplayPos = group.map(idx => ({
+                originalIdx: idx,
+                displayIdx: orderedToOriginal.indexOf(idx)
+            })).filter(item => item.displayIdx !== -1);
+
+            // Sort by display position
+            groupWithDisplayPos.sort((a, b) => a.displayIdx - b.displayIdx);
+
+            // Split: indices that appear before or at leftDisplayIdx go to left part
+            // indices that appear at or after rightDisplayIdx go to right part
+            const splitPoint = groupWithDisplayPos.findIndex(item => item.originalIdx === rightOriginalIdx);
+
+            if (splitPoint === -1 || splitPoint === 0) return prev;
+
+            const leftPart = groupWithDisplayPos.slice(0, splitPoint).map(item => item.originalIdx);
+            const rightPart = groupWithDisplayPos.slice(splitPoint).map(item => item.originalIdx);
 
             const newGroups = prev.filter((_, i) => i !== groupIdx);
             if (leftPart.length > 1) newGroups.push(leftPart);
@@ -201,14 +298,7 @@ export function RotationGrid({
 
     // Check if two columns (by original indices) are combined
     const areColumnsCombined = (leftOriginalIdx: number, rightOriginalIdx: number) => {
-        return combinedIndices.some(g => g.includes(leftOriginalIdx) && g.includes(rightOriginalIdx));
-    };
-
-    // Get the original index of the next visible column in display order
-    const getNextDisplayOriginalIdx = (currentDisplayIdx: number): number | null => {
-        const nextDisplayIdx = currentDisplayIdx + 1;
-        if (nextDisplayIdx >= orderedLevels.length) return null;
-        return orderedToOriginal[nextDisplayIdx];
+        return validCombinedIndices.some(g => g.includes(leftOriginalIdx) && g.includes(rightOriginalIdx));
     };
 
     // Build combined groups from orderedLevels based on combinedIndices
@@ -225,30 +315,44 @@ export function RotationGrid({
             if (processedOriginalIndices.has(originalIdx)) continue;
 
             // Find if this original index is part of a combined group
-            const combinedGroup = combinedIndices.find(g => g.includes(originalIdx));
+            const combinedGroup = validCombinedIndices.find(g => g.includes(originalIdx));
 
             if (combinedGroup) {
-                // Add all levels in this combined group (using original indices to get levels)
-                const levels = combinedGroup.map(idx => activeLevels[idx]);
-                const start_time = levels.reduce((min, l) => l.start_time < min ? l.start_time : min, '23:59:00');
-                const end_time = levels.reduce((max, l) => l.end_time > max ? l.end_time : max, '00:00:00');
+                // Get the levels for this combined group, ordered by their display position
+                const groupLevelsWithPos = combinedGroup
+                    .map(idx => ({
+                        originalIdx: idx,
+                        displayIdx: orderedToOriginal.indexOf(idx),
+                        level: activeLevels[idx]
+                    }))
+                    .filter(item => item.displayIdx !== -1 && item.level)
+                    .sort((a, b) => a.displayIdx - b.displayIdx);
 
-                groups.push({ levels, start_time, end_time });
-                combinedGroup.forEach(idx => processedOriginalIndices.add(idx));
+                const levels = groupLevelsWithPos.map(item => item.level);
+
+                if (levels.length > 0) {
+                    const start_time = levels.reduce((min, l) => l.start_time < min ? l.start_time : min, '23:59:00');
+                    const end_time = levels.reduce((max, l) => l.end_time > max ? l.end_time : max, '00:00:00');
+
+                    groups.push({ levels, start_time, end_time });
+                    combinedGroup.forEach(idx => processedOriginalIndices.add(idx));
+                }
             } else {
                 // Single level - use the ordered level
                 const level = orderedLevels[displayIdx];
-                groups.push({
-                    levels: [level],
-                    start_time: level.start_time,
-                    end_time: level.end_time
-                });
-                processedOriginalIndices.add(originalIdx);
+                if (level) {
+                    groups.push({
+                        levels: [level],
+                        start_time: level.start_time,
+                        end_time: level.end_time
+                    });
+                    processedOriginalIndices.add(originalIdx);
+                }
             }
         }
 
         return groups;
-    }, [orderedLevels, orderedToOriginal, activeLevels, combinedIndices]);
+    }, [orderedLevels, orderedToOriginal, activeLevels, validCombinedIndices]);
 
     // Calculate time range for the grid (earliest start to latest end across all levels)
     const timeRange = useMemo(() => {
@@ -518,25 +622,31 @@ export function RotationGrid({
                             // Map display index back to original index
                             const originalIdx = orderedToOriginal[displayIdx];
 
-                            // Check previous display position (not original position)
-                            const prevDisplayOriginalIdx = displayIdx > 0 ? orderedToOriginal[displayIdx - 1] : null;
-                            const isCombinedWithPrev = prevDisplayOriginalIdx !== null &&
-                                areColumnsCombined(prevDisplayOriginalIdx, originalIdx);
+                            // Find if this level is part of a combined group
+                            const combinedGroup = validCombinedIndices.find(g => g.includes(originalIdx));
 
-                            // Check next display position (not original position)
-                            const nextDisplayOriginalIdx = getNextDisplayOriginalIdx(displayIdx);
-                            const isCombinedWithNext = nextDisplayOriginalIdx !== null &&
-                                areColumnsCombined(originalIdx, nextDisplayOriginalIdx);
+                            // If this level is part of a combined group, determine if we should render it
+                            // We render at the first display position of the group
+                            if (combinedGroup) {
+                                // Find the minimum display index within this combined group
+                                const groupDisplayIndices = combinedGroup
+                                    .map(idx => orderedToOriginal.indexOf(idx))
+                                    .filter(di => di !== -1);
+                                const minDisplayIdx = Math.min(...groupDisplayIndices);
 
-                            // Skip rendering if this column is combined with previous (it's collapsed)
-                            if (isCombinedWithPrev) {
-                                return null;
+                                // Only render if this is the first column of the group
+                                if (displayIdx !== minDisplayIdx) {
+                                    return null;
+                                }
                             }
 
-                            // Get all levels in this combined group for display
-                            const combinedGroup = combinedIndices.find(g => g.includes(originalIdx));
+                            // Get all levels in this combined group for display, sorted by display order
                             const groupLevels = combinedGroup
-                                ? combinedGroup.map(i => activeLevels[i])
+                                ? combinedGroup
+                                    .map(i => ({ idx: i, level: activeLevels[i], displayPos: orderedToOriginal.indexOf(i) }))
+                                    .filter(item => item.level && item.displayPos !== -1)
+                                    .sort((a, b) => a.displayPos - b.displayPos)
+                                    .map(item => item.level)
                                 : [level];
                             const displayName = groupLevels.map(l => l.level).join('/');
                             const isExternal = groupLevels.some(l => l.is_external_group);
@@ -578,30 +688,55 @@ export function RotationGrid({
                                         )}
                                     </div>
                                     {/* Combine/Split button between columns */}
-                                    {canManage && nextDisplayOriginalIdx !== null && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (isCombinedWithNext) {
-                                                    splitColumnsByOriginalIndices(originalIdx, nextDisplayOriginalIdx);
-                                                } else {
-                                                    combineColumnsByOriginalIndices(originalIdx, nextDisplayOriginalIdx);
-                                                }
-                                            }}
-                                            className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                                                isCombinedWithNext
-                                                    ? 'bg-brand-100 text-brand-600 hover:bg-brand-200'
-                                                    : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                                            }`}
-                                            title={isCombinedWithNext ? 'Split columns' : 'Combine columns'}
-                                        >
-                                            {isCombinedWithNext ? (
-                                                <Unlink className="w-3.5 h-3.5" />
-                                            ) : (
-                                                <Link className="w-3.5 h-3.5" />
-                                            )}
-                                        </button>
-                                    )}
+                                    {canManage && (() => {
+                                        // Find the last display index of this group (or just this column if not combined)
+                                        let lastGroupDisplayIdx = displayIdx;
+                                        if (combinedGroup) {
+                                            const groupDisplayIndices = combinedGroup
+                                                .map(idx => orderedToOriginal.indexOf(idx))
+                                                .filter(di => di !== -1);
+                                            lastGroupDisplayIdx = Math.max(...groupDisplayIndices);
+                                        }
+
+                                        // The next column after the group
+                                        const nextAfterGroupDisplayIdx = lastGroupDisplayIdx + 1;
+                                        if (nextAfterGroupDisplayIdx >= orderedLevels.length) {
+                                            return null; // No next column
+                                        }
+
+                                        const nextAfterGroupOriginalIdx = orderedToOriginal[nextAfterGroupDisplayIdx];
+                                        const lastInGroupOriginalIdx = orderedToOriginal[lastGroupDisplayIdx];
+
+                                        // Check if this group is combined with the next column
+                                        const isNextCombined = areColumnsCombined(lastInGroupOriginalIdx, nextAfterGroupOriginalIdx);
+
+                                        return (
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (isNextCombined) {
+                                                        // Split: break the link between last of current group and next
+                                                        splitColumnsByOriginalIndices(lastInGroupOriginalIdx, nextAfterGroupOriginalIdx);
+                                                    } else {
+                                                        // Combine: link last of current group with next
+                                                        combineColumnsByOriginalIndices(lastInGroupOriginalIdx, nextAfterGroupOriginalIdx);
+                                                    }
+                                                }}
+                                                className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded transition-colors ${
+                                                    isNextCombined
+                                                        ? 'bg-brand-100 text-brand-600 hover:bg-brand-200'
+                                                        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                                                }`}
+                                                title={isNextCombined ? 'Split columns' : 'Combine columns'}
+                                            >
+                                                {isNextCombined ? (
+                                                    <Unlink className="w-3.5 h-3.5" />
+                                                ) : (
+                                                    <Link className="w-3.5 h-3.5" />
+                                                )}
+                                            </button>
+                                        );
+                                    })()}
                                 </div>
                             );
                         })}

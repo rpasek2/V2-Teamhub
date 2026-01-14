@@ -141,8 +141,21 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
 
         if (data) {
             setGridSettings(data);
-            setColumnOrder(data.column_order || []);
-            setCombinedIndices(data.combined_indices || []);
+
+            // Validate and clean up column order
+            const savedColumnOrder = data.column_order || [];
+            // Will be validated when activeLevelsForDay is available
+
+            // Validate and clean up combined indices
+            const savedCombinedIndices = data.combined_indices || [];
+            // Filter out any groups with invalid indices (we'll fully validate when we know activeLevels count)
+            const cleanedCombinedIndices = savedCombinedIndices
+                .filter((group: number[]) => Array.isArray(group))
+                .map((group: number[]) => group.filter((idx: number) => typeof idx === 'number' && idx >= 0))
+                .filter((group: number[]) => group.length > 1);
+
+            setColumnOrder(savedColumnOrder);
+            setCombinedIndices(cleanedCombinedIndices);
         } else {
             setGridSettings(null);
             // Don't reset column order here - let the activeLevelsForDay effect handle defaults
@@ -273,14 +286,32 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
         return result;
     }, [practiceSchedules, selectedDayOfWeek]);
 
-    // Reset column order when the number of active levels changes (only if no saved settings)
+    // Validate and reset column order when active levels change
     useEffect(() => {
-        // Only reset to default order if there's no saved settings or the count changed
-        if (!gridSettings || columnOrder.length !== activeLevelsForDay.length) {
+        const levelCount = activeLevelsForDay.length;
+        if (levelCount === 0) return;
+
+        // Check if current column order is valid
+        const isColumnOrderValid = columnOrder.length === levelCount &&
+            columnOrder.every(idx => typeof idx === 'number' && idx >= 0 && idx < levelCount) &&
+            new Set(columnOrder).size === levelCount; // All unique indices
+
+        // Check if combined indices are valid
+        const validCombinedIndices = combinedIndices
+            .map(group => group.filter(idx => typeof idx === 'number' && idx >= 0 && idx < levelCount))
+            .filter(group => group.length > 1);
+
+        const combinedIndicesChanged = JSON.stringify(validCombinedIndices) !== JSON.stringify(combinedIndices);
+
+        if (!isColumnOrderValid) {
+            // Reset to default order
             setColumnOrder(activeLevelsForDay.map((_, i) => i));
             setCombinedIndices([]);
+        } else if (combinedIndicesChanged) {
+            // Just clean up combined indices
+            setCombinedIndices(validCombinedIndices);
         }
-    }, [activeLevelsForDay.length]);
+    }, [activeLevelsForDay.length, columnOrder, combinedIndices]);
 
     const handleColumnOrderChange = useCallback((newOrder: number[]) => {
         setColumnOrder(newOrder);
