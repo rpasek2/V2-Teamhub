@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { createPortal } from 'react-dom';
-import { Loader2, Grid3X3, Maximize2, Minimize2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Grid3X3, Maximize2, Minimize2, ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useAuth } from '../../context/AuthContext';
@@ -323,6 +323,13 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
         saveGridSettings(columnOrder, newIndices);
     }, [columnOrder, saveGridSettings]);
 
+    const handleResetColumns = useCallback(() => {
+        const defaultOrder = activeLevelsForDay.map((_, i) => i);
+        setColumnOrder(defaultOrder);
+        setCombinedIndices([]);
+        saveGridSettings(defaultOrder, []);
+    }, [activeLevelsForDay, saveGridSettings]);
+
     const handleBlockCreated = async () => {
         await fetchBlocksForDay();
     };
@@ -409,6 +416,16 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                                 </button>
                             ))}
                         </div>
+                        {canManage && combinedIndices.length > 0 && (
+                            <button
+                                onClick={handleResetColumns}
+                                className="flex items-center gap-2 px-3 py-2 bg-amber-100 hover:bg-amber-200 rounded-lg text-amber-700 font-medium"
+                                title="Reset column order and combined groups"
+                            >
+                                <RotateCcw className="w-4 h-4" />
+                                <span className="hidden sm:inline">Reset Columns</span>
+                            </button>
+                        )}
                         <button
                             onClick={() => setIsFullscreen(false)}
                             className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-medium"
@@ -500,6 +517,16 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                         </button>
                     ))}
                 </div>
+                {canManage && combinedIndices.length > 0 && (
+                    <button
+                        onClick={handleResetColumns}
+                        className="flex items-center gap-2 px-3 py-2 bg-amber-100 hover:bg-amber-200 rounded-lg text-amber-700 transition-colors"
+                        title="Reset column order and combined groups"
+                    >
+                        <RotateCcw className="w-4 h-4" />
+                        <span className="text-sm font-medium hidden sm:inline">Reset</span>
+                    </button>
+                )}
                 <button
                     onClick={() => setIsFullscreen(true)}
                     className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
