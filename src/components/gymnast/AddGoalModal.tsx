@@ -75,20 +75,25 @@ export function AddGoalModal({
             const finalEvent = event === 'custom' ? customEvent.trim() : (event || null);
 
             // Create the goal
+            const insertData = {
+                gymnast_profile_id: gymnastProfileId,
+                title: title.trim(),
+                description: description.trim() || null,
+                event: finalEvent,
+                target_date: targetDate || null,
+                created_by: user?.id || null
+            };
+
             const { data: goalData, error: goalError } = await supabase
                 .from('gymnast_goals')
-                .insert({
-                    gymnast_profile_id: gymnastProfileId,
-                    title: title.trim(),
-                    description: description.trim() || null,
-                    event: finalEvent,
-                    target_date: targetDate || null,
-                    created_by: user?.id
-                })
-                .select()
+                .insert(insertData)
+                .select('id')
                 .single();
 
-            if (goalError) throw goalError;
+            if (goalError) {
+                console.error('Goal insert error:', goalError);
+                throw new Error(goalError.message || 'Failed to create goal');
+            }
 
             // Create subgoals if any
             const validSubgoals = subgoals.filter(sg => sg.title.trim());
@@ -112,7 +117,10 @@ export function AddGoalModal({
             onClose();
         } catch (err: unknown) {
             console.error('Error creating goal:', err);
-            setError('Failed to create goal');
+            const errorMessage = err instanceof Error ? err.message :
+                (typeof err === 'object' && err !== null && 'message' in err) ? String((err as {message: unknown}).message) :
+                'Failed to create goal';
+            setError(errorMessage);
         } finally {
             setSaving(false);
         }
