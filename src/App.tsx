@@ -26,6 +26,7 @@ const Assignments = lazy(() => import('./pages/Assignments').then(m => ({ defaul
 const Resources = lazy(() => import('./pages/Resources').then(m => ({ default: m.Resources })));
 const Schedule = lazy(() => import('./pages/Schedule').then(m => ({ default: m.Schedule })));
 const Attendance = lazy(() => import('./pages/Attendance').then(m => ({ default: m.Attendance })));
+const PrivateLessons = lazy(() => import('./pages/PrivateLessons'));
 const GymnastDetails = lazy(() => import('./pages/GymnastDetails').then(m => ({ default: m.GymnastDetails })));
 const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./pages/auth/Register').then(m => ({ default: m.Register })));
@@ -69,6 +70,7 @@ function App() {
                 <Route path="resources" element={<Resources />} />
                 <Route path="schedule" element={<Schedule />} />
                 <Route path="attendance" element={<Attendance />} />
+                <Route path="private-lessons" element={<PrivateLessons />} />
                 <Route path="staff" element={<Staff />} />
                 <Route path="staff/:staffUserId" element={<StaffDetails />} />
                 <Route path="settings" element={<Settings />} />

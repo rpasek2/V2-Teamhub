@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, GraduationCap, type LucideIcon } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
@@ -103,6 +103,7 @@ export function GymnasticsSidebar() {
         { name: 'Resources', href: `/hub/${hubId}/resources`, icon: FolderOpen, permission: 'resources', tabId: 'resources' as HubFeatureTab },
         { name: 'Schedule', href: `/hub/${hubId}/schedule`, icon: CalendarClock, permission: 'schedule', tabId: 'schedule' as HubFeatureTab },
         { name: 'Attendance', href: `/hub/${hubId}/attendance`, icon: UserCheck, permission: 'attendance', tabId: 'attendance' as HubFeatureTab },
+        { name: 'Private Lessons', href: `/hub/${hubId}/private-lessons`, icon: GraduationCap, permission: 'private_lessons', tabId: 'private_lessons' as HubFeatureTab },
         { name: 'Staff', href: `/hub/${hubId}/staff`, icon: UserCog, permission: 'staff', tabId: 'staff' as HubFeatureTab },
         { name: 'Settings', href: `/hub/${hubId}/settings`, icon: Settings2, permission: 'settings', tabId: null },
     ];
@@ -124,6 +125,11 @@ export function GymnasticsSidebar() {
         if (item.name === 'Staff' || item.name === 'Schedule' || item.name === 'Attendance') {
             const isStaffRole = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
             return isStaffRole && isTabEnabled(item.tabId);
+        }
+        if (item.name === 'Private Lessons') {
+            // Show to coaches, parents, and staff
+            const canSee = ['owner', 'director', 'admin', 'coach', 'parent'].includes(currentRole || '');
+            return canSee && isTabEnabled(item.tabId);
         }
         if (!isTabEnabled(item.tabId)) return false;
         return hasPermission(item.permission);

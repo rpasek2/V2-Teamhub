@@ -46,7 +46,7 @@ function useIsMobile() {
 }
 
 type ViewType = 'month' | 'week' | 'agenda';
-type EventType = 'all' | 'practice' | 'competition' | 'mentorship' | 'meeting' | 'social' | 'other';
+type EventType = 'all' | 'practice' | 'competition' | 'mentorship' | 'meeting' | 'social' | 'other' | 'private_lesson';
 
 const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
     practice: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
@@ -54,6 +54,7 @@ const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string 
     mentorship: { bg: 'bg-pink-100', text: 'text-pink-700', dot: 'bg-pink-500' },
     meeting: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
     social: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
+    private_lesson: { bg: 'bg-violet-100', text: 'text-violet-700', dot: 'bg-violet-500' },
     other: { bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-500' }
 };
 
@@ -478,14 +479,14 @@ export function Calendar() {
                         >
                             <Filter className="h-4 w-4" />
                             <span className="hidden sm:inline">
-                                {filterType === 'all' ? 'All Types' : filterType.charAt(0).toUpperCase() + filterType.slice(1)}
+                                {filterType === 'all' ? 'All Types' : filterType === 'private_lesson' ? 'Private Lessons' : filterType.charAt(0).toUpperCase() + filterType.slice(1)}
                             </span>
                         </button>
                         {showFilter && (
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
                                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-20">
-                                    {['all', 'practice', 'competition', 'meeting', 'social', 'other'].map((type) => (
+                                    {['all', 'practice', 'competition', 'meeting', 'social', 'private_lesson', 'other'].map((type) => (
                                         <button
                                             key={type}
                                             onClick={() => {
@@ -500,7 +501,7 @@ export function Calendar() {
                                             {type !== 'all' && (
                                                 <span className={cn("w-2 h-2 rounded-full", EVENT_TYPE_COLORS[type]?.dot || 'bg-slate-400')} />
                                             )}
-                                            <span className="capitalize">{type === 'all' ? 'All Types' : type}</span>
+                                            <span className="capitalize">{type === 'all' ? 'All Types' : type === 'private_lesson' ? 'Private Lessons' : type}</span>
                                         </button>
                                     ))}
                                 </div>

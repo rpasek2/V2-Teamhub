@@ -30,7 +30,7 @@ export interface HubPermissions {
 }
 
 // Feature tabs that can be enabled/disabled per hub
-export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'skills' | 'marketplace' | 'groups' | 'mentorship' | 'staff' | 'assignments' | 'resources' | 'schedule' | 'attendance';
+export type HubFeatureTab = 'roster' | 'calendar' | 'messages' | 'competitions' | 'scores' | 'skills' | 'marketplace' | 'groups' | 'mentorship' | 'staff' | 'assignments' | 'resources' | 'schedule' | 'attendance' | 'private_lessons';
 
 export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: string }[] = [
     { id: 'roster', label: 'Roster', description: 'View and manage gymnast profiles including contact info, emergency contacts, medical details, sizing, and parent/guardian information' },
@@ -47,6 +47,7 @@ export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: 
     { id: 'resources', label: 'Resources', description: 'Share documents, educational links, and team resources organized by category for easy access' },
     { id: 'schedule', label: 'Schedule', description: 'Set up weekly practice schedules per level with A/B groups, and create daily rotation plans with drag-and-drop event blocks' },
     { id: 'attendance', label: 'Attendance', description: 'Track daily attendance for gymnasts based on practice schedules, view metrics including attendance percentages by level, and monitor consecutive absence alerts' },
+    { id: 'private_lessons', label: 'Private Lessons', description: 'Book private lessons with coaches, view availability calendars, and manage lesson schedules with automatic calendar integration' },
 ];
 
 export interface HubSettings {
@@ -224,7 +225,7 @@ export interface Event {
     start_time: string;
     end_time: string;
     location: string | null;
-    type: 'practice' | 'competition' | 'meeting' | 'social' | 'other';
+    type: 'practice' | 'competition' | 'meeting' | 'social' | 'other' | 'camp' | 'fundraiser' | 'private_lesson';
     rsvp_enabled: boolean;
     created_by: string;
     created_at: string;
@@ -919,4 +920,108 @@ export interface LevelAttendanceMetrics {
     total_gymnasts: number;
     average_attendance_percentage: number;
     gymnasts_with_warnings: number; // 3+ consecutive absences
+}
+
+// ============================================
+// Private Lessons Types
+// ============================================
+
+// Lesson package (pricing/duration option)
+export interface LessonPackage {
+    id: string;
+    hub_id: string;
+    coach_user_id: string;
+    name: string;
+    duration_minutes: number;
+    max_gymnasts: number;
+    price: number;
+    description: string | null;
+    is_active: boolean;
+    sort_order: number;
+    created_at: string;
+    updated_at: string;
+}
+
+// Coach's lesson profile/offerings
+export interface CoachLessonProfile {
+    id: string;
+    hub_id: string;
+    coach_user_id: string;
+    events: string[];
+    levels: string[];
+    cost_per_lesson: number;
+    max_gymnasts_per_slot: number;
+    lesson_duration_minutes: number;
+    bio: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    coach_profile?: Profile;
+    packages?: LessonPackage[];
+}
+
+// Weekly recurring availability template
+export interface LessonAvailability {
+    id: string;
+    hub_id: string;
+    coach_user_id: string;
+    day_of_week: number; // 0 = Sunday, 6 = Saturday
+    start_time: string; // TIME format: "16:00:00"
+    end_time: string;
+    effective_from: string | null;
+    effective_until: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+// Lesson slot status
+export type LessonSlotStatus = 'available' | 'partial' | 'booked' | 'cancelled';
+
+// Specific bookable time slot
+export interface LessonSlot {
+    id: string;
+    hub_id: string;
+    coach_user_id: string;
+    slot_date: string; // ISO date string
+    start_time: string;
+    end_time: string;
+    max_gymnasts: number;
+    status: LessonSlotStatus;
+    availability_id: string | null;
+    package_id: string | null;
+    is_one_off: boolean;
+    notes: string | null;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    coach_profile?: Profile;
+    bookings?: LessonBooking[];
+    package?: LessonPackage;
+}
+
+// Lesson booking status
+export type LessonBookingStatus = 'confirmed' | 'cancelled';
+
+// Lesson booking record
+export interface LessonBooking {
+    id: string;
+    hub_id: string;
+    lesson_slot_id: string;
+    booked_by_user_id: string;
+    gymnast_profile_id: string;
+    event: string;
+    status: LessonBookingStatus;
+    cancelled_at: string | null;
+    cancelled_by: string | null;
+    cancellation_reason: string | null;
+    calendar_event_id: string | null;
+    cost: number;
+    created_at: string;
+    updated_at: string;
+    // Joined data
+    gymnast_profile?: GymnastProfile;
+    booked_by?: Profile;
+    lesson_slot?: LessonSlot;
 }
