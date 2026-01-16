@@ -38,7 +38,7 @@ npm run lint
 |---------|-------------|
 | **Dashboard** | Overview stats, upcoming events, recent activity feed |
 | **Roster** | Gymnast list with dedicated profile pages, medical info, guardians, emergency contacts, apparel sizes |
-| **Gymnast Profile** | Full-page view with Profile, Goals, Assignments, and Assessment tabs |
+| **Gymnast Profile** | Full-page view with 7 tabs: Profile, Goals, Assessment, Assignments, Skills, Scores, and Attendance |
 | **Calendar** | Events with RSVP, color-coded types, US holidays, optional birthday display |
 | **Messages** | Real-time chat, direct messaging, anonymous reporting |
 | **Competitions** | Sessions, rosters, coaches, document management |
@@ -146,7 +146,7 @@ Badges:           bg-brand-100 text-brand-700, bg-slate-100 text-slate-600
 
 PostgreSQL via Supabase with 55+ tables including:
 - `profiles`, `organizations`, `hubs`, `hub_members`
-- `gymnast_profiles`, `events`, `competitions`, `competition_scores`
+- `gymnast_profiles`, `events`, `seasons`, `competitions`, `competition_scores`
 - `groups`, `posts`, `channels`, `messages`
 - `hub_event_skills`, `gymnast_skills`
 - `marketplace_items`, `mentorship_pairs`, `mentorship_events`

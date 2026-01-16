@@ -27,7 +27,7 @@ src/
 ├── pages/                     # 20+ page components
 │   ├── Dashboard.tsx
 │   ├── Roster.tsx
-│   ├── GymnastDetails.tsx     # Gymnast profile (/roster/:gymnastId)
+│   ├── GymnastDetails.tsx     # Gymnast profile with 7 tabs (/roster/:gymnastId)
 │   ├── Calendar.tsx
 │   ├── Messages.tsx
 │   ├── Scores.tsx
@@ -58,7 +58,7 @@ src/
 │   ├── calendar/              # Event modals
 │   ├── competitions/          # Session, roster, coach management
 │   ├── groups/                # Posts, attachments (polls, RSVPs, signups)
-│   ├── gymnast/               # Profile modal, injury reports
+│   ├── gymnast/               # Profile tabs (Skills, Scores, Attendance), injury reports
 │   ├── hubs/                  # Hub creation, member management
 │   ├── marketplace/           # Item listings, hub linking
 │   ├── mentorship/            # Pairing management, random assignment
@@ -137,6 +137,7 @@ Inputs:             border-slate-300 focus:border-brand-500 focus:ring-brand-500
 
 ### Features
 - `events`, `event_rsvps` - Calendar with RSVP
+- `seasons` - Season definitions for organizing competitions and scores
 - `competitions`, `competition_sessions`, `competition_gymnasts`, `competition_scores`, `competition_team_placements`
 - `groups`, `group_members`, `posts`, `comments` - Social features
 - `poll_responses`, `signup_responses`, `rsvp_responses` - Post interactions
@@ -223,6 +224,27 @@ const [result1, result2] = await Promise.all([
     supabase.from('table1').select('*').eq('hub_id', hub.id),
     supabase.from('table2').select('*').eq('hub_id', hub.id)
 ]);
+```
+
+### Gymnast Profile Tabs (GymnastDetails.tsx)
+The gymnast profile page uses a tab-based layout with 7 tabs:
+- **Profile** - Basic info, guardians, emergency contacts, medical info, apparel sizes
+- **Goals** - Gymnast-set goals with events, dates, and milestones
+- **Assessment** - Editable assessment form with collapsible sections
+- **Assignments** - Coach assignments with completion tracking
+- **Skills** - Event-based skill tracking with status (GymnastSkillsTab)
+- **Scores** - Competition scores by season with SeasonPicker (GymnastScoresTab)
+- **Attendance** - 6-month attendance history with monthly trends (GymnastAttendanceTab)
+
+```typescript
+type PageTab = 'profile' | 'goals' | 'assessment' | 'assignments' | 'skills' | 'scores' | 'attendance';
+```
+
+Tab components receive gymnast data as props:
+```typescript
+<GymnastSkillsTab gymnastId={gymnast.id} gymnastLevel={gymnast.level} gymnastGender={gymnast.gender} />
+<GymnastScoresTab gymnastId={gymnast.id} gymnastGender={gymnast.gender} />
+<GymnastAttendanceTab gymnastId={gymnast.id} gymnastLevel={gymnast.level} scheduleGroup={gymnast.schedule_group || undefined} />
 ```
 
 ## Common Mistakes to Avoid

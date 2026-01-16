@@ -50,6 +50,12 @@ export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: 
     { id: 'private_lessons', label: 'Private Lessons', description: 'Book private lessons with coaches, view availability calendars, and manage lesson schedules with automatic calendar integration' },
 ];
 
+// Season configuration
+export interface SeasonConfig {
+    startMonth: number;   // 1-12 (default: 8 for August)
+    startDay: number;     // 1-31 (default: 1)
+}
+
 export interface HubSettings {
     permissions?: HubPermissions;
     levels?: string[];
@@ -58,6 +64,7 @@ export interface HubSettings {
     allowGymnastToggle?: boolean;
     showBirthdays?: boolean;
     anonymous_reports_enabled?: boolean;
+    seasonConfig?: SeasonConfig;
 }
 
 export interface Hub {
@@ -196,6 +203,17 @@ export interface Comment {
     profiles?: Profile;
 }
 
+// Season Types
+export interface Season {
+    id: string;
+    hub_id: string;
+    name: string;           // e.g., "2025-2026"
+    start_date: string;     // ISO date string
+    end_date: string;       // ISO date string
+    is_current: boolean;
+    created_at: string;
+}
+
 export interface Competition {
     id: string;
     hub_id: string;
@@ -205,6 +223,9 @@ export interface Competition {
     location: string | null;
     created_by: string;
     created_at: string;
+    season_id: string | null;
+    // Joined data
+    season?: Season;
 }
 
 export interface CompetitionSession {
@@ -429,6 +450,7 @@ export interface CompetitionScore {
     event: GymEvent;
     score: number | null;
     placement: number | null;
+    gymnast_level: string | null;  // Snapshot of level at score entry time
     created_at: string;
     updated_at: string;
     created_by: string | null;

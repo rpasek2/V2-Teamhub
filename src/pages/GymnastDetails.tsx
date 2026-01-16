@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList, Pencil, X, Check, Loader2, ListChecks } from 'lucide-react';
+import { ArrowLeft, Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList, Pencil, X, Check, Loader2, ListChecks, Sparkles, Trophy, UserCheck } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
@@ -8,9 +8,12 @@ import { ReportInjuryModal } from '../components/gymnast/ReportInjuryModal';
 import { GoalsSection } from '../components/gymnast/GoalsSection';
 import { AssessmentSection } from '../components/gymnast/AssessmentSection';
 import { GymnastAssignmentStats } from '../components/gymnast/GymnastAssignmentStats';
+import { GymnastSkillsTab } from '../components/gymnast/GymnastSkillsTab';
+import { GymnastScoresTab } from '../components/gymnast/GymnastScoresTab';
+import { GymnastAttendanceTab } from '../components/gymnast/GymnastAttendanceTab';
 import type { GymnastProfile } from '../types';
 
-type PageTab = 'profile' | 'goals' | 'assessment' | 'assignments';
+type PageTab = 'profile' | 'goals' | 'assessment' | 'assignments' | 'skills' | 'scores' | 'attendance';
 type EditSection = 'basic' | 'membership' | 'apparel' | 'guardians' | 'emergency' | 'medical' | null;
 
 export function GymnastDetails() {
@@ -421,6 +424,39 @@ export function GymnastDetails() {
                     <ListChecks className="h-4 w-4" />
                     Assignments
                 </button>
+                <button
+                    onClick={() => setActiveTab('skills')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'skills'
+                            ? 'border-brand-500 text-brand-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                    }`}
+                >
+                    <Sparkles className="h-4 w-4" />
+                    Skills
+                </button>
+                <button
+                    onClick={() => setActiveTab('scores')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'scores'
+                            ? 'border-brand-500 text-brand-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                    }`}
+                >
+                    <Trophy className="h-4 w-4" />
+                    Scores
+                </button>
+                <button
+                    onClick={() => setActiveTab('attendance')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'attendance'
+                            ? 'border-brand-500 text-brand-600'
+                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                    }`}
+                >
+                    <UserCheck className="h-4 w-4" />
+                    Attendance
+                </button>
             </div>
 
             {/* Content */}
@@ -444,6 +480,32 @@ export function GymnastDetails() {
                 {/* Assignments Tab */}
                 {activeTab === 'assignments' && (
                     <GymnastAssignmentStats gymnastProfileId={gymnast.id} />
+                )}
+
+                {/* Skills Tab */}
+                {activeTab === 'skills' && (
+                    <GymnastSkillsTab
+                        gymnastId={gymnast.id}
+                        gymnastLevel={gymnast.level}
+                        gymnastGender={gymnast.gender as 'Male' | 'Female' | null}
+                    />
+                )}
+
+                {/* Scores Tab */}
+                {activeTab === 'scores' && (
+                    <GymnastScoresTab
+                        gymnastId={gymnast.id}
+                        gymnastGender={gymnast.gender as 'Male' | 'Female' | null}
+                    />
+                )}
+
+                {/* Attendance Tab */}
+                {activeTab === 'attendance' && (
+                    <GymnastAttendanceTab
+                        gymnastId={gymnast.id}
+                        gymnastLevel={gymnast.level}
+                        scheduleGroup={gymnast.schedule_group || undefined}
+                    />
                 )}
 
                 {/* Profile Tab */}
