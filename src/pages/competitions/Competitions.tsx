@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trophy, MapPin, Calendar } from 'lucide-react';
+import { Plus, Trophy, MapPin, Calendar, Trash2, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
@@ -19,8 +19,11 @@ export function Competitions() {
     const [competitions, setCompetitions] = useState<CompetitionWithCount[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+    const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
     const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+    const canDelete = ['owner', 'director', 'admin'].includes(currentRole || '');
 
     // Mark competitions as viewed when page loads
     useEffect(() => {
@@ -52,6 +55,28 @@ export function Competitions() {
         setLoading(false);
     };
 
+    const handleDelete = async (compId: string) => {
+        setDeletingId(compId);
+        try {
+            // Delete in order: scores, session gymnasts, sessions, competition gymnasts, competition
+            // This handles the cascade properly
+            const { error } = await supabase
+                .from('competitions')
+                .delete()
+                .eq('id', compId);
+
+            if (error) throw error;
+
+            // Remove from local state
+            setCompetitions(prev => prev.filter(c => c.id !== compId));
+            setConfirmDeleteId(null);
+        } catch (err) {
+            console.error('Error deleting competition:', err);
+        } finally {
+            setDeletingId(null);
+        }
+    };
+
     return (
         <div className="h-full flex flex-col">
             <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
@@ -70,26 +95,58 @@ export function Competitions() {
             <main className="flex-1 overflow-y-auto p-6">
                 {loading ? (
                     <div className="flex h-full items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-mint-500 border-t-transparent"></div>
+                        <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
                     </div>
                 ) : competitions.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                         {competitions.map((comp) => (
-                            <Link
+                            <div
                                 key={comp.id}
-                                to={`/hub/${hub?.id}/competitions/${comp.id}`}
-                                className="group relative flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-mint-500"
+                                className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-brand-300"
                             >
-                                <div className="p-6">
+                                {/* Delete confirmation overlay */}
+                                {confirmDeleteId === comp.id && (
+                                    <div className="absolute inset-0 z-10 bg-white/95 flex flex-col items-center justify-center p-4">
+                                        <p className="text-sm font-medium text-slate-900 text-center mb-4">
+                                            Delete "{comp.name}"?
+                                        </p>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => setConfirmDeleteId(null)}
+                                                className="btn-secondary text-sm py-1.5 px-3"
+                                                disabled={deletingId === comp.id}
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(comp.id)}
+                                                className="btn-danger text-sm py-1.5 px-3 flex items-center gap-1.5"
+                                                disabled={deletingId === comp.id}
+                                            >
+                                                {deletingId === comp.id ? (
+                                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Trash2 className="w-4 h-4" />
+                                                )}
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                <Link
+                                    to={`/hub/${hub?.id}/competitions/${comp.id}`}
+                                    className="flex-1 p-6"
+                                >
                                     <div className="flex items-center justify-between">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-mint-100 text-mint-600 group-hover:bg-mint-200">
-                                            <Trophy className="h-6 w-6" />
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-200">
+                                            <Trophy className="h-5 w-5" />
                                         </div>
                                         <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
                                             {comp.competition_gymnasts?.[0]?.count || 0} Gymnasts
                                         </span>
                                     </div>
-                                    <h3 className="mt-4 text-lg font-semibold text-slate-900 group-hover:text-mint-600">
+                                    <h3 className="mt-4 text-lg font-semibold text-slate-900 group-hover:text-brand-600">
                                         {comp.name}
                                     </h3>
                                     <div className="mt-4 space-y-2">
@@ -104,13 +161,30 @@ export function Competitions() {
                                             </div>
                                         )}
                                     </div>
-                                </div>
-                                <div className="mt-auto border-t border-slate-200 bg-slate-50 px-6 py-3">
-                                    <span className="text-sm font-medium text-mint-600 group-hover:text-mint-500">
+                                </Link>
+
+                                <div className="mt-auto border-t border-slate-200 bg-slate-50 px-6 py-3 flex items-center justify-between">
+                                    <Link
+                                        to={`/hub/${hub?.id}/competitions/${comp.id}`}
+                                        className="text-sm font-medium text-brand-600 hover:text-brand-700"
+                                    >
                                         View Details &rarr;
-                                    </span>
+                                    </Link>
+                                    {canDelete && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setConfirmDeleteId(comp.id);
+                                            }}
+                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            title="Delete competition"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
                                 </div>
-                            </Link>
+                            </div>
                         ))}
                     </div>
                 ) : (
