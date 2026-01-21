@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { Calendar, Grid3X3 } from 'lucide-react';
-import { useHub } from '../context/HubContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { WeeklyScheduleTab } from '../components/schedule/WeeklyScheduleTab';
 import { DailyRotationTab } from '../components/schedule/DailyRotationTab';
 
 type ScheduleTab = 'weekly' | 'rotation';
 
 export function Schedule() {
-    const { currentRole } = useHub();
+    const { isStaff, canManage } = useRoleChecks();
     const [activeTab, setActiveTab] = useState<ScheduleTab>('weekly');
-
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
-    const canManage = ['owner', 'director', 'admin'].includes(currentRole || '');
 
     if (!isStaff) {
         return (

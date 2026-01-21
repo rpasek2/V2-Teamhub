@@ -1,9 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList, Pencil, X, Check, Loader2, ListChecks, Sparkles, Trophy, UserCheck } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
+import { useGymnastEditForm, type EditSection } from '../hooks/useGymnastEditForm';
 import { ReportInjuryModal } from '../components/gymnast/ReportInjuryModal';
 import { GoalsSection } from '../components/gymnast/GoalsSection';
 import { AssessmentSection } from '../components/gymnast/AssessmentSection';
@@ -14,7 +15,6 @@ import { GymnastAttendanceTab } from '../components/gymnast/GymnastAttendanceTab
 import type { GymnastProfile } from '../types';
 
 type PageTab = 'profile' | 'goals' | 'assessment' | 'assignments' | 'skills' | 'scores' | 'attendance';
-type EditSection = 'basic' | 'membership' | 'apparel' | 'guardians' | 'emergency' | 'medical' | null;
 
 export function GymnastDetails() {
     const { gymnastId } = useParams<{ gymnastId: string }>();
@@ -31,44 +31,8 @@ export function GymnastDetails() {
     const [editSection, setEditSection] = useState<EditSection>(null);
     const [saving, setSaving] = useState(false);
 
-    // Edit form state - Basic Info
-    const [editFirstName, setEditFirstName] = useState('');
-    const [editLastName, setEditLastName] = useState('');
-    const [editDob, setEditDob] = useState('');
-    const [editGender, setEditGender] = useState<'Male' | 'Female' | ''>('');
-    const [editLevel, setEditLevel] = useState('');
-
-    // Edit form state - Membership
-    const [editMemberId, setEditMemberId] = useState('');
-    const [editMemberIdType, setEditMemberIdType] = useState<'USAG' | 'AAU' | 'Other' | ''>('');
-
-    // Edit form state - Apparel
-    const [editTshirtSize, setEditTshirtSize] = useState('');
-    const [editLeoSize, setEditLeoSize] = useState('');
-
-    // Edit form state - Guardians
-    const [editG1FirstName, setEditG1FirstName] = useState('');
-    const [editG1LastName, setEditG1LastName] = useState('');
-    const [editG1Email, setEditG1Email] = useState('');
-    const [editG1Phone, setEditG1Phone] = useState('');
-    const [editG2FirstName, setEditG2FirstName] = useState('');
-    const [editG2LastName, setEditG2LastName] = useState('');
-    const [editG2Email, setEditG2Email] = useState('');
-    const [editG2Phone, setEditG2Phone] = useState('');
-
-    // Edit form state - Emergency Contacts
-    const [editEC1Name, setEditEC1Name] = useState('');
-    const [editEC1Phone, setEditEC1Phone] = useState('');
-    const [editEC1Relationship, setEditEC1Relationship] = useState('');
-    const [editEC2Name, setEditEC2Name] = useState('');
-    const [editEC2Phone, setEditEC2Phone] = useState('');
-    const [editEC2Relationship, setEditEC2Relationship] = useState('');
-
-    // Edit form state - Medical
-    const [editAllergies, setEditAllergies] = useState('');
-    const [editMedications, setEditMedications] = useState('');
-    const [editConditions, setEditConditions] = useState('');
-    const [editMedicalNotes, setEditMedicalNotes] = useState('');
+    // Use custom hook for form state management (replaces 38 individual useState hooks)
+    const { formState, setField, loadSection, getUpdateData } = useGymnastEditForm();
 
     // Fetch gymnast data
     useEffect(() => {
@@ -166,128 +130,22 @@ export function GymnastDetails() {
     const hasMedicalInfo = gymnast?.medical_info && (gymnast.medical_info.allergies || gymnast.medical_info.medications || gymnast.medical_info.conditions || gymnast.medical_info.notes);
 
     // Start editing a section
-    const startEdit = (section: EditSection) => {
+    const startEdit = useCallback((section: EditSection) => {
         if (!gymnast) return;
-
-        switch (section) {
-            case 'basic':
-                setEditFirstName(gymnast.first_name || '');
-                setEditLastName(gymnast.last_name || '');
-                setEditDob(gymnast.date_of_birth || '');
-                setEditGender(gymnast.gender as 'Male' | 'Female' | '' || '');
-                setEditLevel(gymnast.level || '');
-                break;
-            case 'membership':
-                setEditMemberId(gymnast.member_id || '');
-                setEditMemberIdType(gymnast.member_id_type as 'USAG' | 'AAU' | 'Other' | '' || '');
-                break;
-            case 'apparel':
-                setEditTshirtSize(gymnast.tshirt_size || '');
-                setEditLeoSize(gymnast.leo_size || '');
-                break;
-            case 'guardians':
-                setEditG1FirstName(gymnast.guardian_1?.first_name || '');
-                setEditG1LastName(gymnast.guardian_1?.last_name || '');
-                setEditG1Email(gymnast.guardian_1?.email || '');
-                setEditG1Phone(gymnast.guardian_1?.phone || '');
-                setEditG2FirstName(gymnast.guardian_2?.first_name || '');
-                setEditG2LastName(gymnast.guardian_2?.last_name || '');
-                setEditG2Email(gymnast.guardian_2?.email || '');
-                setEditG2Phone(gymnast.guardian_2?.phone || '');
-                break;
-            case 'emergency':
-                setEditEC1Name(gymnast.emergency_contact_1?.name || '');
-                setEditEC1Phone(gymnast.emergency_contact_1?.phone || '');
-                setEditEC1Relationship(gymnast.emergency_contact_1?.relationship || '');
-                setEditEC2Name(gymnast.emergency_contact_2?.name || '');
-                setEditEC2Phone(gymnast.emergency_contact_2?.phone || '');
-                setEditEC2Relationship(gymnast.emergency_contact_2?.relationship || '');
-                break;
-            case 'medical':
-                setEditAllergies(gymnast.medical_info?.allergies || '');
-                setEditMedications(gymnast.medical_info?.medications || '');
-                setEditConditions(gymnast.medical_info?.conditions || '');
-                setEditMedicalNotes(gymnast.medical_info?.notes || '');
-                break;
-        }
+        loadSection(section, gymnast);
         setEditSection(section);
-    };
+    }, [gymnast, loadSection]);
 
     const cancelEdit = () => {
         setEditSection(null);
     };
 
-    const saveSection = async () => {
+    const saveSection = useCallback(async () => {
         if (!gymnast) return;
         setSaving(true);
 
         try {
-            let updateData: Record<string, unknown> = {};
-
-            switch (editSection) {
-                case 'basic':
-                    updateData = {
-                        first_name: editFirstName,
-                        last_name: editLastName,
-                        date_of_birth: editDob,
-                        gender: editGender || null,
-                        level: editLevel || null,
-                    };
-                    break;
-                case 'membership':
-                    updateData = {
-                        member_id: editMemberId || null,
-                        member_id_type: editMemberIdType || null,
-                    };
-                    break;
-                case 'apparel':
-                    updateData = {
-                        tshirt_size: editTshirtSize || null,
-                        leo_size: editLeoSize || null,
-                    };
-                    break;
-                case 'guardians':
-                    updateData = {
-                        guardian_1: {
-                            first_name: editG1FirstName || null,
-                            last_name: editG1LastName || null,
-                            email: editG1Email || null,
-                            phone: editG1Phone || null,
-                        },
-                        guardian_2: {
-                            first_name: editG2FirstName || null,
-                            last_name: editG2LastName || null,
-                            email: editG2Email || null,
-                            phone: editG2Phone || null,
-                        },
-                    };
-                    break;
-                case 'emergency':
-                    updateData = {
-                        emergency_contact_1: editEC1Name ? {
-                            name: editEC1Name,
-                            phone: editEC1Phone || null,
-                            relationship: editEC1Relationship || null,
-                        } : null,
-                        emergency_contact_2: editEC2Name ? {
-                            name: editEC2Name,
-                            phone: editEC2Phone || null,
-                            relationship: editEC2Relationship || null,
-                        } : null,
-                    };
-                    break;
-                case 'medical':
-                    updateData = {
-                        medical_info: {
-                            ...gymnast.medical_info,
-                            allergies: editAllergies || null,
-                            medications: editMedications || null,
-                            conditions: editConditions || null,
-                            notes: editMedicalNotes || null,
-                        },
-                    };
-                    break;
-            }
+            const updateData = getUpdateData(editSection, gymnast);
 
             const { error } = await supabase
                 .from('gymnast_profiles')
@@ -303,7 +161,7 @@ export function GymnastDetails() {
         } finally {
             setSaving(false);
         }
-    };
+    }, [gymnast, editSection, getUpdateData]);
 
     if (loading) {
         return (
@@ -554,8 +412,8 @@ export function GymnastDetails() {
                                                 <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">First Name</label>
                                                 <input
                                                     type="text"
-                                                    value={editFirstName}
-                                                    onChange={(e) => setEditFirstName(e.target.value)}
+                                                    value={formState.firstName}
+                                                    onChange={(e) => setField('firstName', e.target.value)}
                                                     className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 />
                                             </div>
@@ -563,8 +421,8 @@ export function GymnastDetails() {
                                                 <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Last Name</label>
                                                 <input
                                                     type="text"
-                                                    value={editLastName}
-                                                    onChange={(e) => setEditLastName(e.target.value)}
+                                                    value={formState.lastName}
+                                                    onChange={(e) => setField('lastName', e.target.value)}
                                                     className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 />
                                             </div>
@@ -574,16 +432,16 @@ export function GymnastDetails() {
                                                 <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Date of Birth</label>
                                                 <input
                                                     type="date"
-                                                    value={editDob}
-                                                    onChange={(e) => setEditDob(e.target.value)}
+                                                    value={formState.dob}
+                                                    onChange={(e) => setField('dob', e.target.value)}
                                                     className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 />
                                             </div>
                                             <div>
                                                 <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Gender</label>
                                                 <select
-                                                    value={editGender}
-                                                    onChange={(e) => setEditGender(e.target.value as 'Male' | 'Female' | '')}
+                                                    value={formState.gender}
+                                                    onChange={(e) => setField('gender', e.target.value)}
                                                     className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 >
                                                     <option value="">Select...</option>
@@ -594,8 +452,8 @@ export function GymnastDetails() {
                                             <div>
                                                 <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Level</label>
                                                 <select
-                                                    value={editLevel}
-                                                    onChange={(e) => setEditLevel(e.target.value)}
+                                                    value={formState.level}
+                                                    onChange={(e) => setField('level', e.target.value)}
                                                     className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 >
                                                     <option value="">Select...</option>
@@ -695,8 +553,8 @@ export function GymnastDetails() {
                                         <div>
                                             <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">ID Type</label>
                                             <select
-                                                value={editMemberIdType}
-                                                onChange={(e) => setEditMemberIdType(e.target.value as 'USAG' | 'AAU' | 'Other' | '')}
+                                                value={formState.memberIdType}
+                                                onChange={(e) => setField('memberIdType', e.target.value)}
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                             >
                                                 <option value="">Select...</option>
@@ -709,8 +567,8 @@ export function GymnastDetails() {
                                             <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Member ID</label>
                                             <input
                                                 type="text"
-                                                value={editMemberId}
-                                                onChange={(e) => setEditMemberId(e.target.value)}
+                                                value={formState.memberId}
+                                                onChange={(e) => setField('memberId', e.target.value)}
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm font-mono focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 placeholder="Enter member ID"
                                             />
@@ -775,8 +633,8 @@ export function GymnastDetails() {
                                         <div>
                                             <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">T-Shirt Size</label>
                                             <select
-                                                value={editTshirtSize}
-                                                onChange={(e) => setEditTshirtSize(e.target.value)}
+                                                value={formState.tshirtSize}
+                                                onChange={(e) => setField('tshirtSize', e.target.value)}
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                             >
                                                 <option value="">Select...</option>
@@ -800,8 +658,8 @@ export function GymnastDetails() {
                                         <div>
                                             <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Leotard Size</label>
                                             <select
-                                                value={editLeoSize}
-                                                onChange={(e) => setEditLeoSize(e.target.value)}
+                                                value={formState.leoSize}
+                                                onChange={(e) => setField('leoSize', e.target.value)}
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                             >
                                                 <option value="">Select...</option>
@@ -913,8 +771,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">First Name</label>
                                                     <input
                                                         type="text"
-                                                        value={editG1FirstName}
-                                                        onChange={(e) => setEditG1FirstName(e.target.value)}
+                                                        value={formState.g1FirstName}
+                                                        onChange={(e) => setField('g1FirstName', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                     />
                                                 </div>
@@ -922,8 +780,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Last Name</label>
                                                     <input
                                                         type="text"
-                                                        value={editG1LastName}
-                                                        onChange={(e) => setEditG1LastName(e.target.value)}
+                                                        value={formState.g1LastName}
+                                                        onChange={(e) => setField('g1LastName', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                     />
                                                 </div>
@@ -931,8 +789,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Email</label>
                                                     <input
                                                         type="email"
-                                                        value={editG1Email}
-                                                        onChange={(e) => setEditG1Email(e.target.value)}
+                                                        value={formState.g1Email}
+                                                        onChange={(e) => setField('g1Email', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                     />
                                                 </div>
@@ -940,8 +798,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Phone</label>
                                                     <input
                                                         type="tel"
-                                                        value={editG1Phone}
-                                                        onChange={(e) => setEditG1Phone(e.target.value)}
+                                                        value={formState.g1Phone}
+                                                        onChange={(e) => setField('g1Phone', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                     />
                                                 </div>
@@ -959,8 +817,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">First Name</label>
                                                     <input
                                                         type="text"
-                                                        value={editG2FirstName}
-                                                        onChange={(e) => setEditG2FirstName(e.target.value)}
+                                                        value={formState.g2FirstName}
+                                                        onChange={(e) => setField('g2FirstName', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                     />
                                                 </div>
@@ -968,8 +826,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Last Name</label>
                                                     <input
                                                         type="text"
-                                                        value={editG2LastName}
-                                                        onChange={(e) => setEditG2LastName(e.target.value)}
+                                                        value={formState.g2LastName}
+                                                        onChange={(e) => setField('g2LastName', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                     />
                                                 </div>
@@ -977,8 +835,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Email</label>
                                                     <input
                                                         type="email"
-                                                        value={editG2Email}
-                                                        onChange={(e) => setEditG2Email(e.target.value)}
+                                                        value={formState.g2Email}
+                                                        onChange={(e) => setField('g2Email', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                     />
                                                 </div>
@@ -986,8 +844,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Phone</label>
                                                     <input
                                                         type="tel"
-                                                        value={editG2Phone}
-                                                        onChange={(e) => setEditG2Phone(e.target.value)}
+                                                        value={formState.g2Phone}
+                                                        onChange={(e) => setField('g2Phone', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                     />
                                                 </div>
@@ -1148,8 +1006,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Name</label>
                                                     <input
                                                         type="text"
-                                                        value={editEC1Name}
-                                                        onChange={(e) => setEditEC1Name(e.target.value)}
+                                                        value={formState.ec1Name}
+                                                        onChange={(e) => setField('ec1Name', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                         placeholder="Full name"
                                                     />
@@ -1158,8 +1016,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Phone</label>
                                                     <input
                                                         type="tel"
-                                                        value={editEC1Phone}
-                                                        onChange={(e) => setEditEC1Phone(e.target.value)}
+                                                        value={formState.ec1Phone}
+                                                        onChange={(e) => setField('ec1Phone', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                         placeholder="Phone number"
                                                     />
@@ -1168,8 +1026,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Relationship</label>
                                                     <input
                                                         type="text"
-                                                        value={editEC1Relationship}
-                                                        onChange={(e) => setEditEC1Relationship(e.target.value)}
+                                                        value={formState.ec1Relationship}
+                                                        onChange={(e) => setField('ec1Relationship', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                         placeholder="e.g., Grandmother"
                                                     />
@@ -1188,8 +1046,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Name</label>
                                                     <input
                                                         type="text"
-                                                        value={editEC2Name}
-                                                        onChange={(e) => setEditEC2Name(e.target.value)}
+                                                        value={formState.ec2Name}
+                                                        onChange={(e) => setField('ec2Name', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                         placeholder="Full name"
                                                     />
@@ -1198,8 +1056,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Phone</label>
                                                     <input
                                                         type="tel"
-                                                        value={editEC2Phone}
-                                                        onChange={(e) => setEditEC2Phone(e.target.value)}
+                                                        value={formState.ec2Phone}
+                                                        onChange={(e) => setField('ec2Phone', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                         placeholder="Phone number"
                                                     />
@@ -1208,8 +1066,8 @@ export function GymnastDetails() {
                                                     <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Relationship</label>
                                                     <input
                                                         type="text"
-                                                        value={editEC2Relationship}
-                                                        onChange={(e) => setEditEC2Relationship(e.target.value)}
+                                                        value={formState.ec2Relationship}
+                                                        onChange={(e) => setField('ec2Relationship', e.target.value)}
                                                         className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                         placeholder="e.g., Neighbor"
                                                     />
@@ -1371,8 +1229,8 @@ export function GymnastDetails() {
                                         <div>
                                             <label className="block text-xs font-semibold text-error-600 uppercase tracking-wide mb-1">Allergies</label>
                                             <textarea
-                                                value={editAllergies}
-                                                onChange={(e) => setEditAllergies(e.target.value)}
+                                                value={formState.allergies}
+                                                onChange={(e) => setField('allergies', e.target.value)}
                                                 rows={2}
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 placeholder="List any allergies..."
@@ -1381,8 +1239,8 @@ export function GymnastDetails() {
                                         <div>
                                             <label className="block text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Medications</label>
                                             <textarea
-                                                value={editMedications}
-                                                onChange={(e) => setEditMedications(e.target.value)}
+                                                value={formState.medications}
+                                                onChange={(e) => setField('medications', e.target.value)}
                                                 rows={2}
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 placeholder="List current medications..."
@@ -1391,8 +1249,8 @@ export function GymnastDetails() {
                                         <div>
                                             <label className="block text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1">Conditions</label>
                                             <textarea
-                                                value={editConditions}
-                                                onChange={(e) => setEditConditions(e.target.value)}
+                                                value={formState.conditions}
+                                                onChange={(e) => setField('conditions', e.target.value)}
                                                 rows={2}
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 placeholder="List any medical conditions..."
@@ -1401,8 +1259,8 @@ export function GymnastDetails() {
                                         <div>
                                             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Additional Notes</label>
                                             <textarea
-                                                value={editMedicalNotes}
-                                                onChange={(e) => setEditMedicalNotes(e.target.value)}
+                                                value={formState.medicalNotes}
+                                                onChange={(e) => setField('medicalNotes', e.target.value)}
                                                 rows={2}
                                                 className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
                                                 placeholder="Any additional medical notes..."

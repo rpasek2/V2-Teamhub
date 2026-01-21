@@ -47,7 +47,8 @@ export function AttendanceMetricsTab() {
             setEndDate(format(today, 'yyyy-MM-dd'));
         } else if (dateRange === 'month') {
             setStartDate(format(startOfMonth(today), 'yyyy-MM-dd'));
-            setEndDate(format(endOfMonth(today), 'yyyy-MM-dd'));
+            // Use today's date, not end of month, so we only count scheduled days up to now
+            setEndDate(format(today, 'yyyy-MM-dd'));
         }
     }, [dateRange]);
 

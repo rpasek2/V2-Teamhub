@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams } from 'react-router-dom';
-import { X, User, Loader2, Link, Unlink, GripVertical } from 'lucide-react';
+import { X, User, Loader2, GripVertical, Pencil, EyeOff, Eye, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import type { RotationBlock, RotationEvent } from '../../types';
@@ -31,8 +31,10 @@ interface RotationGridProps {
     canManage: boolean;
     columnOrder?: number[]; // Custom order of columns by index
     onColumnOrderChange?: (newOrder: number[]) => void;
-    combinedIndices?: number[][]; // Indices of combined columns
-    onCombinedIndicesChange?: (indices: number[][]) => void;
+    columnNames?: Record<string, string>; // Custom names: { "Level 5|A": "Optionals" }
+    onColumnNamesChange?: (names: Record<string, string>) => void;
+    hiddenColumns?: string[]; // Hidden column keys: ["Level 3|A"]
+    onHiddenColumnsChange?: (hidden: string[]) => void;
 }
 
 interface DragState {
@@ -45,13 +47,6 @@ interface DragState {
 interface ColumnDragState {
     draggedIndex: number;
     targetIndex: number | null;
-}
-
-// A combined group represents multiple levels merged into one column
-interface CombinedGroup {
-    levels: ActiveLevel[];
-    start_time: string;
-    end_time: string;
 }
 
 const ROW_HEIGHT = 24; // Height of each 5-minute row in pixels
@@ -69,8 +64,10 @@ export function RotationGrid({
     canManage,
     columnOrder,
     onColumnOrderChange,
-    combinedIndices: externalCombinedIndices,
-    onCombinedIndicesChange
+    columnNames = {},
+    onColumnNamesChange,
+    hiddenColumns = [],
+    onHiddenColumnsChange
 }: RotationGridProps) {
     const { hubId } = useParams();
     const { user } = useAuth();
@@ -83,6 +80,16 @@ export function RotationGrid({
 
     // Column reordering drag state
     const [columnDragState, setColumnDragState] = useState<ColumnDragState | null>(null);
+
+    // Editing column name state
+    const [editingColumn, setEditingColumn] = useState<string | null>(null);
+    const [editingName, setEditingName] = useState('');
+
+    // Show hidden columns toggle
+    const [showHiddenColumns, setShowHiddenColumns] = useState(false);
+
+    // Get level key for storage
+    const getLevelKey = (level: ActiveLevel) => `${level.level}|${level.schedule_group}`;
 
     // Column drag handlers
     const handleColumnDragStart = (e: React.DragEvent, index: number) => {
@@ -117,49 +124,7 @@ export function RotationGrid({
             ? [...columnOrder]
             : activeLevels.map((_, i) => i);
 
-        // Get the original index of the dragged column
-        const draggedOriginalIdx = currentOrder[draggedDisplayIndex];
-
-        // Check if the dragged column is part of a combined group
-        const cleanedCombinedIndices = (externalCombinedIndices || [])
-            .map(g => g.filter(idx => idx >= 0 && idx < activeLevels.length))
-            .filter(g => g.length > 1);
-
-        const draggedGroup = cleanedCombinedIndices.find(g => g.includes(draggedOriginalIdx));
-
-        if (draggedGroup) {
-            // Moving a combined group - find all display indices in this group
-            const groupDisplayIndices = draggedGroup
-                .map(origIdx => currentOrder.indexOf(origIdx))
-                .filter(di => di !== -1)
-                .sort((a, b) => a - b);
-
-            if (groupDisplayIndices.length > 1) {
-                // Remove all group members from their current positions (in reverse order to maintain indices)
-                const removedOriginalIndices: number[] = [];
-                for (let i = groupDisplayIndices.length - 1; i >= 0; i--) {
-                    const di = groupDisplayIndices[i];
-                    const [removed] = currentOrder.splice(di, 1);
-                    removedOriginalIndices.unshift(removed);
-                }
-
-                // Calculate adjusted target index after removal
-                let adjustedTarget = targetIndex;
-                const minRemovedIdx = groupDisplayIndices[0];
-                if (targetIndex > minRemovedIdx) {
-                    adjustedTarget = targetIndex - groupDisplayIndices.length;
-                }
-
-                // Insert all group members at the target position
-                currentOrder.splice(adjustedTarget, 0, ...removedOriginalIndices);
-
-                onColumnOrderChange?.(currentOrder);
-                setColumnDragState(null);
-                return;
-            }
-        }
-
-        // Single column move (not part of a group)
+        // Simple single column move
         const [removed] = currentOrder.splice(draggedDisplayIndex, 1);
 
         // Calculate adjusted target index after removal
@@ -172,15 +137,6 @@ export function RotationGrid({
 
         onColumnOrderChange?.(currentOrder);
         setColumnDragState(null);
-    };
-
-    // Track which columns are combined using level keys (level-scheduleGroup)
-    // This is more robust than indices since it survives reordering
-    // combinedIndices still uses numbers for backward compatibility, but we handle the mapping
-    const combinedIndices = externalCombinedIndices || [];
-    const setCombinedIndices = (updater: number[][] | ((prev: number[][]) => number[][])) => {
-        const newValue = typeof updater === 'function' ? updater(combinedIndices) : updater;
-        onCombinedIndicesChange?.(newValue);
     };
 
     // Get ordered levels based on columnOrder prop or default order
@@ -196,163 +152,57 @@ export function RotationGrid({
         return columnOrder.map(i => activeLevels[i]);
     }, [activeLevels, columnOrder]);
 
-    // Map from ordered index to original index
-    const orderedToOriginal = useMemo(() => {
-        if (!columnOrder || columnOrder.length !== activeLevels.length) {
-            return activeLevels.map((_, i) => i);
-        }
-        const validOrder = columnOrder.every(i => i >= 0 && i < activeLevels.length);
-        if (!validOrder) {
-            return activeLevels.map((_, i) => i);
-        }
-        return columnOrder;
-    }, [activeLevels, columnOrder]);
+    // Filter out hidden columns for display
+    const visibleLevels = useMemo(() => {
+        if (showHiddenColumns) return orderedLevels;
+        return orderedLevels.filter(level => !hiddenColumns.includes(getLevelKey(level)));
+    }, [orderedLevels, hiddenColumns, showHiddenColumns]);
 
-    // Clean up combinedIndices to remove any invalid indices
-    const validCombinedIndices = useMemo(() => {
-        return combinedIndices
-            .map(group => group.filter(idx => idx >= 0 && idx < activeLevels.length))
-            .filter(group => group.length > 1);
-    }, [combinedIndices, activeLevels.length]);
-
-    // Combine two adjacent columns by their ORIGINAL indices
-    const combineColumnsByOriginalIndices = (leftOriginalIdx: number, rightOriginalIdx: number) => {
-        if (leftOriginalIdx < 0 || leftOriginalIdx >= activeLevels.length ||
-            rightOriginalIdx < 0 || rightOriginalIdx >= activeLevels.length) {
-            return;
-        }
-
-        setCombinedIndices(prev => {
-            // Clean up any invalid indices first
-            const cleanedPrev = prev
-                .map(g => g.filter(idx => idx >= 0 && idx < activeLevels.length))
-                .filter(g => g.length > 0);
-
-            // Find if either index is already part of a group
-            const leftGroupIdx = cleanedPrev.findIndex(g => g.includes(leftOriginalIdx));
-            const rightGroupIdx = cleanedPrev.findIndex(g => g.includes(rightOriginalIdx));
-
-            if (leftGroupIdx === -1 && rightGroupIdx === -1) {
-                // Neither is in a group, create new group
-                return [...cleanedPrev, [leftOriginalIdx, rightOriginalIdx]];
-            } else if (leftGroupIdx !== -1 && rightGroupIdx === -1) {
-                // Left is in a group, add right to it
-                const newGroups = [...cleanedPrev];
-                newGroups[leftGroupIdx] = [...newGroups[leftGroupIdx], rightOriginalIdx];
-                return newGroups;
-            } else if (leftGroupIdx === -1 && rightGroupIdx !== -1) {
-                // Right is in a group, add left to it
-                const newGroups = [...cleanedPrev];
-                newGroups[rightGroupIdx] = [leftOriginalIdx, ...newGroups[rightGroupIdx]];
-                return newGroups;
-            } else if (leftGroupIdx !== rightGroupIdx) {
-                // Both in different groups, merge the groups
-                const newGroups = cleanedPrev.filter((_, i) => i !== leftGroupIdx && i !== rightGroupIdx);
-                const merged = [...cleanedPrev[leftGroupIdx], ...cleanedPrev[rightGroupIdx]];
-                return [...newGroups, merged];
-            }
-            // Already in same group, nothing to do
-            return cleanedPrev;
-        });
+    // Get display name for a level
+    const getDisplayName = (level: ActiveLevel) => {
+        const key = getLevelKey(level);
+        return columnNames[key] || level.level;
     };
 
-    // Split columns by their ORIGINAL indices - split at the boundary between left and right
-    const splitColumnsByOriginalIndices = (leftOriginalIdx: number, rightOriginalIdx: number) => {
-        setCombinedIndices(prev => {
-            const groupIdx = prev.findIndex(g => g.includes(leftOriginalIdx) && g.includes(rightOriginalIdx));
-            if (groupIdx === -1) return prev;
-
-            const group = prev[groupIdx];
-
-            // Find the position of these two indices in the current display order
-            const leftDisplayIdx = orderedToOriginal.indexOf(leftOriginalIdx);
-            const rightDisplayIdx = orderedToOriginal.indexOf(rightOriginalIdx);
-
-            if (leftDisplayIdx === -1 || rightDisplayIdx === -1) return prev;
-
-            // Get all group indices and their display positions
-            const groupWithDisplayPos = group.map(idx => ({
-                originalIdx: idx,
-                displayIdx: orderedToOriginal.indexOf(idx)
-            })).filter(item => item.displayIdx !== -1);
-
-            // Sort by display position
-            groupWithDisplayPos.sort((a, b) => a.displayIdx - b.displayIdx);
-
-            // Split: indices that appear before or at leftDisplayIdx go to left part
-            // indices that appear at or after rightDisplayIdx go to right part
-            const splitPoint = groupWithDisplayPos.findIndex(item => item.originalIdx === rightOriginalIdx);
-
-            if (splitPoint === -1 || splitPoint === 0) return prev;
-
-            const leftPart = groupWithDisplayPos.slice(0, splitPoint).map(item => item.originalIdx);
-            const rightPart = groupWithDisplayPos.slice(splitPoint).map(item => item.originalIdx);
-
-            const newGroups = prev.filter((_, i) => i !== groupIdx);
-            if (leftPart.length > 1) newGroups.push(leftPart);
-            if (rightPart.length > 1) newGroups.push(rightPart);
-
-            return newGroups;
-        });
+    // Handle rename
+    const handleStartRename = (level: ActiveLevel) => {
+        const key = getLevelKey(level);
+        setEditingColumn(key);
+        setEditingName(columnNames[key] || level.level);
     };
 
-    // Check if two columns (by original indices) are combined
-    const areColumnsCombined = (leftOriginalIdx: number, rightOriginalIdx: number) => {
-        return validCombinedIndices.some(g => g.includes(leftOriginalIdx) && g.includes(rightOriginalIdx));
-    };
+    const handleSaveRename = () => {
+        if (!editingColumn) return;
 
-    // Build combined groups from orderedLevels based on combinedIndices
-    // The combinedIndices use ORIGINAL indices (before ordering), so we need to map correctly
-    const displayGroups = useMemo((): CombinedGroup[] => {
-        const groups: CombinedGroup[] = [];
-        const processedOriginalIndices = new Set<number>();
+        const level = activeLevels.find(l => getLevelKey(l) === editingColumn);
+        const defaultName = level?.level || '';
 
-        // Iterate in ORDERED sequence (using orderedLevels)
-        for (let displayIdx = 0; displayIdx < orderedLevels.length; displayIdx++) {
-            // Map back to original index
-            const originalIdx = orderedToOriginal[displayIdx];
-
-            if (processedOriginalIndices.has(originalIdx)) continue;
-
-            // Find if this original index is part of a combined group
-            const combinedGroup = validCombinedIndices.find(g => g.includes(originalIdx));
-
-            if (combinedGroup) {
-                // Get the levels for this combined group, ordered by their display position
-                const groupLevelsWithPos = combinedGroup
-                    .map(idx => ({
-                        originalIdx: idx,
-                        displayIdx: orderedToOriginal.indexOf(idx),
-                        level: activeLevels[idx]
-                    }))
-                    .filter(item => item.displayIdx !== -1 && item.level)
-                    .sort((a, b) => a.displayIdx - b.displayIdx);
-
-                const levels = groupLevelsWithPos.map(item => item.level);
-
-                if (levels.length > 0) {
-                    const start_time = levels.reduce((min, l) => l.start_time < min ? l.start_time : min, '23:59:00');
-                    const end_time = levels.reduce((max, l) => l.end_time > max ? l.end_time : max, '00:00:00');
-
-                    groups.push({ levels, start_time, end_time });
-                    combinedGroup.forEach(idx => processedOriginalIndices.add(idx));
-                }
-            } else {
-                // Single level - use the ordered level
-                const level = orderedLevels[displayIdx];
-                if (level) {
-                    groups.push({
-                        levels: [level],
-                        start_time: level.start_time,
-                        end_time: level.end_time
-                    });
-                    processedOriginalIndices.add(originalIdx);
-                }
-            }
+        const newNames = { ...columnNames };
+        if (editingName.trim() && editingName.trim() !== defaultName) {
+            newNames[editingColumn] = editingName.trim();
+        } else {
+            // If empty or same as default, remove custom name
+            delete newNames[editingColumn];
         }
 
-        return groups;
-    }, [orderedLevels, orderedToOriginal, activeLevels, validCombinedIndices]);
+        onColumnNamesChange?.(newNames);
+        setEditingColumn(null);
+        setEditingName('');
+    };
+
+    const handleCancelRename = () => {
+        setEditingColumn(null);
+        setEditingName('');
+    };
+
+    // Handle hide/show column
+    const handleToggleHidden = (level: ActiveLevel) => {
+        const key = getLevelKey(level);
+        const newHidden = hiddenColumns.includes(key)
+            ? hiddenColumns.filter(k => k !== key)
+            : [...hiddenColumns, key];
+        onHiddenColumnsChange?.(newHidden);
+    };
 
     // Calculate time range for the grid (earliest start to latest end across all levels)
     const timeRange = useMemo(() => {
@@ -424,53 +274,38 @@ export function RotationGrid({
         return timeSlot >= level.start_time && timeSlot < level.end_time;
     };
 
-    // Check if a combined group is active at a given time
-    const isGroupActiveAtTime = (group: CombinedGroup, timeSlot: string) => {
-        return group.levels.some(level => isLevelActiveAtTime(level, timeSlot));
-    };
-
-    // Get blocks for a combined group - only from the primary (first) level
-    const getBlocksForGroup = (group: CombinedGroup) => {
-        const primaryLevel = group.levels[0];
+    // Get blocks for a level
+    const getBlocksForLevel = (level: ActiveLevel) => {
         return blocks.filter(b =>
-            b.level === primaryLevel.level && b.schedule_group === primaryLevel.schedule_group
+            b.level === level.level && b.schedule_group === level.schedule_group
         );
     };
 
-    const handleMouseDown = (groupIndex: number, row: number) => {
+    const handleMouseDown = (level: ActiveLevel, row: number) => {
         if (!canManage || !selectedEvent) return;
 
-        const group = displayGroups[groupIndex];
         const timeSlot = timeSlots[row];
 
-        // Check if this cell is within the group's active time
-        if (!isGroupActiveAtTime(group, timeSlot)) return;
-
-        // Use the first level in the group for the block
-        const primaryLevel = group.levels[0];
+        // Check if this cell is within the level's active time
+        if (!isLevelActiveAtTime(level, timeSlot)) return;
 
         setIsDragging(true);
         setDragState({
-            level: primaryLevel.level,
-            scheduleGroup: primaryLevel.schedule_group,
+            level: level.level,
+            scheduleGroup: level.schedule_group,
             startRow: row,
             endRow: row
         });
     };
 
-    const handleMouseEnter = (groupIndex: number, row: number) => {
+    const handleMouseEnter = (level: ActiveLevel, row: number) => {
         if (!isDragging || !dragState) return;
 
-        const group = displayGroups[groupIndex];
-
-        // Only allow dragging within the same group
-        const isInGroup = group.levels.some(
-            l => l.level === dragState.level && l.schedule_group === dragState.scheduleGroup
-        );
-        if (!isInGroup) return;
+        // Only allow dragging within the same level
+        if (level.level !== dragState.level || level.schedule_group !== dragState.scheduleGroup) return;
 
         const timeSlot = timeSlots[row];
-        if (!isGroupActiveAtTime(group, timeSlot)) return;
+        if (!isLevelActiveAtTime(level, timeSlot)) return;
 
         setDragState({
             ...dragState,
@@ -578,15 +413,13 @@ export function RotationGrid({
         };
     };
 
-    // Get drag selection style for a group
-    const getDragSelectionStyle = (groupIndex: number) => {
+    // Get drag selection style for a level
+    const getDragSelectionStyle = (level: ActiveLevel) => {
         if (!dragState) return null;
 
-        const group = displayGroups[groupIndex];
-        const isInGroup = group.levels.some(
-            l => l.level === dragState.level && l.schedule_group === dragState.scheduleGroup
-        );
-        if (!isInGroup) return null;
+        if (level.level !== dragState.level || level.schedule_group !== dragState.scheduleGroup) {
+            return null;
+        }
 
         const startRow = Math.min(dragState.startRow, dragState.endRow);
         const endRow = Math.max(dragState.startRow, dragState.endRow);
@@ -611,6 +444,31 @@ export function RotationGrid({
                 }
             }}
         >
+            {/* Hidden columns toggle */}
+            {canManage && hiddenColumns.length > 0 && (
+                <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 flex items-center justify-between">
+                    <span className="text-sm text-amber-700">
+                        {hiddenColumns.length} column{hiddenColumns.length > 1 ? 's' : ''} hidden
+                    </span>
+                    <button
+                        onClick={() => setShowHiddenColumns(!showHiddenColumns)}
+                        className="flex items-center gap-1 text-sm text-amber-700 hover:text-amber-800 font-medium"
+                    >
+                        {showHiddenColumns ? (
+                            <>
+                                <EyeOff className="w-4 h-4" />
+                                Hide
+                            </>
+                        ) : (
+                            <>
+                                <Eye className="w-4 h-4" />
+                                Show All
+                            </>
+                        )}
+                    </button>
+                </div>
+            )}
+
             <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                     {/* Header */}
@@ -618,125 +476,121 @@ export function RotationGrid({
                         <div className="w-20 flex-shrink-0 px-2 py-3 text-sm font-semibold text-slate-700">
                             Time
                         </div>
-                        {orderedLevels.map((level, displayIdx) => {
-                            // Map display index back to original index
-                            const originalIdx = orderedToOriginal[displayIdx];
-
-                            // Find if this level is part of a combined group
-                            const combinedGroup = validCombinedIndices.find(g => g.includes(originalIdx));
-
-                            // If this level is part of a combined group, determine if we should render it
-                            // We render at the first display position of the group
-                            if (combinedGroup) {
-                                // Find the minimum display index within this combined group
-                                const groupDisplayIndices = combinedGroup
-                                    .map(idx => orderedToOriginal.indexOf(idx))
-                                    .filter(di => di !== -1);
-                                const minDisplayIdx = Math.min(...groupDisplayIndices);
-
-                                // Only render if this is the first column of the group
-                                if (displayIdx !== minDisplayIdx) {
-                                    return null;
-                                }
-                            }
-
-                            // Get all levels in this combined group for display, sorted by display order
-                            const groupLevels = combinedGroup
-                                ? combinedGroup
-                                    .map(i => ({ idx: i, level: activeLevels[i], displayPos: orderedToOriginal.indexOf(i) }))
-                                    .filter(item => item.level && item.displayPos !== -1)
-                                    .sort((a, b) => a.displayPos - b.displayPos)
-                                    .map(item => item.level)
-                                : [level];
-                            const displayName = groupLevels.map(l => l.level).join('/');
-                            const isExternal = groupLevels.some(l => l.is_external_group);
-
-                            const isDragging = columnDragState?.draggedIndex === displayIdx;
+                        {visibleLevels.map((level, displayIdx) => {
+                            const key = getLevelKey(level);
+                            const isHidden = hiddenColumns.includes(key);
+                            const isDraggingCol = columnDragState?.draggedIndex === displayIdx;
                             const isDragTarget = columnDragState?.targetIndex === displayIdx;
+                            const isEditing = editingColumn === key;
 
                             return (
                                 <div
-                                    key={`${level.level}-${level.schedule_group}`}
-                                    draggable={canManage}
+                                    key={key}
+                                    draggable={canManage && !isEditing}
                                     onDragStart={(e) => handleColumnDragStart(e, displayIdx)}
                                     onDragOver={(e) => handleColumnDragOver(e, displayIdx)}
                                     onDragEnd={handleColumnDragEnd}
                                     onDrop={(e) => handleColumnDrop(e, displayIdx)}
-                                    className={`flex-1 min-w-[120px] flex items-center border-l border-slate-200 transition-all ${
-                                        isExternal ? 'bg-purple-50/50' : ''
-                                    } ${isDragging ? 'opacity-50' : ''} ${
+                                    className={`flex-1 min-w-[120px] border-l border-slate-200 transition-all ${
+                                        level.is_external_group ? 'bg-purple-50/50' : ''
+                                    } ${isDraggingCol ? 'opacity-50' : ''} ${
                                         isDragTarget ? 'border-l-4 border-l-brand-500' : ''
-                                    } ${canManage ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                    } ${isHidden ? 'bg-amber-50/50' : ''} ${
+                                        canManage && !isEditing ? 'cursor-grab active:cursor-grabbing' : ''
+                                    }`}
                                 >
-                                    {/* Drag handle */}
-                                    {canManage && (
-                                        <div className="flex-shrink-0 pl-1 text-slate-400 hover:text-slate-600">
-                                            <GripVertical className="w-4 h-4" />
-                                        </div>
-                                    )}
-                                    <div className="flex-1 px-2 py-3 text-center">
-                                        <span className={`font-semibold ${isExternal ? 'text-purple-700' : 'text-slate-700'}`}>
-                                            {displayName}
-                                        </span>
-                                        {level.schedule_group !== 'A' && (
-                                            <span className="ml-1 text-xs text-indigo-600">
-                                                ({level.schedule_group})
-                                            </span>
+                                    <div className="flex items-center px-2 py-3">
+                                        {/* Drag handle */}
+                                        {canManage && !isEditing && (
+                                            <div className="flex-shrink-0 mr-1 text-slate-400 hover:text-slate-600">
+                                                <GripVertical className="w-4 h-4" />
+                                            </div>
                                         )}
-                                        {isExternal && (
-                                            <span className="ml-1 text-xs text-purple-500">ext</span>
+
+                                        {/* Column name - editable or display */}
+                                        <div className="flex-1 min-w-0">
+                                            {isEditing ? (
+                                                <div className="flex items-center gap-1">
+                                                    <input
+                                                        type="text"
+                                                        value={editingName}
+                                                        onChange={(e) => setEditingName(e.target.value)}
+                                                        onKeyDown={(e) => {
+                                                            if (e.key === 'Enter') handleSaveRename();
+                                                            if (e.key === 'Escape') handleCancelRename();
+                                                        }}
+                                                        className="w-full px-1 py-0.5 text-sm font-semibold border border-brand-300 rounded focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        onClick={handleSaveRename}
+                                                        className="p-1 text-brand-600 hover:text-brand-700"
+                                                    >
+                                                        <Check className="w-4 h-4" />
+                                                    </button>
+                                                    <button
+                                                        onClick={handleCancelRename}
+                                                        className="p-1 text-slate-400 hover:text-slate-600"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center">
+                                                    <span className={`font-semibold ${level.is_external_group ? 'text-purple-700' : 'text-slate-700'} ${isHidden ? 'opacity-50' : ''}`}>
+                                                        {getDisplayName(level)}
+                                                    </span>
+                                                    {level.schedule_group !== 'A' && (
+                                                        <span className="ml-1 text-xs text-indigo-600">
+                                                            ({level.schedule_group})
+                                                        </span>
+                                                    )}
+                                                    {level.is_external_group && (
+                                                        <span className="ml-1 text-xs text-purple-500">ext</span>
+                                                    )}
+                                                    {columnNames[key] && (
+                                                        <div className="text-xs text-slate-400 truncate">
+                                                            {level.level}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Action buttons */}
+                                        {canManage && !isEditing && (
+                                            <div className="flex-shrink-0 flex items-center gap-0.5 ml-1">
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleStartRename(level);
+                                                    }}
+                                                    className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                                                    title="Rename column"
+                                                >
+                                                    <Pencil className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleToggleHidden(level);
+                                                    }}
+                                                    className={`p-1 rounded transition-colors ${
+                                                        isHidden
+                                                            ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-100'
+                                                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                                                    }`}
+                                                    title={isHidden ? 'Show column' : 'Hide column'}
+                                                >
+                                                    {isHidden ? (
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                    ) : (
+                                                        <EyeOff className="w-3.5 h-3.5" />
+                                                    )}
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
-                                    {/* Combine/Split button between columns */}
-                                    {canManage && (() => {
-                                        // Find the last display index of this group (or just this column if not combined)
-                                        let lastGroupDisplayIdx = displayIdx;
-                                        if (combinedGroup) {
-                                            const groupDisplayIndices = combinedGroup
-                                                .map(idx => orderedToOriginal.indexOf(idx))
-                                                .filter(di => di !== -1);
-                                            lastGroupDisplayIdx = Math.max(...groupDisplayIndices);
-                                        }
-
-                                        // The next column after the group
-                                        const nextAfterGroupDisplayIdx = lastGroupDisplayIdx + 1;
-                                        if (nextAfterGroupDisplayIdx >= orderedLevels.length) {
-                                            return null; // No next column
-                                        }
-
-                                        const nextAfterGroupOriginalIdx = orderedToOriginal[nextAfterGroupDisplayIdx];
-                                        const lastInGroupOriginalIdx = orderedToOriginal[lastGroupDisplayIdx];
-
-                                        // Check if this group is combined with the next column
-                                        const isNextCombined = areColumnsCombined(lastInGroupOriginalIdx, nextAfterGroupOriginalIdx);
-
-                                        return (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    if (isNextCombined) {
-                                                        // Split: break the link between last of current group and next
-                                                        splitColumnsByOriginalIndices(lastInGroupOriginalIdx, nextAfterGroupOriginalIdx);
-                                                    } else {
-                                                        // Combine: link last of current group with next
-                                                        combineColumnsByOriginalIndices(lastInGroupOriginalIdx, nextAfterGroupOriginalIdx);
-                                                    }
-                                                }}
-                                                className={`flex-shrink-0 w-6 h-6 flex items-center justify-center rounded transition-colors ${
-                                                    isNextCombined
-                                                        ? 'bg-brand-100 text-brand-600 hover:bg-brand-200'
-                                                        : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
-                                                }`}
-                                                title={isNextCombined ? 'Split columns' : 'Combine columns'}
-                                            >
-                                                {isNextCombined ? (
-                                                    <Unlink className="w-3.5 h-3.5" />
-                                                ) : (
-                                                    <Link className="w-3.5 h-3.5" />
-                                                )}
-                                            </button>
-                                        );
-                                    })()}
                                 </div>
                             );
                         })}
@@ -767,19 +621,21 @@ export function RotationGrid({
                             })}
                         </div>
 
-                        {/* Level/Group Columns */}
-                        {displayGroups.map((group, groupIndex) => {
-                            const groupBlocks = getBlocksForGroup(group);
-                            const dragSelection = getDragSelectionStyle(groupIndex);
+                        {/* Level Columns */}
+                        {visibleLevels.map((level) => {
+                            const key = getLevelKey(level);
+                            const levelBlocks = getBlocksForLevel(level);
+                            const dragSelection = getDragSelectionStyle(level);
+                            const isHidden = hiddenColumns.includes(key);
 
                             return (
                                 <div
-                                    key={group.levels.map(l => `${l.level}-${l.schedule_group}`).join('+')}
-                                    className="flex-1 min-w-[120px] border-l border-slate-200 relative"
+                                    key={key}
+                                    className={`flex-1 min-w-[120px] border-l border-slate-200 relative ${isHidden ? 'opacity-50' : ''}`}
                                 >
                                     {/* Time Rows */}
                                     {timeSlots.map((time, rowIndex) => {
-                                        const isActive = isGroupActiveAtTime(group, time);
+                                        const isActive = isLevelActiveAtTime(level, time);
                                         return (
                                             <div
                                                 key={time}
@@ -790,8 +646,8 @@ export function RotationGrid({
                                                             : 'bg-white'
                                                         : 'bg-slate-50'
                                                 }`}
-                                                onMouseDown={() => handleMouseDown(groupIndex, rowIndex)}
-                                                onMouseEnter={() => handleMouseEnter(groupIndex, rowIndex)}
+                                                onMouseDown={() => handleMouseDown(level, rowIndex)}
+                                                onMouseEnter={() => handleMouseEnter(level, rowIndex)}
                                             />
                                         );
                                     })}
@@ -805,15 +661,11 @@ export function RotationGrid({
                                     )}
 
                                     {/* Rotation Blocks */}
-                                    {groupBlocks.map(block => {
+                                    {levelBlocks.map(block => {
                                         const style = getBlockStyle(block);
                                         const blockHeight = style.height as number;
 
-                                        // Scale text size based on block height for visibility from a distance
-                                        // Tiny blocks (< 48px): compact view
-                                        // Small blocks (48-72px): medium text
-                                        // Medium blocks (72-120px): large text with coach
-                                        // Large blocks (>= 120px): extra large text with coach and time
+                                        // Scale text size based on block height
                                         const isSmall = blockHeight >= 48 && blockHeight < 72;
                                         const isMedium = blockHeight >= 72 && blockHeight < 120;
                                         const isLarge = blockHeight >= 120;
@@ -821,7 +673,6 @@ export function RotationGrid({
                                         const showCoach = (isMedium || isLarge) && block.coach;
                                         const showTimeRange = isLarge;
 
-                                        // Dynamic text classes based on block size
                                         const eventTextClass = isLarge
                                             ? 'text-2xl font-bold'
                                             : isMedium

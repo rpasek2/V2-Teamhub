@@ -139,18 +139,19 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
         return stats;
     }, [attendanceRecords, practiceSchedules, gymnastLevel, scheduleGroup]);
 
-    // Overall stats
+    // Overall stats (using scheduled days as denominator for consistency with monthly stats)
     const overallStats = useMemo(() => {
         const totalPresent = attendanceRecords.filter(r => r.status === 'present').length;
         const totalLate = attendanceRecords.filter(r => r.status === 'late').length;
         const totalAbsent = attendanceRecords.filter(r => r.status === 'absent').length;
         const totalLeftEarly = attendanceRecords.filter(r => r.status === 'left_early').length;
 
-        const total = totalPresent + totalLate + totalAbsent + totalLeftEarly;
+        // Calculate total scheduled days across all 6 months
+        const totalScheduled = monthlyStats.reduce((sum, month) => sum + month.totalScheduled, 0);
         const attended = totalPresent + totalLate + totalLeftEarly;
-        const percentage = total > 0 ? Math.round((attended / total) * 100) : 0;
+        const percentage = totalScheduled > 0 ? Math.round((attended / totalScheduled) * 100) : 0;
 
-        // Calculate consecutive absences from most recent
+        // Calculate consecutive absences from most recent scheduled days
         let consecutiveAbsences = 0;
         const sortedRecords = [...attendanceRecords].sort((a, b) =>
             b.attendance_date.localeCompare(a.attendance_date)
@@ -168,10 +169,11 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
             totalLate,
             totalAbsent,
             totalLeftEarly,
+            totalScheduled,
             percentage,
             consecutiveAbsences,
         };
-    }, [attendanceRecords]);
+    }, [attendanceRecords, monthlyStats]);
 
     // Get records for the selected month
     const selectedMonthRecords = useMemo(() => {
@@ -238,7 +240,7 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
     return (
         <div className="space-y-6">
             {/* Overall Stats Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
                 <div className="card p-4">
                     <div className="flex items-center gap-3">
                         <div className={`p-2 rounded-lg ${getPercentageBgColor(overallStats.percentage)}`}>
@@ -248,6 +250,9 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
                             <p className="text-xs text-slate-500 uppercase tracking-wide">Attendance</p>
                             <p className={`text-xl font-bold ${getPercentageColor(overallStats.percentage)}`}>
                                 {overallStats.percentage}%
+                            </p>
+                            <p className="text-xs text-slate-400">
+                                {overallStats.totalPresent + overallStats.totalLate + overallStats.totalLeftEarly}/{overallStats.totalScheduled}
                             </p>
                         </div>
                     </div>
@@ -271,6 +276,17 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
                         <div>
                             <p className="text-xs text-slate-500 uppercase tracking-wide">Late</p>
                             <p className="text-xl font-bold text-amber-600">{overallStats.totalLate}</p>
+                        </div>
+                    </div>
+                </div>
+                <div className="card p-4">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 rounded-lg">
+                            <Clock className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div>
+                            <p className="text-xs text-slate-500 uppercase tracking-wide">Left Early</p>
+                            <p className="text-xl font-bold text-blue-600">{overallStats.totalLeftEarly}</p>
                         </div>
                     </div>
                 </div>

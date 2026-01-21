@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { LayoutDashboard, Edit3, FileText } from 'lucide-react';
 import { useHub } from '../context/HubContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import {
     CoachDashboard,
     CoachMode,
@@ -14,12 +15,11 @@ import type { GymnastAssignment } from '../types';
 type CoachTab = 'dashboard' | 'coach-mode' | 'templates';
 
 export function Assignments() {
-    const { hub, currentRole } = useHub();
+    const { hub } = useHub();
     const { markAsViewed } = useNotifications();
+    const { isStaff } = useRoleChecks();
     const [coachTab, setCoachTab] = useState<CoachTab>('dashboard');
     const [parentViewingAssignment, setParentViewingAssignment] = useState<GymnastAssignment | null>(null);
-
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
 
     // Mark assignments as viewed when page loads
     useEffect(() => {

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, UserPlus, ChevronDown, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, UserPlus, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { clsx } from 'clsx';
@@ -11,6 +11,12 @@ import { ManageCompetitionRosterModal } from '../../components/competitions/Mana
 import { AssignSessionGymnastsModal } from '../../components/competitions/AssignSessionGymnastsModal';
 import { CompetitionDocuments } from '../../components/competitions/CompetitionDocuments';
 import { WAG_EVENTS, MAG_EVENTS, EVENT_LABELS, type GymEvent } from '../../types';
+
+// Helper function to create Google Maps URL from location
+const getGoogleMapsUrl = (location: string): string => {
+    const encoded = encodeURIComponent(location);
+    return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+};
 
 interface Competition {
     id: string;
@@ -275,10 +281,16 @@ export function CompetitionDetails() {
                                 {format(parseISO(competition.start_date), 'MMM d')} - {format(parseISO(competition.end_date), 'MMM d, yyyy')}
                             </div>
                             {competition.location && (
-                                <div className="flex items-center">
-                                    <MapPin className="mr-1.5 h-4 w-4 text-slate-400" />
-                                    {competition.location}
-                                </div>
+                                <a
+                                    href={getGoogleMapsUrl(competition.location)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center hover:text-brand-600 transition-colors group"
+                                >
+                                    <MapPin className="mr-1.5 h-4 w-4 text-slate-400 group-hover:text-brand-500" />
+                                    <span className="group-hover:underline">{competition.location}</span>
+                                    <ExternalLink className="ml-1 h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                </a>
                             )}
                         </div>
                     </div>

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { HeartHandshake, Plus, Search, Loader2, Calendar, Users, Shuffle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { PairingCard } from '../components/mentorship/PairingCard';
 import { CreatePairingModal } from '../components/mentorship/CreatePairingModal';
 import { CreateMentorshipEventModal } from '../components/mentorship/CreateMentorshipEventModal';
@@ -40,7 +41,8 @@ export interface GroupedPairing {
 
 export function Mentorship() {
     const { hubId } = useParams();
-    const { hub, currentRole, getPermissionScope, linkedGymnasts } = useHub();
+    const { hub, getPermissionScope, linkedGymnasts } = useHub();
+    const { isStaff } = useRoleChecks();
 
     const [groupedPairings, setGroupedPairings] = useState<GroupedPairing[]>([]);
     const [events, setEvents] = useState<CalendarMentorshipEvent[]>([]);
@@ -51,8 +53,6 @@ export function Mentorship() {
     const [showCreateEventModal, setShowCreateEventModal] = useState(false);
     const [showRandomAssignModal, setShowRandomAssignModal] = useState(false);
     const [showPastEvents, setShowPastEvents] = useState(false);
-
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
     const mentorshipScope = getPermissionScope('mentorship');
 
     // Filter pairings based on permission scope for parent accounts

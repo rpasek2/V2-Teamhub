@@ -19,10 +19,21 @@ interface AddGoalModalProps {
 }
 
 // Event options for gymnastics (combined WAG and MAG plus general categories)
-const EVENT_OPTIONS = [
-    'Vault', 'Bars', 'Beam', 'Floor',
-    'Pommel Horse', 'Rings', 'Parallel Bars', 'High Bar',
-    'Overall', 'Strength', 'Flexibility', 'Mental', 'Competition'
+// value = database value (lowercase), label = display label
+const EVENT_OPTIONS: { value: string; label: string }[] = [
+    { value: 'vault', label: 'Vault' },
+    { value: 'bars', label: 'Bars' },
+    { value: 'beam', label: 'Beam' },
+    { value: 'floor', label: 'Floor' },
+    { value: 'pommel', label: 'Pommel Horse' },
+    { value: 'rings', label: 'Rings' },
+    { value: 'pbars', label: 'Parallel Bars' },
+    { value: 'highbar', label: 'High Bar' },
+    { value: 'overall', label: 'Overall' },
+    { value: 'strength', label: 'Strength' },
+    { value: 'flexibility', label: 'Flexibility' },
+    { value: 'mental', label: 'Mental' },
+    { value: 'competition', label: 'Competition' }
 ];
 
 export function AddGoalModal({
@@ -36,7 +47,6 @@ export function AddGoalModal({
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [event, setEvent] = useState('');
-    const [customEvent, setCustomEvent] = useState('');
     const [targetDate, setTargetDate] = useState('');
     const [subgoals, setSubgoals] = useState<SubgoalInput[]>([]);
     const [saving, setSaving] = useState(false);
@@ -71,15 +81,12 @@ export function AddGoalModal({
         setSaving(true);
 
         try {
-            // Determine the final event value
-            const finalEvent = event === 'custom' ? customEvent.trim() : (event || null);
-
             // Create the goal
             const insertData = {
                 gymnast_profile_id: gymnastProfileId,
                 title: title.trim(),
                 description: description.trim() || null,
-                event: finalEvent,
+                event: event || null,
                 target_date: targetDate || null,
                 created_by: user?.id || null
             };
@@ -177,42 +184,19 @@ export function AddGoalModal({
                         <div className="flex flex-wrap gap-2">
                             {EVENT_OPTIONS.map((evt) => (
                                 <button
-                                    key={evt}
+                                    key={evt.value}
                                     type="button"
-                                    onClick={() => {
-                                        setEvent(event === evt ? '' : evt);
-                                        setCustomEvent('');
-                                    }}
+                                    onClick={() => setEvent(event === evt.value ? '' : evt.value)}
                                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                        event === evt
+                                        event === evt.value
                                             ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
                                             : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
                                     }`}
                                 >
-                                    {evt}
+                                    {evt.label}
                                 </button>
                             ))}
-                            <button
-                                type="button"
-                                onClick={() => setEvent('custom')}
-                                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                                    event === 'custom'
-                                        ? 'bg-purple-100 text-purple-700 border-2 border-purple-300'
-                                        : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
-                                }`}
-                            >
-                                Custom...
-                            </button>
                         </div>
-                        {event === 'custom' && (
-                            <input
-                                type="text"
-                                value={customEvent}
-                                onChange={(e) => setCustomEvent(e.target.value)}
-                                placeholder="Enter custom event"
-                                className="input w-full mt-2"
-                            />
-                        )}
                     </div>
 
                     {/* Target Date */}

@@ -1,12 +1,20 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trophy, MapPin, Calendar, Trash2, Loader2 } from 'lucide-react';
+import { Plus, Trophy, MapPin, Calendar, Trash2, Loader2, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useNotifications } from '../../context/NotificationContext';
+import { useRoleChecks } from '../../hooks/useRoleChecks';
 import { CreateCompetitionModal } from '../../components/competitions/CreateCompetitionModal';
-import type { Competition as BaseCompetition } from '../../types';
+import { SeasonPicker } from '../../components/ui/SeasonPicker';
+import type { Competition as BaseCompetition, Season } from '../../types';
+
+// Helper function to create Google Maps URL from location
+const getGoogleMapsUrl = (location: string): string => {
+    const encoded = encodeURIComponent(location);
+    return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+};
 
 // Extended type with joined count data
 interface CompetitionWithCount extends BaseCompetition {
@@ -14,16 +22,15 @@ interface CompetitionWithCount extends BaseCompetition {
 }
 
 export function Competitions() {
-    const { hub, currentRole } = useHub();
+    const { hub } = useHub();
     const { markAsViewed } = useNotifications();
+    const { isStaff, canManage } = useRoleChecks();
     const [competitions, setCompetitions] = useState<CompetitionWithCount[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
-    const canDelete = ['owner', 'director', 'admin'].includes(currentRole || '');
+    const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
 
     // Mark competitions as viewed when page loads
     useEffect(() => {
@@ -32,19 +39,21 @@ export function Competitions() {
         }
     }, [hub, markAsViewed]);
 
+    // Fetch competitions when season changes
     useEffect(() => {
-        if (hub) {
+        if (hub && selectedSeasonId) {
             fetchCompetitions();
         }
-    }, [hub]);
+    }, [hub, selectedSeasonId]);
 
     const fetchCompetitions = async () => {
-        if (!hub) return;
+        if (!hub || !selectedSeasonId) return;
         setLoading(true);
         const { data, error } = await supabase
             .from('competitions')
             .select('*, competition_gymnasts(count)')
             .eq('hub_id', hub.id)
+            .eq('season_id', selectedSeasonId)
             .order('start_date', { ascending: true });
 
         if (error) {
@@ -53,6 +62,10 @@ export function Competitions() {
             setCompetitions(data || []);
         }
         setLoading(false);
+    };
+
+    const handleSeasonChange = (seasonId: string, _season: Season) => {
+        setSelectedSeasonId(seasonId);
     };
 
     const handleDelete = async (compId: string) => {
@@ -80,7 +93,13 @@ export function Competitions() {
     return (
         <div className="h-full flex flex-col">
             <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
-                <h1 className="text-2xl font-bold text-slate-900">Competitions</h1>
+                <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold text-slate-900">Competitions</h1>
+                    <SeasonPicker
+                        selectedSeasonId={selectedSeasonId}
+                        onSeasonChange={handleSeasonChange}
+                    />
+                </div>
                 {isStaff && (
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
@@ -157,11 +176,24 @@ export function Competitions() {
                                         {comp.location && (
                                             <div className="flex items-center text-sm text-slate-500">
                                                 <MapPin className="mr-2 h-4 w-4 text-slate-400" />
-                                                {comp.location}
+                                                <span>{comp.location}</span>
                                             </div>
                                         )}
                                     </div>
                                 </Link>
+
+                                {/* Location link - outside of main Link to avoid nested <a> tags */}
+                                {comp.location && (
+                                    <a
+                                        href={getGoogleMapsUrl(comp.location)}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="mx-6 mb-4 -mt-2 flex items-center text-xs text-brand-600 hover:text-brand-700 transition-colors"
+                                    >
+                                        <ExternalLink className="mr-1 h-3 w-3" />
+                                        Open in Google Maps
+                                    </a>
+                                )}
 
                                 <div className="mt-auto border-t border-slate-200 bg-slate-50 px-6 py-3 flex items-center justify-between">
                                     <Link
@@ -170,7 +202,7 @@ export function Competitions() {
                                     >
                                         View Details &rarr;
                                     </Link>
-                                    {canDelete && (
+                                    {canManage && (
                                         <button
                                             onClick={(e) => {
                                                 e.preventDefault();
@@ -215,6 +247,7 @@ export function Competitions() {
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
                 onCompetitionCreated={fetchCompetitions}
+                defaultSeasonId={selectedSeasonId}
             />
         </div>
     );

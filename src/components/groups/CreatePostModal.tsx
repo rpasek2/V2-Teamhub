@@ -256,8 +256,8 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-4 gap-2">
-                                    {selectedImages.map((img, idx) => (
-                                        <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden bg-slate-100">
+                                    {selectedImages.map((img) => (
+                                        <div key={`${img.name}-${img.size}-${img.lastModified}`} className="relative group aspect-square rounded-lg overflow-hidden bg-slate-100">
                                             <img
                                                 src={URL.createObjectURL(img)}
                                                 alt=""
@@ -265,7 +265,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                             />
                                             <button
                                                 type="button"
-                                                onClick={() => handleRemoveImage(idx)}
+                                                onClick={() => handleRemoveImage(selectedImages.indexOf(img))}
                                                 className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <X className="h-3 w-3" />
@@ -285,8 +285,8 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                     </span>
                                 </div>
                                 <div className="space-y-2">
-                                    {selectedFiles.map((file, idx) => (
-                                        <div key={idx} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                                    {selectedFiles.map((file) => (
+                                        <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
                                             <div className="flex items-center gap-2 min-w-0">
                                                 <Paperclip className="h-4 w-4 text-slate-400 flex-shrink-0" />
                                                 <span className="text-sm text-slate-700 truncate">{file.name}</span>
@@ -296,7 +296,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => handleRemoveFile(idx)}
+                                                onClick={() => handleRemoveFile(selectedFiles.indexOf(file))}
                                                 className="p-1 text-slate-400 hover:text-red-500"
                                             >
                                                 <X className="h-4 w-4" />
@@ -309,7 +309,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
 
                         {/* Attachment Previews */}
                         {attachments.map((attachment, idx) => (
-                            <div key={idx} className="relative">
+                            <div key={attachment.type === 'poll' ? `poll-${attachment.question}` : attachment.type === 'signup' ? `signup-${attachment.title}` : attachment.type === 'rsvp' ? `rsvp-${attachment.title}` : `attachment-${idx}`} className="relative">
                                 {attachment.type === 'poll' && (
                                     <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
                                         <div className="flex items-start justify-between">
@@ -322,15 +322,15 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => handleRemoveAttachment(idx)}
+                                                onClick={() => handleRemoveAttachment(attachments.indexOf(attachment))}
                                                 className="p-1 text-purple-400 hover:text-red-500"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
                                         <div className="mt-2 space-y-1">
-                                            {attachment.options.map((opt, i) => (
-                                                <div key={i} className="text-sm text-purple-600 pl-7">• {opt}</div>
+                                            {attachment.options.map((opt) => (
+                                                <div key={opt} className="text-sm text-purple-600 pl-7">• {opt}</div>
                                             ))}
                                         </div>
                                     </div>
@@ -347,15 +347,15 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => handleRemoveAttachment(idx)}
+                                                onClick={() => handleRemoveAttachment(attachments.indexOf(attachment))}
                                                 className="p-1 text-emerald-400 hover:text-red-500"
                                             >
                                                 <Trash2 className="h-4 w-4" />
                                             </button>
                                         </div>
                                         <div className="mt-2 space-y-1">
-                                            {attachment.slots.map((slot, i) => (
-                                                <div key={i} className="text-sm text-emerald-600 pl-7">
+                                            {attachment.slots.map((slot) => (
+                                                <div key={slot.name} className="text-sm text-emerald-600 pl-7">
                                                     • {slot.name} {slot.maxSignups && `(max ${slot.maxSignups})`}
                                                 </div>
                                             ))}
@@ -381,7 +381,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                             </div>
                                             <button
                                                 type="button"
-                                                onClick={() => handleRemoveAttachment(idx)}
+                                                onClick={() => handleRemoveAttachment(attachments.indexOf(attachment))}
                                                 className="p-1 text-blue-400 hover:text-red-500"
                                             >
                                                 <Trash2 className="h-4 w-4" />

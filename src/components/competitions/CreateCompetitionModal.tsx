@@ -4,11 +4,14 @@ import { X, Loader2, AlertCircle, Check, Trophy } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useAuth } from '../../context/AuthContext';
+import { AddressAutocomplete } from '../ui/AddressAutocomplete';
+import { getOrCreateSeasonForDate, DEFAULT_SEASON_CONFIG } from '../../lib/seasons';
 
 interface CreateCompetitionModalProps {
     isOpen: boolean;
     onClose: () => void;
     onCompetitionCreated: () => void;
+    defaultSeasonId?: string | null;
 }
 
 interface Gymnast {
@@ -18,7 +21,7 @@ interface Gymnast {
     level: string | null;
 }
 
-export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated }: CreateCompetitionModalProps) {
+export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, defaultSeasonId }: CreateCompetitionModalProps) {
     const { hub } = useHub();
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
@@ -139,7 +142,17 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated }
         setError(null);
 
         try {
-            // 1. Create Competition
+            // Determine the season for this competition
+            let seasonId = defaultSeasonId;
+
+            // If no default season or we need to auto-detect based on date
+            if (!seasonId && formData.startDate) {
+                const config = hub.settings?.seasonConfig || DEFAULT_SEASON_CONFIG;
+                const season = await getOrCreateSeasonForDate(hub.id, new Date(formData.startDate), config);
+                seasonId = season?.id || null;
+            }
+
+            // 1. Create Competition with season_id
             const { data: compData, error: compError } = await supabase
                 .from('competitions')
                 .insert({
@@ -148,7 +161,8 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated }
                     start_date: formData.startDate,
                     end_date: formData.endDate,
                     location: formData.location,
-                    created_by: user.id
+                    created_by: user.id,
+                    season_id: seasonId
                 })
                 .select()
                 .single();
@@ -282,13 +296,11 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated }
                         <label htmlFor="location" className="block text-sm font-medium text-slate-700 mb-1">
                             Location
                         </label>
-                        <input
-                            type="text"
+                        <AddressAutocomplete
                             id="location"
                             value={formData.location}
-                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                            className="input w-full"
-                            placeholder="City, State or Venue"
+                            onChange={(location) => setFormData({ ...formData, location })}
+                            placeholder="Search for venue or address..."
                         />
                     </div>
 

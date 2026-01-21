@@ -1,6 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { X, Plus, GripVertical, ClipboardList, Users } from 'lucide-react';
 import type { SignupSlot, SignupSettings } from '../../../types';
+
+interface SlotWithId extends SignupSlot {
+    _id: number;
+}
 
 interface SignupCreatorProps {
     onSave: (data: { title: string; description?: string; slots: SignupSlot[]; settings?: SignupSettings }) => void;
@@ -9,31 +13,33 @@ interface SignupCreatorProps {
 }
 
 export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorProps) {
+    const nextIdRef = useRef(2);
     const [title, setTitle] = useState(initialData?.title || '');
     const [description, setDescription] = useState(initialData?.description || '');
-    const [slots, setSlots] = useState<SignupSlot[]>(initialData?.slots || [{ name: '' }, { name: '' }]);
+    const [slots, setSlots] = useState<SlotWithId[]>(
+        initialData?.slots.map((s, i) => ({ ...s, _id: i })) || [{ name: '', _id: 0 }, { name: '', _id: 1 }]
+    );
     const [allowUserSlots, setAllowUserSlots] = useState(initialData?.settings?.allowUserSlots || false);
 
     const handleAddSlot = () => {
         if (slots.length < 20) {
-            setSlots([...slots, { name: '' }]);
+            setSlots([...slots, { name: '', _id: nextIdRef.current++ }]);
         }
     };
 
-    const handleRemoveSlot = (index: number) => {
+    const handleRemoveSlot = (id: number) => {
         if (slots.length > 1) {
-            setSlots(slots.filter((_, i) => i !== index));
+            setSlots(slots.filter(s => s._id !== id));
         }
     };
 
-    const handleSlotChange = (index: number, field: keyof SignupSlot, value: string | number | undefined) => {
-        const newSlots = [...slots];
-        newSlots[index] = { ...newSlots[index], [field]: value };
-        setSlots(newSlots);
+    const handleSlotChange = (id: number, field: keyof SignupSlot, value: string | number | undefined) => {
+        setSlots(slots.map(s => s._id === id ? { ...s, [field]: value } : s));
     };
 
     const handleSave = () => {
-        const filledSlots = slots.filter(s => s.name.trim() !== '');
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const filledSlots = slots.filter(s => s.name.trim() !== '').map(({ _id, ...rest }) => rest);
         // Allow saving with no slots if user slots are enabled (potluck style)
         const hasValidSlots = filledSlots.length >= 1 || allowUserSlots;
         if (title.trim() && hasValidSlots) {
@@ -98,19 +104,19 @@ export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorPr
                     </label>
                     <div className="space-y-2">
                         {slots.map((slot, index) => (
-                            <div key={index} className="flex items-center gap-2">
+                            <div key={slot._id} className="flex items-center gap-2">
                                 <GripVertical className="h-4 w-4 text-slate-300 flex-shrink-0" />
                                 <input
                                     type="text"
                                     value={slot.name}
-                                    onChange={(e) => handleSlotChange(index, 'name', e.target.value)}
+                                    onChange={(e) => handleSlotChange(slot._id, 'name', e.target.value)}
                                     placeholder={`Slot ${index + 1} (e.g., Fruit, Drinks)`}
                                     className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow"
                                 />
                                 <input
                                     type="number"
                                     value={slot.maxSignups || ''}
-                                    onChange={(e) => handleSlotChange(index, 'maxSignups', e.target.value ? parseInt(e.target.value) : undefined)}
+                                    onChange={(e) => handleSlotChange(slot._id, 'maxSignups', e.target.value ? parseInt(e.target.value) : undefined)}
                                     placeholder="Max"
                                     min={1}
                                     className="w-16 rounded-lg border border-slate-300 px-2 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow text-center"
@@ -119,7 +125,7 @@ export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorPr
                                 {slots.length > 1 && (
                                     <button
                                         type="button"
-                                        onClick={() => handleRemoveSlot(index)}
+                                        onClick={() => handleRemoveSlot(slot._id)}
                                         className="p-1.5 text-slate-400 hover:text-red-500 rounded"
                                     >
                                         <X className="h-4 w-4" />

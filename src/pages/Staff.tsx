@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Users, Search, Loader2, LayoutGrid, UsersRound, UserPlus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useHub } from '../context/HubContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { StaffCard } from '../components/staff/StaffCard';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
 import { TeamViewDashboard } from '../components/staff/TeamViewDashboard';
@@ -34,7 +34,7 @@ type ViewTab = 'individual' | 'team';
 
 export function Staff() {
     const { hubId } = useParams();
-    const { currentRole } = useHub();
+    const { isOwner, isStaff, canManage } = useRoleChecks();
 
     const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
     const [loading, setLoading] = useState(true);
@@ -42,10 +42,6 @@ export function Staff() {
     const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [activeTab, setActiveTab] = useState<ViewTab>('individual');
-
-    const isOwner = currentRole === 'owner';
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
-    const canManageTeam = ['owner', 'director', 'admin'].includes(currentRole || '');
 
     useEffect(() => {
         if (hubId) {
@@ -177,7 +173,7 @@ export function Staff() {
 
                 <div className="flex items-center gap-3">
                     {/* View Toggle - only for managers */}
-                    {canManageTeam && (
+                    {canManage && (
                         <div className="flex bg-slate-100 rounded-lg p-1">
                             <button
                                 onClick={() => setActiveTab('individual')}
@@ -221,12 +217,12 @@ export function Staff() {
                 {/* Team View */}
                 <div
                     className={`transition-all duration-200 ease-in-out ${
-                        activeTab === 'team' && canManageTeam
+                        activeTab === 'team' && canManage
                             ? 'opacity-100 translate-y-0'
                             : 'opacity-0 absolute inset-0 pointer-events-none -translate-y-2'
                     }`}
                 >
-                    {canManageTeam && hubId && (
+                    {canManage && hubId && (
                         <TeamViewDashboard hubId={hubId} />
                     )}
                 </div>

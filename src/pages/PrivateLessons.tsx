@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { GraduationCap, Settings, Clock, Calendar, Users, Search, Loader2 } from 'lucide-react';
 import { useHub } from '../context/HubContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { supabase } from '../lib/supabase';
 import type { CoachLessonProfile, Profile, LessonSlot, LessonPackage } from '../types';
 
@@ -16,7 +17,8 @@ import { CoachBookingsTab } from '../components/private-lessons/CoachBookingsTab
 type Tab = 'browse' | 'my-bookings' | 'my-setup' | 'my-availability' | 'coach-bookings' | 'all-coaches' | 'all-bookings';
 
 export default function PrivateLessons() {
-    const { hub, currentRole } = useHub();
+    const { hub } = useHub();
+    const { canManage, isCoach, isParent } = useRoleChecks();
 
     const [activeTab, setActiveTab] = useState<Tab>('browse');
     const [coaches, setCoaches] = useState<(CoachLessonProfile & { coach_profile?: Profile })[]>([]);
@@ -29,13 +31,9 @@ export default function PrivateLessons() {
     const [selectedPackages, setSelectedPackages] = useState<LessonPackage[]>([]);
     const [showBookModal, setShowBookModal] = useState(false);
 
-    // Determine available tabs based on role
-    // Staff includes owner, director, admin - they can also offer lessons
-    const isStaff = ['owner', 'director', 'admin'].includes(currentRole || '');
-    const isCoach = currentRole === 'coach';
-    const isParent = currentRole === 'parent';
+    // canManage = owner, director, admin - they can also offer lessons
     // Anyone who can offer lessons (staff or coach)
-    const canOfferLessons = isStaff || isCoach;
+    const canOfferLessons = canManage || isCoach;
 
     // Set default tab based on role
     useEffect(() => {
@@ -43,10 +41,10 @@ export default function PrivateLessons() {
             setActiveTab('my-setup');
         } else if (isParent) {
             setActiveTab('browse');
-        } else if (isStaff) {
+        } else if (canManage) {
             setActiveTab('my-setup'); // Staff can also set up their own lessons
         }
-    }, [isCoach, isParent, isStaff]);
+    }, [isCoach, isParent, canManage]);
 
     useEffect(() => {
         if (hub) {
@@ -280,7 +278,7 @@ export default function PrivateLessons() {
                 )}
 
                 {/* All Coaches Tab (Staff only) */}
-                {activeTab === 'all-coaches' && isStaff && (
+                {activeTab === 'all-coaches' && canManage && (
                     <div>
                         {loading ? (
                             <div className="flex items-center justify-center py-12">
@@ -349,7 +347,7 @@ export default function PrivateLessons() {
                 )}
 
                 {/* All Bookings Tab (Staff only) */}
-                {activeTab === 'all-bookings' && isStaff && (
+                {activeTab === 'all-bookings' && canManage && (
                     <div>
                         <p className="text-sm text-slate-500 mb-4">
                             Viewing all bookings across all coaches

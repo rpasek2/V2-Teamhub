@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { AnonymousReportModal } from '../components/messages/AnonymousReportModal';
 
 interface AnonymousReport {
@@ -54,9 +55,10 @@ interface Message {
 }
 
 export default function Messages() {
-    const { hub, currentRole } = useHub();
+    const { hub } = useHub();
     const { user } = useAuth();
     const { markAsViewed } = useNotifications();
+    const { isOwner, isStaff } = useRoleChecks();
     const [channels, setChannels] = useState<Channel[]>([]);
     const [dmChannels, setDmChannels] = useState<Channel[]>([]);
     const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
@@ -84,9 +86,6 @@ export default function Messages() {
     const [viewingAnonymousReports, setViewingAnonymousReports] = useState(false);
     const [loadingReports, setLoadingReports] = useState(false);
     const [selectedReport, setSelectedReport] = useState<AnonymousReport | null>(null);
-
-    const isOwner = currentRole === 'owner';
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
     const anonymousReportsEnabled = hub?.settings?.anonymous_reports_enabled !== false; // Default to enabled
 
     useEffect(() => {
@@ -282,15 +281,22 @@ export default function Messages() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // Mark a channel as read by updating last_read_at in channel_members
+    // Mark a channel as read by upserting last_read_at in channel_members
     const markChannelAsRead = async (channelId: string) => {
         if (!user) return;
 
+        const now = new Date().toISOString();
+
         const { error } = await supabase
             .from('channel_members')
-            .update({ last_read_at: new Date().toISOString() })
-            .eq('channel_id', channelId)
-            .eq('user_id', user.id);
+            .upsert({
+                channel_id: channelId,
+                user_id: user.id,
+                last_read_at: now,
+                added_at: now
+            }, {
+                onConflict: 'channel_id,user_id'
+            });
 
         if (error) {
             console.error('Error marking channel as read:', error);

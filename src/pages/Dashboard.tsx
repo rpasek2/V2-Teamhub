@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText, ChevronRight, User, Star, Heart, Cake, ShoppingBag, Sparkles, Clock, Check, X } from 'lucide-react';
 import { useHub } from '../context/HubContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { supabase } from '../lib/supabase';
 import { format, parseISO, subWeeks, subDays } from 'date-fns';
 import { clsx } from 'clsx';
@@ -104,7 +105,8 @@ function getGreeting(): string {
 }
 
 export function Dashboard() {
-    const { hub, loading, user, currentRole, linkedGymnasts } = useHub();
+    const { hub, loading, user, linkedGymnasts } = useHub();
+    const { isStaff, isParent, isOwner } = useRoleChecks();
     const navigate = useNavigate();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
@@ -125,26 +127,7 @@ export function Dashboard() {
     const [pendingTimeOff, setPendingTimeOff] = useState<PendingTimeOffRequest[]>([]);
     const [processingTimeOff, setProcessingTimeOff] = useState<string | null>(null);
 
-    // Staff roles can see all activity
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
-    const isParent = currentRole === 'parent';
-    const isOwner = currentRole === 'owner';
-
-    useEffect(() => {
-        if (hub && user) {
-            fetchDashboardData();
-            fetchUserName();
-            if (isParent && linkedGymnasts.length > 0) {
-                fetchLinkedGymnastInfo();
-                fetchParentDashboardData();
-            }
-            if (isOwner) {
-                fetchPendingTimeOff();
-            }
-        }
-    }, [hub, user, linkedGymnasts, isParent, isOwner]);
-
-    const fetchUserName = async () => {
+    const fetchUserName = useCallback(async () => {
         if (!user) return;
         const { data } = await supabase
             .from('profiles')
@@ -154,9 +137,9 @@ export function Dashboard() {
         if (data?.full_name) {
             setUserName(data.full_name.split(' ')[0]); // First name only
         }
-    };
+    }, [user]);
 
-    const fetchLinkedGymnastInfo = async () => {
+    const fetchLinkedGymnastInfo = useCallback(async () => {
         if (!hub || linkedGymnasts.length === 0) return;
 
         const gymnastIds = linkedGymnasts.map(g => g.id);
@@ -219,9 +202,9 @@ export function Dashboard() {
         }));
 
         setLinkedGymnastInfo(enrichedGymnasts);
-    };
+    }, [hub, linkedGymnasts]);
 
-    const fetchParentDashboardData = async () => {
+    const fetchParentDashboardData = useCallback(async () => {
         if (!hub || !user || linkedGymnasts.length === 0) return;
 
         setLoadingParentData(true);
@@ -411,9 +394,9 @@ export function Dashboard() {
         } finally {
             setLoadingParentData(false);
         }
-    };
+    }, [hub, user, linkedGymnasts]);
 
-    const fetchPendingTimeOff = async () => {
+    const fetchPendingTimeOff = useCallback(async () => {
         if (!hub) return;
 
         try {
@@ -450,9 +433,9 @@ export function Dashboard() {
         } catch (error) {
             console.error('Error fetching pending time off:', error);
         }
-    };
+    }, [hub]);
 
-    const handleTimeOffDecision = async (requestId: string, decision: 'approved' | 'denied', request: PendingTimeOffRequest) => {
+    const handleTimeOffDecision = useCallback(async (requestId: string, decision: 'approved' | 'denied', request: PendingTimeOffRequest) => {
         if (!hub || !user) return;
         setProcessingTimeOff(requestId);
 
@@ -503,7 +486,7 @@ export function Dashboard() {
         } finally {
             setProcessingTimeOff(null);
         }
-    };
+    }, [hub, user]);
 
     const getTimeOffTypeColor = (type: string) => {
         switch (type) {
@@ -515,7 +498,7 @@ export function Dashboard() {
         }
     };
 
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = useCallback(async () => {
         if (!hub || !user) return;
         setLoadingStats(true);
 
@@ -685,7 +668,22 @@ export function Dashboard() {
         } finally {
             setLoadingStats(false);
         }
-    };
+    }, [hub, user, isStaff]);
+
+    // Main data fetch effect - placed after all useCallback definitions
+    useEffect(() => {
+        if (hub && user) {
+            fetchDashboardData();
+            fetchUserName();
+            if (isParent && linkedGymnasts.length > 0) {
+                fetchLinkedGymnastInfo();
+                fetchParentDashboardData();
+            }
+            if (isOwner) {
+                fetchPendingTimeOff();
+            }
+        }
+    }, [hub, user, linkedGymnasts, isParent, isOwner, fetchDashboardData, fetchUserName, fetchLinkedGymnastInfo, fetchParentDashboardData, fetchPendingTimeOff]);
 
     if (loading) {
         return (

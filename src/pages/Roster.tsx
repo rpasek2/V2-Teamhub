@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Users, EyeOff } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
 import { ManageLevelsModal } from '../components/roster/ManageLevelsModal';
 import type { GymnastProfile } from '../types';
@@ -38,7 +39,8 @@ type TabType = 'All' | 'Admins' | 'Coaches' | 'Gymnasts' | 'Parents';
 
 export function Roster() {
     const navigate = useNavigate();
-    const { hub, getPermissionScope, linkedGymnasts, user, currentRole } = useHub();
+    const { hub, getPermissionScope, linkedGymnasts, user } = useHub();
+    const { isStaff, isParent, canManage } = useRoleChecks();
     const [members, setMembers] = useState<DisplayMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -52,10 +54,6 @@ export function Roster() {
     const menuRef = useRef<HTMLDivElement>(null);
     const [privacySettings, setPrivacySettings] = useState<Map<string, ParentPrivacySettings>>(new Map());
 
-    // Check if current user is staff (can see all info regardless of privacy)
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
-    const isParent = currentRole === 'parent';
-
     // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -66,8 +64,6 @@ export function Roster() {
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
-
-    const canManageMembers = ['owner', 'director', 'admin'].includes(currentRole || '');
 
     useEffect(() => {
         if (hub) {
@@ -368,7 +364,7 @@ export function Roster() {
                     </p>
                 </div>
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
-                    {canManageMembers && (
+                    {canManage && (
                         <button
                             type="button"
                             onClick={() => setIsManageLevelsOpen(true)}
@@ -545,7 +541,7 @@ export function Roster() {
                                                     )}
                                                 </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                                    {canManageMembers && (
+                                                    {canManage && (
                                                         <div className="relative inline-block text-left" ref={openMenuId === member.id ? menuRef : null}>
                                                             <button
                                                                 onClick={(e) => {

@@ -3,14 +3,16 @@ import { Sparkles, Settings2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { SkillsTable } from '../components/skills/SkillsTable';
 import { ManageSkillsModal } from '../components/skills/ManageSkillsModal';
 import type { GymnastProfile, HubEventSkill, GymnastSkill, GymEvent } from '../types';
 import { WAG_EVENTS, MAG_EVENTS, EVENT_FULL_NAMES } from '../types';
 
 export function Skills() {
-    const { hub, currentRole, getPermissionScope, linkedGymnasts } = useHub();
+    const { hub, getPermissionScope, linkedGymnasts } = useHub();
     const { markAsViewed } = useNotifications();
+    const { isStaff, isParent } = useRoleChecks();
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
     const [selectedEvent, setSelectedEvent] = useState<GymEvent | ''>('');
@@ -19,9 +21,6 @@ export function Skills() {
     const [gymnastSkills, setGymnastSkills] = useState<GymnastSkill[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
-
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
-    const isParent = currentRole === 'parent';
     const levels = hub?.settings?.levels || [];
     const events = activeGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
 

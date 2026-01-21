@@ -279,16 +279,49 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         handleNewResource,
     ]);
 
-    // Initial fetch and polling fallback
+    // Initial fetch and visibility-aware polling fallback
     useEffect(() => {
         fetchCounts();
 
-        // Poll every 30 seconds as a fallback for realtime
-        const interval = setInterval(() => {
-            fetchCounts();
-        }, 30000);
+        let interval: ReturnType<typeof setInterval> | null = null;
 
-        return () => clearInterval(interval);
+        const startPolling = () => {
+            if (interval) return;
+            // Poll every 30 seconds as a fallback for realtime
+            interval = setInterval(() => {
+                fetchCounts();
+            }, 30000);
+        };
+
+        const stopPolling = () => {
+            if (interval) {
+                clearInterval(interval);
+                interval = null;
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopPolling();
+            } else {
+                // Refresh counts when tab becomes visible again
+                fetchCounts();
+                startPolling();
+            }
+        };
+
+        // Start polling if tab is visible
+        if (!document.hidden) {
+            startPolling();
+        }
+
+        // Listen for visibility changes
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            stopPolling();
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+        };
     }, [fetchCounts]);
 
     const value = useMemo(() => ({

@@ -201,6 +201,7 @@ const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
 // Inline editable cell component (memoized for performance)
 const InlineScoreCell = memo(function InlineScoreCell({
     gymnastId,
+    gymnastLevel,
     event,
     currentScore,
     currentPlacement,
@@ -211,6 +212,7 @@ const InlineScoreCell = memo(function InlineScoreCell({
     gender
 }: {
     gymnastId: string;
+    gymnastLevel: string | null;
     event: GymEvent;
     currentScore: number | null;
     currentPlacement: number | null;
@@ -320,7 +322,7 @@ const InlineScoreCell = memo(function InlineScoreCell({
                     })
                     .eq('id', existing.id);
             } else if (scoreNum !== null || placementNum !== null) {
-                // Insert new
+                // Insert new - include gymnast_level snapshot
                 await supabase
                     .from('competition_scores')
                     .insert({
@@ -329,6 +331,7 @@ const InlineScoreCell = memo(function InlineScoreCell({
                         event,
                         score: scoreNum,
                         placement: placementNum,
+                        gymnast_level: gymnastLevel,
                         created_by: user?.id
                     });
             }
@@ -728,6 +731,7 @@ export function ScoresTable({
                                                         <td key={event} colSpan={2} className={`px-1 py-1 ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
                                                             <InlineScoreCell
                                                                 gymnastId={gymnast.id}
+                                                                gymnastLevel={gymnast.level}
                                                                 event={event}
                                                                 currentScore={scoreData.score}
                                                                 currentPlacement={scoreData.placement}

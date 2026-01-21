@@ -4,8 +4,10 @@ import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { ScoresTable } from '../components/scores/ScoresTable';
-import type { Competition, GymnastProfile, CompetitionScore, CompetitionTeamPlacement } from '../types';
+import { SeasonPicker } from '../components/ui/SeasonPicker';
+import type { Competition, GymnastProfile, CompetitionScore, CompetitionTeamPlacement, Season } from '../types';
 
 interface CompetitionWithGymnasts extends Competition {
     competition_gymnasts: {
@@ -15,9 +17,10 @@ interface CompetitionWithGymnasts extends Competition {
 }
 
 export function Scores() {
-    const { hub, currentRole } = useHub();
+    const { hub } = useHub();
     const { user } = useAuth();
     const { markAsViewed } = useNotifications();
+    const { isStaff, isParent } = useRoleChecks();
     const [competitions, setCompetitions] = useState<CompetitionWithGymnasts[]>([]);
     const [selectedCompetition, setSelectedCompetition] = useState<CompetitionWithGymnasts | null>(null);
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
@@ -25,9 +28,7 @@ export function Scores() {
     const [scores, setScores] = useState<CompetitionScore[]>([]);
     const [teamPlacements, setTeamPlacements] = useState<CompetitionTeamPlacement[]>([]);
     const [userGymnastIds, setUserGymnastIds] = useState<string[]>([]);
-
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
-    const isParent = currentRole === 'parent';
+    const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
 
     // Mark scores as viewed when page loads
     useEffect(() => {
@@ -36,24 +37,38 @@ export function Scores() {
         }
     }, [hub, markAsViewed]);
 
+    // Fetch user's linked gymnasts if parent
     useEffect(() => {
-        if (hub) {
-            fetchCompetitions();
-            if (isParent && user) {
-                fetchUserGymnasts();
-            }
+        if (isParent && user && hub) {
+            fetchUserGymnasts();
         }
     }, [hub, user, isParent]);
 
+    // Fetch competitions when season changes
+    useEffect(() => {
+        if (hub && selectedSeasonId) {
+            fetchCompetitions();
+        } else if (hub && !selectedSeasonId) {
+            // Season not yet selected, stop loading state
+            setLoading(false);
+        }
+    }, [hub, selectedSeasonId]);
+
+    const handleSeasonChange = (seasonId: string, _season: Season) => {
+        setSelectedSeasonId(seasonId);
+        setSelectedCompetition(null); // Reset competition when season changes
+    };
+
+    // Fetch scores when competition selection changes (use ID to avoid object reference issues)
     useEffect(() => {
         if (selectedCompetition) {
             fetchScores();
             fetchTeamPlacements();
         }
-    }, [selectedCompetition]);
+    }, [selectedCompetition?.id]);
 
     const fetchCompetitions = async () => {
-        if (!hub) return;
+        if (!hub || !selectedSeasonId) return;
         setLoading(true);
 
         const { data, error } = await supabase
@@ -62,10 +77,11 @@ export function Scores() {
                 *,
                 competition_gymnasts(
                     gymnast_profile_id,
-                    gymnast_profiles(*)
+                    gymnast_profiles(id, first_name, last_name, gender, level)
                 )
             `)
             .eq('hub_id', hub.id)
+            .eq('season_id', selectedSeasonId)
             .order('start_date', { ascending: false });
 
         if (error) {
@@ -146,22 +162,24 @@ export function Scores() {
         );
     };
 
-    if (loading) {
-        return (
-            <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-mint-500 border-t-transparent"></div>
-            </div>
-        );
-    }
-
     return (
         <div className="h-full flex flex-col">
             <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
-                <h1 className="text-2xl font-bold text-slate-900">Scores</h1>
+                <div className="flex items-center gap-4">
+                    <h1 className="text-2xl font-bold text-slate-900">Scores</h1>
+                    <SeasonPicker
+                        selectedSeasonId={selectedSeasonId}
+                        onSeasonChange={handleSeasonChange}
+                    />
+                </div>
             </header>
 
             <main className="flex-1 overflow-y-auto p-6">
-                {competitions.length === 0 ? (
+                {loading ? (
+                    <div className="flex h-full items-center justify-center">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+                    </div>
+                ) : competitions.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center text-center">
                         <div className="rounded-full bg-slate-100 p-4">
                             <Trophy className="h-8 w-8 text-slate-400" />

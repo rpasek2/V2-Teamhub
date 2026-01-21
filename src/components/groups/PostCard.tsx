@@ -330,17 +330,17 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                 )}
 
                 {/* Files */}
-                {attachments.filter(a => a.type === 'files').map((attachment, idx) => (
+                {attachments.filter(a => a.type === 'files').map((attachment) => (
                     attachment.type === 'files' && (
-                        <FileList key={idx} files={attachment.files} />
+                        <FileList key={`files-${attachment.files.map(f => f.name).join('-')}`} files={attachment.files} />
                     )
                 ))}
 
                 {/* Poll */}
-                {attachments.filter(a => a.type === 'poll').map((attachment, idx) => (
+                {attachments.filter(a => a.type === 'poll').map((attachment) => (
                     attachment.type === 'poll' && (
                         <PollDisplay
-                            key={idx}
+                            key={`poll-${attachment.question}`}
                             postId={post.id}
                             question={attachment.question}
                             options={attachment.options}
@@ -350,10 +350,10 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                 ))}
 
                 {/* Sign-Up */}
-                {attachments.filter(a => a.type === 'signup').map((attachment, idx) => (
+                {attachments.filter(a => a.type === 'signup').map((attachment) => (
                     attachment.type === 'signup' && (
                         <SignupDisplay
-                            key={idx}
+                            key={`signup-${attachment.title}`}
                             postId={post.id}
                             title={attachment.title}
                             description={attachment.description}
@@ -364,10 +364,10 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                 ))}
 
                 {/* RSVP */}
-                {attachments.filter(a => a.type === 'rsvp').map((attachment, idx) => (
+                {attachments.filter(a => a.type === 'rsvp').map((attachment) => (
                     attachment.type === 'rsvp' && (
                         <RsvpDisplay
-                            key={idx}
+                            key={`rsvp-${attachment.title}`}
                             postId={post.id}
                             title={attachment.title}
                             date={attachment.date}

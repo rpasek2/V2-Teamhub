@@ -2,14 +2,16 @@ import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, FolderOpen, Settings, Loader2 } from 'lucide-react';
 import { useHub } from '../context/HubContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { useResources, useResourceCategories, useDeleteResource } from '../hooks/useResources';
 import { ResourceCard } from '../components/resources/ResourceCard';
 import { CreateResourceModal } from '../components/resources/CreateResourceModal';
 import { ManageCategoriesModal } from '../components/resources/ManageCategoriesModal';
 
 export function Resources() {
-    const { hub, currentRole } = useHub();
+    const { hub } = useHub();
     const { markAsViewed } = useNotifications();
+    const { isStaff } = useRoleChecks();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -21,8 +23,6 @@ export function Resources() {
     });
     const { categories, refetch: refetchCategories } = useResourceCategories(hub?.id);
     const { deleteResource } = useDeleteResource();
-
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
 
     // Mark resources as viewed when page loads
     useEffect(() => {

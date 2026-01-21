@@ -197,21 +197,46 @@ interface GoalItemProps {
     readOnly?: boolean;
 }
 
+// Event display labels (database value -> display label)
+const EVENT_LABELS: Record<string, string> = {
+    vault: 'Vault',
+    bars: 'Bars',
+    beam: 'Beam',
+    floor: 'Floor',
+    pommel: 'Pommel Horse',
+    rings: 'Rings',
+    pbars: 'Parallel Bars',
+    highbar: 'High Bar',
+    overall: 'Overall',
+    strength: 'Strength',
+    flexibility: 'Flexibility',
+    conditioning: 'Conditioning',
+    mental: 'Mental',
+    competition: 'Competition'
+};
+
+// Get display label for event (with fallback to capitalize)
+function getEventLabel(event: string): string {
+    return EVENT_LABELS[event.toLowerCase()] || event.charAt(0).toUpperCase() + event.slice(1);
+}
+
 // Get color for event badge
 function getEventBadgeColor(event: string): string {
     const eventLower = event.toLowerCase();
-    if (eventLower.includes('vault')) return 'bg-emerald-100 text-emerald-700';
-    if (eventLower.includes('bar')) return 'bg-sky-100 text-sky-700';
-    if (eventLower.includes('beam')) return 'bg-pink-100 text-pink-700';
-    if (eventLower.includes('floor')) return 'bg-amber-100 text-amber-700';
-    if (eventLower.includes('pommel')) return 'bg-orange-100 text-orange-700';
-    if (eventLower.includes('ring')) return 'bg-violet-100 text-violet-700';
-    if (eventLower.includes('parallel')) return 'bg-teal-100 text-teal-700';
-    if (eventLower.includes('high bar')) return 'bg-indigo-100 text-indigo-700';
-    if (eventLower.includes('strength')) return 'bg-red-100 text-red-700';
-    if (eventLower.includes('flexibility')) return 'bg-purple-100 text-purple-700';
-    if (eventLower.includes('mental')) return 'bg-cyan-100 text-cyan-700';
-    if (eventLower.includes('competition')) return 'bg-rose-100 text-rose-700';
+    if (eventLower === 'vault') return 'bg-emerald-100 text-emerald-700';
+    if (eventLower === 'bars') return 'bg-sky-100 text-sky-700';
+    if (eventLower === 'beam') return 'bg-pink-100 text-pink-700';
+    if (eventLower === 'floor') return 'bg-amber-100 text-amber-700';
+    if (eventLower === 'pommel') return 'bg-orange-100 text-orange-700';
+    if (eventLower === 'rings') return 'bg-violet-100 text-violet-700';
+    if (eventLower === 'pbars') return 'bg-teal-100 text-teal-700';
+    if (eventLower === 'highbar') return 'bg-indigo-100 text-indigo-700';
+    if (eventLower === 'overall') return 'bg-blue-100 text-blue-700';
+    if (eventLower === 'strength') return 'bg-red-100 text-red-700';
+    if (eventLower === 'flexibility') return 'bg-purple-100 text-purple-700';
+    if (eventLower === 'conditioning') return 'bg-lime-100 text-lime-700';
+    if (eventLower === 'mental') return 'bg-cyan-100 text-cyan-700';
+    if (eventLower === 'competition') return 'bg-rose-100 text-rose-700';
     return 'bg-slate-100 text-slate-600';
 }
 
@@ -285,7 +310,7 @@ function GoalItem({
                                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                     {goal.event && (
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${getEventBadgeColor(goal.event)}`}>
-                                            {goal.event}
+                                            {getEventLabel(goal.event)}
                                         </span>
                                     )}
                                     {targetDate && (

@@ -56,7 +56,7 @@ export function ImageGallery({ urls }: ImageGalleryProps) {
             <div className={`grid ${getGridClass()} gap-1 rounded-xl overflow-hidden`}>
                 {urls.slice(0, 6).map((url, index) => (
                     <button
-                        key={index}
+                        key={url}
                         onClick={() => openLightbox(index)}
                         className={`relative ${getImageClass(index)} bg-slate-100 overflow-hidden group`}
                     >
@@ -125,7 +125,7 @@ export function ImageGallery({ urls }: ImageGalleryProps) {
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                             {urls.map((url, index) => (
                                 <button
-                                    key={index}
+                                    key={url}
                                     onClick={() => setCurrentIndex(index)}
                                     className={`w-12 h-12 rounded-lg overflow-hidden border-2 transition-all ${
                                         index === currentIndex

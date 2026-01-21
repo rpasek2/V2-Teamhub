@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { UserCheck, BarChart3 } from 'lucide-react';
-import { useHub } from '../context/HubContext';
+import { useRoleChecks } from '../hooks/useRoleChecks';
 import { DailyAttendanceTab } from '../components/attendance/DailyAttendanceTab';
 import { AttendanceMetricsTab } from '../components/attendance/AttendanceMetricsTab';
 
 type AttendanceTab = 'daily' | 'metrics';
 
 export function Attendance() {
-    const { currentRole } = useHub();
+    const { isStaff, canManage } = useRoleChecks();
     const [activeTab, setActiveTab] = useState<AttendanceTab>('daily');
-
-    const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
-    const canManage = ['owner', 'director', 'admin'].includes(currentRole || '');
 
     if (!isStaff) {
         return (

@@ -1,6 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { X, Plus, GripVertical, BarChart3 } from 'lucide-react';
 import type { PollSettings } from '../../../types';
+
+interface OptionWithId {
+    id: number;
+    value: string;
+}
 
 interface PollCreatorProps {
     onSave: (data: { question: string; options: string[]; settings: PollSettings }) => void;
@@ -9,32 +14,33 @@ interface PollCreatorProps {
 }
 
 export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps) {
+    const nextIdRef = useRef(2);
     const [question, setQuestion] = useState(initialData?.question || '');
-    const [options, setOptions] = useState<string[]>(initialData?.options || ['', '']);
+    const [options, setOptions] = useState<OptionWithId[]>(
+        initialData?.options.map((v, i) => ({ id: i, value: v })) || [{ id: 0, value: '' }, { id: 1, value: '' }]
+    );
     const [multipleChoice, setMultipleChoice] = useState(initialData?.settings.multipleChoice || false);
     const [showResultsBeforeVote, setShowResultsBeforeVote] = useState(initialData?.settings.showResultsBeforeVote || false);
     const [allowChangeVote, setAllowChangeVote] = useState(initialData?.settings.allowChangeVote ?? true);
 
     const handleAddOption = () => {
         if (options.length < 10) {
-            setOptions([...options, '']);
+            setOptions([...options, { id: nextIdRef.current++, value: '' }]);
         }
     };
 
-    const handleRemoveOption = (index: number) => {
+    const handleRemoveOption = (id: number) => {
         if (options.length > 2) {
-            setOptions(options.filter((_, i) => i !== index));
+            setOptions(options.filter(o => o.id !== id));
         }
     };
 
-    const handleOptionChange = (index: number, value: string) => {
-        const newOptions = [...options];
-        newOptions[index] = value;
-        setOptions(newOptions);
+    const handleOptionChange = (id: number, value: string) => {
+        setOptions(options.map(o => o.id === id ? { ...o, value } : o));
     };
 
     const handleSave = () => {
-        const filledOptions = options.filter(o => o.trim() !== '');
+        const filledOptions = options.filter(o => o.value.trim() !== '').map(o => o.value);
         if (question.trim() && filledOptions.length >= 2) {
             onSave({
                 question: question.trim(),
@@ -48,7 +54,7 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
         }
     };
 
-    const isValid = question.trim() && options.filter(o => o.trim()).length >= 2;
+    const isValid = question.trim() && options.filter(o => o.value.trim()).length >= 2;
 
     return (
         <div className="rounded-xl border border-purple-200 bg-purple-50/50 overflow-hidden">
@@ -85,19 +91,19 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
                     </label>
                     <div className="space-y-2">
                         {options.map((option, index) => (
-                            <div key={index} className="flex items-center gap-2">
+                            <div key={option.id} className="flex items-center gap-2">
                                 <GripVertical className="h-4 w-4 text-slate-300 flex-shrink-0" />
                                 <input
                                     type="text"
-                                    value={option}
-                                    onChange={(e) => handleOptionChange(index, e.target.value)}
+                                    value={option.value}
+                                    onChange={(e) => handleOptionChange(option.id, e.target.value)}
                                     placeholder={`Option ${index + 1}`}
                                     className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-shadow"
                                 />
                                 {options.length > 2 && (
                                     <button
                                         type="button"
-                                        onClick={() => handleRemoveOption(index)}
+                                        onClick={() => handleRemoveOption(option.id)}
                                         className="p-1.5 text-slate-400 hover:text-red-500 rounded"
                                     >
                                         <X className="h-4 w-4" />

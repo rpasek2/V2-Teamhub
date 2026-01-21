@@ -16,7 +16,8 @@ interface RotationGridSettings {
     hub_id: string;
     day_of_week: number;
     column_order: number[];
-    combined_indices: number[][];
+    column_names: Record<string, string>;
+    hidden_columns: string[];
     updated_by: string | null;
     updated_at: string;
 }
@@ -46,7 +47,8 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
     const [showCustomEventModal, setShowCustomEventModal] = useState(false);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [columnOrder, setColumnOrder] = useState<number[]>([]);
-    const [combinedIndices, setCombinedIndices] = useState<number[][]>([]);
+    const [columnNames, setColumnNames] = useState<Record<string, string>>({});
+    const [hiddenColumns, setHiddenColumns] = useState<string[]>([]);
     const [gridSettings, setGridSettings] = useState<RotationGridSettings | null>(null);
     const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -84,7 +86,11 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
     }, [hubId, selectedDayOfWeek]);
 
     // Save grid settings with debounce
-    const saveGridSettings = useCallback(async (newColumnOrder: number[], newCombinedIndices: number[][]) => {
+    const saveGridSettings = useCallback(async (
+        newColumnOrder: number[],
+        newColumnNames: Record<string, string>,
+        newHiddenColumns: string[]
+    ) => {
         if (!hubId || !user) return;
 
         // Clear any pending save
@@ -98,7 +104,8 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                 hub_id: hubId,
                 day_of_week: selectedDayOfWeek,
                 column_order: newColumnOrder,
-                combined_indices: newCombinedIndices,
+                column_names: newColumnNames,
+                hidden_columns: newHiddenColumns,
                 updated_by: user.id,
                 updated_at: new Date().toISOString()
             };
@@ -141,24 +148,12 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
 
         if (data) {
             setGridSettings(data);
-
-            // Validate and clean up column order
-            const savedColumnOrder = data.column_order || [];
-            // Will be validated when activeLevelsForDay is available
-
-            // Validate and clean up combined indices
-            const savedCombinedIndices = data.combined_indices || [];
-            // Filter out any groups with invalid indices (we'll fully validate when we know activeLevels count)
-            const cleanedCombinedIndices = savedCombinedIndices
-                .filter((group: number[]) => Array.isArray(group))
-                .map((group: number[]) => group.filter((idx: number) => typeof idx === 'number' && idx >= 0))
-                .filter((group: number[]) => group.length > 1);
-
-            setColumnOrder(savedColumnOrder);
-            setCombinedIndices(cleanedCombinedIndices);
+            setColumnOrder(data.column_order || []);
+            setColumnNames(data.column_names || {});
+            setHiddenColumns(data.hidden_columns || []);
         } else {
             setGridSettings(null);
-            // Don't reset column order here - let the activeLevelsForDay effect handle defaults
+            // Don't reset settings - let the activeLevelsForDay effect handle defaults
         }
     };
 
@@ -296,39 +291,37 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
             columnOrder.every(idx => typeof idx === 'number' && idx >= 0 && idx < levelCount) &&
             new Set(columnOrder).size === levelCount; // All unique indices
 
-        // Check if combined indices are valid
-        const validCombinedIndices = combinedIndices
-            .map(group => group.filter(idx => typeof idx === 'number' && idx >= 0 && idx < levelCount))
-            .filter(group => group.length > 1);
-
-        const combinedIndicesChanged = JSON.stringify(validCombinedIndices) !== JSON.stringify(combinedIndices);
-
         if (!isColumnOrderValid) {
             // Reset to default order
             setColumnOrder(activeLevelsForDay.map((_, i) => i));
-            setCombinedIndices([]);
-        } else if (combinedIndicesChanged) {
-            // Just clean up combined indices
-            setCombinedIndices(validCombinedIndices);
         }
-    }, [activeLevelsForDay.length, columnOrder, combinedIndices]);
+    }, [activeLevelsForDay.length, columnOrder]);
 
     const handleColumnOrderChange = useCallback((newOrder: number[]) => {
         setColumnOrder(newOrder);
-        saveGridSettings(newOrder, combinedIndices);
-    }, [combinedIndices, saveGridSettings]);
+        saveGridSettings(newOrder, columnNames, hiddenColumns);
+    }, [columnNames, hiddenColumns, saveGridSettings]);
 
-    const handleCombinedIndicesChange = useCallback((newIndices: number[][]) => {
-        setCombinedIndices(newIndices);
-        saveGridSettings(columnOrder, newIndices);
-    }, [columnOrder, saveGridSettings]);
+    const handleColumnNamesChange = useCallback((newNames: Record<string, string>) => {
+        setColumnNames(newNames);
+        saveGridSettings(columnOrder, newNames, hiddenColumns);
+    }, [columnOrder, hiddenColumns, saveGridSettings]);
+
+    const handleHiddenColumnsChange = useCallback((newHidden: string[]) => {
+        setHiddenColumns(newHidden);
+        saveGridSettings(columnOrder, columnNames, newHidden);
+    }, [columnOrder, columnNames, saveGridSettings]);
 
     const handleResetColumns = useCallback(() => {
         const defaultOrder = activeLevelsForDay.map((_, i) => i);
         setColumnOrder(defaultOrder);
-        setCombinedIndices([]);
-        saveGridSettings(defaultOrder, []);
+        setColumnNames({});
+        setHiddenColumns([]);
+        saveGridSettings(defaultOrder, {}, []);
     }, [activeLevelsForDay, saveGridSettings]);
+
+    // Check if there are any customizations
+    const hasCustomizations = columnOrder.length > 0 || Object.keys(columnNames).length > 0 || hiddenColumns.length > 0;
 
     const handleBlockCreated = async () => {
         await fetchBlocksForDay();
@@ -416,14 +409,14 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                                 </button>
                             ))}
                         </div>
-                        {canManage && combinedIndices.length > 0 && (
+                        {canManage && hasCustomizations && (
                             <button
                                 onClick={handleResetColumns}
                                 className="flex items-center gap-2 px-3 py-2 bg-amber-100 hover:bg-amber-200 rounded-lg text-amber-700 font-medium"
-                                title="Reset column order and combined groups"
+                                title="Reset column customizations"
                             >
                                 <RotateCcw className="w-4 h-4" />
-                                <span className="hidden sm:inline">Reset Columns</span>
+                                <span className="hidden sm:inline">Reset</span>
                             </button>
                         )}
                         <button
@@ -437,7 +430,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                 </div>
 
                 {/* Fullscreen Content */}
-                <div className="flex-1 overflow-auto p-6">
+                <div className="flex-1 overflow-auto">
                     {activeLevelsForDay.length === 0 ? (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center">
@@ -449,37 +442,44 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                             </div>
                         </div>
                     ) : (
-                        <RotationGrid
-                            dayOfWeek={selectedDayOfWeek}
-                            activeLevels={activeLevelsForDay}
-                            blocks={rotationBlocks}
-                            selectedEvent={selectedEvent}
-                            coaches={coaches}
-                            onBlockCreated={handleBlockCreated}
-                            onBlockDeleted={handleBlockDeleted}
-                            onBlockUpdated={handleBlockUpdated}
-                            canManage={canManage}
-                            columnOrder={columnOrder}
-                            onColumnOrderChange={handleColumnOrderChange}
-                            combinedIndices={combinedIndices}
-                            onCombinedIndicesChange={handleCombinedIndicesChange}
-                        />
+                        <div className="flex h-full">
+                            {/* Grid */}
+                            <div className="flex-1 overflow-auto p-6">
+                                <RotationGrid
+                                    dayOfWeek={selectedDayOfWeek}
+                                    activeLevels={activeLevelsForDay}
+                                    blocks={rotationBlocks}
+                                    selectedEvent={selectedEvent}
+                                    coaches={coaches}
+                                    onBlockCreated={handleBlockCreated}
+                                    onBlockDeleted={handleBlockDeleted}
+                                    onBlockUpdated={handleBlockUpdated}
+                                    canManage={canManage}
+                                    columnOrder={columnOrder}
+                                    onColumnOrderChange={handleColumnOrderChange}
+                                    columnNames={columnNames}
+                                    onColumnNamesChange={handleColumnNamesChange}
+                                    hiddenColumns={hiddenColumns}
+                                    onHiddenColumnsChange={handleHiddenColumnsChange}
+                                />
+                            </div>
+
+                            {/* Event Palette Sidebar - Fullscreen */}
+                            <div className="w-40 flex-shrink-0 border-l border-slate-200 bg-slate-50 p-4 overflow-y-auto">
+                                <EventPalette
+                                    events={rotationEvents}
+                                    selectedEvent={selectedEvent}
+                                    onSelectEvent={setSelectedEvent}
+                                    onAddCustom={() => setShowCustomEventModal(true)}
+                                    onEventUpdated={handleEventCreated}
+                                    canManage={canManage}
+                                    layout="vertical"
+                                    compact
+                                />
+                            </div>
+                        </div>
                     )}
                 </div>
-
-                {/* Fullscreen Footer - Event palette for editing */}
-                {canManage && activeLevelsForDay.length > 0 && (
-                    <div className="border-t border-slate-200 bg-slate-50 px-6 py-3">
-                        <EventPalette
-                            events={rotationEvents}
-                            selectedEvent={selectedEvent}
-                            onSelectEvent={setSelectedEvent}
-                            onAddCustom={() => setShowCustomEventModal(true)}
-                            onEventUpdated={handleEventCreated}
-                            canManage={canManage}
-                        />
-                    </div>
-                )}
 
                 {/* ESC hint */}
                 <div className="absolute bottom-4 left-4 text-xs text-slate-400">
@@ -517,11 +517,11 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                         </button>
                     ))}
                 </div>
-                {canManage && combinedIndices.length > 0 && (
+                {canManage && hasCustomizations && (
                     <button
                         onClick={handleResetColumns}
                         className="flex items-center gap-2 px-3 py-2 bg-amber-100 hover:bg-amber-200 rounded-lg text-amber-700 transition-colors"
-                        title="Reset column order and combined groups"
+                        title="Reset column customizations"
                     >
                         <RotateCcw className="w-4 h-4" />
                         <span className="text-sm font-medium hidden sm:inline">Reset</span>
@@ -547,19 +547,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                 </p>
             </div>
 
-            {/* Event Palette - Sticky */}
-            <div className="sticky top-0 z-10 bg-slate-50 -mx-6 px-6 py-3 border-b border-slate-200 shadow-sm">
-                <EventPalette
-                    events={rotationEvents}
-                    selectedEvent={selectedEvent}
-                    onSelectEvent={setSelectedEvent}
-                    onAddCustom={() => setShowCustomEventModal(true)}
-                    onEventUpdated={handleEventCreated}
-                    canManage={canManage}
-                />
-            </div>
-
-            {/* Rotation Grid */}
+            {/* Main content with floating sidebar */}
             {activeLevelsForDay.length === 0 ? (
                 <div className="card p-12 text-center">
                     <Grid3X3 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
@@ -570,21 +558,43 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                     </p>
                 </div>
             ) : (
-                <RotationGrid
-                    dayOfWeek={selectedDayOfWeek}
-                    activeLevels={activeLevelsForDay}
-                    blocks={rotationBlocks}
-                    selectedEvent={selectedEvent}
-                    coaches={coaches}
-                    onBlockCreated={handleBlockCreated}
-                    onBlockDeleted={handleBlockDeleted}
-                    onBlockUpdated={handleBlockUpdated}
-                    canManage={canManage}
-                    columnOrder={columnOrder}
-                    onColumnOrderChange={handleColumnOrderChange}
-                    combinedIndices={combinedIndices}
-                    onCombinedIndicesChange={handleCombinedIndicesChange}
-                />
+                <div className="flex gap-4">
+                    {/* Rotation Grid - Main content */}
+                    <div className="flex-1 min-w-0">
+                        <RotationGrid
+                            dayOfWeek={selectedDayOfWeek}
+                            activeLevels={activeLevelsForDay}
+                            blocks={rotationBlocks}
+                            selectedEvent={selectedEvent}
+                            coaches={coaches}
+                            onBlockCreated={handleBlockCreated}
+                            onBlockDeleted={handleBlockDeleted}
+                            onBlockUpdated={handleBlockUpdated}
+                            canManage={canManage}
+                            columnOrder={columnOrder}
+                            onColumnOrderChange={handleColumnOrderChange}
+                            columnNames={columnNames}
+                            onColumnNamesChange={handleColumnNamesChange}
+                            hiddenColumns={hiddenColumns}
+                            onHiddenColumnsChange={handleHiddenColumnsChange}
+                        />
+                    </div>
+
+                    {/* Event Palette - Floating Sidebar */}
+                    <div className="w-36 flex-shrink-0">
+                        <div className="sticky top-4">
+                            <EventPalette
+                                events={rotationEvents}
+                                selectedEvent={selectedEvent}
+                                onSelectEvent={setSelectedEvent}
+                                onAddCustom={() => setShowCustomEventModal(true)}
+                                onEventUpdated={handleEventCreated}
+                                canManage={canManage}
+                                layout="vertical"
+                            />
+                        </div>
+                    </div>
+                </div>
             )}
 
             {/* Custom Event Modal */}
