@@ -71,14 +71,27 @@ export function Competitions() {
     const handleDelete = async (compId: string) => {
         setDeletingId(compId);
         try {
-            // Delete in order: scores, session gymnasts, sessions, competition gymnasts, competition
-            // This handles the cascade properly
+            // Get competition details first to find associated calendar event
+            const competition = competitions.find(c => c.id === compId);
+
+            // Delete the competition (cascade handles related records)
             const { error } = await supabase
                 .from('competitions')
                 .delete()
                 .eq('id', compId);
 
             if (error) throw error;
+
+            // Also delete the associated calendar event if it exists
+            // The event was created with the same title and type='competition'
+            if (competition && hub) {
+                await supabase
+                    .from('events')
+                    .delete()
+                    .eq('hub_id', hub.id)
+                    .eq('title', competition.name)
+                    .eq('type', 'competition');
+            }
 
             // Remove from local state
             setCompetitions(prev => prev.filter(c => c.id !== compId));
