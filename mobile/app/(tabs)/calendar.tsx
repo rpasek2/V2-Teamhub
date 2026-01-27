@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { ChevronLeft, ChevronRight, Plus, MapPin, Clock } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, MapPin, Clock } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { Badge } from '../../src/components/ui';
 import { EventDetailsModal } from '../../src/components/calendar';

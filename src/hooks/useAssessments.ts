@@ -96,37 +96,3 @@ export function useUpsertAssessment(): UseUpsertAssessmentReturn {
 
     return { upsertAssessment, loading, error };
 }
-
-interface UseDeleteAssessmentReturn {
-    deleteAssessment: (gymnastProfileId: string) => Promise<boolean>;
-    loading: boolean;
-    error: string | null;
-}
-
-export function useDeleteAssessment(): UseDeleteAssessmentReturn {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    const deleteAssessment = async (gymnastProfileId: string): Promise<boolean> => {
-        setLoading(true);
-        setError(null);
-
-        try {
-            const { error: deleteError } = await supabase
-                .from('gymnast_assessments')
-                .delete()
-                .eq('gymnast_profile_id', gymnastProfileId);
-
-            if (deleteError) throw deleteError;
-            return true;
-        } catch (err: any) {
-            console.error('Error deleting assessment:', err);
-            setError(err.message || 'Failed to delete assessment');
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return { deleteAssessment, loading, error };
-}

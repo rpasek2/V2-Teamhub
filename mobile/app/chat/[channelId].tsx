@@ -10,7 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
-import { useLocalSearchParams, useNavigation, router } from 'expo-router';
+import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { Send, ArrowLeft, Hash, User } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { supabase } from '../../src/services/supabase';

@@ -1,10 +1,19 @@
 # TeamHub V2 Agent Guide
 
 ## Commands
+
+### Web App
 - **Dev Server:** `npm run dev` - Start local development server
 - **Build:** `npm run build` - TypeScript check + Vite build (run after major edits)
 - **Lint:** `npm run lint` - Check for code quality issues
 - **Preview:** `npm run preview` - Preview production build locally
+- **Deploy:** `npx firebase deploy --only hosting` - Deploy to Firebase
+
+### Mobile App
+- **Start:** `cd mobile && npx expo start` - Start Expo dev server
+- **Android:** `cd mobile && npx expo start --android` - Run on Android
+- **iOS:** `cd mobile && npx expo start --ios` - Run on iOS simulator
+- **Install:** `cd mobile && npm install` - Install mobile dependencies
 
 ## Tech Stack
 - **Framework:** React 19 + Vite 7
@@ -72,6 +81,38 @@ src/
 ├── types/index.ts             # All TypeScript interfaces
 ├── hooks/                     # useFormSubmit, useToggleSelection
 └── lib/supabase.ts            # Supabase client singleton
+
+mobile/                        # React Native mobile app (Expo)
+├── app/                       # File-based routing (Expo Router)
+│   ├── _layout.tsx            # Root layout (SafeAreaProvider, QueryClient)
+│   ├── hub-selection.tsx      # Hub picker after login
+│   ├── (auth)/                # Auth screens (login, register, forgot-password)
+│   ├── (tabs)/                # Main tab navigator
+│   │   ├── _layout.tsx        # Tab bar config with safe area insets
+│   │   ├── index.tsx          # Dashboard/Home
+│   │   ├── calendar.tsx       # Calendar with events
+│   │   ├── messages.tsx       # Direct messages
+│   │   ├── groups.tsx         # Groups list
+│   │   └── more.tsx           # More menu (feature links)
+│   ├── chat/[channelId].tsx   # Chat conversation
+│   ├── group/[groupId].tsx    # Group details + posts
+│   ├── roster/                # Roster screens
+│   ├── competitions/          # Competitions screens
+│   ├── scores/                # Scores screens
+│   ├── skills/                # Skills screens
+│   └── attendance/            # Attendance screens
+├── src/
+│   ├── stores/                # Zustand state management
+│   │   ├── authStore.ts       # Auth state (user, session, initialize)
+│   │   ├── hubStore.ts        # Hub data, linked gymnasts, role checks
+│   │   └── notificationStore.ts # Badge counts, polling
+│   ├── components/
+│   │   ├── ui/                # Button, Card, Badge, Input
+│   │   ├── calendar/          # EventDetailsModal
+│   │   └── groups/            # PostCard
+│   ├── constants/colors.ts    # Brand colors (matches web)
+│   └── services/supabase.ts   # Supabase client
+└── package.json
 ```
 
 ## Architecture Rules
@@ -82,11 +123,11 @@ src/
 - Use TypeScript interfaces for props
 - Modals use `createPortal` to render at document.body
 
-### State Management
+### State Management (Web)
 - **AuthContext** - Global auth (user, session, loading, signOut)
 - **HubContext** - Hub data, member role, permissions, linked gymnasts
 - Local state via useState/useEffect
-- No Redux or Zustand
+- No Redux (mobile uses Zustand - see Mobile App section)
 
 ### Styling (Digital Gym Design System - Light Theme)
 - **Background:** `slate-50` (main content), `white` (cards, sidebars, modals)
@@ -247,6 +288,68 @@ Tab components receive gymnast data as props:
 <GymnastAttendanceTab gymnastId={gymnast.id} gymnastLevel={gymnast.level} scheduleGroup={gymnast.schedule_group || undefined} />
 ```
 
+## Mobile App (Expo/React Native)
+
+### Tech Stack
+- **Framework:** Expo SDK 52 + React Native
+- **Routing:** Expo Router (file-based, similar to Next.js)
+- **State:** Zustand stores (authStore, hubStore, notificationStore)
+- **Styling:** React Native StyleSheet (not Tailwind)
+- **Icons:** lucide-react-native
+- **Backend:** Same Supabase instance as web app
+
+### Mobile Patterns
+
+#### Safe Area Handling
+```typescript
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+// For full screens
+<SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+  {/* content */}
+</SafeAreaView>
+
+// For dynamic measurements (e.g., tab bar)
+const insets = useSafeAreaInsets();
+const tabBarHeight = 60 + Math.max(insets.bottom, 8);
+```
+
+#### Zustand Store Pattern
+```typescript
+import { create } from 'zustand';
+
+interface AuthState {
+  user: User | null;
+  loading: boolean;
+  initialize: () => Promise<void>;
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  loading: true,
+  initialize: async () => {
+    const { data } = await supabase.auth.getSession();
+    set({ user: data.session?.user ?? null, loading: false });
+  },
+}));
+```
+
+#### Mobile Colors
+Use the shared color constants from `mobile/src/constants/colors.ts`:
+```typescript
+import { colors, theme } from '../../src/constants/colors';
+
+// Use colors.brand, colors.slate, colors.error, etc.
+// Use theme.light.primary, theme.light.text, etc.
+```
+
+### Mobile vs Web Differences
+- **State:** Web uses React Context, Mobile uses Zustand stores
+- **Styling:** Web uses Tailwind CSS, Mobile uses StyleSheet.create()
+- **Routing:** Web uses React Router, Mobile uses Expo Router
+- **Safe Areas:** Mobile requires SafeAreaView, Web doesn't need it
+
 ## Common Mistakes to Avoid
 - Do NOT use `any` type - fix the actual TypeScript error
 - Do NOT use CSS modules or inline styles - use Tailwind only
@@ -279,3 +382,36 @@ Tab components receive gymnast data as props:
 - `mcp__chrome-devtools__click` / `fill` / `hover` - Interact with elements
 - `mcp__chrome-devtools__navigate_page` - Navigate to URLs
 - `mcp__chrome-devtools__list_console_messages` - View console logs
+
+## Specialized Agents (Everything Claude Code)
+
+### Available Agents
+Use the Task tool with these `subagent_type` values for specialized work:
+
+| Agent | When to Use |
+|-------|-------------|
+| `everything-claude-code:planner` | Before implementing complex features - creates step-by-step plans |
+| `everything-claude-code:code-reviewer` | After writing/modifying code - reviews for quality and issues |
+| `everything-claude-code:security-reviewer` | For auth, user input, API endpoints, sensitive data handling |
+| `everything-claude-code:database-reviewer` | For SQL queries, migrations, schema design (PostgreSQL/Supabase) |
+| `everything-claude-code:build-error-resolver` | When builds fail or TypeScript errors occur |
+| `everything-claude-code:tdd-guide` | For test-driven development - write tests first |
+| `everything-claude-code:e2e-runner` | For end-to-end test generation with Playwright |
+| `everything-claude-code:refactor-cleaner` | For removing dead code, consolidating duplicates |
+| `everything-claude-code:doc-updater` | For updating documentation and codemaps |
+| `everything-claude-code:architect` | For system design and architectural decisions |
+
+### Available Skills (Slash Commands)
+- `/plan` - Create implementation plan before coding
+- `/tdd` - Enforce test-driven development workflow
+- `/e2e` - Generate and run end-to-end tests
+- `/instinct-status` - Show learned patterns with confidence levels
+- `/skill-create` - Extract coding patterns from git history
+
+### Recommended Workflow
+1. **Planning:** Use `/plan` or `planner` agent for complex features
+2. **Implementation:** Write code following TDD with `/tdd` when appropriate
+3. **Review:** Use `code-reviewer` after significant changes
+4. **Security:** Use `security-reviewer` for auth/input handling code
+5. **Database:** Use `database-reviewer` for SQL/migrations
+6. **Testing:** Use `e2e-runner` for critical user flows

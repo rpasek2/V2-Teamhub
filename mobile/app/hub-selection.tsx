@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { ChevronRight, Plus, Users, Settings, LogOut } from 'lucide-react-native';
+import { ChevronRight, Plus, Users, LogOut } from 'lucide-react-native';
 import { colors, theme } from '../src/constants/colors';
 import { useAuthStore } from '../src/stores/authStore';
 import { useHubStore, Hub } from '../src/stores/hubStore';

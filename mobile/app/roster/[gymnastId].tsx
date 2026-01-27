@@ -10,14 +10,10 @@ import {
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import {
-  User,
-  Calendar,
   Target,
   BarChart3,
-  Award,
   Phone,
   Mail,
-  Heart,
 } from 'lucide-react-native';
 import { format, parseISO, differenceInYears } from 'date-fns';
 import { colors, theme } from '../../src/constants/colors';
@@ -302,17 +298,22 @@ export default function GymnastProfileScreen() {
                   )}
                   {gymnast.guardian_2?.name && (
                     <View style={[styles.guardianItem, { marginTop: 16 }]}>
-                      <Text style={styles.guardianName}>{gymnast.guardians.g2_name}</Text>
-                      {gymnast.guardians.g2_phone && (
+                      <Text style={styles.guardianName}>
+                        {gymnast.guardian_2.name}
+                        {gymnast.guardian_2.relationship && (
+                          <Text style={styles.guardianRelation}> ({gymnast.guardian_2.relationship})</Text>
+                        )}
+                      </Text>
+                      {gymnast.guardian_2.phone && (
                         <View style={styles.contactRow}>
                           <Phone size={14} color={colors.slate[400]} />
-                          <Text style={styles.contactText}>{gymnast.guardians.g2_phone}</Text>
+                          <Text style={styles.contactText}>{gymnast.guardian_2.phone}</Text>
                         </View>
                       )}
-                      {gymnast.guardians.g2_email && (
+                      {gymnast.guardian_2.email && (
                         <View style={styles.contactRow}>
                           <Mail size={14} color={colors.slate[400]} />
-                          <Text style={styles.contactText}>{gymnast.guardians.g2_email}</Text>
+                          <Text style={styles.contactText}>{gymnast.guardian_2.email}</Text>
                         </View>
                       )}
                     </View>
@@ -502,6 +503,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.slate[900],
     marginBottom: 8,
+  },
+  guardianRelation: {
+    fontWeight: '400',
+    color: colors.slate[500],
   },
   contactRow: {
     flexDirection: 'row',

@@ -23,13 +23,6 @@ interface SkillSummary {
   in_progress: number;
 }
 
-const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  compete_ready: { bg: colors.emerald[100], text: colors.emerald[700] },
-  in_progress: { bg: colors.blue[100], text: colors.blue[700] },
-  needs_spot: { bg: colors.amber[100], text: colors.amber[700] },
-  not_started: { bg: colors.slate[100], text: colors.slate[600] },
-};
-
 export default function SkillsScreen() {
   const [skillSummaries, setSkillSummaries] = useState<SkillSummary[]>([]);
   const [loading, setLoading] = useState(true);
