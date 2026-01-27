@@ -29,7 +29,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: str
   present: { label: 'Present', color: colors.emerald[700], bgColor: colors.emerald[100] },
   late: { label: 'Late', color: colors.amber[700], bgColor: colors.amber[100] },
   left_early: { label: 'Left Early', color: colors.orange[700], bgColor: colors.orange[100] },
-  absent: { label: 'Absent', color: colors.red[700], bgColor: colors.red[100] },
+  absent: { label: 'Absent', color: colors.error[700], bgColor: colors.error[100] },
 };
 
 export default function AttendanceScreen() {

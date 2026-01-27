@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { Mail, Lock, User } from 'lucide-react-native';
 import { Button, Input } from '../../src/components/ui';
@@ -50,14 +51,15 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.header}>
           <View style={styles.logoContainer}>
             <Text style={styles.logoText}>TeamHub</Text>
@@ -131,8 +133,9 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </Link>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -140,6 +143,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.slate[50],
+  },
+  flex: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,

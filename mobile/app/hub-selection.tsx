@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ChevronRight, Plus, Users, Settings, LogOut } from 'lucide-react-native';
 import { colors, theme } from '../src/constants/colors';
@@ -76,14 +77,14 @@ export default function HubSelectionScreen() {
 
   if (hubsLoading && !refreshing) {
     return (
-      <View style={styles.loadingContainer}>
+      <SafeAreaView style={styles.loadingContainer} edges={['top', 'bottom']}>
         <ActivityIndicator size="large" color={theme.light.primary} />
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Text style={styles.title}>Your Teams</Text>
         <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
@@ -124,7 +125,7 @@ export default function HubSelectionScreen() {
           <Text style={styles.footerButtonText}>Join with Invite Code</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -144,7 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingTop: 60,
+    paddingTop: 16,
     paddingBottom: 20,
     backgroundColor: colors.white,
     borderBottomWidth: 1,

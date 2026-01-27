@@ -8,6 +8,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react-native';
 import { Button, Input } from '../../src/components/ui';
@@ -44,7 +45,7 @@ export default function ForgotPasswordScreen() {
 
   if (success) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
             <CheckCircle size={48} color={colors.success[600]} />
@@ -61,19 +62,20 @@ export default function ForgotPasswordScreen() {
             style={styles.successButton}
           />
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        keyboardShouldPersistTaps="handled"
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => router.back()}
@@ -123,8 +125,9 @@ export default function ForgotPasswordScreen() {
             </TouchableOpacity>
           </Link>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -133,10 +136,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.slate[50],
   },
+  flex: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
     padding: 24,
-    paddingTop: 60,
+    paddingTop: 16,
   },
   backButton: {
     width: 40,

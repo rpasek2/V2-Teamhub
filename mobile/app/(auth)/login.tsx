@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { Mail, Lock } from 'lucide-react-native';
 import { Button, Input } from '../../src/components/ui';
@@ -39,10 +40,11 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -106,7 +108,8 @@ export default function LoginScreen() {
           </Link>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -114,6 +117,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.slate[50],
+  },
+  flex: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,

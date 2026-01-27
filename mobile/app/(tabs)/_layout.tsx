@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 import { Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Home,
   Calendar,
@@ -68,6 +69,7 @@ function TabBarIcon({
 export default function TabLayout() {
   const { currentHub } = useHubStore();
   const { user } = useAuthStore();
+  const insets = useSafeAreaInsets();
   const {
     unreadMessages,
     unreadGroups,
@@ -95,7 +97,11 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: theme.light.primary,
         tabBarInactiveTintColor: colors.slate[400],
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: {
+          ...styles.tabBar,
+          paddingBottom: Math.max(insets.bottom, 8),
+          height: 60 + Math.max(insets.bottom, 8),
+        },
         tabBarLabelStyle: styles.tabBarLabel,
         headerShown: true,
         headerStyle: styles.header,
@@ -185,8 +191,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: colors.slate[200],
     paddingTop: 8,
-    paddingBottom: 8,
-    height: 85,
   },
   tabBarLabel: {
     fontSize: 11,
