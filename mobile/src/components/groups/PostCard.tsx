@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,10 +9,15 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { MessageSquare, Pin, MoreHorizontal, Trash2, Send, User } from 'lucide-react-native';
+import { MessageSquare, Pin, PinOff, MoreHorizontal, Trash2, Send, User, ThumbsUp, Heart, PartyPopper } from 'lucide-react-native';
 import { colors, theme } from '../../constants/colors';
 import { supabase } from '../../services/supabase';
 import { formatDistanceToNow, parseISO } from 'date-fns';
+import { PollDisplay } from './PollDisplay';
+import { SignupDisplay } from './SignupDisplay';
+import { RsvpDisplay } from './RsvpDisplay';
+
+type ReactionType = 'like' | 'heart' | 'celebrate';
 
 interface Comment {
   id: string;
@@ -41,11 +46,13 @@ interface PostCardProps {
     commentCount: number;
   };
   currentUserId: string;
+  isAdmin?: boolean;
   onDeleted: () => void;
   onCommentAdded: () => void;
+  onPinToggle?: (postId: string, isPinned: boolean) => void;
 }
 
-export function PostCard({ post, currentUserId, onDeleted, onCommentAdded }: PostCardProps) {
+export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCommentAdded, onPinToggle }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -53,8 +60,94 @@ export function PostCard({ post, currentUserId, onDeleted, onCommentAdded }: Pos
   const [submittingComment, setSubmittingComment] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [localCommentCount, setLocalCommentCount] = useState(post.commentCount);
+  const [isPinned, setIsPinned] = useState(post.is_pinned);
 
-  const canDelete = post.user_id === currentUserId;
+  // Reaction state
+  const [reactions, setReactions] = useState<{ like: number; heart: number; celebrate: number }>({
+    like: 0,
+    heart: 0,
+    celebrate: 0,
+  });
+  const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
+
+  const canDelete = isAdmin || post.user_id === currentUserId;
+  const canPin = isAdmin;
+
+  // Fetch reactions on mount
+  useEffect(() => {
+    fetchReactions();
+  }, [post.id]);
+
+  const fetchReactions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('post_reactions')
+        .select('reaction_type, user_id')
+        .eq('post_id', post.id);
+
+      if (error) throw error;
+
+      const counts = { like: 0, heart: 0, celebrate: 0 };
+      let myReaction: ReactionType | null = null;
+
+      data?.forEach((r) => {
+        const type = r.reaction_type as ReactionType;
+        if (counts[type] !== undefined) {
+          counts[type]++;
+        }
+        if (r.user_id === currentUserId) {
+          myReaction = type;
+        }
+      });
+
+      setReactions(counts);
+      setUserReaction(myReaction);
+    } catch (error) {
+      console.error('Error fetching reactions:', error);
+    }
+  };
+
+  const handleReaction = async (type: ReactionType) => {
+    try {
+      if (userReaction === type) {
+        // Remove reaction
+        await supabase
+          .from('post_reactions')
+          .delete()
+          .eq('post_id', post.id)
+          .eq('user_id', currentUserId);
+
+        setReactions((prev) => ({ ...prev, [type]: prev[type] - 1 }));
+        setUserReaction(null);
+      } else if (userReaction) {
+        // Change reaction type
+        await supabase
+          .from('post_reactions')
+          .update({ reaction_type: type })
+          .eq('post_id', post.id)
+          .eq('user_id', currentUserId);
+
+        setReactions((prev) => ({
+          ...prev,
+          [userReaction]: prev[userReaction] - 1,
+          [type]: prev[type] + 1,
+        }));
+        setUserReaction(type);
+      } else {
+        // Add new reaction
+        await supabase.from('post_reactions').insert({
+          post_id: post.id,
+          user_id: currentUserId,
+          reaction_type: type,
+        });
+
+        setReactions((prev) => ({ ...prev, [type]: prev[type] + 1 }));
+        setUserReaction(type);
+      }
+    } catch (error) {
+      console.error('Error updating reaction:', error);
+    }
+  };
 
   const formatTime = (dateStr: string) => {
     try {
@@ -177,10 +270,19 @@ export function PostCard({ post, currentUserId, onDeleted, onCommentAdded }: Pos
     images.push(...imageAttachment.urls);
   }
 
+  // Get poll from attachments
+  const pollAttachment = post.attachments?.find((a: any) => a.type === 'poll');
+
+  // Get signup from attachments
+  const signupAttachment = post.attachments?.find((a: any) => a.type === 'signup');
+
+  // Get RSVP from attachments
+  const rsvpAttachment = post.attachments?.find((a: any) => a.type === 'rsvp');
+
   return (
     <View style={styles.container}>
       {/* Pinned indicator */}
-      {post.is_pinned && (
+      {isPinned && (
         <View style={styles.pinnedBanner}>
           <Pin size={12} color={colors.amber[600]} />
           <Text style={styles.pinnedText}>Pinned</Text>
@@ -202,7 +304,7 @@ export function PostCard({ post, currentUserId, onDeleted, onCommentAdded }: Pos
           </Text>
           <Text style={styles.timestamp}>{formatTime(post.created_at)}</Text>
         </View>
-        {canDelete && (
+        {(canDelete || canPin) && (
           <TouchableOpacity
             style={styles.menuButton}
             onPress={() => setShowMenu(!showMenu)}
@@ -215,10 +317,44 @@ export function PostCard({ post, currentUserId, onDeleted, onCommentAdded }: Pos
       {/* Menu dropdown */}
       {showMenu && (
         <View style={styles.menu}>
-          <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
-            <Trash2 size={16} color={colors.error[600]} />
-            <Text style={styles.menuItemTextDanger}>Delete</Text>
-          </TouchableOpacity>
+          {canPin && (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={async () => {
+                setShowMenu(false);
+                const newPinned = !isPinned;
+                setIsPinned(newPinned);
+                try {
+                  await supabase
+                    .from('posts')
+                    .update({ is_pinned: newPinned })
+                    .eq('id', post.id);
+                  if (onPinToggle) onPinToggle(post.id, newPinned);
+                } catch (err) {
+                  setIsPinned(!newPinned);
+                  console.error('Error toggling pin:', err);
+                }
+              }}
+            >
+              {isPinned ? (
+                <>
+                  <PinOff size={16} color={colors.slate[500]} />
+                  <Text style={styles.menuItemText}>Unpin Post</Text>
+                </>
+              ) : (
+                <>
+                  <Pin size={16} color={colors.amber[500]} />
+                  <Text style={styles.menuItemText}>Pin Post</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          )}
+          {canDelete && (
+            <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
+              <Trash2 size={16} color={colors.error[600]} />
+              <Text style={styles.menuItemTextDanger}>Delete</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -243,8 +379,93 @@ export function PostCard({ post, currentUserId, onDeleted, onCommentAdded }: Pos
         </View>
       )}
 
+      {/* Poll */}
+      {pollAttachment && (
+        <PollDisplay
+          postId={post.id}
+          question={pollAttachment.question}
+          options={pollAttachment.options}
+          settings={pollAttachment.settings || {}}
+          currentUserId={currentUserId}
+        />
+      )}
+
+      {/* Signup */}
+      {signupAttachment && (
+        <SignupDisplay
+          postId={post.id}
+          title={signupAttachment.title}
+          description={signupAttachment.description}
+          slots={signupAttachment.slots || []}
+          settings={signupAttachment.settings}
+          currentUserId={currentUserId}
+        />
+      )}
+
+      {/* RSVP */}
+      {rsvpAttachment && (
+        <RsvpDisplay
+          postId={post.id}
+          title={rsvpAttachment.title}
+          date={rsvpAttachment.date}
+          time={rsvpAttachment.time}
+          location={rsvpAttachment.location}
+          currentUserId={currentUserId}
+        />
+      )}
+
       {/* Actions */}
       <View style={styles.actions}>
+        {/* Reactions */}
+        <View style={styles.reactionsContainer}>
+          <TouchableOpacity
+            style={[styles.reactionButton, userReaction === 'like' && styles.reactionButtonActive]}
+            onPress={() => handleReaction('like')}
+          >
+            <ThumbsUp
+              size={16}
+              color={userReaction === 'like' ? theme.light.primary : colors.slate[400]}
+            />
+            {reactions.like > 0 && (
+              <Text style={[styles.reactionCount, userReaction === 'like' && styles.reactionCountActive]}>
+                {reactions.like}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.reactionButton, userReaction === 'heart' && styles.reactionButtonActive]}
+            onPress={() => handleReaction('heart')}
+          >
+            <Heart
+              size={16}
+              color={userReaction === 'heart' ? colors.error[500] : colors.slate[400]}
+              fill={userReaction === 'heart' ? colors.error[500] : 'transparent'}
+            />
+            {reactions.heart > 0 && (
+              <Text style={[styles.reactionCount, userReaction === 'heart' && styles.reactionCountHeart]}>
+                {reactions.heart}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.reactionButton, userReaction === 'celebrate' && styles.reactionButtonActive]}
+            onPress={() => handleReaction('celebrate')}
+          >
+            <PartyPopper
+              size={16}
+              color={userReaction === 'celebrate' ? colors.amber[500] : colors.slate[400]}
+            />
+            {reactions.celebrate > 0 && (
+              <Text style={[styles.reactionCount, userReaction === 'celebrate' && styles.reactionCountCelebrate]}>
+                {reactions.celebrate}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        {/* Comments Button */}
         <TouchableOpacity
           style={styles.actionButton}
           onPress={handleToggleComments}
@@ -405,6 +626,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
+  menuItemText: {
+    fontSize: 14,
+    color: colors.slate[700],
+  },
   menuItemTextDanger: {
     fontSize: 14,
     color: colors.error[600],
@@ -436,10 +661,43 @@ const styles = StyleSheet.create({
   },
   actions: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: colors.slate[100],
+  },
+  reactionsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  reactionButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: colors.slate[50],
+  },
+  reactionButtonActive: {
+    backgroundColor: colors.brand[50],
+  },
+  reactionCount: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.slate[500],
+  },
+  reactionCountActive: {
+    color: theme.light.primary,
+  },
+  reactionCountHeart: {
+    color: colors.error[500],
+  },
+  reactionCountCelebrate: {
+    color: colors.amber[600],
   },
   actionButton: {
     flexDirection: 'row',

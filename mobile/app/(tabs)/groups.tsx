@@ -116,47 +116,47 @@ export default function GroupsScreen() {
         return;
       }
 
-      // Process groups
-      const processedGroups: Group[] = [];
+      // Process all groups in parallel
+      const processedGroups = await Promise.all(
+        (groupData || []).map(async (g) => {
+          // Run all queries for this group in parallel
+          const [memberCountResult, lastPostResult, unreadResult] = await Promise.all([
+            // Get member count
+            supabase
+              .from('group_members')
+              .select('user_id', { count: 'exact', head: true })
+              .eq('group_id', g.id),
 
-      for (const g of groupData || []) {
-        // Get member count
-        const { count: memberCount } = await supabase
-          .from('group_members')
-          .select('user_id', { count: 'exact', head: true })
-          .eq('group_id', g.id);
+            // Get last post time
+            supabase
+              .from('posts')
+              .select('created_at')
+              .eq('group_id', g.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle(),
 
-        // Get last post time
-        const { data: lastPost } = await supabase
-          .from('posts')
-          .select('created_at')
-          .eq('group_id', g.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+            // Calculate unread posts if user is a member
+            memberGroupIds.includes(g.id)
+              ? supabase
+                  .from('posts')
+                  .select('id', { count: 'exact', head: true })
+                  .eq('group_id', g.id)
+                  .gt('created_at', lastViewedMap.get(g.id) || '1970-01-01')
+              : Promise.resolve({ count: 0 }),
+          ]);
 
-        // Calculate unread posts if user is a member
-        let unreadPosts = 0;
-        if (memberGroupIds.includes(g.id)) {
-          const lastViewed = lastViewedMap.get(g.id) || '1970-01-01';
-          const { count } = await supabase
-            .from('posts')
-            .select('id', { count: 'exact', head: true })
-            .eq('group_id', g.id)
-            .gt('created_at', lastViewed);
-          unreadPosts = count || 0;
-        }
-
-        processedGroups.push({
-          id: g.id,
-          name: g.name,
-          description: g.description,
-          type: g.type as 'public' | 'private',
-          memberCount: memberCount || 0,
-          unreadPosts,
-          lastActivity: lastPost?.created_at || null,
-        });
-      }
+          return {
+            id: g.id,
+            name: g.name,
+            description: g.description,
+            type: g.type as 'public' | 'private',
+            memberCount: memberCountResult.count || 0,
+            unreadPosts: unreadResult.count || 0,
+            lastActivity: lastPostResult.data?.created_at || null,
+          };
+        })
+      );
 
       // Sort by unread first, then by last activity
       processedGroups.sort((a, b) => {

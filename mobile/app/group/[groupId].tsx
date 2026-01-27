@@ -7,15 +7,21 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation, router } from 'expo-router';
-import { Users, Lock, Globe, Plus, MessageSquare } from 'lucide-react-native';
+import { Users, Lock, Globe, Plus, MessageSquare, Image as ImageIcon, FileText } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useNotificationStore } from '../../src/stores/notificationStore';
 import { PostCard } from '../../src/components/groups/PostCard';
+import { GroupPhotos } from '../../src/components/groups/GroupPhotos';
+import { GroupFiles } from '../../src/components/groups/GroupFiles';
+import { GroupMembers } from '../../src/components/groups/GroupMembers';
+
+type TabType = 'posts' | 'photos' | 'files' | 'members';
 
 interface Group {
   id: string;
@@ -52,6 +58,7 @@ export default function GroupDetailsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
+  const [activeTab, setActiveTab] = useState<TabType>('posts');
 
   useEffect(() => {
     if (groupId && user) {
@@ -214,15 +221,31 @@ export default function GroupDetailsScreen() {
     setPosts((prev) => prev.filter((p) => p.id !== postId));
   };
 
+  const handlePinToggle = (postId: string, isPinned: boolean) => {
+    setPosts((prev) => {
+      const updated = prev.map((p) =>
+        p.id === postId ? { ...p, is_pinned: isPinned } : p
+      );
+      // Re-sort: pinned posts first, then by created_at
+      return updated.sort((a, b) => {
+        if (a.is_pinned && !b.is_pinned) return -1;
+        if (!a.is_pinned && b.is_pinned) return 1;
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      });
+    });
+  };
+
   const renderPost = ({ item }: { item: Post }) => (
     <PostCard
       post={item}
       currentUserId={user?.id || ''}
+      isAdmin={isStaff()}
       onDeleted={() => handlePostDeleted(item.id)}
       onCommentAdded={() => {
         // Refresh to get updated comment count
         fetchPosts();
       }}
+      onPinToggle={handlePinToggle}
     />
   );
 
@@ -277,39 +300,98 @@ export default function GroupDetailsScreen() {
         </View>
       )}
 
-      {/* Posts List */}
-      <FlatList
-        data={posts}
-        keyExtractor={(item) => item.id}
-        renderItem={renderPost}
-        contentContainerStyle={styles.postsList}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <View style={styles.emptyIcon}>
-              <MessageSquare size={48} color={colors.slate[300]} />
-            </View>
-            <Text style={styles.emptyTitle}>No posts yet</Text>
-            <Text style={styles.emptyText}>
-              Be the first to share something with the group!
-            </Text>
-            {isMember && (
-              <TouchableOpacity style={styles.createFirstButton} onPress={handleCreatePost}>
-                <Plus size={18} color={colors.white} />
-                <Text style={styles.createFirstButtonText}>Create First Post</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-        }
-      />
-
-      {/* Create Post FAB */}
-      {isMember && posts.length > 0 && (
-        <TouchableOpacity style={styles.fab} onPress={handleCreatePost}>
-          <Plus size={24} color={colors.white} />
+      {/* Tab Bar */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'posts' && styles.tabActive]}
+          onPress={() => setActiveTab('posts')}
+        >
+          <MessageSquare size={18} color={activeTab === 'posts' ? theme.light.primary : colors.slate[400]} />
+          <Text style={[styles.tabText, activeTab === 'posts' && styles.tabTextActive]}>Posts</Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'photos' && styles.tabActive]}
+          onPress={() => setActiveTab('photos')}
+        >
+          <ImageIcon size={18} color={activeTab === 'photos' ? theme.light.primary : colors.slate[400]} />
+          <Text style={[styles.tabText, activeTab === 'photos' && styles.tabTextActive]}>Photos</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'files' && styles.tabActive]}
+          onPress={() => setActiveTab('files')}
+        >
+          <FileText size={18} color={activeTab === 'files' ? theme.light.primary : colors.slate[400]} />
+          <Text style={[styles.tabText, activeTab === 'files' && styles.tabTextActive]}>Files</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'members' && styles.tabActive]}
+          onPress={() => setActiveTab('members')}
+        >
+          <Users size={18} color={activeTab === 'members' ? theme.light.primary : colors.slate[400]} />
+          <Text style={[styles.tabText, activeTab === 'members' && styles.tabTextActive]}>Members</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Tab Content */}
+      {activeTab === 'posts' && (
+        <>
+          <FlatList
+            data={posts}
+            keyExtractor={(item) => item.id}
+            renderItem={renderPost}
+            contentContainerStyle={styles.postsList}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            }
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <View style={styles.emptyIcon}>
+                  <MessageSquare size={48} color={colors.slate[300]} />
+                </View>
+                <Text style={styles.emptyTitle}>No posts yet</Text>
+                <Text style={styles.emptyText}>
+                  Be the first to share something with the group!
+                </Text>
+                {isMember && (
+                  <TouchableOpacity style={styles.createFirstButton} onPress={handleCreatePost}>
+                    <Plus size={18} color={colors.white} />
+                    <Text style={styles.createFirstButtonText}>Create First Post</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            }
+          />
+
+          {/* Create Post FAB */}
+          {isMember && posts.length > 0 && (
+            <TouchableOpacity style={styles.fab} onPress={handleCreatePost}>
+              <Plus size={24} color={colors.white} />
+            </TouchableOpacity>
+          )}
+        </>
+      )}
+
+      {activeTab === 'photos' && (
+        <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+          <GroupPhotos posts={posts} />
+        </ScrollView>
+      )}
+
+      {activeTab === 'files' && (
+        <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+          <GroupFiles posts={posts} />
+        </ScrollView>
+      )}
+
+      {activeTab === 'members' && groupId && (
+        <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+          <GroupMembers
+            groupId={groupId}
+            isAdmin={isStaff()}
+            currentUserId={user?.id || ''}
+            onMemberCountChange={setMemberCount}
+          />
+        </ScrollView>
       )}
     </View>
   );
@@ -467,5 +549,36 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.slate[200],
+  },
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
+  },
+  tabActive: {
+    borderBottomColor: theme.light.primary,
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.slate[400],
+  },
+  tabTextActive: {
+    color: theme.light.primary,
+    fontWeight: '600',
+  },
+  tabContent: {
+    flex: 1,
   },
 });

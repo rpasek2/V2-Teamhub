@@ -10,9 +10,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Search, Edit, Users, User, Hash } from 'lucide-react-native';
+import { Search, Edit, Users, User, Hash, ShieldAlert, ChevronRight } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { NotificationBadge } from '../../src/components/ui';
+import { NewDMModal, AnonymousReportModal } from '../../src/components/messages';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -26,6 +27,18 @@ interface Channel {
   lastMessage: string | null;
   lastMessageTime: string | null;
   unreadCount: number;
+}
+
+interface AnonymousReport {
+  id: string;
+  message: string;
+  created_at: string;
+  read_at: string | null;
+}
+
+interface OwnerInfo {
+  user_id: string;
+  full_name: string;
 }
 
 function ChannelIcon({ type }: { type: Channel['type'] }) {
@@ -97,9 +110,19 @@ export default function MessagesScreen() {
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [showNewDMModal, setShowNewDMModal] = useState(false);
 
-  const { currentHub } = useHubStore();
+  // Anonymous reports state
+  const [showAnonymousReportModal, setShowAnonymousReportModal] = useState(false);
+  const [anonymousReports, setAnonymousReports] = useState<AnonymousReport[]>([]);
+  const [ownerInfo, setOwnerInfo] = useState<OwnerInfo | null>(null);
+
+  const { currentHub, currentMember, isStaff } = useHubStore();
   const { user } = useAuthStore();
+
+  const isOwner = currentMember?.role === 'owner';
+  const isStaffUser = isStaff();
+  const anonymousReportsEnabled = currentHub?.settings?.anonymous_reports_enabled !== false;
 
   const fetchChannels = async () => {
     if (!currentHub || !user) {
@@ -122,11 +145,33 @@ export default function MessagesScreen() {
         return;
       }
 
-      // Process channels in parallel (fixes N+1 query issue)
+      // Collect all DM user IDs to batch fetch profiles
+      const dmUserIds = new Set<string>();
+      for (const ch of channelData || []) {
+        if (ch.dm_participant_ids && ch.dm_participant_ids.length > 0) {
+          const otherUserId = ch.dm_participant_ids.find((id: string) => id !== user.id);
+          if (otherUserId) dmUserIds.add(otherUserId);
+        }
+      }
+
+      // Batch fetch all DM profiles at once
+      const profileMap = new Map<string, string>();
+      if (dmUserIds.size > 0) {
+        const { data: profiles } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .in('id', Array.from(dmUserIds));
+        for (const profile of profiles || []) {
+          profileMap.set(profile.id, profile.full_name || 'Unknown User');
+        }
+      }
+
+      // Process all channels in parallel
       const processedChannels = await Promise.all(
         (channelData || []).map(async (ch) => {
-          // Run queries for this channel in parallel
-          const [lastMsgResult, memberDataResult] = await Promise.all([
+          // Run all queries for this channel in parallel
+          const [lastMsgResult, memberDataResult, unreadResult] = await Promise.all([
+            // Get last message
             supabase
               .from('messages')
               .select('content, created_at')
@@ -134,16 +179,32 @@ export default function MessagesScreen() {
               .order('created_at', { ascending: false })
               .limit(1)
               .maybeSingle(),
+            // Get member's last read time
             supabase
               .from('channel_members')
               .select('last_read_at')
               .eq('channel_id', ch.id)
               .eq('user_id', user.id)
               .maybeSingle(),
+            // Get unread count - we'll use a default last_read if no membership
+            (async () => {
+              const { data: member } = await supabase
+                .from('channel_members')
+                .select('last_read_at')
+                .eq('channel_id', ch.id)
+                .eq('user_id', user.id)
+                .maybeSingle();
+              const lastRead = member?.last_read_at || '1970-01-01';
+              return supabase
+                .from('messages')
+                .select('id', { count: 'exact', head: true })
+                .eq('channel_id', ch.id)
+                .gt('created_at', lastRead)
+                .neq('user_id', user.id);
+            })(),
           ]);
 
           const lastMsg = lastMsgResult.data;
-          const memberData = memberDataResult.data;
 
           // Determine channel type and name for DMs
           let channelType: 'public' | 'private' | 'dm' = ch.type as 'public' | 'private';
@@ -151,29 +212,10 @@ export default function MessagesScreen() {
 
           if (ch.dm_participant_ids && ch.dm_participant_ids.length > 0) {
             channelType = 'dm';
-            // For DMs, get the other participant's name
             const otherUserId = ch.dm_participant_ids.find((id: string) => id !== user.id);
             if (otherUserId) {
-              const { data: profile } = await supabase
-                .from('profiles')
-                .select('full_name')
-                .eq('id', otherUserId)
-                .single();
-              channelName = profile?.full_name || 'Unknown User';
+              channelName = profileMap.get(otherUserId) || 'Unknown User';
             }
-          }
-
-          // Get unread count for this channel
-          let unreadCount = 0;
-          if (memberData?.last_read_at || !memberData) {
-            const lastRead = memberData?.last_read_at || '1970-01-01';
-            const { count } = await supabase
-              .from('messages')
-              .select('id', { count: 'exact', head: true })
-              .eq('channel_id', ch.id)
-              .gt('created_at', lastRead)
-              .neq('user_id', user.id);
-            unreadCount = count || 0;
           }
 
           return {
@@ -183,7 +225,7 @@ export default function MessagesScreen() {
             description: ch.description,
             lastMessage: lastMsg?.content || null,
             lastMessageTime: lastMsg?.created_at || null,
-            unreadCount,
+            unreadCount: unreadResult.count || 0,
           };
         })
       );
@@ -208,6 +250,71 @@ export default function MessagesScreen() {
   useEffect(() => {
     fetchChannels();
   }, [currentHub?.id, user?.id]);
+
+  // Fetch owner info for non-staff users
+  const fetchOwnerInfo = async () => {
+    if (!currentHub) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('hub_members')
+        .select(`
+          user_id,
+          profile:profiles (
+            full_name
+          )
+        `)
+        .eq('hub_id', currentHub.id)
+        .eq('role', 'owner')
+        .single();
+
+      if (error) {
+        console.error('Error fetching owner info:', error);
+      } else if (data) {
+        setOwnerInfo({
+          user_id: data.user_id,
+          full_name: (data.profile as any)?.full_name || 'Hub Owner',
+        });
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  // Fetch anonymous reports for owner
+  const fetchAnonymousReports = async () => {
+    if (!currentHub) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('anonymous_reports')
+        .select('*')
+        .eq('hub_id', currentHub.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching anonymous reports:', error);
+      } else {
+        setAnonymousReports(data || []);
+      }
+    } catch (err) {
+      console.error('Error:', err);
+    }
+  };
+
+  // Fetch owner info for non-staff
+  useEffect(() => {
+    if (currentHub && !isStaffUser && anonymousReportsEnabled) {
+      fetchOwnerInfo();
+    }
+  }, [currentHub?.id, isStaffUser, anonymousReportsEnabled]);
+
+  // Fetch anonymous reports for owner
+  useEffect(() => {
+    if (currentHub && isOwner) {
+      fetchAnonymousReports();
+    }
+  }, [currentHub?.id, isOwner]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -278,6 +385,56 @@ export default function MessagesScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Anonymous Reports Section */}
+      {(isOwner || (!isStaffUser && anonymousReportsEnabled && ownerInfo)) && (
+        <View style={styles.anonymousSection}>
+          {isOwner ? (
+            <TouchableOpacity
+              style={styles.anonymousButton}
+              onPress={() => router.push('/anonymous-reports')}
+              activeOpacity={0.7}
+            >
+              <View style={styles.anonymousIconContainer}>
+                <ShieldAlert size={20} color={colors.purple[600]} />
+              </View>
+              <View style={styles.anonymousContent}>
+                <Text style={styles.anonymousTitle}>Anonymous Reports</Text>
+                <Text style={styles.anonymousSubtitle}>
+                  {anonymousReports.filter(r => !r.read_at).length > 0
+                    ? `${anonymousReports.filter(r => !r.read_at).length} unread`
+                    : `${anonymousReports.length} total`}
+                </Text>
+              </View>
+              {anonymousReports.filter(r => !r.read_at).length > 0 && (
+                <View style={styles.unreadBadge}>
+                  <Text style={styles.unreadBadgeText}>
+                    {anonymousReports.filter(r => !r.read_at).length}
+                  </Text>
+                </View>
+              )}
+              <ChevronRight size={20} color={colors.slate[400]} />
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.anonymousButton}
+              onPress={() => setShowAnonymousReportModal(true)}
+              activeOpacity={0.7}
+            >
+              <View style={styles.anonymousIconContainer}>
+                <ShieldAlert size={20} color={colors.purple[600]} />
+              </View>
+              <View style={styles.anonymousContent}>
+                <Text style={styles.anonymousTitle}>Anonymous Report</Text>
+                <Text style={styles.anonymousSubtitle}>
+                  Send feedback to {ownerInfo?.full_name}
+                </Text>
+              </View>
+              <ChevronRight size={20} color={colors.slate[400]} />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
       {/* Channel List */}
       <FlatList
         data={filteredChannels}
@@ -299,9 +456,30 @@ export default function MessagesScreen() {
       />
 
       {/* New Message FAB */}
-      <TouchableOpacity style={styles.fab}>
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setShowNewDMModal(true)}
+        activeOpacity={0.8}
+      >
         <Edit size={24} color={colors.white} />
       </TouchableOpacity>
+
+      {/* New DM Modal */}
+      <NewDMModal
+        isOpen={showNewDMModal}
+        onClose={() => setShowNewDMModal(false)}
+        onDMCreated={fetchChannels}
+      />
+
+      {/* Anonymous Report Modal */}
+      {ownerInfo && currentHub && (
+        <AnonymousReportModal
+          isOpen={showAnonymousReportModal}
+          onClose={() => setShowAnonymousReportModal(false)}
+          hubId={currentHub.id}
+          ownerName={ownerInfo.full_name}
+        />
+      )}
     </View>
   );
 }
@@ -438,5 +616,55 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  anonymousSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.slate[200],
+  },
+  anonymousButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    backgroundColor: colors.purple[50],
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.purple[200],
+  },
+  anonymousIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.purple[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  anonymousContent: {
+    flex: 1,
+  },
+  anonymousTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.purple[800],
+    marginBottom: 2,
+  },
+  anonymousSubtitle: {
+    fontSize: 13,
+    color: colors.purple[600],
+  },
+  unreadBadge: {
+    backgroundColor: colors.purple[600],
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    marginRight: 8,
+  },
+  unreadBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.white,
   },
 });

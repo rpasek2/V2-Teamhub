@@ -50,10 +50,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signIn: async (email: string, password: string) => {
     set({ loading: true });
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      console.log('[Auth] Starting sign in...');
+
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Sign in timed out. Please check your network connection.')), 15000);
+      });
+
+      const signInPromise = supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      const { data, error } = await Promise.race([signInPromise, timeoutPromise]);
+      console.log('[Auth] Sign in response:', { hasData: !!data, hasError: !!error });
 
       if (error) throw error;
 
@@ -63,8 +73,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         loading: false,
       });
 
+      console.log('[Auth] Sign in successful');
       return { error: null };
     } catch (error) {
+      console.error('[Auth] Sign in error:', error);
       set({ loading: false });
       return { error: error as Error };
     }

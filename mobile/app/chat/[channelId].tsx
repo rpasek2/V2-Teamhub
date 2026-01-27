@@ -6,12 +6,14 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
-  KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Keyboard,
+  Animated,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { Send, ArrowLeft, Hash, User } from 'lucide-react-native';
+import { Send, Hash, User } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -44,6 +46,7 @@ interface Channel {
 export default function ChatScreen() {
   const { channelId } = useLocalSearchParams<{ channelId: string }>();
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { currentHub } = useHubStore();
   const { fetchNotificationCounts } = useNotificationStore();
@@ -54,6 +57,45 @@ export default function ChatScreen() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+
+  // Keyboard height animation
+  const keyboardHeight = useRef(new Animated.Value(0)).current;
+
+  // Listen for keyboard show/hide events
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const keyboardShowListener = Keyboard.addListener(showEvent, (e) => {
+      // Calculate height: on Android add extra for the suggestion toolbar (GIF, autocomplete, etc.)
+      const androidToolbarPadding = Platform.OS === 'android' ? 20 : 0;
+      const baseHeight = e.endCoordinates.height;
+      const adjustedHeight = Platform.OS === 'ios'
+        ? baseHeight - insets.bottom
+        : baseHeight + androidToolbarPadding;
+
+      Animated.timing(keyboardHeight, {
+        toValue: adjustedHeight > 0 ? adjustedHeight : baseHeight,
+        duration: Platform.OS === 'ios' ? e.duration : 150,
+        useNativeDriver: false,
+      }).start();
+      // Scroll to bottom when keyboard opens
+      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    });
+
+    const keyboardHideListener = Keyboard.addListener(hideEvent, (e) => {
+      Animated.timing(keyboardHeight, {
+        toValue: 0,
+        duration: Platform.OS === 'ios' ? e.duration : 150,
+        useNativeDriver: false,
+      }).start();
+    });
+
+    return () => {
+      keyboardShowListener.remove();
+      keyboardHideListener.remove();
+    };
+  }, [insets.bottom]);
 
   // Fetch channel info
   useEffect(() => {
@@ -308,11 +350,7 @@ export default function ChatScreen() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
+    <View style={styles.container}>
       {/* Messages List */}
       <FlatList
         ref={flatListRef}
@@ -320,6 +358,8 @@ export default function ChatScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
         contentContainerStyle={styles.messagesList}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
         onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
         ListEmptyComponent={
@@ -341,8 +381,16 @@ export default function ChatScreen() {
         }
       />
 
-      {/* Input Area */}
-      <View style={styles.inputContainer}>
+      {/* Input Area - animates up when keyboard opens */}
+      <Animated.View
+        style={[
+          styles.inputContainer,
+          {
+            paddingBottom: Math.max(insets.bottom, 12),
+            marginBottom: keyboardHeight,
+          },
+        ]}
+      >
         <TextInput
           style={styles.input}
           value={newMessage}
@@ -367,8 +415,8 @@ export default function ChatScreen() {
             <Send size={20} color={colors.white} />
           )}
         </TouchableOpacity>
-      </View>
-    </KeyboardAvoidingView>
+      </Animated.View>
+    </View>
   );
 }
 
@@ -496,8 +544,8 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    padding: 12,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
+    paddingTop: 12,
+    paddingHorizontal: 12,
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.slate[200],

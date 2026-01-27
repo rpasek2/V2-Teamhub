@@ -20,6 +20,7 @@ export interface HubSettings {
   enabledTabs?: string[];
   permissions?: Record<string, Record<HubRole, 'all' | 'own' | 'none'>>;
   showBirthdays?: boolean;
+  anonymous_reports_enabled?: boolean;
   seasonConfig?: {
     startMonth: number;
     startDay: number;

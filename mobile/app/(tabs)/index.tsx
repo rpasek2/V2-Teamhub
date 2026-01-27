@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -155,16 +155,31 @@ export default function DashboardScreen() {
     const gymnastIds = linkedGymnasts.map(g => g.id);
     const today = new Date().toISOString().split('T')[0];
 
-    // Fetch upcoming competitions
-    const { data: competitionData } = await supabase
-      .from('competition_gymnasts')
-      .select(`
-        gymnast_profile_id,
-        competitions!inner(id, name, start_date)
-      `)
-      .in('gymnast_profile_id', gymnastIds)
-      .gte('competitions.start_date', today)
-      .order('competitions(start_date)', { ascending: true });
+    // Fetch competitions and mentorship data in parallel
+    const [competitionResult, mentorshipResult] = await Promise.all([
+      supabase
+        .from('competition_gymnasts')
+        .select(`
+          gymnast_profile_id,
+          competitions!inner(id, name, start_date)
+        `)
+        .in('gymnast_profile_id', gymnastIds)
+        .gte('competitions.start_date', today)
+        .order('competitions(start_date)', { ascending: true }),
+      supabase
+        .from('mentorship_pairs')
+        .select(`
+          big_gymnast_id,
+          little_gymnast_id,
+          big_gymnast:gymnast_profiles!mentorship_pairs_big_gymnast_id_fkey(first_name, last_name),
+          little_gymnast:gymnast_profiles!mentorship_pairs_little_gymnast_id_fkey(first_name, last_name)
+        `)
+        .eq('hub_id', currentHub.id)
+        .or(`big_gymnast_id.in.(${gymnastIds.join(',')}),little_gymnast_id.in.(${gymnastIds.join(',')})`),
+    ]);
+
+    const competitionData = competitionResult.data;
+    const mentorshipData = mentorshipResult.data;
 
     const nextCompetitionMap = new Map<string, { name: string; start_date: string }>();
     competitionData?.forEach((cg: any) => {
@@ -176,18 +191,6 @@ export default function DashboardScreen() {
         });
       }
     });
-
-    // Fetch mentorship pairings
-    const { data: mentorshipData } = await supabase
-      .from('mentorship_pairs')
-      .select(`
-        big_gymnast_id,
-        little_gymnast_id,
-        big_gymnast:gymnast_profiles!mentorship_pairs_big_gymnast_id_fkey(first_name, last_name),
-        little_gymnast:gymnast_profiles!mentorship_pairs_little_gymnast_id_fkey(first_name, last_name)
-      `)
-      .eq('hub_id', currentHub.id)
-      .or(`big_gymnast_id.in.(${gymnastIds.join(',')}),little_gymnast_id.in.(${gymnastIds.join(',')})`);
 
     const mentorshipMap = new Map<string, { big_name: string; little_name: string; role: 'big' | 'little' }>();
     mentorshipData?.forEach((p: any) => {
@@ -221,21 +224,34 @@ export default function DashboardScreen() {
     const gymnastIds = linkedGymnasts.map(g => g.id);
     const sevenDaysAgo = subDays(new Date(), 7).toISOString();
 
-    // Fetch recent scores
-    const { data: scoresData } = await supabase
-      .from('competition_scores')
-      .select(`
-        id, event, score, placement, created_at,
-        gymnast_profiles!inner(id, first_name, last_name),
-        competitions!inner(id, name, start_date)
-      `)
-      .in('gymnast_profile_id', gymnastIds)
-      .gte('created_at', sevenDaysAgo)
-      .order('created_at', { ascending: false })
-      .limit(5);
+    // Fetch scores and skills in parallel
+    const [scoresResult, skillsResult] = await Promise.all([
+      supabase
+        .from('competition_scores')
+        .select(`
+          id, event, score, placement, created_at,
+          gymnast_profiles!inner(id, first_name, last_name),
+          competitions!inner(id, name, start_date)
+        `)
+        .in('gymnast_profile_id', gymnastIds)
+        .gte('created_at', sevenDaysAgo)
+        .order('created_at', { ascending: false })
+        .limit(5),
+      supabase
+        .from('gymnast_skills')
+        .select(`
+          id, status, updated_at,
+          gymnast_profiles!inner(id, first_name, last_name),
+          hub_event_skills!inner(id, skill_name, event)
+        `)
+        .in('gymnast_profile_id', gymnastIds)
+        .gte('updated_at', sevenDaysAgo)
+        .order('updated_at', { ascending: false })
+        .limit(5),
+    ]);
 
-    if (scoresData) {
-      const scores: RecentScore[] = scoresData.map((s: any) => ({
+    if (scoresResult.data) {
+      const scores: RecentScore[] = scoresResult.data.map((s: any) => ({
         id: s.id,
         gymnastName: `${s.gymnast_profiles.first_name} ${s.gymnast_profiles.last_name}`,
         competitionName: s.competitions.name,
@@ -247,21 +263,8 @@ export default function DashboardScreen() {
       setRecentScores(scores);
     }
 
-    // Fetch recent skill changes
-    const { data: skillsData } = await supabase
-      .from('gymnast_skills')
-      .select(`
-        id, status, updated_at,
-        gymnast_profiles!inner(id, first_name, last_name),
-        hub_event_skills!inner(id, skill_name, event)
-      `)
-      .in('gymnast_profile_id', gymnastIds)
-      .gte('updated_at', sevenDaysAgo)
-      .order('updated_at', { ascending: false })
-      .limit(5);
-
-    if (skillsData) {
-      const skills: RecentSkillChange[] = skillsData.map((s: any) => ({
+    if (skillsResult.data) {
+      const skills: RecentSkillChange[] = skillsResult.data.map((s: any) => ({
         id: s.id,
         gymnastName: `${s.gymnast_profiles.first_name} ${s.gymnast_profiles.last_name}`,
         skillName: s.hub_event_skills.skill_name,
@@ -301,17 +304,34 @@ export default function DashboardScreen() {
 
       setUpcomingEvents(eventsResult.data || []);
 
-      // Fetch recent activity
-      const activities: RecentActivity[] = [];
+      // Fetch recent activity - parallelize independent queries
+      const [recentEventsResult, recentCompsResult, memberGroupsResult] = await Promise.all([
+        supabase
+          .from('events')
+          .select('id, title, created_at')
+          .eq('hub_id', currentHub.id)
+          .gte('created_at', twoWeeksAgo)
+          .order('created_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('competitions')
+          .select('id, name, created_at')
+          .eq('hub_id', currentHub.id)
+          .gte('created_at', twoWeeksAgo)
+          .order('created_at', { ascending: false })
+          .limit(3),
+        supabase
+          .from('group_members')
+          .select('group_id, groups!inner(hub_id)')
+          .eq('user_id', user.id)
+          .eq('groups.hub_id', currentHub.id),
+      ]);
 
-      // Recent events created
-      const { data: recentEvents } = await supabase
-        .from('events')
-        .select('id, title, created_at')
-        .eq('hub_id', currentHub.id)
-        .gte('created_at', twoWeeksAgo)
-        .order('created_at', { ascending: false })
-        .limit(3);
+      const recentEvents = recentEventsResult.data;
+      const recentComps = recentCompsResult.data;
+      const memberGroups = memberGroupsResult.data;
+
+      const activities: RecentActivity[] = [];
 
       recentEvents?.forEach((event: any) => {
         activities.push({
@@ -322,15 +342,6 @@ export default function DashboardScreen() {
         });
       });
 
-      // Recent competitions
-      const { data: recentComps } = await supabase
-        .from('competitions')
-        .select('id, name, created_at')
-        .eq('hub_id', currentHub.id)
-        .gte('created_at', twoWeeksAgo)
-        .order('created_at', { ascending: false })
-        .limit(3);
-
       recentComps?.forEach((comp: any) => {
         activities.push({
           id: `comp-${comp.id}`,
@@ -340,13 +351,7 @@ export default function DashboardScreen() {
         });
       });
 
-      // Recent group posts (from user's groups)
-      const { data: memberGroups } = await supabase
-        .from('group_members')
-        .select('group_id, groups!inner(hub_id)')
-        .eq('user_id', user.id)
-        .eq('groups.hub_id', currentHub.id);
-
+      // Fetch recent posts (depends on memberGroups)
       if (memberGroups && memberGroups.length > 0) {
         const groupIds = memberGroups.map((g: any) => g.group_id);
         const { data: recentPosts } = await supabase

@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { View, StyleSheet, AppState, AppStateStatus } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -78,18 +78,52 @@ export default function TabLayout() {
     fetchNotificationCounts,
   } = useNotificationStore();
 
+  // Track app state and polling interval
+  const appState = useRef(AppState.currentState);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // Fetch notification counts when hub or user changes
   useEffect(() => {
-    if (currentHub?.id && user?.id) {
-      fetchNotificationCounts(currentHub.id, user.id);
+    if (!currentHub?.id || !user?.id) return;
 
-      // Set up polling interval (every 30 seconds)
-      const interval = setInterval(() => {
+    // Initial fetch
+    fetchNotificationCounts(currentHub.id, user.id);
+
+    // Start polling (every 60 seconds - reduced from 30s for better performance)
+    const startPolling = () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+      intervalRef.current = setInterval(() => {
         fetchNotificationCounts(currentHub.id, user.id);
-      }, 30000);
+      }, 60000);
+    };
 
-      return () => clearInterval(interval);
-    }
+    const stopPolling = () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+
+    // Handle app state changes - pause polling when app is backgrounded
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        // App came to foreground - fetch immediately and restart polling
+        fetchNotificationCounts(currentHub.id, user.id);
+        startPolling();
+      } else if (nextAppState.match(/inactive|background/)) {
+        // App went to background - stop polling to save battery
+        stopPolling();
+      }
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    startPolling();
+
+    return () => {
+      stopPolling();
+      subscription.remove();
+    };
   }, [currentHub?.id, user?.id]);
 
   return (
