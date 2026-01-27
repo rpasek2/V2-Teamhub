@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -14,7 +14,7 @@ import { Badge } from '../../src/components/ui';
 import { EventDetailsModal } from '../../src/components/calendar';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
-import { format, parseISO, startOfMonth, endOfMonth, isSameDay } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, isSameDay, getDay } from 'date-fns';
 
 interface CalendarEvent {
   id: string;
@@ -25,6 +25,96 @@ interface CalendarEvent {
   location: string | null;
   description: string | null;
   rsvp_enabled?: boolean;
+}
+
+// Holiday type
+interface Holiday {
+  name: string;
+  emoji: string;
+  bgColor: string;
+  textColor: string;
+}
+
+// Get nth weekday of month (e.g., 4th Thursday)
+function getNthWeekdayOfMonth(year: number, month: number, weekday: number, n: number): Date {
+  const firstOfMonth = new Date(year, month, 1);
+  const firstWeekday = getDay(firstOfMonth);
+  let dayOffset = weekday - firstWeekday;
+  if (dayOffset < 0) dayOffset += 7;
+  return new Date(year, month, 1 + dayOffset + (n - 1) * 7);
+}
+
+// Get last weekday of month (e.g., last Monday)
+function getLastWeekdayOfMonth(year: number, month: number, weekday: number): Date {
+  const lastOfMonth = new Date(year, month + 1, 0);
+  const lastDay = lastOfMonth.getDate();
+  const lastWeekday = getDay(lastOfMonth);
+  let dayOffset = lastWeekday - weekday;
+  if (dayOffset < 0) dayOffset += 7;
+  return new Date(year, month, lastDay - dayOffset);
+}
+
+// Calculate Easter Sunday using the Anonymous Gregorian algorithm
+function getEasterSunday(year: number): Date {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month, day);
+}
+
+// Get all US holidays for a given year
+function getUSHolidays(year: number): Map<string, Holiday> {
+  const holidays = new Map<string, Holiday>();
+
+  const addHoliday = (date: Date, name: string, emoji: string, bgColor: string, textColor: string) => {
+    const key = format(date, 'yyyy-MM-dd');
+    holidays.set(key, { name, emoji, bgColor, textColor });
+  };
+
+  // Fixed date holidays
+  addHoliday(new Date(year, 0, 1), "New Year's Day", '🎉', colors.yellow[50], colors.yellow[700]);
+  addHoliday(new Date(year, 1, 14), "Valentine's Day", '💕', colors.pink[50], colors.pink[700]);
+  addHoliday(new Date(year, 2, 17), "St. Patrick's Day", '☘️', colors.emerald[50], colors.emerald[700]);
+  addHoliday(new Date(year, 6, 4), "Independence Day", '🇺🇸', colors.blue[50], colors.blue[700]);
+  addHoliday(new Date(year, 9, 31), "Halloween", '🎃', colors.orange[50], colors.orange[700]);
+  addHoliday(new Date(year, 10, 11), "Veterans Day", '🎖️', colors.error[50], colors.error[700]);
+  addHoliday(new Date(year, 11, 24), "Christmas Eve", '🎅', colors.error[50], colors.error[700]);
+  addHoliday(new Date(year, 11, 25), "Christmas Day", '🎄', colors.error[50], colors.error[700]);
+  addHoliday(new Date(year, 11, 31), "New Year's Eve", '🥳', colors.violet[50], colors.violet[700]);
+
+  // Floating holidays
+  addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", '✊', colors.slate[100], colors.slate[700]);
+  addHoliday(getNthWeekdayOfMonth(year, 1, 1, 3), "Presidents' Day", '🏛️', colors.blue[50], colors.blue[700]);
+  addHoliday(getNthWeekdayOfMonth(year, 4, 0, 2), "Mother's Day", '💐', colors.pink[50], colors.pink[700]);
+  addHoliday(getLastWeekdayOfMonth(year, 4, 1), "Memorial Day", '🇺🇸', colors.error[50], colors.error[700]);
+  addHoliday(getNthWeekdayOfMonth(year, 5, 0, 3), "Father's Day", '👔', colors.blue[50], colors.blue[700]);
+  addHoliday(new Date(year, 5, 19), "Juneteenth", '✊', colors.error[50], colors.error[700]);
+  addHoliday(getNthWeekdayOfMonth(year, 8, 1, 1), "Labor Day", '⚒️', colors.amber[50], colors.amber[700]);
+  addHoliday(getNthWeekdayOfMonth(year, 9, 1, 2), "Columbus Day", '🧭', colors.indigo[50], colors.indigo[700]);
+  addHoliday(getNthWeekdayOfMonth(year, 10, 4, 4), "Thanksgiving", '🦃', colors.orange[50], colors.orange[700]);
+
+  // Easter
+  addHoliday(getEasterSunday(year), "Easter Sunday", '🐰', colors.pink[50], colors.pink[700]);
+
+  return holidays;
+}
+
+// Pre-compute holidays for a range of years
+const ALL_HOLIDAYS_MAP = new Map<string, Holiday>();
+for (let year = 2020; year <= 2035; year++) {
+  const yearHolidays = getUSHolidays(year);
+  yearHolidays.forEach((holiday, key) => ALL_HOLIDAYS_MAP.set(key, holiday));
 }
 
 const EVENT_COLORS: Record<string, string> = {
@@ -138,6 +228,11 @@ export default function CalendarScreen() {
     return events.filter(e => isSameDay(parseISO(e.start_time), targetDate));
   };
 
+  // Get holiday for a specific date
+  const getHolidayForDate = (dateStr: string): Holiday | undefined => {
+    return ALL_HOLIDAYS_MAP.get(dateStr);
+  };
+
   const today = new Date();
   const isToday = (day: number) => {
     return (
@@ -170,11 +265,15 @@ export default function CalendarScreen() {
       const dateStr = formatDateString(day);
       const isSelected = selectedDate === dateStr;
       const dayHasEvents = hasEvents(day);
+      const holiday = getHolidayForDate(dateStr);
 
       days.push(
         <TouchableOpacity
           key={day}
-          style={styles.dayCell}
+          style={[
+            styles.dayCell,
+            holiday && !isSelected && { backgroundColor: holiday.bgColor },
+          ]}
           onPress={() => setSelectedDate(dateStr)}
           activeOpacity={0.7}
         >
@@ -190,12 +289,16 @@ export default function CalendarScreen() {
                 styles.dayText,
                 isToday(day) && !isSelected && styles.todayText,
                 isSelected && styles.selectedText,
+                holiday && !isSelected && !isToday(day) && { color: holiday.textColor },
               ]}
             >
               {day}
             </Text>
           </View>
-          {dayHasEvents && <View style={[styles.eventDot, isSelected && styles.eventDotSelected]} />}
+          <View style={styles.dayIndicators}>
+            {holiday && <Text style={styles.holidayEmoji}>{holiday.emoji}</Text>}
+            {dayHasEvents && <View style={[styles.eventDot, isSelected && styles.eventDotSelected]} />}
+          </View>
         </TouchableOpacity>
       );
     }
@@ -249,6 +352,14 @@ export default function CalendarScreen() {
 
       {/* Events List */}
       <View style={styles.eventsSection}>
+        {selectedDate && getHolidayForDate(selectedDate) && (
+          <View style={[styles.holidayBanner, { backgroundColor: getHolidayForDate(selectedDate)?.bgColor }]}>
+            <Text style={styles.holidayBannerEmoji}>{getHolidayForDate(selectedDate)?.emoji}</Text>
+            <Text style={[styles.holidayBannerText, { color: getHolidayForDate(selectedDate)?.textColor }]}>
+              {getHolidayForDate(selectedDate)?.name}
+            </Text>
+          </View>
+        )}
         <Text style={styles.eventsSectionTitle}>
           {selectedDate
             ? `Events on ${format(parseISO(selectedDate), 'MMM d, yyyy')}`
@@ -418,15 +529,40 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.white,
   },
+  dayIndicators: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+    height: 16,
+  },
   eventDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
     backgroundColor: theme.light.primary,
-    marginTop: 2,
   },
   eventDotSelected: {
     backgroundColor: colors.white,
+  },
+  holidayEmoji: {
+    fontSize: 10,
+  },
+  holidayBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  holidayBannerEmoji: {
+    fontSize: 18,
+  },
+  holidayBannerText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   eventsSection: {
     flex: 1,
