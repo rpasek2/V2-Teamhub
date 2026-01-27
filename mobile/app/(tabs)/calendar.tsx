@@ -82,8 +82,8 @@ function getUSHolidays(year: number): Map<string, Holiday> {
     holidays.set(key, { name, emoji, bgColor, textColor });
   };
 
-  // Fixed date holidays
-  addHoliday(new Date(year, 0, 1), "New Year's Day", '🎉', colors.yellow[50], colors.yellow[700]);
+  // Fixed date holidays (using colors available in mobile palette)
+  addHoliday(new Date(year, 0, 1), "New Year's Day", '🎉', colors.amber[50], colors.amber[700]);
   addHoliday(new Date(year, 1, 14), "Valentine's Day", '💕', colors.pink[50], colors.pink[700]);
   addHoliday(new Date(year, 2, 17), "St. Patrick's Day", '☘️', colors.emerald[50], colors.emerald[700]);
   addHoliday(new Date(year, 6, 4), "Independence Day", '🇺🇸', colors.blue[50], colors.blue[700]);
