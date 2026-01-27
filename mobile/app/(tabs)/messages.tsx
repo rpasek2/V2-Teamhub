@@ -122,67 +122,71 @@ export default function MessagesScreen() {
         return;
       }
 
-      // Process channels and get last message for each
-      const processedChannels: Channel[] = [];
+      // Process channels in parallel (fixes N+1 query issue)
+      const processedChannels = await Promise.all(
+        (channelData || []).map(async (ch) => {
+          // Run queries for this channel in parallel
+          const [lastMsgResult, memberDataResult] = await Promise.all([
+            supabase
+              .from('messages')
+              .select('content, created_at')
+              .eq('channel_id', ch.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle(),
+            supabase
+              .from('channel_members')
+              .select('last_read_at')
+              .eq('channel_id', ch.id)
+              .eq('user_id', user.id)
+              .maybeSingle(),
+          ]);
 
-      for (const ch of channelData || []) {
-        // Get the most recent message
-        const { data: lastMsg } = await supabase
-          .from('messages')
-          .select('content, created_at')
-          .eq('channel_id', ch.id)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          const lastMsg = lastMsgResult.data;
+          const memberData = memberDataResult.data;
 
-        // Determine channel type and name for DMs
-        let channelType: 'public' | 'private' | 'dm' = ch.type as 'public' | 'private';
-        let channelName = ch.name;
+          // Determine channel type and name for DMs
+          let channelType: 'public' | 'private' | 'dm' = ch.type as 'public' | 'private';
+          let channelName = ch.name;
 
-        if (ch.dm_participant_ids && ch.dm_participant_ids.length > 0) {
-          channelType = 'dm';
-          // For DMs, get the other participant's name
-          const otherUserId = ch.dm_participant_ids.find((id: string) => id !== user.id);
-          if (otherUserId) {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', otherUserId)
-              .single();
-            channelName = profile?.full_name || 'Unknown User';
+          if (ch.dm_participant_ids && ch.dm_participant_ids.length > 0) {
+            channelType = 'dm';
+            // For DMs, get the other participant's name
+            const otherUserId = ch.dm_participant_ids.find((id: string) => id !== user.id);
+            if (otherUserId) {
+              const { data: profile } = await supabase
+                .from('profiles')
+                .select('full_name')
+                .eq('id', otherUserId)
+                .single();
+              channelName = profile?.full_name || 'Unknown User';
+            }
           }
-        }
 
-        // Get unread count for this channel
-        let unreadCount = 0;
-        const { data: memberData } = await supabase
-          .from('channel_members')
-          .select('last_read_at')
-          .eq('channel_id', ch.id)
-          .eq('user_id', user.id)
-          .maybeSingle();
+          // Get unread count for this channel
+          let unreadCount = 0;
+          if (memberData?.last_read_at || !memberData) {
+            const lastRead = memberData?.last_read_at || '1970-01-01';
+            const { count } = await supabase
+              .from('messages')
+              .select('id', { count: 'exact', head: true })
+              .eq('channel_id', ch.id)
+              .gt('created_at', lastRead)
+              .neq('user_id', user.id);
+            unreadCount = count || 0;
+          }
 
-        if (memberData?.last_read_at || !memberData) {
-          const lastRead = memberData?.last_read_at || '1970-01-01';
-          const { count } = await supabase
-            .from('messages')
-            .select('id', { count: 'exact', head: true })
-            .eq('channel_id', ch.id)
-            .gt('created_at', lastRead)
-            .neq('user_id', user.id);
-          unreadCount = count || 0;
-        }
-
-        processedChannels.push({
-          id: ch.id,
-          name: channelName,
-          type: channelType,
-          description: ch.description,
-          lastMessage: lastMsg?.content || null,
-          lastMessageTime: lastMsg?.created_at || null,
-          unreadCount,
-        });
-      }
+          return {
+            id: ch.id,
+            name: channelName,
+            type: channelType,
+            description: ch.description,
+            lastMessage: lastMsg?.content || null,
+            lastMessageTime: lastMsg?.created_at || null,
+            unreadCount,
+          };
+        })
+      );
 
       // Sort by last message time
       processedChannels.sort((a, b) => {
