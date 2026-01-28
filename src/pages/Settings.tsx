@@ -14,7 +14,8 @@ import { fetchSeasonsForHub, getMonthName, DEFAULT_SEASON_CONFIG } from '../lib/
 import { format, parseISO } from 'date-fns';
 
 const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'marketplace', 'groups', 'mentorship'] as const;
-const ROLES = ['admin', 'coach', 'parent'] as const;
+const ROLES = ['director', 'admin', 'coach', 'parent', 'athlete'] as const;
+const VALID_PERMISSION_SCOPES: PermissionScope[] = ['all', 'own', 'none'];
 
 interface HubChannel {
     id: string;
@@ -355,11 +356,8 @@ export function Settings() {
 
     const generateInviteCode = () => {
         const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Removed confusing characters like 0, O, I, 1
-        let code = '';
-        for (let i = 0; i < 6; i++) {
-            code += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return code;
+        const randomValues = crypto.getRandomValues(new Uint8Array(6));
+        return Array.from(randomValues, (byte) => chars[byte % chars.length]).join('');
     };
 
     const handleCreateInvite = async () => {
@@ -452,7 +450,7 @@ export function Settings() {
             admin: 'bg-blue-100 text-blue-700',
             coach: 'bg-green-100 text-green-700',
             parent: 'bg-amber-100 text-amber-700',
-            gymnast: 'bg-pink-100 text-pink-700'
+            athlete: 'bg-pink-100 text-pink-700'
         };
         return colors[role] || 'bg-slate-100 text-slate-600';
     };
@@ -512,6 +510,20 @@ export function Settings() {
     };
 
     const handlePermissionChange = (feature: string, role: string, value: PermissionScope) => {
+        // Validate inputs to prevent injection of invalid permission data
+        if (!FEATURES.includes(feature as typeof FEATURES[number])) {
+            console.error(`Invalid feature: ${feature}`);
+            return;
+        }
+        if (!ROLES.includes(role as typeof ROLES[number])) {
+            console.error(`Invalid role: ${role}`);
+            return;
+        }
+        if (!VALID_PERMISSION_SCOPES.includes(value)) {
+            console.error(`Invalid permission scope: ${value}`);
+            return;
+        }
+
         setPermissions((prev: HubPermissions) => ({
             ...prev,
             [feature]: {
@@ -569,12 +581,41 @@ export function Settings() {
         }
     };
 
+    const validatePermissions = (perms: HubPermissions): boolean => {
+        for (const [feature, rolePerms] of Object.entries(perms)) {
+            if (!FEATURES.includes(feature as typeof FEATURES[number])) {
+                console.error(`Invalid feature in permissions: ${feature}`);
+                return false;
+            }
+            if (rolePerms && typeof rolePerms === 'object') {
+                for (const [role, scope] of Object.entries(rolePerms)) {
+                    if (!ROLES.includes(role as typeof ROLES[number])) {
+                        console.error(`Invalid role in permissions: ${role}`);
+                        return false;
+                    }
+                    if (scope && !VALID_PERMISSION_SCOPES.includes(scope as PermissionScope)) {
+                        console.error(`Invalid scope in permissions: ${scope}`);
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    };
+
     const handleSave = async () => {
         if (!hub) return;
         setSaving(true);
         setMessage(null);
 
         try {
+            // Validate permissions before saving
+            if (!validatePermissions(permissions)) {
+                setMessage({ type: 'error', text: 'Invalid permission configuration detected.' });
+                setSaving(false);
+                return;
+            }
+
             const updatedSettings = {
                 ...hub.settings,
                 permissions
@@ -597,7 +638,8 @@ export function Settings() {
         }
     };
 
-    const canManagePermissions = currentRole === 'owner' || currentRole === 'director';
+    // Only owner can manage permissions (director permissions are now configurable by owner)
+    const canManagePermissions = currentRole === 'owner';
 
     const handleToggleTab = (tabId: HubFeatureTab) => {
         setEnabledTabs(prev => {
@@ -1152,10 +1194,11 @@ export function Settings() {
                                 onChange={(e) => setNewInviteRole(e.target.value as HubRole)}
                                 className="input"
                             >
+                                <option value="director">Director</option>
+                                <option value="admin">Admin</option>
                                 <option value="coach">Coach</option>
                                 <option value="parent">Parent</option>
-                                <option value="gymnast">Gymnast</option>
-                                <option value="admin">Admin</option>
+                                <option value="athlete">Athlete</option>
                             </select>
                         </div>
                         <div className="w-32">

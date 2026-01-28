@@ -11,9 +11,11 @@ export interface Profile {
 export type PermissionScope = 'none' | 'all' | 'own';
 
 export interface RolePermissions {
+    director?: PermissionScope;
     admin?: PermissionScope;
     coach?: PermissionScope;
     parent?: PermissionScope;
+    athlete?: PermissionScope;
 }
 
 export interface HubPermissions {
@@ -79,7 +81,7 @@ export interface Hub {
 export interface HubMember {
     hub_id: string;
     user_id: string;
-    role: 'owner' | 'director' | 'admin' | 'coach' | 'parent';
+    role: 'owner' | 'director' | 'admin' | 'coach' | 'parent' | 'athlete';
     permissions: Record<string, unknown> | null;
     status: string;
     created_at: string;
@@ -399,7 +401,7 @@ export const SPORT_CONFIGS: Record<SportType, SportConfig> = {
 };
 
 // Hub Invite Types
-export type HubRole = 'owner' | 'director' | 'admin' | 'coach' | 'parent' | 'gymnast';
+export type HubRole = 'owner' | 'director' | 'admin' | 'coach' | 'parent' | 'athlete';
 
 export interface HubInvite {
     id: string;

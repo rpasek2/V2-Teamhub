@@ -7,7 +7,7 @@ interface RoleChecks {
     isAdmin: boolean;
     isCoach: boolean;
     isParent: boolean;
-    isGymnast: boolean;
+    isAthlete: boolean;
     isStaff: boolean;
     canManage: boolean;
     canEdit: boolean;
@@ -28,7 +28,7 @@ export function useRoleChecks(): RoleChecks {
         isAdmin: currentRole === 'admin',
         isCoach: currentRole === 'coach',
         isParent: currentRole === 'parent',
-        isGymnast: currentRole === 'gymnast',
+        isAthlete: currentRole === 'athlete',
         // Staff includes owner, director, admin, and coach
         isStaff: ['owner', 'director', 'admin', 'coach'].includes(currentRole || ''),
         // Can manage includes owner, director, and admin

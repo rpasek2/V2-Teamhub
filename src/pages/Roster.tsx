@@ -147,7 +147,7 @@ export function Roster() {
                     id: g.id,
                     name: `${g.first_name} ${g.last_name}`,
                     email: guardianEmail,
-                    role: 'gymnast',
+                    role: 'athlete',
                     gymnast_id: g.gymnast_id,
                     level: g.level || '',
                     guardian_name: guardianName || '-',
@@ -200,7 +200,7 @@ export function Roster() {
         { name: 'All', roles: [] },
         { name: 'Admins', roles: ['owner', 'admin', 'director'] },
         { name: 'Coaches', roles: ['coach'] },
-        { name: 'Gymnasts', roles: ['gymnast'] },
+        { name: 'Gymnasts', roles: ['athlete'] },
         { name: 'Parents', roles: ['parent'] },
     ];
 

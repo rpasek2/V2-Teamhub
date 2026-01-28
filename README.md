@@ -61,7 +61,7 @@ npm run lint
 ```
 Organization (e.g., "Elite Gymnastics Academy")
   └── Hub/Program (e.g., "DP Team", "Xcel Team")
-       └── Members (owner, director, admin, coach, parent, gymnast)
+       └── Members (owner, director, admin, coach, parent, athlete)
             └── Gymnast Profiles (extended athlete data)
 ```
 
@@ -104,7 +104,7 @@ src/
 
 ### Permission System
 
-Roles (hierarchical): `owner > director > admin > coach > parent > gymnast`
+Roles (hierarchical): `owner > director > admin > coach > parent > athlete`
 
 Permission scopes per feature:
 - `all` - Full access to all data

@@ -2,9 +2,19 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../services/supabase';
+import {
+  type HubRole,
+  type PermissionScope,
+  STAFF_ROLES,
+  MANAGE_ROLES,
+  getPermissionScope as getPermissionScopeUtil,
+  hasPermission as hasPermissionUtil,
+  isStaffRole,
+  isParentRole,
+  canManageRole,
+} from '../lib/permissions';
 
-// Types (will be moved to shared types)
-export type HubRole = 'owner' | 'director' | 'admin' | 'coach' | 'parent' | 'gymnast';
+export type { HubRole } from '../lib/permissions';
 
 export interface Hub {
   id: string;
@@ -74,27 +84,7 @@ interface HubState {
   canManage: () => boolean;
 }
 
-const STAFF_ROLES: HubRole[] = ['owner', 'director', 'admin', 'coach'];
-const MANAGE_ROLES: HubRole[] = ['owner', 'director', 'admin'];
-
-const DEFAULT_PERMISSIONS: Record<string, Record<HubRole, 'all' | 'own' | 'none'>> = {
-  roster: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', gymnast: 'own' },
-  calendar: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', gymnast: 'all' },
-  messages: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', gymnast: 'all' },
-  groups: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', gymnast: 'all' },
-  assignments: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', gymnast: 'own' },
-  attendance: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', gymnast: 'none' },
-  skills: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', gymnast: 'own' },
-  scores: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', gymnast: 'own' },
-  competitions: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', gymnast: 'own' },
-  schedule: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'none', gymnast: 'none' },
-  staff: { owner: 'all', director: 'all', admin: 'all', coach: 'own', parent: 'none', gymnast: 'none' },
-  marketplace: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', gymnast: 'all' },
-  mentorship: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', gymnast: 'own' },
-  resources: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', gymnast: 'all' },
-  settings: { owner: 'all', director: 'all', admin: 'all', coach: 'none', parent: 'none', gymnast: 'none' },
-  privateLessons: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', gymnast: 'none' },
-};
+// Permission constants and logic imported from ../lib/permissions
 
 export const useHubStore = create<HubState>()(
   persist(
@@ -212,34 +202,28 @@ export const useHubStore = create<HubState>()(
       },
 
       hasPermission: (feature: string) => {
-        const scope = get().getPermissionScope(feature);
-        return scope === 'all' || scope === 'own';
+        const { currentHub, currentMember } = get();
+        return hasPermissionUtil(feature, currentMember?.role ?? null, currentHub?.settings?.permissions);
       },
 
       getPermissionScope: (feature: string) => {
         const { currentHub, currentMember } = get();
-        if (!currentMember) return 'none';
-
-        const role = currentMember.role;
-        const permissions = currentHub?.settings?.permissions || DEFAULT_PERMISSIONS;
-        const featurePermissions = permissions[feature] || DEFAULT_PERMISSIONS[feature];
-
-        return featurePermissions?.[role] || 'none';
+        return getPermissionScopeUtil(feature, currentMember?.role ?? null, currentHub?.settings?.permissions);
       },
 
       isStaff: () => {
         const { currentMember } = get();
-        return currentMember ? STAFF_ROLES.includes(currentMember.role) : false;
+        return isStaffRole(currentMember?.role ?? null);
       },
 
       isParent: () => {
         const { currentMember } = get();
-        return currentMember?.role === 'parent';
+        return isParentRole(currentMember?.role ?? null);
       },
 
       canManage: () => {
         const { currentMember } = get();
-        return currentMember ? MANAGE_ROLES.includes(currentMember.role) : false;
+        return canManageRole(currentMember?.role ?? null);
       },
     }),
     {

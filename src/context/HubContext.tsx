@@ -4,11 +4,14 @@ import type { User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import type { Hub, GymnastProfile, HubMember as FullHubMember, SportConfig } from '../types';
 import { SPORT_CONFIGS } from '../types';
+import {
+    type PermissionScope,
+    getPermissionScope as getPermissionScopeUtil,
+    hasPermission as hasPermissionUtil,
+} from '../lib/permissions';
 
 // Partial HubMember for context (just the fields we need)
 type HubMemberContext = Pick<FullHubMember, 'role' | 'permissions'>;
-
-type PermissionScope = 'all' | 'own' | 'none';
 
 interface HubContextType {
     hub: Hub | null;
@@ -111,45 +114,14 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
     const levels = useMemo(() => hub?.settings?.levels || [], [hub?.settings?.levels]);
     const sportConfig = useMemo(() => SPORT_CONFIGS[hub?.sport_type || 'gymnastics'], [hub?.sport_type]);
 
-    // Memoize permission functions
+    // Memoize permission functions using shared utility
     const getPermissionScope = useCallback((feature: string): PermissionScope => {
-        if (!hub || !currentRole) return 'none';
-
-        // Owner and Director always have full access
-        if (currentRole === 'owner' || currentRole === 'director') return 'all';
-
-        const permissions = hub.settings?.permissions;
-
-        // Default permissions for each role when not explicitly configured
-        const getDefaultScope = (role: string): PermissionScope => {
-            if (['admin', 'coach'].includes(role)) return 'all';
-            if (role === 'parent') return 'own';
-            return 'none';
-        };
-
-        // Default behavior if permissions are not configured at all (Legacy Hubs)
-        if (!permissions) {
-            return getDefaultScope(currentRole);
-        }
-
-        // Check configured permissions for this feature
-        const rolePermissions = permissions[feature];
-
-        // If feature permissions aren't configured, use defaults
-        if (!rolePermissions) {
-            return getDefaultScope(currentRole);
-        }
-
-        const scope = rolePermissions[currentRole as keyof typeof rolePermissions];
-
-        // If scope is explicitly set, return it. Otherwise use defaults.
-        return scope || getDefaultScope(currentRole);
-    }, [hub, currentRole]);
+        return getPermissionScopeUtil(feature, currentRole, hub?.settings?.permissions);
+    }, [hub?.settings?.permissions, currentRole]);
 
     const hasPermission = useCallback((feature: string): boolean => {
-        const scope = getPermissionScope(feature);
-        return scope === 'all' || scope === 'own';
-    }, [getPermissionScope]);
+        return hasPermissionUtil(feature, currentRole, hub?.settings?.permissions);
+    }, [hub?.settings?.permissions, currentRole]);
 
     // Memoize context value
     const contextValue = useMemo(() => ({
