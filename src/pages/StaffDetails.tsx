@@ -120,13 +120,13 @@ export function StaffDetails() {
 
             if (memberError) throw memberError;
 
-            // Fetch staff profile
+            // Fetch staff profile (may not exist yet)
             const { data: staffProfile } = await supabase
                 .from('staff_profiles')
                 .select('id, title, bio, phone, email, hire_date, status, emergency_contact')
                 .eq('hub_id', hubId)
                 .eq('user_id', staffUserId)
-                .single();
+                .maybeSingle();
 
             const profileData = Array.isArray(memberData.profile) ? memberData.profile[0] : memberData.profile;
 
