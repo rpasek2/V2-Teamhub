@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Users, Lock, ChevronRight } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { NotificationBadge } from '../../src/components/ui';
@@ -178,9 +179,12 @@ export default function GroupsScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchGroups();
-  }, [currentHub?.id, user?.id]);
+  // Refresh groups when screen gains focus (e.g., returning from group details)
+  useFocusEffect(
+    useCallback(() => {
+      fetchGroups();
+    }, [currentHub?.id, user?.id])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);
