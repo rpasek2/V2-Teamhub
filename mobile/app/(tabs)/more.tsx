@@ -36,6 +36,7 @@ import { colors, theme } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useHubStore } from '../../src/stores/hubStore';
 import { supabase } from '../../src/services/supabase';
+import { CustomizeTabsModal } from '../../src/components/settings';
 
 interface MenuItem {
   id: string;
@@ -223,6 +224,7 @@ export default function MoreScreen() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [userProfile, setUserProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
+  const [showCustomizeTabs, setShowCustomizeTabs] = useState(false);
 
   const currentRole = currentMember?.role;
 
@@ -343,7 +345,7 @@ export default function MoreScreen() {
             icon: Palette,
             color: colors.purple[600],
           }}
-          onPress={() => console.log('Customize tabs')}
+          onPress={() => setShowCustomizeTabs(true)}
         />
         <MenuItem
           item={{
@@ -374,6 +376,12 @@ export default function MoreScreen() {
 
       {/* Version Info */}
       <Text style={styles.versionText}>TeamHub Mobile v1.0.0</Text>
+
+      {/* Customize Tabs Modal */}
+      <CustomizeTabsModal
+        isOpen={showCustomizeTabs}
+        onClose={() => setShowCustomizeTabs(false)}
+      />
     </ScrollView>
   );
 }

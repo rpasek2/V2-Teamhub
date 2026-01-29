@@ -1,0 +1,1 @@
+export { CustomizeTabsModal } from './CustomizeTabsModal';

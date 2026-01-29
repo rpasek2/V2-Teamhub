@@ -12,9 +12,7 @@ import {
   CheckSquare,
   Trophy,
   Target,
-  ShoppingBag,
   BarChart,
-  Clock,
   Contact,
 } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
@@ -22,6 +20,7 @@ import { NotificationBadge } from '../../src/components/ui';
 import { useNotificationStore } from '../../src/stores/notificationStore';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useTabPreferencesStore, TabId } from '../../src/stores/tabPreferencesStore';
 
 // Map of all available tab icons
 const TAB_ICONS: Record<string, React.ComponentType<{ size: number; color: string }>> = {
@@ -36,8 +35,6 @@ const TAB_ICONS: Record<string, React.ComponentType<{ size: number; color: strin
   competitions: Trophy,
   scores: BarChart,
   skills: Target,
-  schedule: Clock,
-  marketplace: ShoppingBag,
 };
 
 function TabBarIcon({
@@ -77,6 +74,14 @@ export default function TabLayout() {
     hasMoreNotifications,
     fetchNotificationCounts,
   } = useNotificationStore();
+
+  // Get tab preferences
+  const { selectedTabs, loading: tabsLoading, initialize: initializeTabPrefs } = useTabPreferencesStore();
+
+  // Initialize tab preferences on mount
+  useEffect(() => {
+    initializeTabPrefs();
+  }, []);
 
   // Track app state and polling interval
   const appState = useRef(AppState.currentState);
@@ -126,6 +131,25 @@ export default function TabLayout() {
     };
   }, [currentHub?.id, user?.id]);
 
+  // Helper to get badge for a tab
+  const getBadgeForTab = (tabId: TabId): number | boolean | undefined => {
+    switch (tabId) {
+      case 'calendar':
+        return upcomingEvents > 0 ? upcomingEvents : undefined;
+      case 'messages':
+        return unreadMessages > 0 ? unreadMessages : undefined;
+      case 'groups':
+        return unreadGroups > 0 ? unreadGroups : undefined;
+      default:
+        return undefined;
+    }
+  };
+
+  // Check if a tab should be visible (in the selected 3)
+  const isTabVisible = (tabId: TabId): boolean => {
+    return selectedTabs.includes(tabId);
+  };
+
   return (
     <Tabs
       screenOptions={{
@@ -142,7 +166,7 @@ export default function TabLayout() {
         headerTitleStyle: styles.headerTitle,
       }}
     >
-      {/* Fixed: Dashboard */}
+      {/* Fixed: Dashboard (always first) */}
       <Tabs.Screen
         name="index"
         options={{
@@ -153,53 +177,131 @@ export default function TabLayout() {
         }}
       />
 
-      {/* Customizable slots */}
+      {/* Dynamic tabs - show/hide based on selection */}
+      {/* Calendar */}
       <Tabs.Screen
         name="calendar"
         options={{
           title: 'Calendar',
+          href: isTabVisible('calendar') ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name="calendar"
               color={color}
               focused={focused}
-              badge={upcomingEvents > 0 ? upcomingEvents : undefined}
+              badge={getBadgeForTab('calendar')}
             />
           ),
         }}
       />
 
+      {/* Messages */}
       <Tabs.Screen
         name="messages"
         options={{
           title: 'Messages',
+          href: isTabVisible('messages') ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name="messages"
               color={color}
               focused={focused}
-              badge={unreadMessages > 0 ? unreadMessages : undefined}
+              badge={getBadgeForTab('messages')}
             />
           ),
         }}
       />
 
+      {/* Groups */}
       <Tabs.Screen
         name="groups"
         options={{
           title: 'Groups',
+          href: isTabVisible('groups') ? undefined : null,
           tabBarIcon: ({ color, focused }) => (
             <TabBarIcon
               name="groups"
               color={color}
               focused={focused}
-              badge={unreadGroups > 0 ? unreadGroups : undefined}
+              badge={getBadgeForTab('groups')}
             />
           ),
         }}
       />
 
-      {/* Fixed: More */}
+      {/* Roster */}
+      <Tabs.Screen
+        name="roster"
+        options={{
+          title: 'Roster',
+          href: isTabVisible('roster') ? undefined : null,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="roster" color={color} focused={focused} />
+          ),
+        }}
+      />
+
+      {/* Assignments */}
+      <Tabs.Screen
+        name="assignments"
+        options={{
+          title: 'Assignments',
+          href: isTabVisible('assignments') ? undefined : null,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="assignments" color={color} focused={focused} />
+          ),
+        }}
+      />
+
+      {/* Attendance */}
+      <Tabs.Screen
+        name="attendance"
+        options={{
+          title: 'Attendance',
+          href: isTabVisible('attendance') ? undefined : null,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="attendance" color={color} focused={focused} />
+          ),
+        }}
+      />
+
+      {/* Competitions */}
+      <Tabs.Screen
+        name="competitions"
+        options={{
+          title: 'Competitions',
+          href: isTabVisible('competitions') ? undefined : null,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="competitions" color={color} focused={focused} />
+          ),
+        }}
+      />
+
+      {/* Scores */}
+      <Tabs.Screen
+        name="scores"
+        options={{
+          title: 'Scores',
+          href: isTabVisible('scores') ? undefined : null,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="scores" color={color} focused={focused} />
+          ),
+        }}
+      />
+
+      {/* Skills */}
+      <Tabs.Screen
+        name="skills"
+        options={{
+          title: 'Skills',
+          href: isTabVisible('skills') ? undefined : null,
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name="skills" color={color} focused={focused} />
+          ),
+        }}
+      />
+
+      {/* Fixed: More (always last) */}
       <Tabs.Screen
         name="more"
         options={{
@@ -214,7 +316,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
     </Tabs>
   );
 }

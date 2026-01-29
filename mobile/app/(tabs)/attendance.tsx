@@ -1,5 +1,5 @@
 import { AttendanceScreen } from '../../src/screens/AttendanceScreen';
 
-export default function AttendanceRoute() {
+export default function AttendanceTab() {
   return <AttendanceScreen />;
 }
