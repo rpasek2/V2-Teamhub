@@ -10,10 +10,10 @@ import {
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Search, Edit, Users, User, Hash, ShieldAlert, ChevronRight } from 'lucide-react-native';
+import { Search, Edit, Users, User, Hash, ShieldAlert, ChevronRight, Plus } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { NotificationBadge } from '../../src/components/ui';
-import { NewDMModal, AnonymousReportModal } from '../../src/components/messages';
+import { NewDMModal, AnonymousReportModal, CreateChannelModal } from '../../src/components/messages';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -111,6 +111,7 @@ export default function MessagesScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [showNewDMModal, setShowNewDMModal] = useState(false);
+  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
 
   // Anonymous reports state
   const [showAnonymousReportModal, setShowAnonymousReportModal] = useState(false);
@@ -455,20 +456,41 @@ export default function MessagesScreen() {
         }
       />
 
-      {/* New Message FAB */}
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setShowNewDMModal(true)}
-        activeOpacity={0.8}
-      >
-        <Edit size={24} color={colors.white} />
-      </TouchableOpacity>
+      {/* FAB Container */}
+      <View style={styles.fabContainer}>
+        {/* Create Channel FAB (staff only) */}
+        {isStaffUser && (
+          <TouchableOpacity
+            style={styles.fabSecondary}
+            onPress={() => setShowCreateChannelModal(true)}
+            activeOpacity={0.8}
+          >
+            <Plus size={22} color={theme.light.primary} />
+          </TouchableOpacity>
+        )}
+
+        {/* New DM FAB */}
+        <TouchableOpacity
+          style={styles.fab}
+          onPress={() => setShowNewDMModal(true)}
+          activeOpacity={0.8}
+        >
+          <Edit size={24} color={colors.white} />
+        </TouchableOpacity>
+      </View>
 
       {/* New DM Modal */}
       <NewDMModal
         isOpen={showNewDMModal}
         onClose={() => setShowNewDMModal(false)}
         onDMCreated={fetchChannels}
+      />
+
+      {/* Create Channel Modal */}
+      <CreateChannelModal
+        isOpen={showCreateChannelModal}
+        onClose={() => setShowCreateChannelModal(false)}
+        onChannelCreated={fetchChannels}
       />
 
       {/* Anonymous Report Modal */}
@@ -601,10 +623,14 @@ const styles = StyleSheet.create({
     color: colors.slate[400],
     fontSize: 15,
   },
-  fab: {
+  fabContainer: {
     position: 'absolute',
     right: 16,
     bottom: 16,
+    alignItems: 'center',
+    gap: 12,
+  },
+  fab: {
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -616,6 +642,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 5,
+  },
+  fabSecondary: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.light.primary,
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 3,
   },
   anonymousSection: {
     paddingHorizontal: 16,

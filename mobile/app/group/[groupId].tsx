@@ -8,9 +8,12 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
+  TextInput,
+  Switch,
+  Alert,
 } from 'react-native';
 import { useLocalSearchParams, useNavigation, router } from 'expo-router';
-import { Users, Lock, Globe, Plus, MessageSquare, Image as ImageIcon, FileText } from 'lucide-react-native';
+import { Users, Lock, Globe, Plus, MessageSquare, Image as ImageIcon, FileText, Settings, Trash2 } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -21,7 +24,7 @@ import { GroupPhotos } from '../../src/components/groups/GroupPhotos';
 import { GroupFiles } from '../../src/components/groups/GroupFiles';
 import { GroupMembers } from '../../src/components/groups/GroupMembers';
 
-type TabType = 'posts' | 'photos' | 'files' | 'members';
+type TabType = 'posts' | 'photos' | 'files' | 'members' | 'settings';
 
 interface Group {
   id: string;
@@ -57,8 +60,16 @@ export default function GroupDetailsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isMember, setIsMember] = useState(false);
+  const [isGroupAdmin, setIsGroupAdmin] = useState(false);
   const [memberCount, setMemberCount] = useState(0);
   const [activeTab, setActiveTab] = useState<TabType>('posts');
+
+  // Settings form state
+  const [editName, setEditName] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editIsPrivate, setEditIsPrivate] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [deletingGroup, setDeletingGroup] = useState(false);
 
   useEffect(() => {
     if (groupId && user) {
@@ -133,11 +144,24 @@ export default function GroupDetailsScreen() {
 
     if (!error && data) {
       setIsMember(true);
-    } else if (isStaff()) {
-      // Staff can always post
+      setIsGroupAdmin(data.role === 'admin');
+    }
+
+    if (isStaff()) {
+      // Staff can always post and access admin features
       setIsMember(true);
+      setIsGroupAdmin(true);
     }
   };
+
+  // Update settings form when group loads
+  useEffect(() => {
+    if (group) {
+      setEditName(group.name);
+      setEditDescription(group.description || '');
+      setEditIsPrivate(group.type === 'private');
+    }
+  }, [group]);
 
   const fetchPosts = async () => {
     if (!groupId) return;
@@ -235,6 +259,80 @@ export default function GroupDetailsScreen() {
     });
   };
 
+  const handleSaveSettings = async () => {
+    if (!groupId || !editName.trim()) {
+      Alert.alert('Error', 'Group name is required');
+      return;
+    }
+
+    setSavingSettings(true);
+    try {
+      const { error } = await supabase
+        .from('groups')
+        .update({
+          name: editName.trim(),
+          description: editDescription.trim() || null,
+          type: editIsPrivate ? 'private' : 'public',
+        })
+        .eq('id', groupId);
+
+      if (error) throw error;
+
+      // Update local state
+      setGroup((prev) =>
+        prev
+          ? {
+              ...prev,
+              name: editName.trim(),
+              description: editDescription.trim() || null,
+              type: editIsPrivate ? 'private' : 'public',
+            }
+          : null
+      );
+
+      Alert.alert('Success', 'Group settings updated');
+    } catch (err) {
+      console.error('Error updating group:', err);
+      Alert.alert('Error', 'Failed to update group settings');
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleDeleteGroup = () => {
+    Alert.alert(
+      'Delete Group',
+      `Are you sure you want to delete "${group?.name}"? This action cannot be undone and will remove all posts, files, and members.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: confirmDeleteGroup,
+        },
+      ]
+    );
+  };
+
+  const confirmDeleteGroup = async () => {
+    if (!groupId) return;
+
+    setDeletingGroup(true);
+    try {
+      const { error } = await supabase.from('groups').delete().eq('id', groupId);
+
+      if (error) throw error;
+
+      Alert.alert('Deleted', 'Group has been deleted', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch (err) {
+      console.error('Error deleting group:', err);
+      Alert.alert('Error', 'Failed to delete group');
+      setDeletingGroup(false);
+    }
+  };
+
   const renderPost = ({ item }: { item: Post }) => (
     <PostCard
       post={item}
@@ -330,6 +428,15 @@ export default function GroupDetailsScreen() {
           <Users size={18} color={activeTab === 'members' ? theme.light.primary : colors.slate[400]} />
           <Text style={[styles.tabText, activeTab === 'members' && styles.tabTextActive]}>Members</Text>
         </TouchableOpacity>
+        {isGroupAdmin && (
+          <TouchableOpacity
+            style={[styles.tab, activeTab === 'settings' && styles.tabActive]}
+            onPress={() => setActiveTab('settings')}
+          >
+            <Settings size={18} color={activeTab === 'settings' ? theme.light.primary : colors.slate[400]} />
+            <Text style={[styles.tabText, activeTab === 'settings' && styles.tabTextActive]}>Settings</Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Tab Content */}
@@ -387,10 +494,114 @@ export default function GroupDetailsScreen() {
         <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
           <GroupMembers
             groupId={groupId}
-            isAdmin={isStaff()}
+            isAdmin={isGroupAdmin}
             currentUserId={user?.id || ''}
             onMemberCountChange={setMemberCount}
           />
+        </ScrollView>
+      )}
+
+      {activeTab === 'settings' && isGroupAdmin && (
+        <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.settingsContainer}>
+            {/* Group Info Section */}
+            <View style={styles.settingsSection}>
+              <Text style={styles.settingsSectionTitle}>Group Information</Text>
+
+              <View style={styles.settingsField}>
+                <Text style={styles.settingsLabel}>Name</Text>
+                <TextInput
+                  style={styles.settingsInput}
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="Group name"
+                  placeholderTextColor={colors.slate[400]}
+                />
+              </View>
+
+              <View style={styles.settingsField}>
+                <Text style={styles.settingsLabel}>Description</Text>
+                <TextInput
+                  style={[styles.settingsInput, styles.settingsTextArea]}
+                  value={editDescription}
+                  onChangeText={setEditDescription}
+                  placeholder="Describe this group..."
+                  placeholderTextColor={colors.slate[400]}
+                  multiline
+                  numberOfLines={3}
+                  textAlignVertical="top"
+                />
+              </View>
+            </View>
+
+            {/* Privacy Section */}
+            <View style={styles.settingsSection}>
+              <Text style={styles.settingsSectionTitle}>Privacy</Text>
+
+              <View style={styles.settingsToggleRow}>
+                <View style={styles.settingsToggleInfo}>
+                  <View style={styles.settingsToggleIconContainer}>
+                    {editIsPrivate ? (
+                      <Lock size={20} color={colors.slate[600]} />
+                    ) : (
+                      <Globe size={20} color={colors.emerald[600]} />
+                    )}
+                  </View>
+                  <View>
+                    <Text style={styles.settingsToggleLabel}>
+                      {editIsPrivate ? 'Private Group' : 'Public Group'}
+                    </Text>
+                    <Text style={styles.settingsToggleDescription}>
+                      {editIsPrivate
+                        ? 'Only members can see posts'
+                        : 'Anyone in the hub can see posts'}
+                    </Text>
+                  </View>
+                </View>
+                <Switch
+                  value={editIsPrivate}
+                  onValueChange={setEditIsPrivate}
+                  trackColor={{ false: colors.slate[200], true: colors.brand[400] }}
+                  thumbColor={editIsPrivate ? colors.brand[600] : colors.slate[50]}
+                />
+              </View>
+            </View>
+
+            {/* Save Button */}
+            <TouchableOpacity
+              style={[styles.saveSettingsButton, savingSettings && styles.buttonDisabled]}
+              onPress={handleSaveSettings}
+              disabled={savingSettings}
+            >
+              {savingSettings ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Text style={styles.saveSettingsButtonText}>Save Changes</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Danger Zone */}
+            <View style={styles.dangerZone}>
+              <Text style={styles.dangerZoneTitle}>Danger Zone</Text>
+              <Text style={styles.dangerZoneDescription}>
+                Deleting this group will permanently remove all posts, files, and members.
+              </Text>
+              <TouchableOpacity
+                style={[styles.deleteGroupButton, deletingGroup && styles.buttonDisabled]}
+                onPress={handleDeleteGroup}
+                disabled={deletingGroup}
+              >
+                {deletingGroup ? (
+                  <ActivityIndicator size="small" color={colors.white} />
+                ) : (
+                  <>
+                    <Trash2 size={18} color={colors.white} />
+                    <Text style={styles.deleteGroupButtonText}>Delete Group</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
         </ScrollView>
       )}
     </View>
@@ -580,5 +791,125 @@ const styles = StyleSheet.create({
   },
   tabContent: {
     flex: 1,
+  },
+  // Settings tab styles
+  settingsContainer: {
+    padding: 16,
+  },
+  settingsSection: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.slate[200],
+  },
+  settingsSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.slate[900],
+    marginBottom: 16,
+  },
+  settingsField: {
+    marginBottom: 16,
+  },
+  settingsLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.slate[600],
+    marginBottom: 6,
+  },
+  settingsInput: {
+    borderWidth: 1,
+    borderColor: colors.slate[300],
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+    color: colors.slate[900],
+    backgroundColor: colors.white,
+  },
+  settingsTextArea: {
+    minHeight: 80,
+    paddingTop: 12,
+  },
+  settingsToggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  settingsToggleInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 12,
+  },
+  settingsToggleIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: colors.slate[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingsToggleLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.slate[900],
+  },
+  settingsToggleDescription: {
+    fontSize: 12,
+    color: colors.slate[500],
+    marginTop: 2,
+  },
+  saveSettingsButton: {
+    backgroundColor: theme.light.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+  },
+  saveSettingsButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.white,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  dangerZone: {
+    backgroundColor: colors.error[50],
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.error[200],
+    marginBottom: 24,
+  },
+  dangerZoneTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.error[700],
+    marginBottom: 8,
+  },
+  dangerZoneDescription: {
+    fontSize: 13,
+    color: colors.error[600],
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  deleteGroupButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.error[600],
+    borderRadius: 10,
+    paddingVertical: 12,
+  },
+  deleteGroupButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.white,
   },
 });

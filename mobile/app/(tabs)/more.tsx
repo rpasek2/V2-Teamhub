@@ -53,6 +53,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Roster',
     icon: Contact,
     route: '/roster',
+    requiresPermission: 'roster',
     color: colors.brand[600],
   },
   {
@@ -60,6 +61,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Assignments',
     icon: ClipboardList,
     route: '/assignments',
+    requiresPermission: 'assignments',
     color: colors.purple[600],
   },
   {
@@ -67,6 +69,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Attendance',
     icon: CheckSquare,
     route: '/attendance',
+    requiresPermission: 'attendance',
     color: colors.emerald[600],
   },
   {
@@ -74,6 +77,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Competitions',
     icon: Trophy,
     route: '/competitions',
+    requiresPermission: 'competitions',
     color: colors.amber[600],
   },
   {
@@ -81,6 +85,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Scores',
     icon: BarChart,
     route: '/scores',
+    requiresPermission: 'scores',
     color: colors.blue[600],
   },
   {
@@ -88,6 +93,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Skills',
     icon: Target,
     route: '/skills',
+    requiresPermission: 'skills',
     color: colors.rose[600],
   },
   {
@@ -95,6 +101,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Schedule',
     icon: Clock,
     route: '/schedule',
+    requiresPermission: 'schedule',
     color: colors.indigo[600],
   },
   {
@@ -102,6 +109,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Marketplace',
     icon: ShoppingBag,
     route: '/marketplace',
+    requiresPermission: 'marketplace',
     color: colors.orange[600],
   },
   {
@@ -109,6 +117,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Big/Little',
     icon: Heart,
     route: '/mentorship',
+    requiresPermission: 'mentorship',
     color: colors.pink[600],
   },
   {
@@ -124,6 +133,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Resources',
     icon: FileText,
     route: '/resources',
+    requiresPermission: 'resources',
     color: colors.cyan[600],
   },
   {
@@ -131,6 +141,7 @@ const FEATURE_ITEMS: MenuItem[] = [
     label: 'Private Lessons',
     icon: GraduationCap,
     route: '/private-lessons',
+    requiresPermission: 'privateLessons',
     color: colors.violet[600],
   },
 ];
@@ -272,7 +283,11 @@ export default function MoreScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* User Profile Card */}
-      <TouchableOpacity style={styles.profileCard} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.profileCard}
+        activeOpacity={0.7}
+        onPress={() => router.push('/settings')}
+      >
         {userProfile?.avatar_url ? (
           <Image source={{ uri: userProfile.avatar_url }} style={styles.avatarImage} />
         ) : (
@@ -333,11 +348,11 @@ export default function MoreScreen() {
         <MenuItem
           item={{
             id: 'settings',
-            label: 'App Settings',
+            label: 'User Settings',
             icon: Settings,
             color: colors.slate[600],
           }}
-          onPress={() => console.log('Settings')}
+          onPress={() => router.push('/settings')}
         />
         <TouchableOpacity style={styles.menuItem} onPress={handleSwitchHub} activeOpacity={0.7}>
           <View style={[styles.menuIcon, { backgroundColor: colors.blue[50] }]}>
