@@ -87,7 +87,8 @@ export const useNotificationStore = create<NotificationState>((set) => ({
             .from('posts')
             .select('id', { count: 'exact', head: true })
             .eq('group_id', membership.group_id)
-            .gt('created_at', lastViewed);
+            .gt('created_at', lastViewed)
+            .neq('user_id', userId); // Exclude user's own posts
         });
 
         const postCounts = await Promise.all(postCountPromises);

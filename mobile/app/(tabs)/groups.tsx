@@ -137,13 +137,14 @@ export default function GroupsScreen() {
               .limit(1)
               .maybeSingle(),
 
-            // Calculate unread posts if user is a member
+            // Calculate unread posts if user is a member (excluding own posts)
             memberGroupIds.includes(g.id)
               ? supabase
                   .from('posts')
                   .select('id', { count: 'exact', head: true })
                   .eq('group_id', g.id)
                   .gt('created_at', lastViewedMap.get(g.id) || '1970-01-01')
+                  .neq('user_id', user.id)
               : Promise.resolve({ count: 0 }),
           ]);
 
