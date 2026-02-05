@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Loader2, AlertCircle, Check, Trophy } from 'lucide-react';
+import { X, Loader2, AlertCircle, Check, Trophy, Award, Medal, CalendarOff } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useAuth } from '../../context/AuthContext';
 import { AddressAutocomplete } from '../ui/AddressAutocomplete';
 import { getOrCreateSeasonForDate, DEFAULT_SEASON_CONFIG } from '../../lib/seasons';
+import type { ChampionshipType } from '../../types';
 
 interface CreateCompetitionModalProps {
     isOpen: boolean;
@@ -35,12 +36,14 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
         endDate: '',
         location: ''
     });
+    const [championshipType, setChampionshipType] = useState<ChampionshipType>(null);
 
     useEffect(() => {
         if (isOpen && hub) {
             fetchGymnasts();
             // Reset form when opening
             setFormData({ name: '', startDate: '', endDate: '', location: '' });
+            setChampionshipType(null);
             setSelectedGymnasts([]);
             setError(null);
         }
@@ -152,7 +155,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                 seasonId = season?.id || null;
             }
 
-            // 1. Create Competition with season_id
+            // 1. Create Competition with season_id and championship_type
             const { data: compData, error: compError } = await supabase
                 .from('competitions')
                 .insert({
@@ -162,7 +165,8 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                     end_date: formData.endDate,
                     location: formData.location,
                     created_by: user.id,
-                    season_id: seasonId
+                    season_id: seasonId,
+                    championship_type: championshipType
                 })
                 .select()
                 .single();
@@ -302,6 +306,92 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                             onChange={(location) => setFormData({ ...formData, location })}
                             placeholder="Search for venue or address..."
                         />
+                    </div>
+
+                    {/* Championship Type */}
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                            Meet Type
+                        </label>
+                        <div className="space-y-2">
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-brand-300 transition-colors">
+                                <input
+                                    type="radio"
+                                    name="championshipType"
+                                    checked={championshipType === null}
+                                    onChange={() => setChampionshipType(null)}
+                                    className="mt-0.5 h-4 w-4 text-brand-600 border-slate-300 focus:ring-brand-500"
+                                />
+                                <div className="flex-1">
+                                    <span className="text-sm font-medium text-slate-900">Regular Meet</span>
+                                    <p className="text-xs text-slate-500 mt-0.5">Scores can qualify for State</p>
+                                </div>
+                            </label>
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-blue-300 transition-colors">
+                                <input
+                                    type="radio"
+                                    name="championshipType"
+                                    checked={championshipType === 'state'}
+                                    onChange={() => setChampionshipType('state')}
+                                    className="mt-0.5 h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500"
+                                />
+                                <div className="flex-1 flex items-center gap-2">
+                                    <div>
+                                        <span className="text-sm font-medium text-slate-900">State Championship</span>
+                                        <p className="text-xs text-slate-500 mt-0.5">Scores can qualify for Regionals</p>
+                                    </div>
+                                    <Award className="h-4 w-4 text-blue-600 ml-auto" />
+                                </div>
+                            </label>
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-amber-300 transition-colors">
+                                <input
+                                    type="radio"
+                                    name="championshipType"
+                                    checked={championshipType === 'regional'}
+                                    onChange={() => setChampionshipType('regional')}
+                                    className="mt-0.5 h-4 w-4 text-amber-600 border-slate-300 focus:ring-amber-500"
+                                />
+                                <div className="flex-1 flex items-center gap-2">
+                                    <div>
+                                        <span className="text-sm font-medium text-slate-900">Regional Championship</span>
+                                        <p className="text-xs text-slate-500 mt-0.5">Scores can qualify for Nationals</p>
+                                    </div>
+                                    <Trophy className="h-4 w-4 text-amber-600 ml-auto" />
+                                </div>
+                            </label>
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-purple-300 transition-colors">
+                                <input
+                                    type="radio"
+                                    name="championshipType"
+                                    checked={championshipType === 'national'}
+                                    onChange={() => setChampionshipType('national')}
+                                    className="mt-0.5 h-4 w-4 text-purple-600 border-slate-300 focus:ring-purple-500"
+                                />
+                                <div className="flex-1 flex items-center gap-2">
+                                    <div>
+                                        <span className="text-sm font-medium text-slate-900">National Championship</span>
+                                        <p className="text-xs text-slate-500 mt-0.5">No qualification badges shown</p>
+                                    </div>
+                                    <Medal className="h-4 w-4 text-purple-600 ml-auto" />
+                                </div>
+                            </label>
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-slate-400 transition-colors">
+                                <input
+                                    type="radio"
+                                    name="championshipType"
+                                    checked={championshipType === 'unsanctioned'}
+                                    onChange={() => setChampionshipType('unsanctioned')}
+                                    className="mt-0.5 h-4 w-4 text-slate-600 border-slate-300 focus:ring-slate-500"
+                                />
+                                <div className="flex-1 flex items-center gap-2">
+                                    <div>
+                                        <span className="text-sm font-medium text-slate-900">Invitational / Non-Sanctioned</span>
+                                        <p className="text-xs text-slate-500 mt-0.5">Scores don't count toward qualifying</p>
+                                    </div>
+                                    <CalendarOff className="h-4 w-4 text-slate-400 ml-auto" />
+                                </div>
+                            </label>
+                        </div>
                     </div>
 
                     {/* Gymnast Selection */}

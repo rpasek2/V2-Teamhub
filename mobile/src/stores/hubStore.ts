@@ -25,16 +25,37 @@ export interface Hub {
   created_at: string;
 }
 
+// Qualifying Scores Types
+export interface QualifyingScoreThreshold {
+  state?: number;
+  regional?: number;
+  national?: number;
+}
+
+export interface LevelQualifyingScores {
+  all_around?: QualifyingScoreThreshold;
+  individual_event?: QualifyingScoreThreshold;
+}
+
+export interface QualifyingScoresConfig {
+  Female?: Record<string, LevelQualifyingScores>;
+  Male?: Record<string, LevelQualifyingScores>;
+}
+
+export type ChampionshipType = 'state' | 'regional' | 'national' | 'unsanctioned' | null;
+
 export interface HubSettings {
   levels?: string[];
   enabledTabs?: string[];
   permissions?: Record<string, Record<HubRole, 'all' | 'own' | 'none'>>;
   showBirthdays?: boolean;
   anonymous_reports_enabled?: boolean;
+  allowParentToggle?: boolean;
   seasonConfig?: {
     startMonth: number;
     startDay: number;
   };
+  qualifyingScores?: QualifyingScoresConfig;
 }
 
 export interface HubMember {

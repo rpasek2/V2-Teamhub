@@ -34,3 +34,9 @@ dist-ssr
 
 # Claude Code temp files
 tmpclaude-*
+
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.auth/*.json

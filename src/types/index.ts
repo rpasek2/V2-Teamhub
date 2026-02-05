@@ -58,6 +58,40 @@ export interface SeasonConfig {
     startDay: number;     // 1-31 (default: 1)
 }
 
+// Custom skill events configuration per gender
+export interface SkillEvent {
+    id: string;           // Unique identifier (e.g., 'vault', 'bars', 'conditioning', 'flex')
+    label: string;        // Short label (e.g., 'VT', 'UB', 'COND', 'FLEX')
+    fullName: string;     // Full display name (e.g., 'Vault', 'Uneven Bars', 'Conditioning', 'Flexibility')
+}
+
+export interface SkillEventsConfig {
+    Female?: SkillEvent[];
+    Male?: SkillEvent[];
+}
+
+// Qualifying Scores Types
+export interface QualifyingScoreThreshold {
+    state?: number;      // Minimum to qualify for State
+    regional?: number;   // Minimum to qualify for Regionals
+    national?: number;   // Minimum to qualify for Nationals (optional - men's/women's differ)
+}
+
+export interface LevelQualifyingScores {
+    all_around?: QualifyingScoreThreshold;      // AA qualifying scores
+    individual_event?: QualifyingScoreThreshold; // IES - applies to all events
+}
+
+// Keyed by level name (e.g., "Level 10", "Level 9")
+export interface QualifyingScoresConfig {
+    Female?: Record<string, LevelQualifyingScores>;
+    Male?: Record<string, LevelQualifyingScores>;
+}
+
+// Competition championship type - determines which qualifying badges to show
+// null = regular sanctioned meet, 'unsanctioned' = no qualifying badges
+export type ChampionshipType = 'state' | 'regional' | 'national' | 'unsanctioned' | null;
+
 export interface HubSettings {
     permissions?: HubPermissions;
     levels?: string[];
@@ -67,6 +101,8 @@ export interface HubSettings {
     showBirthdays?: boolean;
     anonymous_reports_enabled?: boolean;
     seasonConfig?: SeasonConfig;
+    skillEvents?: SkillEventsConfig;
+    qualifyingScores?: QualifyingScoresConfig;
 }
 
 export interface Hub {
@@ -226,6 +262,7 @@ export interface Competition {
     created_by: string;
     created_at: string;
     season_id: string | null;
+    championship_type: ChampionshipType;
     // Joined data
     season?: Season;
 }
@@ -444,6 +481,39 @@ export const EVENT_FULL_NAMES: Record<GymEvent, string> = {
     pbars: 'Parallel Bars',
     highbar: 'High Bar'
 };
+
+// Default skill events configurations
+export const DEFAULT_WAG_SKILL_EVENTS: SkillEvent[] = [
+    { id: 'vault', label: 'VT', fullName: 'Vault' },
+    { id: 'bars', label: 'UB', fullName: 'Uneven Bars' },
+    { id: 'beam', label: 'BB', fullName: 'Balance Beam' },
+    { id: 'floor', label: 'FX', fullName: 'Floor Exercise' },
+];
+
+export const DEFAULT_MAG_SKILL_EVENTS: SkillEvent[] = [
+    { id: 'floor', label: 'FX', fullName: 'Floor Exercise' },
+    { id: 'pommel', label: 'PH', fullName: 'Pommel Horse' },
+    { id: 'rings', label: 'SR', fullName: 'Still Rings' },
+    { id: 'vault', label: 'VT', fullName: 'Vault' },
+    { id: 'pbars', label: 'PB', fullName: 'Parallel Bars' },
+    { id: 'highbar', label: 'HB', fullName: 'High Bar' },
+];
+
+// Predefined event options for adding to skill tracking
+export const PREDEFINED_SKILL_EVENTS: SkillEvent[] = [
+    { id: 'vault', label: 'VT', fullName: 'Vault' },
+    { id: 'bars', label: 'UB', fullName: 'Uneven Bars' },
+    { id: 'beam', label: 'BB', fullName: 'Balance Beam' },
+    { id: 'floor', label: 'FX', fullName: 'Floor Exercise' },
+    { id: 'pommel', label: 'PH', fullName: 'Pommel Horse' },
+    { id: 'rings', label: 'SR', fullName: 'Still Rings' },
+    { id: 'pbars', label: 'PB', fullName: 'Parallel Bars' },
+    { id: 'highbar', label: 'HB', fullName: 'High Bar' },
+    { id: 'conditioning', label: 'COND', fullName: 'Conditioning' },
+    { id: 'flexibility', label: 'FLEX', fullName: 'Flexibility' },
+    { id: 'trampoline', label: 'TRA', fullName: 'Trampoline' },
+    { id: 'tumbling', label: 'TUM', fullName: 'Tumbling' },
+];
 
 export interface CompetitionScore {
     id: string;
