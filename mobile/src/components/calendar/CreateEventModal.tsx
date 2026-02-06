@@ -12,7 +12,7 @@ import {
   Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { X, MapPin, AlignLeft, Users, AlertCircle } from 'lucide-react-native';
+import { X, MapPin, AlignLeft, Users, AlertCircle, Star } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors, theme } from '../../constants/colors';
 import { supabase } from '../../services/supabase';
@@ -30,11 +30,18 @@ interface CreateEventModalProps {
 const EVENT_TYPES = [
   { value: 'practice', label: 'Practice', icon: '🏋️', color: colors.blue[100], textColor: colors.blue[700] },
   { value: 'competition', label: 'Comp', icon: '🏆', color: colors.purple[100], textColor: colors.purple[700] },
+  { value: 'mentorship', label: 'Mentor', icon: '💕', color: colors.pink[100], textColor: colors.pink[700] },
+  { value: 'camp', label: 'Camp', icon: '🏕️', color: colors.emerald[100], textColor: colors.emerald[700] },
+  { value: 'clinic', label: 'Clinic', icon: '🎯', color: colors.indigo[100], textColor: colors.indigo[700] },
   { value: 'meeting', label: 'Meeting', icon: '👥', color: colors.amber[100], textColor: colors.amber[700] },
   { value: 'social', label: 'Social', icon: '🎉', color: colors.emerald[100], textColor: colors.emerald[700] },
-  { value: 'camp', label: 'Camp', icon: '🏕️', color: colors.emerald[100], textColor: colors.emerald[700] },
+  { value: 'private_lesson', label: 'Private', icon: '👤', color: colors.violet[100], textColor: colors.violet[700] },
+  { value: 'fundraiser', label: 'Fundraise', icon: '💰', color: colors.orange[100], textColor: colors.orange[700] },
   { value: 'other', label: 'Other', icon: '📌', color: colors.slate[100], textColor: colors.slate[700] },
 ];
+
+// Types that are automatically "save the date" events
+const SAVE_THE_DATE_TYPES = ['competition', 'mentorship', 'camp'];
 
 export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate }: CreateEventModalProps) {
   const { currentHub } = useHubStore();
@@ -47,6 +54,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
   const [location, setLocation] = useState('');
   const [eventType, setEventType] = useState('practice');
   const [rsvpEnabled, setRsvpEnabled] = useState(true);
+  const [isSaveTheDate, setIsSaveTheDate] = useState(false);
 
   const [startDate, setStartDate] = useState(initialDate || new Date());
   const [endDate, setEndDate] = useState(initialDate || new Date());
@@ -69,6 +77,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
       setLocation('');
       setEventType('practice');
       setRsvpEnabled(true);
+      setIsSaveTheDate(false);
       setStartDate(start);
       setEndDate(end);
       setError(null);
@@ -119,6 +128,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
           location: location || null,
           type: eventType,
           rsvp_enabled: rsvpEnabled,
+          is_save_the_date: isSaveTheDate || SAVE_THE_DATE_TYPES.includes(eventType),
           created_by: user.id,
         });
 
@@ -207,7 +217,11 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                   styles.typeButton,
                   eventType === type.value && { backgroundColor: type.color, borderColor: type.textColor },
                 ]}
-                onPress={() => setEventType(type.value)}
+                onPress={() => {
+                  setEventType(type.value);
+                  // Auto-enable save the date for competition, mentorship, camp
+                  setIsSaveTheDate(SAVE_THE_DATE_TYPES.includes(type.value));
+                }}
               >
                 <Text style={styles.typeIcon}>{type.icon}</Text>
                 <Text style={[
@@ -347,6 +361,31 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
             />
           </View>
 
+          {/* Save the Date Toggle */}
+          <View style={styles.toggleContainer}>
+            <View style={styles.toggleInfo}>
+              <View style={[styles.toggleIcon, { backgroundColor: colors.amber[50] }]}>
+                <Star size={20} color={colors.amber[500]} />
+              </View>
+              <View>
+                <Text style={styles.toggleTitle}>Save the Date</Text>
+                <Text style={styles.toggleSubtitle}>Include in important events list</Text>
+              </View>
+            </View>
+            <Switch
+              value={isSaveTheDate || SAVE_THE_DATE_TYPES.includes(eventType)}
+              onValueChange={setIsSaveTheDate}
+              disabled={SAVE_THE_DATE_TYPES.includes(eventType)}
+              trackColor={{ false: colors.slate[200], true: colors.amber[500] }}
+              thumbColor={colors.white}
+            />
+          </View>
+          {SAVE_THE_DATE_TYPES.includes(eventType) && (
+            <Text style={styles.saveTheDateNote}>
+              Competitions, mentorship, and camp events are automatically included.
+            </Text>
+          )}
+
           {/* Competition Warning */}
           {eventType === 'competition' && (
             <View style={styles.warningContainer}>
@@ -445,11 +484,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   typeButton: {
-    width: '31%',
+    width: '19%',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: colors.slate[200],
     backgroundColor: colors.white,
@@ -558,6 +597,12 @@ const styles = StyleSheet.create({
   warningText: {
     fontSize: 13,
     color: colors.purple[700],
+  },
+  saveTheDateNote: {
+    fontSize: 12,
+    color: colors.slate[500],
+    marginTop: 4,
+    marginLeft: 4,
   },
   footer: {
     flexDirection: 'row',

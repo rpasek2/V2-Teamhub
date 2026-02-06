@@ -27,6 +27,8 @@ interface CalendarEvent {
   location: string | null;
   description: string | null;
   rsvp_enabled?: boolean;
+  is_all_day?: boolean;
+  is_save_the_date?: boolean;
 }
 
 interface Birthday {
@@ -194,7 +196,7 @@ export default function CalendarScreen() {
 
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, type, start_time, end_time, location, description, rsvp_enabled')
+        .select('id, title, type, start_time, end_time, location, description, rsvp_enabled, is_all_day, is_save_the_date')
         .eq('hub_id', currentHub.id)
         .gte('start_time', monthStart.toISOString())
         .lte('start_time', monthEnd.toISOString())
@@ -406,6 +408,9 @@ export default function CalendarScreen() {
 
   const formatEventTime = (event: CalendarEvent) => {
     try {
+      if (event.is_all_day) {
+        return 'All Day';
+      }
       const start = format(parseISO(event.start_time), 'h:mm a');
       const end = format(parseISO(event.end_time), 'h:mm a');
       return `${start} - ${end}`;
