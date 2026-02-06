@@ -46,7 +46,7 @@ function useIsMobile() {
 }
 
 type ViewType = 'month' | 'week' | 'agenda';
-type EventType = 'all' | 'practice' | 'competition' | 'mentorship' | 'meeting' | 'social' | 'other' | 'private_lesson';
+type EventType = 'all' | 'practice' | 'competition' | 'mentorship' | 'meeting' | 'social' | 'private_lesson' | 'camp' | 'clinic' | 'fundraiser' | 'other';
 
 const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
     practice: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
@@ -55,6 +55,9 @@ const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string 
     meeting: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
     social: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
     private_lesson: { bg: 'bg-violet-100', text: 'text-violet-700', dot: 'bg-violet-500' },
+    camp: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
+    clinic: { bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500' },
+    fundraiser: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' },
     other: { bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-500' }
 };
 
@@ -126,7 +129,7 @@ function getUSHolidays(year: number): Map<string, Holiday> {
     addHoliday(new Date(year, 11, 24), "Christmas Eve", '🎅', 'bg-red-50', 'text-red-700');
 
     // Floating holidays
-    addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", '✊', 'bg-slate-100', 'text-slate-700');
+    addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", '✊🏿', 'bg-slate-100', 'text-slate-700');
     addHoliday(getNthWeekdayOfMonth(year, 1, 1, 3), "Presidents' Day", '🏛️', 'bg-blue-50', 'text-blue-700');
     addHoliday(getNthWeekdayOfMonth(year, 4, 0, 2), "Mother's Day", '💐', 'bg-pink-50', 'text-pink-700');
     addHoliday(getLastWeekdayOfMonth(year, 4, 1), "Memorial Day", '🇺🇸', 'bg-red-50', 'text-red-700');
@@ -140,7 +143,7 @@ function getUSHolidays(year: number): Map<string, Holiday> {
     addHoliday(easter, "Easter Sunday", '🐰', 'bg-pink-50', 'text-pink-700');
 
     // Juneteenth
-    addHoliday(new Date(year, 5, 19), "Juneteenth", '✊', 'bg-red-50', 'text-red-700');
+    addHoliday(new Date(year, 5, 19), "Juneteenth", '✊🏿', 'bg-red-50', 'text-red-700');
 
     return holidays;
 }
@@ -253,18 +256,19 @@ export function Calendar() {
             });
 
             // Filter gymnasts based on parent privacy settings
+            // Default: show birthdays unless parent explicitly opts out
             const birthdayData: Birthday[] = gymnasts
                 .filter(g => {
                     // Get the guardian's email
                     const guardianEmail = g.guardian_1?.email?.toLowerCase();
-                    if (!guardianEmail) return false; // No guardian email, can't verify privacy
+                    if (!guardianEmail) return true; // No guardian email linked, show by default
 
                     // Find the parent's user_id
                     const parentUserId = emailToUserId.get(guardianEmail);
-                    if (!parentUserId) return false; // Parent not found in hub, don't show
+                    if (!parentUserId) return true; // Parent not in hub as member, show by default
 
-                    // Check privacy settings (default to false if no settings exist)
-                    const showBirthday = userPrivacyMap.get(parentUserId) ?? false;
+                    // Check privacy settings (default to true - show unless explicitly hidden)
+                    const showBirthday = userPrivacyMap.get(parentUserId) ?? true;
                     return showBirthday;
                 })
                 .map(g => ({
@@ -486,7 +490,7 @@ export function Calendar() {
                             <>
                                 <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
                                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-20">
-                                    {['all', 'practice', 'competition', 'meeting', 'social', 'private_lesson', 'other'].map((type) => (
+                                    {['all', 'practice', 'competition', 'mentorship', 'meeting', 'social', 'private_lesson', 'camp', 'clinic', 'fundraiser', 'other'].map((type) => (
                                         <button
                                             key={type}
                                             onClick={() => {
@@ -501,7 +505,7 @@ export function Calendar() {
                                             {type !== 'all' && (
                                                 <span className={cn("w-2 h-2 rounded-full", EVENT_TYPE_COLORS[type]?.dot || 'bg-slate-400')} />
                                             )}
-                                            <span className="capitalize">{type === 'all' ? 'All Types' : type === 'private_lesson' ? 'Private Lessons' : type}</span>
+                                            <span className="capitalize">{type === 'all' ? 'All Types' : type.replace('_', ' ')}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -649,24 +653,26 @@ export function Calendar() {
                                                 )}
                                             </div>
                                         )}
+                                        {/* Desktop: Show holiday name in top right */}
+                                        {!isMobile && holiday && (
+                                            <div className={cn(
+                                                "flex items-center gap-1 text-[10px] sm:text-xs font-semibold truncate max-w-[60%]",
+                                                holiday.textColor
+                                            )}>
+                                                <span>{holiday.emoji}</span>
+                                                <span className="truncate">{holiday.name}</span>
+                                            </div>
+                                        )}
                                         {/* Desktop: Show overflow count */}
-                                        {!isMobile && dayEvents.length > (holiday ? 2 : 3) && (
-                                            <span className="text-xs text-slate-500 font-medium">
-                                                +{dayEvents.length - (holiday ? 2 : 3)}
+                                        {!isMobile && dayEvents.length > 3 && (
+                                            <span className={cn(
+                                                "text-xs font-medium",
+                                                holiday ? holiday.textColor : "text-slate-500"
+                                            )}>
+                                                +{dayEvents.length - 3}
                                             </span>
                                         )}
                                     </div>
-
-                                    {/* Desktop: Show holiday banner */}
-                                    {!isMobile && holiday && (
-                                        <div className={cn(
-                                            "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-semibold mb-1 truncate",
-                                            holiday.textColor
-                                        )}>
-                                            <span>{holiday.emoji}</span>
-                                            <span className="truncate">{holiday.name}</span>
-                                        </div>
-                                    )}
 
                                     {/* Desktop: Show birthday banners */}
                                     {!isMobile && hasBirthday && (
@@ -692,7 +698,7 @@ export function Calendar() {
                                     {/* Desktop: Show event cards */}
                                     {!isMobile && (
                                         <div className="space-y-1 overflow-hidden relative z-10">
-                                            {dayEvents.slice(0, holiday ? 2 : 3).map((event) => {
+                                            {dayEvents.slice(0, 3).map((event) => {
                                                 const colors = getEventColors(event.type);
                                                 return (
                                                     <button
@@ -708,7 +714,7 @@ export function Calendar() {
                                                             colors.text
                                                         )}
                                                     >
-                                                        <span className="hidden sm:inline">{format(parseISO(event.start_time), 'h:mma')} </span>
+                                                        <span className="hidden sm:inline">{event.is_all_day ? 'All Day' : format(parseISO(event.start_time), 'h:mma')} </span>
                                                         {event.title}
                                                     </button>
                                                 );
@@ -797,7 +803,7 @@ export function Calendar() {
                                                         <p className="font-medium text-slate-900 text-sm truncate">{event.title}</p>
                                                         <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
                                                             <Clock className="h-3 w-3" />
-                                                            <span>{format(parseISO(event.start_time), 'h:mm a')}</span>
+                                                            <span>{event.is_all_day ? 'All Day' : format(parseISO(event.start_time), 'h:mm a')}</span>
                                                             {event.location && (
                                                                 <>
                                                                     <MapPin className="h-3 w-3 ml-2" />
@@ -891,7 +897,7 @@ export function Calendar() {
                                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
-                                                        {format(parseISO(event.start_time), 'h:mm a')} - {format(parseISO(event.end_time), 'h:mm a')}
+                                                        {event.is_all_day ? 'All Day' : `${format(parseISO(event.start_time), 'h:mm a')} - ${format(parseISO(event.end_time), 'h:mm a')}`}
                                                     </span>
                                                     {event.location && (
                                                         <span className="flex items-center gap-1">

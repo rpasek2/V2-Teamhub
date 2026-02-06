@@ -287,6 +287,7 @@ export interface Event {
     location: string | null;
     type: 'practice' | 'competition' | 'meeting' | 'social' | 'other' | 'camp' | 'fundraiser' | 'private_lesson';
     rsvp_enabled: boolean;
+    is_all_day: boolean;
     created_by: string;
     created_at: string;
 }

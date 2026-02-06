@@ -187,9 +187,10 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                 if (rosterError) throw rosterError;
             }
 
-            // 3. Auto-create calendar event for the competition
-            const startDateTime = new Date(`${formData.startDate}T09:00:00`);
-            const endDateTime = new Date(`${formData.endDate}T17:00:00`);
+            // 3. Auto-create calendar event for the competition (all-day event)
+            // Use midnight on start date and end of day on end date for all-day events
+            const startDateTime = new Date(`${formData.startDate}T00:00:00`);
+            const endDateTime = new Date(`${formData.endDate}T23:59:59`);
 
             const { error: eventError } = await supabase
                 .from('events')
@@ -202,6 +203,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                     location: formData.location || null,
                     type: 'competition',
                     rsvp_enabled: true,
+                    is_all_day: true,
                     created_by: user.id
                 });
 
