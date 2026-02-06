@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Calendar, MapPin, AlignLeft, Users, X, Trophy, HeartHandshake } from 'lucide-react';
+import { Loader2, AlertCircle, Calendar, MapPin, AlignLeft, Users, X, Trophy, HeartHandshake, Star } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { supabase } from '../../lib/supabase';
@@ -17,8 +17,12 @@ const EVENT_TYPES = [
     { value: 'practice', label: 'Practice', icon: '🏋️', color: 'bg-blue-100 border-blue-300 text-blue-700' },
     { value: 'competition', label: 'Comp', icon: '🏆', color: 'bg-purple-100 border-purple-300 text-purple-700' },
     { value: 'mentorship', label: 'Mentor', icon: '💕', color: 'bg-pink-100 border-pink-300 text-pink-700' },
+    { value: 'camp', label: 'Camp', icon: '🏕️', color: 'bg-emerald-100 border-emerald-300 text-emerald-700' },
+    { value: 'clinic', label: 'Clinic', icon: '🎯', color: 'bg-indigo-100 border-indigo-300 text-indigo-700' },
     { value: 'meeting', label: 'Meeting', icon: '👥', color: 'bg-amber-100 border-amber-300 text-amber-700' },
     { value: 'social', label: 'Social', icon: '🎉', color: 'bg-green-100 border-green-300 text-green-700' },
+    { value: 'private_lesson', label: 'Private', icon: '👤', color: 'bg-violet-100 border-violet-300 text-violet-700' },
+    { value: 'fundraiser', label: 'Fundraise', icon: '💰', color: 'bg-orange-100 border-orange-300 text-orange-700' },
     { value: 'other', label: 'Other', icon: '📌', color: 'bg-slate-100 border-slate-300 text-slate-700' },
 ];
 
@@ -42,8 +46,12 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
         endTime: '10:00',
         location: '',
         type: 'practice',
-        rsvpEnabled: true
+        rsvpEnabled: true,
+        isSaveTheDate: false
     });
+
+    // Types that are automatically considered "save the date" events
+    const SAVE_THE_DATE_TYPES = ['competition', 'mentorship', 'camp'];
 
     // Update dates when initialDate changes
     useEffect(() => {
@@ -70,7 +78,8 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                 endTime: '10:00',
                 location: '',
                 type: 'practice',
-                rsvpEnabled: true
+                rsvpEnabled: true,
+                isSaveTheDate: false
             });
             setError(null);
         }
@@ -136,6 +145,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                     location: formData.location || null,
                     type: formData.type,
                     rsvp_enabled: formData.rsvpEnabled,
+                    is_save_the_date: formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type),
                     created_by: user.id
                 });
 
@@ -207,12 +217,17 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                             <label className="block text-sm font-medium text-slate-700 mb-2">
                                 Event Type
                             </label>
-                            <div className="grid grid-cols-6 gap-1.5">
+                            <div className="grid grid-cols-5 gap-1.5">
                                 {EVENT_TYPES.map((type) => (
                                     <button
                                         key={type.value}
                                         type="button"
-                                        onClick={() => setFormData({ ...formData, type: type.value })}
+                                        onClick={() => setFormData({
+                                            ...formData,
+                                            type: type.value,
+                                            // Auto-enable save the date for competition, mentorship, camp
+                                            isSaveTheDate: SAVE_THE_DATE_TYPES.includes(type.value)
+                                        })}
                                         className={`flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg border-2 transition-all aspect-square ${
                                             formData.type === type.value
                                                 ? type.color + ' border-current shadow-sm'
@@ -227,7 +242,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
                             {/* Competition Warning */}
                             {formData.type === 'competition' && (
-                                <div className="col-span-6 flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl mt-2">
+                                <div className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl mt-2">
                                     <Trophy className="h-4 w-4 text-purple-600 flex-shrink-0 mt-0.5" />
                                     <p className="text-xs text-purple-700">
                                         This will also create a competition in the Competitions tab.
@@ -237,7 +252,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
                             {/* Mentorship Info */}
                             {formData.type === 'mentorship' && (
-                                <div className="col-span-6 flex items-start gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl mt-2">
+                                <div className="flex items-start gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl mt-2">
                                     <HeartHandshake className="h-4 w-4 text-pink-600 flex-shrink-0 mt-0.5" />
                                     <p className="text-xs text-pink-700">
                                         This will also appear in the Mentorship tab.
@@ -394,6 +409,40 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                 />
                             </button>
                         </div>
+
+                        {/* Save the Date Toggle */}
+                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white rounded-lg shadow-sm">
+                                    <Star className="h-5 w-5 text-amber-500" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900">Save the Date</p>
+                                    <p className="text-xs text-slate-500">Include in season's important events list</p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type)}
+                                onClick={() => setFormData({ ...formData, isSaveTheDate: !formData.isSaveTheDate })}
+                                disabled={SAVE_THE_DATE_TYPES.includes(formData.type)}
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    (formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type)) ? 'bg-amber-500' : 'bg-slate-200'
+                                }`}
+                            >
+                                <span
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                        (formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type)) ? 'translate-x-5' : 'translate-x-0'
+                                    }`}
+                                />
+                            </button>
+                        </div>
+                        {SAVE_THE_DATE_TYPES.includes(formData.type) && (
+                            <p className="text-xs text-slate-500 -mt-3 ml-1">
+                                Competitions, mentorship, and camp events are automatically included.
+                            </p>
+                        )}
                     </div>
 
                     {/* Footer Actions */}

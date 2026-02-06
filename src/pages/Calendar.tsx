@@ -182,6 +182,11 @@ export function Calendar() {
     const [view, setView] = useState<ViewType>('month');
     const [filterType, setFilterType] = useState<EventType>('all');
     const [showFilter, setShowFilter] = useState(false);
+    // Agenda view mode: 'upcoming' shows current month events, 'save_the_dates' shows season-wide important events
+    const [agendaMode, setAgendaMode] = useState<'upcoming' | 'save_the_dates'>('upcoming');
+    const [saveTheDateEvents, setSaveTheDateEvents] = useState<Event[]>([]);
+    const [currentSeason, setCurrentSeason] = useState<{ id: string; name: string; start_date: string; end_date: string } | null>(null);
+    const [loadingSaveTheDates, setLoadingSaveTheDates] = useState(false);
 
     // Permission check - admins, directors, owners, and coaches can add events
     const canAddEvents = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
@@ -284,6 +289,64 @@ export function Calendar() {
             setBirthdays([]);
         }
     };
+
+    // Fetch current season for the hub
+    const fetchCurrentSeason = async () => {
+        if (!hub) return;
+        try {
+            const { data, error } = await supabase
+                .from('seasons')
+                .select('id, name, start_date, end_date')
+                .eq('hub_id', hub.id)
+                .eq('is_current', true)
+                .single();
+
+            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
+            setCurrentSeason(data || null);
+        } catch (err) {
+            console.error('Error fetching current season:', err);
+        }
+    };
+
+    // Fetch "Save the Date" events for the entire season
+    // Includes: events marked as is_save_the_date OR type is competition/mentorship/camp
+    const fetchSaveTheDateEvents = async () => {
+        if (!hub || !currentSeason) return;
+        setLoadingSaveTheDates(true);
+        try {
+            // Query events within the season date range that are either:
+            // - explicitly marked as save_the_date
+            // - OR are of type competition, mentorship, or camp
+            const { data, error } = await supabase
+                .from('events')
+                .select('*')
+                .eq('hub_id', hub.id)
+                .gte('start_time', `${currentSeason.start_date}T00:00:00`)
+                .lte('start_time', `${currentSeason.end_date}T23:59:59`)
+                .or('is_save_the_date.eq.true,type.eq.competition,type.eq.mentorship,type.eq.camp')
+                .order('start_time', { ascending: true });
+
+            if (error) throw error;
+            setSaveTheDateEvents(data || []);
+        } catch (err) {
+            console.error('Error fetching save the date events:', err);
+        } finally {
+            setLoadingSaveTheDates(false);
+        }
+    };
+
+    useEffect(() => {
+        if (hub) {
+            fetchCurrentSeason();
+        }
+    }, [hub]);
+
+    // Fetch save-the-date events when season is loaded and agenda mode changes
+    useEffect(() => {
+        if (hub && currentSeason && agendaMode === 'save_the_dates') {
+            fetchSaveTheDateEvents();
+        }
+    }, [hub, currentSeason, agendaMode]);
 
     useEffect(() => {
         if (hub) {
@@ -844,14 +907,50 @@ export function Calendar() {
                 /* Agenda View */
                 <div className="flex-1 overflow-y-auto bg-slate-50">
                     <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6">
-                        {loading ? (
+                        {/* Agenda Mode Toggle */}
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex rounded-lg bg-white border border-slate-200 p-1 shadow-sm">
+                                <button
+                                    type="button"
+                                    onClick={() => setAgendaMode('upcoming')}
+                                    className={cn(
+                                        "px-4 py-2 rounded-md text-sm font-medium transition-all",
+                                        agendaMode === 'upcoming'
+                                            ? 'bg-mint-500 text-white shadow-sm'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    )}
+                                >
+                                    Upcoming
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setAgendaMode('save_the_dates')}
+                                    className={cn(
+                                        "px-4 py-2 rounded-md text-sm font-medium transition-all",
+                                        agendaMode === 'save_the_dates'
+                                            ? 'bg-mint-500 text-white shadow-sm'
+                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    )}
+                                >
+                                    Save the Dates
+                                </button>
+                            </div>
+                            {agendaMode === 'save_the_dates' && currentSeason && (
+                                <span className="text-sm text-slate-500">
+                                    {currentSeason.name}
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Event List */}
+                        {(agendaMode === 'upcoming' ? loading : loadingSaveTheDates) ? (
                             <div className="text-center py-12">
                                 <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-mint-500 border-r-transparent"></div>
                                 <p className="mt-4 text-sm text-slate-500">Loading events...</p>
                             </div>
-                        ) : filteredEvents.length > 0 ? (
+                        ) : (agendaMode === 'upcoming' ? filteredEvents : saveTheDateEvents).length > 0 ? (
                             <div className="space-y-4">
-                                {filteredEvents.map((event) => {
+                                {(agendaMode === 'upcoming' ? filteredEvents : saveTheDateEvents).map((event) => {
                                     const colors = getEventColors(event.type);
                                     return (
                                         <div
@@ -925,14 +1024,20 @@ export function Calendar() {
                                 <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
                                     <CalendarIcon className="h-8 w-8 text-slate-400" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-slate-900">No events</h3>
+                                <h3 className="text-lg font-semibold text-slate-900">
+                                    {agendaMode === 'save_the_dates' ? 'No save the dates' : 'No events'}
+                                </h3>
                                 <p className="mt-1 text-sm text-slate-500">
-                                    {filterType !== 'all'
-                                        ? `No ${filterType} events scheduled.`
-                                        : `No upcoming events scheduled.`
+                                    {agendaMode === 'save_the_dates'
+                                        ? (!currentSeason
+                                            ? 'No current season is set. Please set a current season in Settings.'
+                                            : 'No competitions, mentorship events, or flagged events for this season.')
+                                        : (filterType !== 'all'
+                                            ? `No ${filterType} events scheduled.`
+                                            : `No upcoming events scheduled.`)
                                     }
                                 </p>
-                                {canAddEvents && (
+                                {canAddEvents && agendaMode === 'upcoming' && (
                                     <button
                                         onClick={() => setIsCreateModalOpen(true)}
                                         className="btn-primary mt-4"

@@ -285,9 +285,10 @@ export interface Event {
     start_time: string;
     end_time: string;
     location: string | null;
-    type: 'practice' | 'competition' | 'meeting' | 'social' | 'other' | 'camp' | 'fundraiser' | 'private_lesson';
+    type: 'practice' | 'competition' | 'meeting' | 'social' | 'other' | 'camp' | 'fundraiser' | 'private_lesson' | 'mentorship' | 'clinic';
     rsvp_enabled: boolean;
     is_all_day: boolean;
+    is_save_the_date: boolean;
     created_by: string;
     created_at: string;
 }
