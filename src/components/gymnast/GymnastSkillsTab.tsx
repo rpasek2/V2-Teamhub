@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, MessageSquare, Check, X, Edit3 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
-import type { HubEventSkill, GymnastSkill, GymEvent, SkillStatus } from '../../types';
-import { WAG_EVENTS, MAG_EVENTS, EVENT_FULL_NAMES, SKILL_STATUS_CONFIG } from '../../types';
+import { useAuth } from '../../context/AuthContext';
+import { useRoleChecks } from '../../hooks/useRoleChecks';
+import type { HubEventSkill, GymnastSkill, SkillStatus, SkillEvent, GymnastEventComment } from '../../types';
+import { DEFAULT_WAG_SKILL_EVENTS, DEFAULT_MAG_SKILL_EVENTS, SKILL_STATUS_CONFIG } from '../../types';
 
 interface GymnastSkillsTabProps {
     gymnastId: string;
@@ -18,17 +20,31 @@ interface SkillWithStatus extends HubEventSkill {
 
 export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: GymnastSkillsTabProps) {
     const { hub } = useHub();
-    const [selectedEvent, setSelectedEvent] = useState<GymEvent | null>(null);
+    const { user } = useAuth();
+    const { isStaff } = useRoleChecks();
+    const [selectedEvent, setSelectedEvent] = useState<string | null>(null);
     const [skills, setSkills] = useState<HubEventSkill[]>([]);
     const [gymnastSkills, setGymnastSkills] = useState<GymnastSkill[]>([]);
+    const [eventComment, setEventComment] = useState<GymnastEventComment | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isEditingComment, setIsEditingComment] = useState(false);
+    const [editingCommentText, setEditingCommentText] = useState('');
 
-    const events = gymnastGender === 'Male' ? MAG_EVENTS : WAG_EVENTS;
+    // Get events from hub settings or use defaults
+    const getEventsForGender = (gender: 'Female' | 'Male'): SkillEvent[] => {
+        const customEvents = hub?.settings?.skillEvents?.[gender];
+        if (customEvents && customEvents.length > 0) {
+            return customEvents;
+        }
+        return gender === 'Female' ? DEFAULT_WAG_SKILL_EVENTS : DEFAULT_MAG_SKILL_EVENTS;
+    };
+
+    const events = getEventsForGender((gymnastGender || 'Female') as 'Female' | 'Male');
 
     // Set default event on mount
     useEffect(() => {
         if (events.length > 0 && !selectedEvent) {
-            setSelectedEvent(events[0]);
+            setSelectedEvent(events[0].id);
         }
     }, [events, selectedEvent]);
 
@@ -45,6 +61,13 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
             fetchGymnastSkills();
         }
     }, [gymnastId, skills]);
+
+    // Fetch event comment when event changes
+    useEffect(() => {
+        if (hub && gymnastId && selectedEvent) {
+            fetchEventComment();
+        }
+    }, [hub, gymnastId, selectedEvent]);
 
     const fetchSkills = async () => {
         if (!hub || !gymnastLevel || !selectedEvent) return;
@@ -85,6 +108,74 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
         }
     };
 
+    const fetchEventComment = async () => {
+        if (!hub || !gymnastId || !selectedEvent) return;
+
+        const { data, error } = await supabase
+            .from('gymnast_event_comments')
+            .select('*')
+            .eq('hub_id', hub.id)
+            .eq('gymnast_profile_id', gymnastId)
+            .eq('event', selectedEvent)
+            .maybeSingle();
+
+        if (error) {
+            console.error('Error fetching event comment:', error);
+        } else {
+            setEventComment(data);
+        }
+    };
+
+    const startEditingComment = () => {
+        setIsEditingComment(true);
+        setEditingCommentText(eventComment?.comment || '');
+    };
+
+    const cancelEditingComment = () => {
+        setIsEditingComment(false);
+        setEditingCommentText('');
+    };
+
+    const saveComment = async () => {
+        if (!hub || !gymnastId || !selectedEvent || !user) return;
+
+        if (eventComment) {
+            // Update existing
+            const { error } = await supabase
+                .from('gymnast_event_comments')
+                .update({
+                    comment: editingCommentText || null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', eventComment.id);
+
+            if (error) {
+                console.error('Error updating comment:', error);
+                return;
+            }
+        } else if (editingCommentText.trim()) {
+            // Insert new
+            const { error } = await supabase
+                .from('gymnast_event_comments')
+                .insert({
+                    gymnast_profile_id: gymnastId,
+                    hub_id: hub.id,
+                    event: selectedEvent,
+                    comment: editingCommentText,
+                    created_by: user.id
+                });
+
+            if (error) {
+                console.error('Error inserting comment:', error);
+                return;
+            }
+        }
+
+        setIsEditingComment(false);
+        setEditingCommentText('');
+        fetchEventComment();
+    };
+
     // Combine skills with their status
     const skillsWithStatus: SkillWithStatus[] = skills.map(skill => {
         const gymnastSkill = gymnastSkills.find(gs => gs.hub_event_skill_id === skill.id);
@@ -121,15 +212,15 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
             <div className="flex flex-wrap gap-2">
                 {events.map((event) => (
                     <button
-                        key={event}
-                        onClick={() => setSelectedEvent(event)}
+                        key={event.id}
+                        onClick={() => setSelectedEvent(event.id)}
                         className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                            selectedEvent === event
+                            selectedEvent === event.id
                                 ? 'bg-brand-500 text-white'
                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                         }`}
                     >
-                        {EVENT_FULL_NAMES[event]}
+                        {event.fullName}
                     </button>
                 ))}
             </div>
@@ -146,11 +237,62 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
                         No skills defined
                     </h3>
                     <p className="mt-2 text-sm text-slate-500">
-                        No skills have been added for {EVENT_FULL_NAMES[selectedEvent!]} at {gymnastLevel} yet.
+                        No skills have been added for {events.find(e => e.id === selectedEvent)?.fullName || selectedEvent} at {gymnastLevel} yet.
                     </p>
                 </div>
             ) : (
                 <>
+                    {/* Coach Notes Section */}
+                    <div className="card p-4">
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <MessageSquare className="h-4 w-4 text-slate-400" />
+                                <h4 className="text-sm font-medium text-slate-700">Coach Notes</h4>
+                            </div>
+                            {isStaff && !isEditingComment && (
+                                <button
+                                    onClick={startEditingComment}
+                                    className="flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700"
+                                >
+                                    <Edit3 className="h-3 w-3" />
+                                    {eventComment?.comment ? 'Edit' : 'Add'}
+                                </button>
+                            )}
+                        </div>
+
+                        {isEditingComment ? (
+                            <div className="space-y-2">
+                                <textarea
+                                    value={editingCommentText}
+                                    onChange={(e) => setEditingCommentText(e.target.value)}
+                                    className="w-full min-h-[80px] rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none"
+                                    placeholder={`Add notes about progress on ${events.find(e => e.id === selectedEvent)?.fullName || selectedEvent}...`}
+                                    autoFocus
+                                />
+                                <div className="flex items-center gap-2 justify-end">
+                                    <button
+                                        onClick={cancelEditingComment}
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100"
+                                    >
+                                        <X className="h-4 w-4" />
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={saveComment}
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium bg-brand-500 text-white hover:bg-brand-600"
+                                    >
+                                        <Check className="h-4 w-4" />
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <p className={`text-sm ${eventComment?.comment ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                                {eventComment?.comment || 'No notes yet for this event.'}
+                            </p>
+                        )}
+                    </div>
+
                     {/* Status Summary */}
                     <div className="flex flex-wrap gap-3">
                         {Object.entries(SKILL_STATUS_CONFIG).map(([status, config]) => {
@@ -203,7 +345,7 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
 
                     {/* Footer */}
                     <p className="text-xs text-slate-500 text-center">
-                        {skills.length} skill{skills.length !== 1 ? 's' : ''} for {EVENT_FULL_NAMES[selectedEvent!]}
+                        {skills.length} skill{skills.length !== 1 ? 's' : ''} for {events.find(e => e.id === selectedEvent)?.fullName || selectedEvent}
                     </p>
                 </>
             )}

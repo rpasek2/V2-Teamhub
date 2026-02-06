@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trophy, MapPin, Calendar, Trash2, Loader2, ExternalLink } from 'lucide-react';
+import { Plus, Trophy, MapPin, Calendar, Trash2, Loader2, ExternalLink, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useNotifications } from '../../context/NotificationContext';
@@ -9,6 +9,23 @@ import { useRoleChecks } from '../../hooks/useRoleChecks';
 import { CreateCompetitionModal } from '../../components/competitions/CreateCompetitionModal';
 import { SeasonPicker } from '../../components/ui/SeasonPicker';
 import type { Competition as BaseCompetition, Season } from '../../types';
+
+// Helper to determine competition status
+type CompetitionStatus = 'past' | 'active' | 'upcoming';
+
+const getCompetitionStatus = (startDate: string, endDate: string): CompetitionStatus => {
+    const now = new Date();
+    const start = startOfDay(parseISO(startDate));
+    const end = endOfDay(parseISO(endDate));
+
+    if (isAfter(now, end)) {
+        return 'past';
+    } else if (isBefore(now, start)) {
+        return 'upcoming';
+    } else {
+        return 'active';
+    }
+};
 
 // Helper function to create Google Maps URL from location
 const getGoogleMapsUrl = (location: string): string => {
@@ -131,10 +148,21 @@ export function Competitions() {
                     </div>
                 ) : competitions.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        {competitions.map((comp) => (
+                        {competitions.map((comp) => {
+                            const status = getCompetitionStatus(comp.start_date, comp.end_date);
+                            const isPast = status === 'past';
+                            const isActive = status === 'active';
+
+                            return (
                             <div
                                 key={comp.id}
-                                className="group relative flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition-all hover:shadow-md hover:border-brand-300"
+                                className={`group relative flex flex-col overflow-hidden rounded-xl border shadow-sm transition-all ${
+                                    isPast
+                                        ? 'border-slate-200 bg-slate-50 opacity-70'
+                                        : isActive
+                                            ? 'border-green-300 bg-white hover:shadow-md hover:border-green-400 ring-2 ring-green-100'
+                                            : 'border-slate-200 bg-white hover:shadow-md hover:border-brand-300'
+                                }`}
                             >
                                 {/* Delete confirmation overlay */}
                                 {confirmDeleteId === comp.id && (
@@ -171,24 +199,52 @@ export function Competitions() {
                                     className="flex-1 p-6"
                                 >
                                     <div className="flex items-center justify-between">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-600 group-hover:bg-amber-200">
+                                        <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                                            isPast
+                                                ? 'bg-slate-200 text-slate-400'
+                                                : isActive
+                                                    ? 'bg-green-100 text-green-600'
+                                                    : 'bg-amber-100 text-amber-600 group-hover:bg-amber-200'
+                                        }`}>
                                             <Trophy className="h-5 w-5" />
                                         </div>
-                                        <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-600">
-                                            {comp.competition_gymnasts?.[0]?.count || 0} Gymnasts
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            {/* Status badge */}
+                                            {isPast && (
+                                                <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-500">
+                                                    Completed
+                                                </span>
+                                            )}
+                                            {isActive && (
+                                                <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                                                    <Clock className="h-3 w-3" />
+                                                    In Progress
+                                                </span>
+                                            )}
+                                            <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                                isPast ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-600'
+                                            }`}>
+                                                {comp.competition_gymnasts?.[0]?.count || 0} Gymnasts
+                                            </span>
+                                        </div>
                                     </div>
-                                    <h3 className="mt-4 text-lg font-semibold text-slate-900 group-hover:text-brand-600">
+                                    <h3 className={`mt-4 text-lg font-semibold ${
+                                        isPast
+                                            ? 'text-slate-500'
+                                            : isActive
+                                                ? 'text-slate-900 group-hover:text-green-600'
+                                                : 'text-slate-900 group-hover:text-brand-600'
+                                    }`}>
                                         {comp.name}
                                     </h3>
                                     <div className="mt-4 space-y-2">
-                                        <div className="flex items-center text-sm text-slate-500">
-                                            <Calendar className="mr-2 h-4 w-4 text-slate-400" />
+                                        <div className={`flex items-center text-sm ${isPast ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            <Calendar className={`mr-2 h-4 w-4 ${isPast ? 'text-slate-300' : 'text-slate-400'}`} />
                                             {format(parseISO(comp.start_date), 'MMM d')} - {format(parseISO(comp.end_date), 'MMM d, yyyy')}
                                         </div>
                                         {comp.location && (
-                                            <div className="flex items-center text-sm text-slate-500">
-                                                <MapPin className="mr-2 h-4 w-4 text-slate-400" />
+                                            <div className={`flex items-center text-sm ${isPast ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                <MapPin className={`mr-2 h-4 w-4 ${isPast ? 'text-slate-300' : 'text-slate-400'}`} />
                                                 <span>{comp.location}</span>
                                             </div>
                                         )}
@@ -230,7 +286,8 @@ export function Competitions() {
                                     )}
                                 </div>
                             </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 ) : (
                     <div className="flex h-full flex-col items-center justify-center text-center">

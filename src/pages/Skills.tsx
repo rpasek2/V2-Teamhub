@@ -1,28 +1,43 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Sparkles, Settings2 } from 'lucide-react';
+import { Sparkles, Settings2, LayoutGrid } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
+import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { SkillsTable } from '../components/skills/SkillsTable';
 import { ManageSkillsModal } from '../components/skills/ManageSkillsModal';
-import type { GymnastProfile, HubEventSkill, GymnastSkill, GymEvent } from '../types';
-import { WAG_EVENTS, MAG_EVENTS, EVENT_FULL_NAMES } from '../types';
+import { ManageEventsModal } from '../components/skills/ManageEventsModal';
+import type { GymnastProfile, HubEventSkill, GymnastSkill, SkillEvent, GymnastEventComment } from '../types';
+import { DEFAULT_WAG_SKILL_EVENTS, DEFAULT_MAG_SKILL_EVENTS } from '../types';
 
 export function Skills() {
-    const { hub, getPermissionScope, linkedGymnasts } = useHub();
+    const { hub, getPermissionScope, linkedGymnasts, refreshHub } = useHub();
+    const { user } = useAuth();
     const { markAsViewed } = useNotifications();
     const { isStaff, isParent } = useRoleChecks();
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
-    const [selectedEvent, setSelectedEvent] = useState<GymEvent | ''>('');
+    const [selectedEvent, setSelectedEvent] = useState<string>('');
     const [allGymnasts, setAllGymnasts] = useState<GymnastProfile[]>([]);
     const [skills, setSkills] = useState<HubEventSkill[]>([]);
     const [gymnastSkills, setGymnastSkills] = useState<GymnastSkill[]>([]);
+    const [eventComments, setEventComments] = useState<GymnastEventComment[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
+    const [isManageEventsModalOpen, setIsManageEventsModalOpen] = useState(false);
     const levels = hub?.settings?.levels || [];
-    const events = activeGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
+
+    // Get events from hub settings or use defaults
+    const getEventsForGender = (gender: 'Female' | 'Male'): SkillEvent[] => {
+        const customEvents = hub?.settings?.skillEvents?.[gender];
+        if (customEvents && customEvents.length > 0) {
+            return customEvents;
+        }
+        return gender === 'Female' ? DEFAULT_WAG_SKILL_EVENTS : DEFAULT_MAG_SKILL_EVENTS;
+    };
+
+    const events = getEventsForGender(activeGender);
 
     // Get permission scope for skills
     const skillsScope = getPermissionScope('skills');
@@ -31,7 +46,7 @@ export function Skills() {
     const linkedGymnast = isParent && linkedGymnasts.length > 0 ? linkedGymnasts[0] : null;
     const parentGender = linkedGymnast?.gender || 'Female';
     const parentLevel = linkedGymnast?.level || '';
-    const parentEvents = parentGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
+    const parentEvents = getEventsForGender(parentGender as 'Female' | 'Male');
 
     // Filter gymnasts based on permission scope
     const gymnasts = useMemo(() => {
@@ -69,16 +84,16 @@ export function Skills() {
 
     // Set default event when gender changes
     useEffect(() => {
-        const genderEvents = activeGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
+        const genderEvents = getEventsForGender(activeGender);
         if (genderEvents.length > 0 && !selectedEvent) {
-            setSelectedEvent(genderEvents[0]);
+            setSelectedEvent(genderEvents[0].id);
         }
-    }, [activeGender, selectedEvent]);
+    }, [activeGender, selectedEvent, hub?.settings?.skillEvents]);
 
     // For parents, set default event based on their gymnast's gender
     useEffect(() => {
         if (isParent && parentEvents.length > 0 && !selectedEvent) {
-            setSelectedEvent(parentEvents[0]);
+            setSelectedEvent(parentEvents[0].id);
         }
     }, [isParent, parentEvents, selectedEvent]);
 
@@ -104,6 +119,15 @@ export function Skills() {
             setGymnastSkills([]);
         }
     }, [gymnasts, skills]);
+
+    // Fetch event comments when event or gymnasts change
+    useEffect(() => {
+        if (hub && selectedEvent && gymnasts.length > 0) {
+            fetchEventComments();
+        } else {
+            setEventComments([]);
+        }
+    }, [hub, selectedEvent, gymnasts]);
 
     const fetchGymnasts = async () => {
         if (!hub || !selectedLevel) return;
@@ -159,6 +183,69 @@ export function Skills() {
         } else {
             setGymnastSkills(data || []);
         }
+    };
+
+    const fetchEventComments = async () => {
+        if (!hub || !selectedEvent || gymnasts.length === 0) return;
+
+        const gymnastIds = gymnasts.map(g => g.id);
+
+        const { data, error } = await supabase
+            .from('gymnast_event_comments')
+            .select('*')
+            .eq('hub_id', hub.id)
+            .eq('event', selectedEvent)
+            .in('gymnast_profile_id', gymnastIds);
+
+        if (error) {
+            console.error('Error fetching event comments:', error);
+        } else {
+            setEventComments(data || []);
+        }
+    };
+
+    const handleCommentChange = async (gymnastId: string, comment: string) => {
+        if (!hub || !selectedEvent || !user) return;
+
+        // Find existing comment
+        const existing = eventComments.find(
+            c => c.gymnast_profile_id === gymnastId && c.event === selectedEvent
+        );
+
+        if (existing) {
+            // Update existing
+            const { error } = await supabase
+                .from('gymnast_event_comments')
+                .update({
+                    comment: comment || null,
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', existing.id);
+
+            if (error) {
+                console.error('Error updating comment:', error);
+                return;
+            }
+        } else if (comment.trim()) {
+            // Insert new (only if there's actual content)
+            const { error } = await supabase
+                .from('gymnast_event_comments')
+                .insert({
+                    gymnast_profile_id: gymnastId,
+                    hub_id: hub.id,
+                    event: selectedEvent,
+                    comment: comment,
+                    created_by: user.id
+                });
+
+            if (error) {
+                console.error('Error inserting comment:', error);
+                return;
+            }
+        }
+
+        // Refresh comments
+        fetchEventComments();
     };
 
     const handleSkillStatusChange = async (gymnastId: string, skillId: string, newStatus: string) => {
@@ -248,15 +335,15 @@ export function Skills() {
                             <div className="flex flex-wrap gap-2">
                                 {parentEvents.map((event) => (
                                     <button
-                                        key={event}
-                                        onClick={() => setSelectedEvent(event)}
+                                        key={event.id}
+                                        onClick={() => setSelectedEvent(event.id)}
                                         className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                                            selectedEvent === event
+                                            selectedEvent === event.id
                                                 ? 'bg-brand-500 text-white'
                                                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                                         }`}
                                     >
-                                        {EVENT_FULL_NAMES[event]}
+                                        {event.fullName}
                                     </button>
                                 ))}
                             </div>
@@ -264,9 +351,11 @@ export function Skills() {
                             {/* Skills Table */}
                             {selectedEvent && gymnasts.length > 0 && (
                                 <SkillsTable
+                                    key={selectedEvent}
                                     gymnasts={gymnasts}
                                     skills={skills}
                                     gymnastSkills={gymnastSkills}
+                                    eventComments={eventComments}
                                     canEdit={false}
                                     onSkillStatusChange={handleSkillStatusChange}
                                 />
@@ -280,7 +369,7 @@ export function Skills() {
                                         No skills defined yet
                                     </h3>
                                     <p className="mt-2 text-sm text-slate-500">
-                                        Your coach hasn't added skills for {EVENT_FULL_NAMES[selectedEvent]} at {linkedGymnast.level} yet.
+                                        Your coach hasn't added skills for {parentEvents.find(e => e.id === selectedEvent)?.fullName || selectedEvent} at {linkedGymnast.level} yet.
                                     </p>
                                 </div>
                             )}
@@ -356,23 +445,34 @@ export function Skills() {
                         <div className="flex flex-wrap items-center gap-2">
                             {events.map((event) => (
                                 <button
-                                    key={event}
-                                    onClick={() => setSelectedEvent(event)}
+                                    key={event.id}
+                                    onClick={() => setSelectedEvent(event.id)}
                                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                                        selectedEvent === event
+                                        selectedEvent === event.id
                                             ? 'bg-indigo-600 text-white'
                                             : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
                                     }`}
                                 >
-                                    {EVENT_FULL_NAMES[event]}
+                                    {event.fullName}
                                 </button>
                             ))}
+
+                            {/* Manage Events Button */}
+                            {isStaff && (
+                                <button
+                                    onClick={() => setIsManageEventsModalOpen(true)}
+                                    className="ml-auto flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                                >
+                                    <LayoutGrid className="h-4 w-4" />
+                                    Manage Events
+                                </button>
+                            )}
 
                             {/* Manage Skills Button */}
                             {isStaff && selectedLevel && selectedEvent && (
                                 <button
                                     onClick={() => setIsManageModalOpen(true)}
-                                    className="ml-auto flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
                                 >
                                     <Settings2 className="h-4 w-4" />
                                     Manage Skills
@@ -395,11 +495,14 @@ export function Skills() {
                                     </div>
                                 ) : (
                                     <SkillsTable
+                                        key={selectedEvent}
                                         gymnasts={gymnasts}
                                         skills={skills}
                                         gymnastSkills={gymnastSkills}
+                                        eventComments={eventComments}
                                         canEdit={isStaff}
                                         onSkillStatusChange={handleSkillStatusChange}
+                                        onCommentChange={handleCommentChange}
                                         onManageSkills={() => setIsManageModalOpen(true)}
                                     />
                                 )}
@@ -417,8 +520,28 @@ export function Skills() {
                     hubId={hub?.id || ''}
                     level={selectedLevel}
                     event={selectedEvent}
+                    eventName={events.find(e => e.id === selectedEvent)?.fullName || selectedEvent}
                     skills={skills}
                     onSkillsUpdated={handleSkillsUpdated}
+                />
+            )}
+
+            {/* Manage Events Modal */}
+            {hub && (
+                <ManageEventsModal
+                    isOpen={isManageEventsModalOpen}
+                    onClose={() => setIsManageEventsModalOpen(false)}
+                    hubId={hub.id}
+                    gender={activeGender}
+                    currentEvents={events}
+                    onEventsUpdated={(newEvents) => {
+                        // Refresh hub data to pick up the new events
+                        refreshHub();
+                        // If the currently selected event was removed, clear the selection
+                        if (selectedEvent && !newEvents.some(e => e.id === selectedEvent)) {
+                            setSelectedEvent(newEvents.length > 0 ? newEvents[0].id : '');
+                        }
+                    }}
                 />
             )}
         </div>

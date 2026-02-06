@@ -38,14 +38,14 @@ export const HUB_FEATURE_TABS: { id: HubFeatureTab; label: string; description: 
     { id: 'roster', label: 'Roster', description: 'View and manage gymnast profiles including contact info, emergency contacts, medical details, sizing, and parent/guardian information' },
     { id: 'calendar', label: 'Calendar', description: 'Create and manage practices, competitions, team events, and fundraisers with RSVP tracking and schedule visibility for the whole team' },
     { id: 'messages', label: 'Messages', description: 'Send direct messages between members and create group channels for team-wide or private communication' },
-    { id: 'competitions', label: 'Competitions', description: 'Organize meets with session management, competition rosters, warm-up times, coach assignments, and event schedules' },
-    { id: 'scores', label: 'Scores', description: 'Enter and track competition scores by event, view score history, and analyze performance trends over time' },
+    { id: 'competitions', label: 'Competitions', description: 'Organize meets with session management, competition rosters, warm-up times, coach assignments, event entries, and meet documents' },
+    { id: 'scores', label: 'Scores', description: 'Enter and track competition scores by event, view score history organized by season, and monitor team placements' },
     { id: 'skills', label: 'Skills', description: 'Track skill progression across events with customizable skill lists, proficiency levels, and individual athlete skill matrices' },
     { id: 'marketplace', label: 'Marketplace', description: 'A member-to-member marketplace where parents and families can buy, sell, and trade used leotards, grips, and gear with each other' },
     { id: 'groups', label: 'Groups', description: 'Organize members into specific collections like individual levels or training groups, each with its own wall-style feed for announcements, discussions, polls, and sign-ups' },
     { id: 'mentorship', label: 'Mentorship', description: 'Pair experienced athletes with newer team members through a Big/Little program with scheduled events and relationship tracking' },
     { id: 'staff', label: 'Staff', description: 'Manage coach and staff profiles, work schedules, responsibilities, task assignments, time-off requests, and internal notes' },
-    { id: 'assignments', label: 'Assignments', description: 'Manage daily practice assignments and workouts for gymnasts, track completions, and organize conditioning drills and training tasks by athlete' },
+    { id: 'assignments', label: 'Assignments', description: 'Create and manage daily practice assignments and workouts for gymnasts, track completions, and use reusable templates for recurring training tasks' },
     { id: 'resources', label: 'Resources', description: 'Share documents, educational links, and team resources organized by category for easy access' },
     { id: 'schedule', label: 'Schedule', description: 'Set up weekly practice schedules per level with A/B groups, and create daily rotation plans with drag-and-drop event blocks' },
     { id: 'attendance', label: 'Attendance', description: 'Track daily attendance for gymnasts based on practice schedules, view metrics including attendance percentages by level, and monitor consecutive absence alerts' },
@@ -667,6 +667,17 @@ export interface GymnastSkill {
     // Joined data
     hub_event_skills?: HubEventSkill;
     gymnast_profiles?: GymnastProfile;
+}
+
+export interface GymnastEventComment {
+    id: string;
+    gymnast_profile_id: string;
+    hub_id: string;
+    event: string;
+    comment: string | null;
+    created_by: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 export const SKILL_STATUS_CONFIG: Record<SkillStatus, { label: string; icon: string; color: string; bgColor: string }> = {

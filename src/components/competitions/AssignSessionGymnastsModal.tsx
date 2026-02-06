@@ -29,6 +29,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
     const [roster, setRoster] = useState<Gymnast[]>([]);
     const [selectedGymnasts, setSelectedGymnasts] = useState<string[]>([]);
     const [collapsedLevels, setCollapsedLevels] = useState<Set<string>>(new Set());
+    const [assignedToOtherSessions, setAssignedToOtherSessions] = useState<Set<string>>(new Set());
 
     // Get levels from hub settings
     const hubLevels = hub?.settings?.levels || [];
@@ -36,6 +37,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
     useEffect(() => {
         if (isOpen) {
             fetchCompetitionRoster();
+            fetchOtherSessionAssignments();
             setSelectedGymnasts(currentGymnastIds);
         }
     }, [isOpen, competitionId, currentGymnastIds]);
@@ -57,11 +59,49 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
         }
     };
 
+    const fetchOtherSessionAssignments = async () => {
+        // Get all sessions for this competition except the current one
+        const { data: sessions, error: sessionsError } = await supabase
+            .from('competition_sessions')
+            .select('id')
+            .eq('competition_id', competitionId)
+            .neq('id', sessionId);
+
+        if (sessionsError) {
+            console.error('Error fetching sessions:', sessionsError);
+            return;
+        }
+
+        if (!sessions || sessions.length === 0) {
+            setAssignedToOtherSessions(new Set());
+            return;
+        }
+
+        // Get gymnasts assigned to those other sessions
+        const { data: assignments, error: assignmentsError } = await supabase
+            .from('session_gymnasts')
+            .select('gymnast_profile_id')
+            .in('session_id', sessions.map(s => s.id));
+
+        if (assignmentsError) {
+            console.error('Error fetching session assignments:', assignmentsError);
+            return;
+        }
+
+        const assignedIds = new Set(assignments?.map(a => a.gymnast_profile_id) || []);
+        setAssignedToOtherSessions(assignedIds);
+    };
+
+    // Filter roster to exclude gymnasts already assigned to other sessions
+    const availableRoster = useMemo(() => {
+        return roster.filter(g => !assignedToOtherSessions.has(g.gymnast_profile_id));
+    }, [roster, assignedToOtherSessions]);
+
     // Group roster by level
     const rosterByLevel = useMemo(() => {
         const grouped: Record<string, Gymnast[]> = {};
 
-        roster.forEach(gymnast => {
+        availableRoster.forEach(gymnast => {
             const level = gymnast.gymnast_profiles.level || 'Unassigned';
             if (!grouped[level]) {
                 grouped[level] = [];
@@ -84,7 +124,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
         });
 
         return result;
-    }, [roster, hubLevels]);
+    }, [availableRoster, hubLevels]);
 
     const toggleLevelCollapse = (level: string) => {
         setCollapsedLevels(prev => {
@@ -181,7 +221,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
             />
 
             {/* Modal Content */}
-            <div className="relative z-[10000] w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+            <div className="relative z-[10000] w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
                 {/* Close Button */}
                 <div className="absolute top-4 right-4">
                     <button
@@ -214,7 +254,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                         <label className="block text-sm font-medium text-slate-700">
                             Select Gymnasts from Competition Roster
                         </label>
-                        <div className="mt-1.5 max-h-80 overflow-y-auto rounded-md border border-slate-300">
+                        <div className="mt-1.5 max-h-[400px] overflow-y-auto rounded-md border border-slate-300">
                             {roster.length > 0 ? (
                                 <div className="divide-y divide-slate-200">
                                     {Object.entries(rosterByLevel).map(([level, gymnasts]) => (
@@ -284,11 +324,20 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                                     ))}
                                 </div>
                             ) : (
-                                <p className="px-3 py-4 text-sm text-slate-500 text-center">No gymnasts in competition roster.</p>
+                                <p className="px-3 py-4 text-sm text-slate-500 text-center">
+                                    {roster.length === 0
+                                        ? 'No gymnasts in competition roster.'
+                                        : 'All gymnasts are already assigned to other sessions.'}
+                                </p>
                             )}
                         </div>
                         <p className="mt-1 text-xs text-slate-500">
                             {selectedGymnasts.length} selected
+                            {assignedToOtherSessions.size > 0 && (
+                                <span className="ml-2 text-slate-400">
+                                    ({assignedToOtherSessions.size} already in other sessions)
+                                </span>
+                            )}
                         </p>
                     </div>
 

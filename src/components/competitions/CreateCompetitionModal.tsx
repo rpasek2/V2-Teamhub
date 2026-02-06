@@ -224,7 +224,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="card p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="card p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
@@ -450,7 +450,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                             </div>
                         )}
 
-                        <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50">
+                        <div className="max-h-[300px] overflow-y-auto rounded-lg border border-slate-200 bg-slate-50">
                             {gymnasts.length > 0 ? (
                                 <div className="divide-y divide-slate-200">
                                     {gymnasts.map((gymnast) => (
