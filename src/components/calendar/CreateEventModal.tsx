@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Loader2, AlertCircle, Calendar, MapPin, AlignLeft, Users, X, Trophy, HeartHandshake, Star } from 'lucide-react';
+import { Loader2, AlertCircle, Calendar, MapPin, AlignLeft, Users, X, Trophy, HeartHandshake, Star, Clock } from 'lucide-react';
 import { createPortal } from 'react-dom';
 import { format } from 'date-fns';
 import { supabase } from '../../lib/supabase';
@@ -24,7 +24,15 @@ const EVENT_TYPES = [
     { value: 'private_lesson', label: 'Private', icon: '👤', color: 'bg-violet-100 border-violet-300 text-violet-700' },
     { value: 'fundraiser', label: 'Fundraise', icon: '💰', color: 'bg-orange-100 border-orange-300 text-orange-700' },
     { value: 'other', label: 'Other', icon: '📌', color: 'bg-slate-100 border-slate-300 text-slate-700' },
-];
+] as const;
+
+// Valid event type values for validation
+const VALID_EVENT_TYPES = EVENT_TYPES.map(t => t.value);
+
+// Input length limits
+const MAX_TITLE_LENGTH = 100;
+const MAX_DESCRIPTION_LENGTH = 2000;
+const MAX_LOCATION_LENGTH = 200;
 
 export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate }: CreateEventModalProps) {
     const { hub } = useHub();
@@ -47,7 +55,8 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
         location: '',
         type: 'practice',
         rsvpEnabled: true,
-        isSaveTheDate: false
+        isSaveTheDate: false,
+        isAllDay: false
     });
 
     // Types that are automatically considered "save the date" events
@@ -79,7 +88,8 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                 location: '',
                 type: 'practice',
                 rsvpEnabled: true,
-                isSaveTheDate: false
+                isSaveTheDate: false,
+                isAllDay: false
             });
             setError(null);
         }
@@ -110,11 +120,36 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
         setError(null);
 
         try {
-            const startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
-            const endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+            // Validate event type against allowed values
+            if (!(VALID_EVENT_TYPES as readonly string[]).includes(formData.type)) {
+                throw new Error('Invalid event type selected');
+            }
+
+            // Validate input lengths
+            if (formData.title.length > MAX_TITLE_LENGTH) {
+                throw new Error(`Title must be ${MAX_TITLE_LENGTH} characters or less`);
+            }
+            if (formData.description.length > MAX_DESCRIPTION_LENGTH) {
+                throw new Error(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or less`);
+            }
+            if (formData.location.length > MAX_LOCATION_LENGTH) {
+                throw new Error(`Location must be ${MAX_LOCATION_LENGTH} characters or less`);
+            }
+
+            let startDateTime: Date;
+            let endDateTime: Date;
+
+            if (formData.isAllDay) {
+                // For all-day events, set to midnight and 11:59:59 PM
+                startDateTime = new Date(`${formData.startDate}T00:00:00`);
+                endDateTime = new Date(`${formData.endDate}T23:59:59`);
+            } else {
+                startDateTime = new Date(`${formData.startDate}T${formData.startTime}`);
+                endDateTime = new Date(`${formData.endDate}T${formData.endTime}`);
+            }
 
             if (endDateTime <= startDateTime) {
-                throw new Error('End time must be after start time');
+                throw new Error(formData.isAllDay ? 'End date must be on or after start date' : 'End time must be after start time');
             }
 
             // If this is a competition event, also create a competition record
@@ -145,6 +180,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                     location: formData.location || null,
                     type: formData.type,
                     rsvp_enabled: formData.rsvpEnabled,
+                    is_all_day: formData.isAllDay,
                     is_save_the_date: formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type),
                     created_by: user.id
                 });
@@ -270,6 +306,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                 type="text"
                                 id="title"
                                 required
+                                maxLength={MAX_TITLE_LENGTH}
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                                 className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm"
@@ -279,70 +316,128 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
                         {/* Date & Time Section */}
                         <div className="bg-slate-50 rounded-xl p-4 space-y-4">
-                            <div className="flex items-center gap-2 text-slate-700">
-                                <Calendar className="h-4 w-4" />
-                                <span className="text-sm font-medium">Date & Time</span>
-                            </div>
-
-                            {/* Start */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label htmlFor="startDate" className="block text-xs font-medium text-slate-500 mb-1">
-                                        Start Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        id="startDate"
-                                        required
-                                        value={formData.startDate}
-                                        onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: e.target.value })}
-                                        className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
-                                    />
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-slate-700">
+                                    <Calendar className="h-4 w-4" />
+                                    <span className="text-sm font-medium">Date & Time</span>
                                 </div>
-                                <div>
-                                    <label htmlFor="startTime" className="block text-xs font-medium text-slate-500 mb-1">
-                                        Start Time
-                                    </label>
-                                    <input
-                                        type="time"
-                                        id="startTime"
-                                        required
-                                        value={formData.startTime}
-                                        onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                        className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
-                                    />
+                                {/* All Day Toggle */}
+                                <div className="flex items-center gap-2">
+                                    <Clock className="h-4 w-4 text-slate-400" />
+                                    <span className="text-xs font-medium text-slate-600">All Day</span>
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={formData.isAllDay}
+                                        onClick={() => setFormData({ ...formData, isAllDay: !formData.isAllDay })}
+                                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                                            formData.isAllDay ? 'bg-brand-600' : 'bg-slate-300'
+                                        }`}
+                                    >
+                                        <span
+                                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                formData.isAllDay ? 'translate-x-4' : 'translate-x-0'
+                                            }`}
+                                        />
+                                    </button>
                                 </div>
                             </div>
 
-                            {/* End */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label htmlFor="endDate" className="block text-xs font-medium text-slate-500 mb-1">
-                                        End Date
-                                    </label>
-                                    <input
-                                        type="date"
-                                        id="endDate"
-                                        required
-                                        value={formData.endDate}
-                                        onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                        className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
-                                    />
+                            {formData.isAllDay ? (
+                                /* All Day - Just date pickers */
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label htmlFor="startDate" className="block text-xs font-medium text-slate-500 mb-1">
+                                            Start Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="startDate"
+                                            required
+                                            value={formData.startDate}
+                                            onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: formData.endDate < e.target.value ? e.target.value : formData.endDate })}
+                                            className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="endDate" className="block text-xs font-medium text-slate-500 mb-1">
+                                            End Date
+                                        </label>
+                                        <input
+                                            type="date"
+                                            id="endDate"
+                                            required
+                                            value={formData.endDate}
+                                            min={formData.startDate}
+                                            onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                            className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label htmlFor="endTime" className="block text-xs font-medium text-slate-500 mb-1">
-                                        End Time
-                                    </label>
-                                    <input
-                                        type="time"
-                                        id="endTime"
-                                        required
-                                        value={formData.endTime}
-                                        onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                        className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
-                                    />
-                                </div>
-                            </div>
+                            ) : (
+                                /* Specific Times - Date + Time pickers */
+                                <>
+                                    {/* Start */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label htmlFor="startDate" className="block text-xs font-medium text-slate-500 mb-1">
+                                                Start Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                id="startDate"
+                                                required
+                                                value={formData.startDate}
+                                                onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: e.target.value })}
+                                                className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="startTime" className="block text-xs font-medium text-slate-500 mb-1">
+                                                Start Time
+                                            </label>
+                                            <input
+                                                type="time"
+                                                id="startTime"
+                                                required
+                                                value={formData.startTime}
+                                                onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                                                className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* End */}
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label htmlFor="endDate" className="block text-xs font-medium text-slate-500 mb-1">
+                                                End Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                id="endDate"
+                                                required
+                                                value={formData.endDate}
+                                                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
+                                                className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label htmlFor="endTime" className="block text-xs font-medium text-slate-500 mb-1">
+                                                End Time
+                                            </label>
+                                            <input
+                                                type="time"
+                                                id="endTime"
+                                                required
+                                                value={formData.endTime}
+                                                onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
+                                                className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                            />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Location */}
@@ -356,6 +451,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                             <input
                                 type="text"
                                 id="location"
+                                maxLength={MAX_LOCATION_LENGTH}
                                 value={formData.location}
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                                 className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm"
@@ -375,6 +471,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                             <textarea
                                 id="description"
                                 rows={3}
+                                maxLength={MAX_DESCRIPTION_LENGTH}
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm resize-none"

@@ -411,12 +411,15 @@ export function Calendar() {
         }
 
         try {
+            // Fetch events that overlap with the current view:
+            // - Events that start within the range, OR
+            // - Events that started before but end within or after the range start
             const { data, error } = await supabase
                 .from('events')
                 .select('*')
                 .eq('hub_id', hub.id)
-                .gte('start_time', start)
-                .lte('start_time', end)
+                .lte('start_time', end)  // Event starts before or during the view
+                .gte('end_time', start)   // Event ends during or after the view start
                 .order('start_time', { ascending: true });
 
             if (error) throw error;
@@ -479,7 +482,18 @@ export function Calendar() {
         : events.filter(e => e.type === filterType);
 
     const getEventsForDay = (day: Date) => {
-        return filteredEvents.filter(event => isSameDay(parseISO(event.start_time), day));
+        return filteredEvents.filter(event => {
+            const eventStart = parseISO(event.start_time);
+            const eventEnd = parseISO(event.end_time);
+            // Check if the day falls within the event's date range (inclusive)
+            // For all-day events spanning multiple days, show on each day
+            const dayStart = new Date(day);
+            dayStart.setHours(0, 0, 0, 0);
+            const dayEnd = new Date(day);
+            dayEnd.setHours(23, 59, 59, 999);
+
+            return eventStart <= dayEnd && eventEnd >= dayStart;
+        });
     };
 
     const getEventColors = (type: string) => {

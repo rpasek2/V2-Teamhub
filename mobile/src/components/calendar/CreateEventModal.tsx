@@ -43,6 +43,14 @@ const EVENT_TYPES = [
 // Types that are automatically "save the date" events
 const SAVE_THE_DATE_TYPES = ['competition', 'mentorship', 'camp'];
 
+// Valid event type values for validation
+const VALID_EVENT_TYPES = EVENT_TYPES.map(t => t.value);
+
+// Input length limits
+const MAX_TITLE_LENGTH = 100;
+const MAX_DESCRIPTION_LENGTH = 2000;
+const MAX_LOCATION_LENGTH = 200;
+
 export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate }: CreateEventModalProps) {
   const { currentHub } = useHubStore();
   const { user } = useAuthStore();
@@ -88,6 +96,26 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
     if (!currentHub || !user) return;
     if (!title.trim()) {
       setError('Please enter an event title');
+      return;
+    }
+
+    // Validate event type against allowed values
+    if (!VALID_EVENT_TYPES.includes(eventType)) {
+      setError('Invalid event type selected');
+      return;
+    }
+
+    // Validate input lengths
+    if (title.length > MAX_TITLE_LENGTH) {
+      setError(`Title must be ${MAX_TITLE_LENGTH} characters or less`);
+      return;
+    }
+    if (description.length > MAX_DESCRIPTION_LENGTH) {
+      setError(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or less`);
+      return;
+    }
+    if (location.length > MAX_LOCATION_LENGTH) {
+      setError(`Location must be ${MAX_LOCATION_LENGTH} characters or less`);
       return;
     }
 
@@ -242,6 +270,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
             onChangeText={setTitle}
             placeholder="e.g., Team Practice, Parents Meeting..."
             placeholderTextColor={colors.slate[400]}
+            maxLength={MAX_TITLE_LENGTH}
           />
 
           {/* Date & Time */}
@@ -323,6 +352,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
             onChangeText={setLocation}
             placeholder="e.g., Main Gym, Conference Room..."
             placeholderTextColor={colors.slate[400]}
+            maxLength={MAX_LOCATION_LENGTH}
           />
 
           {/* Description */}
@@ -340,6 +370,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
             multiline
             numberOfLines={3}
             textAlignVertical="top"
+            maxLength={MAX_DESCRIPTION_LENGTH}
           />
 
           {/* RSVP Toggle */}
