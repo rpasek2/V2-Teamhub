@@ -268,11 +268,11 @@ export function ScoresTable({
                                             Gymnast
                                         </th>
                                         {events.map((event, idx) => (
-                                            <th key={event} colSpan={2} className={`px-2 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500 ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
+                                            <th key={event} colSpan={2} className={`px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-slate-700 ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
                                                 {EVENT_LABELS[event]}
                                             </th>
                                         ))}
-                                        <th colSpan={2} className="border-l border-slate-200 px-2 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <th colSpan={2} className="border-l border-slate-200 px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-slate-700">
                                             AA
                                         </th>
                                     </tr>
