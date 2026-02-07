@@ -264,7 +264,7 @@ export function ScoresTable({
                             <table className="min-w-full divide-y divide-slate-200">
                                 <thead>
                                     <tr className="bg-slate-50">
-                                        <th className="sticky left-0 z-10 bg-slate-50 py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                        <th className="sticky left-0 z-10 bg-slate-50 py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-48 min-w-48 max-w-48">
                                             Gymnast
                                         </th>
                                         {events.map((event, idx) => (
@@ -277,7 +277,7 @@ export function ScoresTable({
                                         </th>
                                     </tr>
                                     <tr className="bg-slate-50 text-xs text-slate-400">
-                                        <th className="sticky left-0 z-10 bg-slate-50"></th>
+                                        <th className="sticky left-0 z-10 bg-slate-50 w-48 min-w-48 max-w-48"></th>
                                         {events.map((event, idx) => (
                                             <th key={event} colSpan={2} className={`border-b border-slate-200 ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
                                                 <div className="flex">
@@ -297,7 +297,7 @@ export function ScoresTable({
                                 <tbody className="divide-y divide-slate-200">
                                     {/* Team Score Row */}
                                     <tr className="bg-brand-100 font-bold">
-                                        <td className="sticky left-0 z-10 bg-brand-100 whitespace-nowrap py-3 pl-4 pr-3 text-sm text-brand-900">
+                                        <td className="sticky left-0 z-10 bg-brand-100 whitespace-nowrap py-3 pl-4 pr-3 text-sm text-brand-900 w-48 min-w-48 max-w-48">
                                             <span className="font-bold">TEAM TOTAL</span>
                                         </td>
                                         {events.map((event, idx) => (
@@ -347,7 +347,7 @@ export function ScoresTable({
 
                                         return (
                                             <tr key={gymnast.id} className="hover:bg-slate-50">
-                                                <td className="sticky left-0 z-10 bg-white whitespace-nowrap py-2 pl-4 pr-3 text-sm font-medium text-slate-900">
+                                                <td className="sticky left-0 z-10 bg-white py-2 pl-4 pr-3 text-sm font-medium text-slate-900 w-48 min-w-48 max-w-48 truncate">
                                                     {gymnast.first_name} {gymnast.last_name}
                                                 </td>
                                                 {events.map((event, idx) => {
