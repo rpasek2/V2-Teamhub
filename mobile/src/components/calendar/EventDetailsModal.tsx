@@ -20,6 +20,7 @@ import {
   XCircle,
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, theme } from '../../constants/colors';
 import { Badge } from '../ui';
 import { supabase } from '../../services/supabase';
@@ -184,7 +185,7 @@ export function EventDetailsModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -346,7 +347,7 @@ export function EventDetailsModal({
           {/* Bottom padding */}
           <View style={{ height: 40 }} />
         </ScrollView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

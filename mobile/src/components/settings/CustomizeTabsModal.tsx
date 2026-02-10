@@ -22,6 +22,7 @@ import {
   BarChart,
   Contact,
 } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, theme } from '../../constants/colors';
 import {
   useTabPreferencesStore,
@@ -116,7 +117,7 @@ export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps)
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
@@ -226,7 +227,7 @@ export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps)
             <Text style={styles.resetButtonText}>Reset to Default</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

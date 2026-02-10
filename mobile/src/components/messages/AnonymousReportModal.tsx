@@ -12,6 +12,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { X, ShieldAlert, Check, AlertTriangle } from 'lucide-react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, theme } from '../../constants/colors';
 import { supabase } from '../../services/supabase';
 
@@ -86,10 +87,11 @@ export function AnonymousReportModal({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -204,7 +206,8 @@ export function AnonymousReportModal({
             </>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
     </Modal>
   );
 }

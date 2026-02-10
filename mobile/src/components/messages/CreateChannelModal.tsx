@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { X, Hash, Lock } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, theme } from '../../constants/colors';
 import { supabase } from '../../services/supabase';
 import { useHubStore } from '../../stores/hubStore';
@@ -101,7 +102,7 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -184,7 +185,7 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
             />
           </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }

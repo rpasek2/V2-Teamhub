@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { X, Search, User } from 'lucide-react-native';
 import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, theme } from '../../constants/colors';
 import { supabase } from '../../services/supabase';
 import { useHubStore } from '../../stores/hubStore';
@@ -152,7 +153,7 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top']}>
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
@@ -206,7 +207,7 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
             <Text style={styles.creatingText}>Starting conversation...</Text>
           </View>
         )}
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
