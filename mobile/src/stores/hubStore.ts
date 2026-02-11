@@ -12,6 +12,7 @@ import {
   isStaffRole,
   isParentRole,
   canManageRole,
+  isTabEnabled as isTabEnabledUtil,
 } from '../lib/permissions';
 
 export type { HubRole } from '../lib/permissions';
@@ -44,6 +45,17 @@ export interface QualifyingScoresConfig {
 
 export type ChampionshipType = 'state' | 'regional' | 'national' | 'unsanctioned' | null;
 
+export interface SkillEvent {
+  id: string;
+  label: string;
+  fullName: string;
+}
+
+export interface SkillEventsConfig {
+  Female?: SkillEvent[];
+  Male?: SkillEvent[];
+}
+
 export interface HubSettings {
   levels?: string[];
   enabledTabs?: string[];
@@ -56,6 +68,7 @@ export interface HubSettings {
     startDay: number;
   };
   qualifyingScores?: QualifyingScoresConfig;
+  skillEvents?: SkillEventsConfig;
 }
 
 export interface HubMember {
@@ -83,6 +96,7 @@ interface HubState {
   // Current hub state
   currentHub: Hub | null;
   currentMember: HubMember | null;
+  currentRole: HubRole | null;
   linkedGymnasts: GymnastProfile[];
   loading: boolean;
   error: string | null;
@@ -103,6 +117,7 @@ interface HubState {
   isStaff: () => boolean;
   isParent: () => boolean;
   canManage: () => boolean;
+  isTabEnabled: (tabId: string) => boolean;
 }
 
 // Permission constants and logic imported from ../lib/permissions
@@ -112,6 +127,7 @@ export const useHubStore = create<HubState>()(
     (set, get) => ({
       currentHub: null,
       currentMember: null,
+      currentRole: null,
       linkedGymnasts: [],
       loading: false,
       error: null,
@@ -197,6 +213,7 @@ export const useHubStore = create<HubState>()(
           set({
             currentHub: hubData,
             currentMember: memberData,
+            currentRole: memberData.role as HubRole,
             linkedGymnasts,
             loading: false,
           });
@@ -210,6 +227,7 @@ export const useHubStore = create<HubState>()(
         set({
           currentHub: null,
           currentMember: null,
+          currentRole: null,
           linkedGymnasts: [],
           error: null,
         });
@@ -246,6 +264,11 @@ export const useHubStore = create<HubState>()(
         const { currentMember } = get();
         return canManageRole(currentMember?.role ?? null);
       },
+
+      isTabEnabled: (tabId: string) => {
+        const { currentHub } = get();
+        return isTabEnabledUtil(tabId, currentHub?.settings?.enabledTabs);
+      },
     }),
     {
       name: 'teamhub-hub-storage',
@@ -253,6 +276,7 @@ export const useHubStore = create<HubState>()(
       partialize: (state) => ({
         currentHub: state.currentHub,
         currentMember: state.currentMember,
+        currentRole: state.currentRole,
         hubs: state.hubs,
       }),
     }

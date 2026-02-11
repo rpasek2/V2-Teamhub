@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus, Trash2, GripVertical, ChevronUp, ChevronDown, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import type { HubEventSkill, GymEvent } from '../../types';
-import { EVENT_FULL_NAMES } from '../../types';
+import type { HubEventSkill } from '../../types';
 
 interface ManageSkillsModalProps {
     isOpen: boolean;
     onClose: () => void;
     hubId: string;
     level: string;
-    event: GymEvent;
+    event: string;
+    eventName: string;
     skills: HubEventSkill[];
     onSkillsUpdated: () => void;
 }
@@ -21,6 +21,7 @@ export function ManageSkillsModal({
     hubId,
     level,
     event,
+    eventName,
     skills,
     onSkillsUpdated
 }: ManageSkillsModalProps) {
@@ -176,7 +177,7 @@ export function ManageSkillsModal({
                                 Manage Skills
                             </h2>
                             <p className="text-sm text-slate-500">
-                                {level} - {EVENT_FULL_NAMES[event]}
+                                {level} - {eventName}
                             </p>
                         </div>
                         <button

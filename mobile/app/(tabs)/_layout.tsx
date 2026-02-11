@@ -21,6 +21,7 @@ import { useNotificationStore } from '../../src/stores/notificationStore';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useTabPreferencesStore, TabId } from '../../src/stores/tabPreferencesStore';
+import { isTabEnabled } from '../../src/lib/permissions';
 
 // Map of all available tab icons
 const TAB_ICONS: Record<string, React.ComponentType<{ size: number; color: string }>> = {
@@ -145,9 +146,12 @@ export default function TabLayout() {
     }
   };
 
-  // Check if a tab should be visible (in the selected 3)
+  // Check if a tab should be visible (in the selected 3 AND enabled by hub)
+  const enabledTabsList = currentHub?.settings?.enabledTabs;
   const isTabVisible = (tabId: TabId): boolean => {
-    return selectedTabs.includes(tabId);
+    if (!selectedTabs.includes(tabId)) return false;
+    // Also enforce hub-level enabledTabs
+    return isTabEnabled(tabId, enabledTabsList);
   };
 
   return (

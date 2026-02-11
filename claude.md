@@ -14,6 +14,8 @@
 - **Android:** `cd mobile && npx expo start --android` - Run on Android
 - **iOS:** `cd mobile && npx expo start --ios` - Run on iOS simulator
 - **Install:** `cd mobile && npm install` - Install mobile dependencies
+- **APK Build:** `cd mobile/android && ./gradlew assembleRelease` - Build release APK with Gradle (NOT Expo EAS)
+- **Debug APK:** `cd mobile/android && ./gradlew assembleDebug` - Build debug APK with Gradle
 
 ## Tech Stack
 - **Framework:** React 19 + Vite 7
@@ -49,13 +51,14 @@ src/
 │   ├── Resources.tsx          # Shared files and documents
 │   ├── Schedule.tsx           # Practice times and rotation grid
 │   ├── Attendance.tsx         # Daily attendance and metrics
+│   ├── PrivateLessons.tsx     # Private lesson booking and management
 │   ├── Settings.tsx
 │   ├── UserSettings.tsx
 │   ├── auth/                  # Login, Register
 │   ├── competitions/          # Competitions, CompetitionDetails
 │   ├── groups/                # Groups, GroupDetails
 │   └── hubs/                  # HubSelection
-├── components/                # 80+ components
+├── components/                # 90+ components
 │   ├── layout/
 │   │   ├── HubLayout.tsx      # Main app shell (Sidebar + Outlet)
 │   │   ├── RootLayout.tsx     # Root layout for hub selection
@@ -64,7 +67,7 @@ src/
 │   ├── auth/                  # ProtectedRoute
 │   ├── attendance/            # DailyAttendanceTab, AttendanceMetricsTab
 │   ├── assignments/           # CoachDashboard, TemplatesManager
-│   ├── calendar/              # Event modals
+│   ├── calendar/              # CreateEventModal, EventDetailsModal
 │   ├── competitions/          # Session, roster, coach management
 │   ├── groups/                # Posts, attachments (polls, RSVPs, signups)
 │   ├── gymnast/               # Profile tabs (Skills, Scores, Attendance), injury reports
@@ -72,15 +75,33 @@ src/
 │   ├── marketplace/           # Item listings, hub linking
 │   ├── mentorship/            # Pairing management, random assignment
 │   ├── messages/              # AnonymousReportModal
+│   ├── private-lessons/       # Lesson booking, coach setup, availability
+│   ├── resources/             # Resource cards, category management
 │   ├── roster/                # ManageLevelsModal
 │   ├── schedule/              # WeeklyScheduleTab, RotationGrid
-│   ├── scores/                # Score tables
+│   ├── scores/                # ScoresTable, InlineScoreCell, QualifyingBadge
+│   ├── settings/              # ChannelsSection, InviteCodesSection, ScoresSettings
 │   ├── skills/                # Skills matrix
 │   ├── staff/                 # Staff profiles, schedules
 │   └── ui/                    # Modal, PageLoader, NotificationBadge
 ├── types/index.ts             # All TypeScript interfaces
-├── hooks/                     # useFormSubmit, useToggleSelection
-└── lib/supabase.ts            # Supabase client singleton
+├── hooks/                     # Custom React hooks
+│   ├── useAssessments.ts      # Gymnast assessment data management
+│   ├── useAssignments.ts      # Assignment CRUD operations
+│   ├── useChannels.ts         # Channel management (CRUD)
+│   ├── useGoals.ts            # Gymnast goals management
+│   ├── useGymnastEditForm.ts  # Gymnast profile edit form state
+│   ├── useInviteCodes.ts      # Invite code management
+│   ├── useResources.ts        # Resource file management
+│   ├── useRoleChecks.ts       # Memoized role checks (isOwner, isStaff, etc.)
+│   ├── useStaffBulk.ts        # Bulk staff operations
+│   ├── useStations.ts         # Rotation station management
+│   └── useTemplates.ts        # Assignment template management
+└── lib/
+    ├── supabase.ts            # Supabase client singleton
+    ├── permissions.ts         # Shared permission logic (used by HubContext)
+    ├── qualifyingScores.ts    # Qualifying score thresholds and calculations
+    └── seasons.ts             # Season utility functions
 
 mobile/                        # React Native mobile app (Expo)
 ├── app/                       # File-based routing (Expo Router)
@@ -93,6 +114,12 @@ mobile/                        # React Native mobile app (Expo)
 │   │   ├── calendar.tsx       # Calendar with events
 │   │   ├── messages.tsx       # Direct messages
 │   │   ├── groups.tsx         # Groups list
+│   │   ├── roster.tsx         # Roster list
+│   │   ├── scores.tsx         # Scores view
+│   │   ├── skills.tsx         # Skills tracking
+│   │   ├── competitions.tsx   # Competitions list
+│   │   ├── assignments.tsx    # Assignments view
+│   │   ├── attendance.tsx     # Attendance tracking
 │   │   └── more.tsx           # More menu (feature links)
 │   ├── chat/[channelId].tsx   # Chat conversation
 │   ├── group/[groupId].tsx    # Group details + posts
@@ -100,18 +127,41 @@ mobile/                        # React Native mobile app (Expo)
 │   ├── competitions/          # Competitions screens
 │   ├── scores/                # Scores screens
 │   ├── skills/                # Skills screens
-│   └── attendance/            # Attendance screens
+│   ├── attendance/            # Attendance screens
+│   ├── assignments/           # Assignments screens
+│   ├── staff/                 # Staff screens
+│   ├── schedule/              # Schedule screens
+│   ├── mentorship/            # Mentorship screens
+│   ├── marketplace/           # Marketplace screens
+│   ├── resources/             # Resources screens
+│   ├── private-lessons/       # Private lesson screens
+│   ├── hub-settings/          # Hub settings (invite codes, levels, permissions)
+│   ├── settings/              # User settings
+│   └── anonymous-reports.tsx  # Anonymous report viewing
+├── android/                   # Native Android project (Gradle builds)
+│   ├── build.gradle           # Root Gradle config
+│   ├── app/build.gradle       # App-level Gradle config (APK builds)
+│   ├── gradlew               # Gradle wrapper (use for APK builds, NOT Expo EAS)
+│   └── app/src/               # Native Android source
 ├── src/
 │   ├── stores/                # Zustand state management
 │   │   ├── authStore.ts       # Auth state (user, session, initialize)
 │   │   ├── hubStore.ts        # Hub data, linked gymnasts, role checks
-│   │   └── notificationStore.ts # Badge counts, polling
+│   │   ├── notificationStore.ts # Badge counts, polling
+│   │   └── tabPreferencesStore.ts # Tab visibility preferences
 │   ├── components/
 │   │   ├── ui/                # Button, Card, Badge, Input
-│   │   ├── calendar/          # EventDetailsModal
-│   │   └── groups/            # PostCard
+│   │   ├── calendar/          # CreateEventModal, EventDetailsModal
+│   │   ├── groups/            # PostCard
+│   │   ├── messages/          # AnonymousReportModal, CreateChannelModal, NewDMModal
+│   │   ├── scores/            # QualifyingBadge
+│   │   └── settings/          # CustomizeTabsModal
 │   ├── constants/colors.ts    # Brand colors (matches web)
-│   └── services/supabase.ts   # Supabase client
+│   ├── lib/
+│   │   ├── permissions.ts     # Shared permission logic (mirrors web)
+│   │   ├── qualifyingScores.ts # Qualifying score logic (mirrors web)
+│   │   └── supabase.ts        # Supabase client
+│   └── services/supabase.ts   # Supabase client (legacy)
 └── package.json
 ```
 
@@ -173,31 +223,43 @@ Inputs:             border-slate-300 focus:border-brand-500 focus:ring-brand-500
 - `profiles` - User data (id, email, full_name, avatar_url)
 - `organizations` - Top-level entities
 - `hubs` - Programs/teams (settings JSONB for permissions, levels, enabledTabs, showBirthdays)
-- `hub_members` - Membership with role enum (owner, director, admin, coach, parent, gymnast)
+- `hub_members` - Membership with role enum (owner, director, admin, coach, parent, athlete)
 - `gymnast_profiles` - Extended athlete info (DOB, level, sizes, guardians JSONB, emergency_contact_1/2 JSONB, medical_info JSONB)
 
 ### Features
-- `events`, `event_rsvps` - Calendar with RSVP
+- `events`, `event_rsvps` - Calendar with RSVP (events have `is_all_day`, `is_save_the_date` flags)
 - `seasons` - Season definitions for organizing competitions and scores
-- `competitions`, `competition_sessions`, `competition_gymnasts`, `competition_scores`, `competition_team_placements`
-- `groups`, `group_members`, `posts`, `comments` - Social features
+- `competitions`, `competition_sessions`, `competition_gymnasts`, `competition_scores`, `competition_team_placements`, `competition_documents`
+- `groups`, `group_members`, `posts`, `comments`, `post_reactions` - Social features
 - `poll_responses`, `signup_responses`, `rsvp_responses` - Post interactions
 - `channels`, `messages` - Direct messaging
+- `anonymous_reports` - Anonymous report submissions
 - `hub_event_skills`, `gymnast_skills` - Skills tracking
+- `gymnast_goals`, `gymnast_subgoals` - Gymnast goal tracking with milestones
 - `marketplace_items`, `marketplace_hub_links` - Marketplace
 - `mentorship_pairs`, `mentorship_events` - Big/Little program
 - `staff_profiles`, `staff_schedules`, `staff_responsibilities`, `staff_tasks`, `staff_time_off`, `staff_notes`
-- `practice_schedules`, `rotation_events`, `rotation_blocks` - Weekly schedule and daily rotations
+- `practice_schedules`, `rotation_events`, `rotation_blocks`, `station_assignments` - Weekly schedule and daily rotations
 - `attendance_records` - Daily attendance tracking (status: present, late, left_early, absent)
 - `assignments`, `assignment_templates` - Coach assignments with template support
+- `coach_lesson_profiles`, `lesson_packages`, `lesson_availability`, `lesson_slots`, `lesson_bookings` - Private lessons
+- `hub_resources`, `hub_resource_categories` - Shared files and documents
 
 ## Permission System
-- **Roles (hierarchical):** owner > director > admin > coach > parent > gymnast
+- **Roles (hierarchical):** owner > director > admin > coach > parent > athlete
 - **Scopes:** `all` (full access), `own` (linked data only), `none`
-- Check via `useHub()`: `currentRole`, `hasPermission(feature)`, `getPermissionScope(feature)`
+- **Owner:** Always has full access (hardcoded, not configurable)
+- **All other roles:** Configurable by hub owner via Settings > Permissions
+- **Shared logic:** `src/lib/permissions.ts` (web) and `mobile/src/lib/permissions.ts`
+
+Check via `useHub()`: `currentRole`, `hasPermission(feature)`, `getPermissionScope(feature)`
 
 ```typescript
-// Common permission check
+// Common permission checks
+import { useRoleChecks } from '../hooks/useRoleChecks';
+const { isOwner, isStaff, canManage, isAthlete } = useRoleChecks();
+
+// Or directly:
 const canManage = ['owner', 'director', 'admin'].includes(currentRole || '');
 const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
 ```
@@ -207,7 +269,7 @@ const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || 
 - Use `.select()` with specific columns when possible
 - Handle errors: `const { data, error } = await supabase...`
 - Use RLS - don't bypass in client code
-- Storage buckets: `competition-documents`, `group-files`, `avatars`
+- Storage buckets: `competition-documents`, `group-files`, `avatars`, `resources`, `Competitions`
 
 ## Gymnastics Events
 ```typescript

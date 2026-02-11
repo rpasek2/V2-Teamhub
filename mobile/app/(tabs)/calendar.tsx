@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { ChevronLeft, ChevronRight, MapPin, Clock, Plus, Filter, CalendarDays } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
-import { Badge } from '../../src/components/ui';
+import { Badge, MobileTabGuard } from '../../src/components/ui';
 import { EventDetailsModal, CreateEventModal } from '../../src/components/calendar';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -496,6 +496,7 @@ export default function CalendarScreen() {
   const displayEvents = selectedDate ? filteredSelectedEvents : upcomingEvents;
 
   return (
+    <MobileTabGuard tabId="calendar">
     <View style={styles.container}>
       {/* Calendar Header */}
       <View style={styles.calendarHeader}>
@@ -724,6 +725,7 @@ export default function CalendarScreen() {
         initialDate={selectedDate ? parseISO(selectedDate) : undefined}
       />
     </View>
+    </MobileTabGuard>
   );
 }
 

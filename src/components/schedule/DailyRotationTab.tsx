@@ -139,10 +139,9 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
             .select('*')
             .eq('hub_id', hubId)
             .eq('day_of_week', selectedDayOfWeek)
-            .single();
+            .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') {
-            // PGRST116 = no rows returned, which is fine
+        if (error) {
             console.error('Error fetching grid settings:', error);
         }
 

@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Trophy, MapPin, Calendar, Users, ChevronRight } from 'lucide-react-native';
 import { format, parseISO, isPast, isFuture } from 'date-fns';
 import { colors, theme } from '../../src/constants/colors';
@@ -27,6 +28,7 @@ interface Competition {
 type FilterTab = 'upcoming' | 'past' | 'all';
 
 export default function CompetitionsScreen() {
+  const router = useRouter();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -99,7 +101,11 @@ export default function CompetitionsScreen() {
     const isUpcoming = isFuture(startDate) || format(startDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
     return (
-      <TouchableOpacity style={styles.competitionCard} activeOpacity={0.7}>
+      <TouchableOpacity
+        style={styles.competitionCard}
+        activeOpacity={0.7}
+        onPress={() => router.push(`/competitions/${item.id}` as any)}
+      >
         <View style={styles.cardHeader}>
           <View style={[styles.iconContainer, { backgroundColor: colors.amber[50] }]}>
             <Trophy size={20} color={colors.amber[600]} />

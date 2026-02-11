@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { RootLayout } from './components/layout/RootLayout';
 import { HubLayout } from './components/layout/HubLayout';
+import { TabGuard } from './components/layout/TabGuard';
 import { PageLoader } from './components/ui/PageLoader';
 
 // Lazy load all page components
@@ -54,25 +55,25 @@ function App() {
               {/* Hub Layout (Full App) */}
               <Route path="/hub/:hubId" element={<HubLayout />}>
                 <Route index element={<Dashboard />} />
-                <Route path="roster" element={<Roster />} />
-                <Route path="roster/:gymnastId" element={<GymnastDetails />} />
-                <Route path="calendar" element={<Calendar />} />
-                <Route path="messages" element={<Messages />} />
-                <Route path="competitions" element={<Competitions />} />
-                <Route path="competitions/:competitionId" element={<CompetitionDetails />} />
-                <Route path="scores" element={<Scores />} />
-                <Route path="skills" element={<Skills />} />
-                <Route path="marketplace" element={<Marketplace />} />
-                <Route path="groups" element={<Groups />} />
-                <Route path="groups/:groupId" element={<GroupDetails />} />
-                <Route path="mentorship" element={<Mentorship />} />
-                <Route path="assignments" element={<Assignments />} />
-                <Route path="resources" element={<Resources />} />
-                <Route path="schedule" element={<Schedule />} />
-                <Route path="attendance" element={<Attendance />} />
-                <Route path="private-lessons" element={<PrivateLessons />} />
-                <Route path="staff" element={<Staff />} />
-                <Route path="staff/:staffUserId" element={<StaffDetails />} />
+                <Route path="roster" element={<TabGuard tabId="roster"><Roster /></TabGuard>} />
+                <Route path="roster/:gymnastId" element={<TabGuard tabId="roster"><GymnastDetails /></TabGuard>} />
+                <Route path="calendar" element={<TabGuard tabId="calendar"><Calendar /></TabGuard>} />
+                <Route path="messages" element={<TabGuard tabId="messages"><Messages /></TabGuard>} />
+                <Route path="competitions" element={<TabGuard tabId="competitions"><Competitions /></TabGuard>} />
+                <Route path="competitions/:competitionId" element={<TabGuard tabId="competitions"><CompetitionDetails /></TabGuard>} />
+                <Route path="scores" element={<TabGuard tabId="scores"><Scores /></TabGuard>} />
+                <Route path="skills" element={<TabGuard tabId="skills"><Skills /></TabGuard>} />
+                <Route path="marketplace" element={<TabGuard tabId="marketplace"><Marketplace /></TabGuard>} />
+                <Route path="groups" element={<TabGuard tabId="groups"><Groups /></TabGuard>} />
+                <Route path="groups/:groupId" element={<TabGuard tabId="groups"><GroupDetails /></TabGuard>} />
+                <Route path="mentorship" element={<TabGuard tabId="mentorship"><Mentorship /></TabGuard>} />
+                <Route path="assignments" element={<TabGuard tabId="assignments"><Assignments /></TabGuard>} />
+                <Route path="resources" element={<TabGuard tabId="resources"><Resources /></TabGuard>} />
+                <Route path="schedule" element={<TabGuard tabId="schedule"><Schedule /></TabGuard>} />
+                <Route path="attendance" element={<TabGuard tabId="attendance"><Attendance /></TabGuard>} />
+                <Route path="private-lessons" element={<TabGuard tabId="private_lessons"><PrivateLessons /></TabGuard>} />
+                <Route path="staff" element={<TabGuard tabId="staff"><Staff /></TabGuard>} />
+                <Route path="staff/:staffUserId" element={<TabGuard tabId="staff"><StaffDetails /></TabGuard>} />
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>

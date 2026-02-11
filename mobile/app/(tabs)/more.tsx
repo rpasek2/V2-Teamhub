@@ -35,6 +35,7 @@ import {
 import { colors, theme } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useHubStore } from '../../src/stores/hubStore';
+import { isTabEnabled } from '../../src/lib/permissions';
 import { supabase } from '../../src/services/supabase';
 import { CustomizeTabsModal } from '../../src/components/settings';
 
@@ -274,10 +275,19 @@ export default function MoreScreen() {
     router.replace('/hub-selection');
   };
 
-  // Filter items based on hub permissions
+  // Map item IDs to hub feature tab IDs
+  const itemToTabId: Record<string, string> = {
+    'private-lessons': 'private_lessons',
+  };
+
+  // Filter items based on hub permissions AND enabled tabs
+  const enabledTabsList = currentHub?.settings?.enabledTabs;
   const visibleItems = FEATURE_ITEMS.filter(item => {
     if (!item.requiresPermission) return true;
-    return hasPermission(item.requiresPermission);
+    if (!hasPermission(item.requiresPermission)) return false;
+    // Check if the feature tab is enabled
+    const tabId = itemToTabId[item.id] || item.id;
+    return isTabEnabled(tabId, enabledTabsList);
   });
 
   const displayName = userProfile?.full_name || user?.email?.split('@')[0] || 'User';

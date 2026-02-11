@@ -6,6 +6,7 @@ import { useAuth } from '../../../context/AuthContext';
 import { useHub } from '../../../context/HubContext';
 import { useNotificationsSafe } from '../../../context/NotificationContext';
 import { supabase } from '../../../lib/supabase';
+import { isTabEnabled as isTabEnabledUtil } from '../../../lib/permissions';
 import { NotificationBadge } from '../../ui/NotificationBadge';
 import type { HubFeatureTab, NotificationFeature } from '../../../types';
 
@@ -108,12 +109,11 @@ export function GymnasticsSidebar() {
         { name: 'Settings', href: `/hub/${hubId}/settings`, icon: Settings2, permission: 'settings', tabId: null },
     ];
 
-    // Get enabled tabs from hub settings (default to all if not set)
+    // Get enabled tabs from hub settings (uses shared utility with dependency enforcement)
     const enabledTabs = hub?.settings?.enabledTabs;
     const isTabEnabled = (tabId: HubFeatureTab | null): boolean => {
         if (tabId === null) return true;
-        if (!enabledTabs) return true;
-        return enabledTabs.includes(tabId);
+        return isTabEnabledUtil(tabId, enabledTabs);
     };
 
     const filteredNavigation = navigation.filter(item => {

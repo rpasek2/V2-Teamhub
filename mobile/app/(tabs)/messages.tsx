@@ -12,7 +12,7 @@ import {
 import { router } from 'expo-router';
 import { Search, Edit, Users, User, Hash, ShieldAlert, ChevronRight, Plus } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
-import { NotificationBadge } from '../../src/components/ui';
+import { NotificationBadge, MobileTabGuard } from '../../src/components/ui';
 import { NewDMModal, AnonymousReportModal, CreateChannelModal } from '../../src/components/messages';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -343,6 +343,7 @@ export default function MessagesScreen() {
   }
 
   return (
+    <MobileTabGuard tabId="messages">
     <View style={styles.container}>
       {/* Search Bar */}
       <View style={styles.searchContainer}>
@@ -503,6 +504,7 @@ export default function MessagesScreen() {
         />
       )}
     </View>
+    </MobileTabGuard>
   );
 }
 

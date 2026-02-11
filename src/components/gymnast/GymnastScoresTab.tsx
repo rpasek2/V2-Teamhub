@@ -6,23 +6,27 @@ import { useHub } from '../../context/HubContext';
 import { SeasonPicker } from '../ui/SeasonPicker';
 import type { Competition, CompetitionScore, Season, GymEvent } from '../../types';
 import { WAG_EVENTS, MAG_EVENTS, EVENT_LABELS, EVENT_FULL_NAMES } from '../../types';
+import { getQualifyingLevels } from '../../lib/qualifyingScores';
+import { QualifyingBadges } from '../scores/QualifyingBadge';
 
 interface GymnastScoresTabProps {
     gymnastId: string;
     gymnastGender: 'Male' | 'Female' | null;
+    gymnastLevel: string | null;
 }
 
 interface CompetitionWithScores extends Competition {
     scores: CompetitionScore[];
 }
 
-export function GymnastScoresTab({ gymnastId, gymnastGender }: GymnastScoresTabProps) {
+export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: GymnastScoresTabProps) {
     const { hub } = useHub();
     const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
     const [competitions, setCompetitions] = useState<CompetitionWithScores[]>([]);
     const [loading, setLoading] = useState(true);
 
     const events = gymnastGender === 'Male' ? MAG_EVENTS : WAG_EVENTS;
+    const qualifyingScores = hub?.settings?.qualifyingScores;
 
     // Fetch competitions and scores when season changes
     useEffect(() => {
@@ -177,9 +181,22 @@ export function GymnastScoresTab({ gymnastId, gymnastGender }: GymnastScoresTabP
                                     {allAround !== null && (
                                         <div className="text-right">
                                             <p className="text-xs text-slate-500 uppercase tracking-wide">All-Around</p>
-                                            <p className="text-lg font-bold text-amber-600">
-                                                {allAround.toFixed(3)}
-                                            </p>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <p className="text-lg font-bold text-amber-600">
+                                                    {allAround.toFixed(3)}
+                                                </p>
+                                                <QualifyingBadges
+                                                    levels={getQualifyingLevels(
+                                                        allAround,
+                                                        gymnastLevel,
+                                                        gymnastGender,
+                                                        'all_around',
+                                                        qualifyingScores,
+                                                        competition.championship_type
+                                                    )}
+                                                    size="sm"
+                                                />
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -209,19 +226,34 @@ export function GymnastScoresTab({ gymnastId, gymnastGender }: GymnastScoresTabP
                                                             <span className="text-xs font-medium text-slate-500 uppercase">
                                                                 {EVENT_LABELS[event]}
                                                             </span>
-                                                            {scoreData?.placement && (
-                                                                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
-                                                                    scoreData.placement === 1
-                                                                        ? 'bg-amber-100 text-amber-700'
-                                                                        : scoreData.placement === 2
-                                                                        ? 'bg-slate-200 text-slate-700'
-                                                                        : scoreData.placement === 3
-                                                                        ? 'bg-orange-100 text-orange-700'
-                                                                        : 'bg-slate-100 text-slate-600'
-                                                                }`}>
-                                                                    {formatPlacement(scoreData.placement)}
-                                                                </span>
-                                                            )}
+                                                            <div className="flex items-center gap-1">
+                                                                {hasScore && (
+                                                                    <QualifyingBadges
+                                                                        levels={getQualifyingLevels(
+                                                                            scoreData?.score ?? null,
+                                                                            gymnastLevel,
+                                                                            gymnastGender,
+                                                                            'individual_event',
+                                                                            qualifyingScores,
+                                                                            competition.championship_type
+                                                                        )}
+                                                                        size="sm"
+                                                                    />
+                                                                )}
+                                                                {scoreData?.placement && (
+                                                                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
+                                                                        scoreData.placement === 1
+                                                                            ? 'bg-amber-100 text-amber-700'
+                                                                            : scoreData.placement === 2
+                                                                            ? 'bg-slate-200 text-slate-700'
+                                                                            : scoreData.placement === 3
+                                                                            ? 'bg-orange-100 text-orange-700'
+                                                                            : 'bg-slate-100 text-slate-600'
+                                                                    }`}>
+                                                                        {formatPlacement(scoreData.placement)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <p className={`text-lg font-semibold ${
                                                             hasScore ? 'text-slate-900' : 'text-slate-300'

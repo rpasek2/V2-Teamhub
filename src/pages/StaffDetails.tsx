@@ -5,6 +5,7 @@ import {
     Clock, FileText, Mail, Phone, Loader2, Pencil, X, Check, AlertCircle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { isTabEnabled } from '../lib/permissions';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
 import { StaffScheduleSection } from '../components/staff/StaffScheduleSection';
@@ -206,7 +207,13 @@ export function StaffDetails() {
         { id: 'notes', label: 'Notes', icon: <FileText className="w-4 h-4" />, ownerOnly: true },
     ];
 
-    const visibleTabs = tabs.filter(tab => !tab.ownerOnly || isOwner);
+    const enabledTabsList = hub?.settings?.enabledTabs;
+    const visibleTabs = tabs.filter(tab => {
+        if (tab.ownerOnly && !isOwner) return false;
+        // Hide schedule tab when schedule feature is disabled
+        if (tab.id === 'schedule' && !isTabEnabled('schedule', enabledTabsList)) return false;
+        return true;
+    });
 
     if (!isStaff) {
         return (

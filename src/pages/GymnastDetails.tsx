@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList, Pencil, X, Check, Loader2, ListChecks, Sparkles, Trophy, UserCheck } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
+import { isTabEnabled } from '../lib/permissions';
 import { useHub } from '../context/HubContext';
 import { useGymnastEditForm, type EditSection } from '../hooks/useGymnastEditForm';
 import { ReportInjuryModal } from '../components/gymnast/ReportInjuryModal';
@@ -104,6 +105,17 @@ export function GymnastDetails() {
         const staffRoles = ['owner', 'director', 'admin'];
         return currentRole ? staffRoles.includes(currentRole) : false;
     }, [currentRole]);
+
+    const enabledTabs = hub?.settings?.enabledTabs;
+
+    // Reset active tab to 'profile' if the current tab becomes disabled
+    useEffect(() => {
+        if (activeTab !== 'profile' && activeTab !== 'goals' && activeTab !== 'assessment') {
+            if (!isTabEnabled(activeTab, enabledTabs)) {
+                setActiveTab('profile');
+            }
+        }
+    }, [enabledTabs, activeTab]);
 
     const injuryReports = gymnast?.medical_info?.injury_reports || [];
 
@@ -271,6 +283,7 @@ export function GymnastDetails() {
                     <ClipboardList className="h-4 w-4" />
                     Assessment
                 </button>
+                {isTabEnabled('assignments', enabledTabs) && (
                 <button
                     onClick={() => setActiveTab('assignments')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -282,6 +295,8 @@ export function GymnastDetails() {
                     <ListChecks className="h-4 w-4" />
                     Assignments
                 </button>
+                )}
+                {isTabEnabled('skills', enabledTabs) && (
                 <button
                     onClick={() => setActiveTab('skills')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -293,6 +308,8 @@ export function GymnastDetails() {
                     <Sparkles className="h-4 w-4" />
                     Skills
                 </button>
+                )}
+                {isTabEnabled('scores', enabledTabs) && (
                 <button
                     onClick={() => setActiveTab('scores')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -304,6 +321,8 @@ export function GymnastDetails() {
                     <Trophy className="h-4 w-4" />
                     Scores
                 </button>
+                )}
+                {isTabEnabled('attendance', enabledTabs) && (
                 <button
                     onClick={() => setActiveTab('attendance')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -315,6 +334,7 @@ export function GymnastDetails() {
                     <UserCheck className="h-4 w-4" />
                     Attendance
                 </button>
+                )}
             </div>
 
             {/* Content */}
@@ -336,12 +356,12 @@ export function GymnastDetails() {
                 )}
 
                 {/* Assignments Tab */}
-                {activeTab === 'assignments' && (
+                {activeTab === 'assignments' && isTabEnabled('assignments', enabledTabs) && (
                     <GymnastAssignmentStats gymnastProfileId={gymnast.id} />
                 )}
 
                 {/* Skills Tab */}
-                {activeTab === 'skills' && (
+                {activeTab === 'skills' && isTabEnabled('skills', enabledTabs) && (
                     <GymnastSkillsTab
                         gymnastId={gymnast.id}
                         gymnastLevel={gymnast.level}
@@ -350,15 +370,16 @@ export function GymnastDetails() {
                 )}
 
                 {/* Scores Tab */}
-                {activeTab === 'scores' && (
+                {activeTab === 'scores' && isTabEnabled('scores', enabledTabs) && (
                     <GymnastScoresTab
                         gymnastId={gymnast.id}
                         gymnastGender={gymnast.gender as 'Male' | 'Female' | null}
+                        gymnastLevel={gymnast.level}
                     />
                 )}
 
                 {/* Attendance Tab */}
-                {activeTab === 'attendance' && (
+                {activeTab === 'attendance' && isTabEnabled('attendance', enabledTabs) && (
                     <GymnastAttendanceTab
                         gymnastId={gymnast.id}
                         gymnastLevel={gymnast.level}

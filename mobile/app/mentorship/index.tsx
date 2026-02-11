@@ -444,60 +444,74 @@ function PairingCard({
 
   return (
     <View style={styles.pairingCard}>
-      <View style={styles.pairingContent}>
-        {/* Big Section */}
-        <View style={styles.bigSection}>
-          <View style={styles.roleBadge}>
-            <Star size={10} color={colors.white} />
-            <Text style={styles.roleBadgeText}>BIG</Text>
+      {/* Two Column Layout */}
+      <View style={styles.columnsContainer}>
+        {/* Big Section (Left) */}
+        <View style={styles.column}>
+          <View style={styles.columnHeader}>
+            <View style={styles.bigBadge}>
+              <Star size={10} color={colors.white} />
+              <Text style={styles.badgeText}>BIG</Text>
+            </View>
           </View>
-          <Text style={styles.gymnastName}>
-            {big_gymnast?.first_name} {big_gymnast?.last_name}
-          </Text>
-          <Text style={styles.gymnastLevel}>{big_gymnast?.level}</Text>
-          <View style={styles.gymnastMeta}>
-            {big_gymnast?.date_of_birth && (
-              <View style={styles.metaItem}>
-                <Cake size={10} color={colors.purple[600]} />
-                <Text style={[styles.metaText, { color: colors.purple[600] }]}>
-                  {formatBirthday(big_gymnast.date_of_birth)}
+          <View style={styles.personCentered}>
+            <View style={styles.personRow}>
+              <View style={styles.bigAvatar}>
+                <Text style={styles.bigInitials}>
+                  {big_gymnast?.first_name?.[0]}{big_gymnast?.last_name?.[0]}
                 </Text>
               </View>
-            )}
-            {big_next_competition && (
-              <View style={styles.metaItem}>
-                <Trophy size={10} color={colors.purple[600]} />
-                <Text style={[styles.metaText, { color: colors.purple[600] }]}>
-                  {formatCompDate(big_next_competition.start_date)}
+              <View style={styles.personInfo}>
+                <Text style={styles.personName} numberOfLines={1}>
+                  {big_gymnast?.first_name} {big_gymnast?.last_name}
                 </Text>
+                {big_gymnast?.level && (
+                  <Text style={styles.levelText}>{big_gymnast.level}</Text>
+                )}
+                <View style={styles.metaRow}>
+                  {big_gymnast?.date_of_birth && (
+                    <View style={styles.metaItem}>
+                      <Cake size={11} color={colors.purple[500]} />
+                      <Text style={[styles.metaText, { color: colors.purple[600] }]}>
+                        {formatBirthday(big_gymnast.date_of_birth)}
+                      </Text>
+                    </View>
+                  )}
+                  {big_next_competition && (
+                    <View style={styles.metaItem}>
+                      <Trophy size={11} color={colors.purple[500]} />
+                      <Text style={[styles.metaText, { color: colors.purple[600] }]}>
+                        {formatCompDate(big_next_competition.start_date)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
               </View>
-            )}
+            </View>
           </View>
         </View>
 
-        {/* Arrow */}
-        <View style={styles.arrowContainer}>
-          <ArrowRight size={14} color={colors.white} />
+        {/* Vertical Divider */}
+        <View style={styles.verticalDivider}>
+          <View style={styles.verticalLine} />
+          <View style={styles.dividerCircle}>
+            <Heart size={12} color={colors.white} />
+          </View>
+          <View style={styles.verticalLine} />
         </View>
 
-        {/* Littles Section */}
-        <View style={styles.littlesSection}>
-          <View style={styles.littlesBadgeContainer}>
+        {/* Littles Section (Right) */}
+        <View style={styles.columnRight}>
+          <View style={styles.columnHeaderRight}>
             <View style={styles.littleBadge}>
               <Heart size={10} color={colors.white} />
-              <Text style={styles.littleBadgeText}>
-                LITTLE{littles.length > 1 ? 'S' : ''}
-              </Text>
+              <Text style={styles.badgeText}>LITTLE</Text>
             </View>
-            {littles.length > 1 && (
-              <Text style={styles.littlesCount}>({littles.length})</Text>
-            )}
           </View>
-
-          {littles.map((little) => (
+          {littles.map((little, index) => (
             <TouchableOpacity
               key={little.id}
-              style={styles.littleChip}
+              style={[styles.personRowRight, index < littles.length - 1 && styles.littleRowMargin]}
               activeOpacity={onDeleteLittle ? 0.7 : 1}
               onLongPress={() =>
                 onDeleteLittle &&
@@ -507,27 +521,36 @@ function PairingCard({
                 )
               }
             >
-              <Text style={styles.littleName}>
-                {little.gymnast?.first_name} {little.gymnast?.last_name}
-              </Text>
-              <Text style={styles.littleLevel}>{little.gymnast?.level}</Text>
-              <View style={styles.littleMeta}>
-                {little.gymnast?.date_of_birth && (
-                  <View style={styles.metaItem}>
-                    <Cake size={9} color={colors.pink[600]} />
-                    <Text style={[styles.metaText, { color: colors.pink[600], fontSize: 9 }]}>
-                      {formatBirthday(little.gymnast.date_of_birth)}
-                    </Text>
-                  </View>
+              <View style={styles.personInfoRight}>
+                <Text style={styles.personNameRight} numberOfLines={1}>
+                  {little.gymnast?.first_name} {little.gymnast?.last_name}
+                </Text>
+                {little.gymnast?.level && (
+                  <Text style={styles.levelTextRight}>{little.gymnast.level}</Text>
                 )}
-                {little.next_competition && (
-                  <View style={styles.metaItem}>
-                    <Trophy size={9} color={colors.pink[600]} />
-                    <Text style={[styles.metaText, { color: colors.pink[600], fontSize: 9 }]}>
-                      {formatCompDate(little.next_competition.start_date)}
-                    </Text>
-                  </View>
-                )}
+                <View style={styles.metaRowRight}>
+                  {little.gymnast?.date_of_birth && (
+                    <View style={styles.metaItem}>
+                      <Cake size={11} color={colors.pink[500]} />
+                      <Text style={[styles.metaText, { color: colors.pink[600] }]}>
+                        {formatBirthday(little.gymnast.date_of_birth)}
+                      </Text>
+                    </View>
+                  )}
+                  {little.next_competition && (
+                    <View style={styles.metaItem}>
+                      <Trophy size={11} color={colors.pink[500]} />
+                      <Text style={[styles.metaText, { color: colors.pink[600] }]}>
+                        {formatCompDate(little.next_competition.start_date)}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </View>
+              <View style={styles.littleAvatar}>
+                <Text style={styles.littleInitials}>
+                  {little.gymnast?.first_name?.[0]}{little.gymnast?.last_name?.[0]}
+                </Text>
               </View>
             </TouchableOpacity>
           ))}
@@ -684,51 +707,168 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: colors.slate[200],
-  },
-  pairingContent: {
-    flexDirection: 'row',
     padding: 12,
-    alignItems: 'flex-start',
   },
 
-  // Big Section
-  bigSection: {
-    width: 90,
-    alignItems: 'center',
+  // Two Column Layout
+  columnsContainer: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
   },
-  roleBadge: {
+  column: {
+    flex: 1,
+    minWidth: 0,
+  },
+  personCentered: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  columnRight: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'flex-end',
+  },
+  columnHeader: {
+    marginBottom: 8,
+  },
+  columnHeaderRight: {
+    marginBottom: 8,
+    alignSelf: 'flex-end',
+  },
+
+  // Vertical Divider
+  verticalDivider: {
+    width: 32,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  verticalLine: {
+    flex: 1,
+    width: 2,
+    backgroundColor: colors.pink[200],
+  },
+  dividerCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.pink[500],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+  },
+
+  // Person Row (horizontal layout - avatar left, info right)
+  personRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  personRowRight: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+    width: '100%',
+  },
+  bigAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.purple[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bigInitials: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.purple[600],
+  },
+  littleAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.pink[100],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  littleInitials: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.pink[600],
+  },
+  personInfo: {
+    flex: 1,
+    minWidth: 0,
+  },
+  personInfoRight: {
+    flex: 1,
+    minWidth: 0,
+    alignItems: 'flex-end',
+  },
+  personName: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.slate[900],
+  },
+  personNameRight: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.slate[900],
+    textAlign: 'right',
+  },
+  bigBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    backgroundColor: colors.purple[600],
+    backgroundColor: colors.purple[500],
     paddingVertical: 2,
     paddingHorizontal: 8,
     borderRadius: 10,
+    alignSelf: 'flex-start',
   },
-  roleBadgeText: {
+  littleBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: colors.pink[500],
+    paddingVertical: 2,
+    paddingHorizontal: 8,
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+  },
+  badgeText: {
     fontSize: 9,
     fontWeight: '700',
     color: colors.white,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  gymnastName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.slate[900],
-    textAlign: 'center',
-    marginTop: 6,
-  },
-  gymnastLevel: {
+  levelText: {
     fontSize: 11,
+    fontWeight: '500',
     color: colors.slate[600],
     marginTop: 2,
   },
-  gymnastMeta: {
+  levelTextRight: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.slate[600],
+    marginTop: 2,
+    textAlign: 'right',
+  },
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 4,
+    marginTop: 3,
+    flexWrap: 'wrap',
+  },
+  metaRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 3,
+    flexWrap: 'wrap',
   },
   metaItem: {
     flexDirection: 'row',
@@ -739,76 +879,11 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
   },
-
-  // Arrow
-  arrowContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 8,
-    marginTop: 20,
-    backgroundColor: colors.pink[500],
-  },
-
-  // Littles Section
-  littlesSection: {
-    flex: 1,
-    minWidth: 0,
-  },
-  littlesBadgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    marginBottom: 8,
-  },
-  littleBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3,
-    backgroundColor: colors.pink[600],
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-    borderRadius: 10,
-  },
-  littleBadgeText: {
-    fontSize: 9,
-    fontWeight: '700',
-    color: colors.white,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  littlesCount: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: colors.pink[600],
-  },
-  littleChip: {
-    backgroundColor: colors.pink[50],
-    borderWidth: 1,
-    borderColor: colors.pink[200],
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 6,
-    alignItems: 'center',
-  },
-  littleName: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.slate[900],
-  },
-  littleLevel: {
-    fontSize: 10,
-    color: colors.slate[600],
-    marginTop: 1,
-  },
-  littleMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 3,
+  littleRowMargin: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.slate[100],
   },
 
   // Notes

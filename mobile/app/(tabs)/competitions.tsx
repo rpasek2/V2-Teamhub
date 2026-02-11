@@ -1,2 +1,10 @@
-// Re-export competitions screen for tab navigation
-export { default } from '../competitions/index';
+import { MobileTabGuard } from '../../src/components/ui';
+import CompetitionsScreen from '../competitions/index';
+
+export default function CompetitionsTab() {
+  return (
+    <MobileTabGuard tabId="competitions">
+      <CompetitionsScreen />
+    </MobileTabGuard>
+  );
+}

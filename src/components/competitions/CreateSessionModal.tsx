@@ -3,12 +3,20 @@ import { X, Loader2, AlertCircle, Check } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 
+interface Session {
+    id: string;
+    name: string;
+    date: string;
+    warmup_time: string | null;
+}
+
 interface CreateSessionModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSessionCreated: () => void;
     competitionId: string;
     defaultDate?: string;
+    editSession?: Session | null;
 }
 
 interface Coach {
@@ -18,12 +26,14 @@ interface Coach {
     };
 }
 
-export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competitionId, defaultDate }: CreateSessionModalProps) {
+export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competitionId, defaultDate, editSession }: CreateSessionModalProps) {
     const { hub } = useHub();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [coaches, setCoaches] = useState<Coach[]>([]);
     const [selectedCoaches, setSelectedCoaches] = useState<string[]>([]);
+
+    const isEditing = !!editSession;
 
     const [formData, setFormData] = useState({
         name: '',
@@ -34,8 +44,22 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
     useEffect(() => {
         if (isOpen && hub) {
             fetchCoaches();
+            // Pre-fill form if editing
+            if (editSession) {
+                setFormData({
+                    name: editSession.name,
+                    date: editSession.date,
+                    checkInTime: editSession.warmup_time || ''
+                });
+            } else {
+                setFormData({
+                    name: '',
+                    date: defaultDate || '',
+                    checkInTime: ''
+                });
+            }
         }
-    }, [isOpen, hub]);
+    }, [isOpen, hub, editSession]);
 
     const fetchCoaches = async () => {
         if (!hub) return;
@@ -70,28 +94,43 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
         setError(null);
 
         try {
-            const { data: sessionData, error: insertError } = await supabase
-                .from('competition_sessions')
-                .insert({
-                    competition_id: competitionId,
-                    name: formData.name,
-                    date: formData.date,
-                    warmup_time: formData.checkInTime || null
-                })
-                .select()
-                .single();
+            if (isEditing && editSession) {
+                // Update existing session
+                const { error: updateError } = await supabase
+                    .from('competition_sessions')
+                    .update({
+                        name: formData.name,
+                        date: formData.date,
+                        warmup_time: formData.checkInTime || null
+                    })
+                    .eq('id', editSession.id);
 
-            if (insertError) throw insertError;
+                if (updateError) throw updateError;
+            } else {
+                // Create new session
+                const { data: sessionData, error: insertError } = await supabase
+                    .from('competition_sessions')
+                    .insert({
+                        competition_id: competitionId,
+                        name: formData.name,
+                        date: formData.date,
+                        warmup_time: formData.checkInTime || null
+                    })
+                    .select()
+                    .single();
 
-            // Assign selected coaches to the session
-            if (selectedCoaches.length > 0 && sessionData) {
-                const { error: coachError } = await supabase
-                    .from('session_coaches')
-                    .insert(selectedCoaches.map(userId => ({
-                        session_id: sessionData.id,
-                        user_id: userId
-                    })));
-                if (coachError) throw coachError;
+                if (insertError) throw insertError;
+
+                // Assign selected coaches to the session
+                if (selectedCoaches.length > 0 && sessionData) {
+                    const { error: coachError } = await supabase
+                        .from('session_coaches')
+                        .insert(selectedCoaches.map(userId => ({
+                            session_id: sessionData.id,
+                            user_id: userId
+                        })));
+                    if (coachError) throw coachError;
+                }
             }
 
             onSessionCreated();
@@ -103,8 +142,8 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
             });
             setSelectedCoaches([]);
         } catch (err: any) {
-            console.error('Error creating session:', err);
-            setError(err.message || 'Failed to create session');
+            console.error('Error saving session:', err);
+            setError(err.message || 'Failed to save session');
         } finally {
             setLoading(false);
         }
@@ -141,7 +180,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
 
                 {/* Title */}
                 <h3 className="text-lg font-semibold text-slate-900 pr-8" id="modal-title">
-                    Add Session
+                    {isEditing ? 'Edit Session' : 'Add Session'}
                 </h3>
 
                 {/* Content */}
@@ -203,39 +242,41 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                         </div>
                     </div>
 
-                    {/* Coach Assignment */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">
-                            Assign Coaches <span className="text-slate-400 font-normal">(optional)</span>
-                        </label>
-                        <div className="mt-1.5 max-h-40 overflow-y-auto rounded-md border border-slate-300">
-                            {coaches.length > 0 ? (
-                                <div className="divide-y divide-slate-100">
-                                    {coaches.map((coach) => (
-                                        <div
-                                            key={coach.user_id}
-                                            className={`flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-slate-50 ${
-                                                selectedCoaches.includes(coach.user_id) ? 'bg-brand-50' : ''
-                                            }`}
-                                            onClick={() => toggleCoach(coach.user_id)}
-                                        >
-                                            <span className="text-sm text-slate-900">{coach.profiles.full_name}</span>
-                                            {selectedCoaches.includes(coach.user_id) && (
-                                                <Check className="h-4 w-4 text-brand-600" />
-                                            )}
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p className="px-3 py-2 text-sm text-slate-500">No coaches available</p>
+                    {/* Coach Assignment - only show when creating */}
+                    {!isEditing && (
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700">
+                                Assign Coaches <span className="text-slate-400 font-normal">(optional)</span>
+                            </label>
+                            <div className="mt-1.5 max-h-40 overflow-y-auto rounded-md border border-slate-300">
+                                {coaches.length > 0 ? (
+                                    <div className="divide-y divide-slate-100">
+                                        {coaches.map((coach) => (
+                                            <div
+                                                key={coach.user_id}
+                                                className={`flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-slate-50 ${
+                                                    selectedCoaches.includes(coach.user_id) ? 'bg-brand-50' : ''
+                                                }`}
+                                                onClick={() => toggleCoach(coach.user_id)}
+                                            >
+                                                <span className="text-sm text-slate-900">{coach.profiles.full_name}</span>
+                                                {selectedCoaches.includes(coach.user_id) && (
+                                                    <Check className="h-4 w-4 text-brand-600" />
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="px-3 py-2 text-sm text-slate-500">No coaches available</p>
+                                )}
+                            </div>
+                            {selectedCoaches.length > 0 && (
+                                <p className="mt-1 text-xs text-slate-500">
+                                    {selectedCoaches.length} coach{selectedCoaches.length !== 1 ? 'es' : ''} selected
+                                </p>
                             )}
                         </div>
-                        {selectedCoaches.length > 0 && (
-                            <p className="mt-1 text-xs text-slate-500">
-                                {selectedCoaches.length} coach{selectedCoaches.length !== 1 ? 'es' : ''} selected
-                            </p>
-                        )}
-                    </div>
+                    )}
 
                     {/* Actions */}
                     <div className="flex justify-end gap-3 pt-2">
@@ -254,10 +295,10 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                             {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Adding...
+                                    {isEditing ? 'Saving...' : 'Adding...'}
                                 </>
                             ) : (
-                                'Add Session'
+                                isEditing ? 'Save Changes' : 'Add Session'
                             )}
                         </button>
                     </div>

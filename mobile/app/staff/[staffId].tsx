@@ -40,6 +40,7 @@ import { format, parseISO, differenceInDays, isPast } from 'date-fns';
 import { colors, theme } from '../../src/constants/colors';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { isTabEnabled } from '../../src/lib/permissions';
 
 interface EmergencyContact {
   name: string;
@@ -654,6 +655,7 @@ export default function StaffDetailScreen() {
         </View>
 
         {/* Schedule */}
+        {isTabEnabled('schedule', currentHub?.settings?.enabledTabs) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Clock size={18} color={colors.slate[500]} />
@@ -674,6 +676,7 @@ export default function StaffDetailScreen() {
             <Text style={styles.emptyText}>No schedule set</Text>
           )}
         </View>
+        )}
 
         {/* Certifications */}
         <View style={styles.section}>

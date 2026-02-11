@@ -27,6 +27,7 @@ import {
 import { colors, theme } from '../../src/constants/colors';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
+import { isTabEnabled } from '../../src/lib/permissions';
 import { supabase } from '../../src/services/supabase';
 import { format, parseISO, subWeeks, subDays } from 'date-fns';
 
@@ -558,6 +559,7 @@ export default function DashboardScreen() {
               </Text>
             </View>
 
+            {isTabEnabled('competitions', currentHub?.settings?.enabledTabs) && (
             <View style={styles.statCard}>
               <View style={styles.statCardHeader}>
                 <Text style={styles.statCardLabel}>Meets</Text>
@@ -568,12 +570,13 @@ export default function DashboardScreen() {
                 {stats.nextCompetitionName || 'None'}
               </Text>
             </View>
+            )}
           </View>
         </View>
       )}
 
       {/* Parent: Recent Scores */}
-      {isParentRole && recentScores.length > 0 && (
+      {isParentRole && recentScores.length > 0 && isTabEnabled('scores', currentHub?.settings?.enabledTabs) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Scores</Text>
@@ -612,7 +615,7 @@ export default function DashboardScreen() {
       )}
 
       {/* Parent: Skill Updates */}
-      {isParentRole && recentSkillChanges.length > 0 && (
+      {isParentRole && recentSkillChanges.length > 0 && isTabEnabled('skills', currentHub?.settings?.enabledTabs) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Skill Updates</Text>

@@ -22,6 +22,12 @@ export default function CompetitionsLayout() {
           title: 'Competitions',
         }}
       />
+      <Stack.Screen
+        name="[competitionId]"
+        options={{
+          title: 'Competition Details',
+        }}
+      />
     </Stack>
   );
 }

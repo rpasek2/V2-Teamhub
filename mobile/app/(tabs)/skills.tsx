@@ -1,2 +1,10 @@
-// Re-export skills screen for tab navigation
-export { default } from '../skills/index';
+import { MobileTabGuard } from '../../src/components/ui';
+import SkillsScreen from '../skills/index';
+
+export default function SkillsTab() {
+  return (
+    <MobileTabGuard tabId="skills">
+      <SkillsScreen />
+    </MobileTabGuard>
+  );
+}

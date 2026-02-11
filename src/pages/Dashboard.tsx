@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Users, CalendarDays, Trophy, Loader2, MessageSquare, Calendar, UserPlus, FileText, ChevronRight, User, Star, Heart, Cake, ShoppingBag, Sparkles, Clock, Check, X } from 'lucide-react';
 import { useHub } from '../context/HubContext';
+import { isTabEnabled } from '../lib/permissions';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { supabase } from '../lib/supabase';
 import { format, parseISO, subWeeks, subDays } from 'date-fns';
@@ -108,6 +109,7 @@ export function Dashboard() {
     const { hub, loading, user, linkedGymnasts } = useHub();
     const { isStaff, isParent, isOwner } = useRoleChecks();
     const navigate = useNavigate();
+    const enabledTabs = hub?.settings?.enabledTabs;
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
     const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
@@ -739,18 +741,18 @@ export function Dashboard() {
             icon: Users,
             subtitle: loadingStats ? '' : `${stats?.totalGymnasts || 0} athletes`,
         },
-        {
+        ...(isTabEnabled('calendar', enabledTabs) ? [{
             name: 'Upcoming Events',
             value: loadingStats ? '-' : String(stats?.upcomingEvents || 0),
             icon: CalendarDays,
             subtitle: stats?.nextEventDate ? `Next: ${format(parseISO(stats.nextEventDate), 'EEE h:mma')}` : 'No upcoming',
-        },
-        {
+        }] : []),
+        ...(isTabEnabled('competitions', enabledTabs) ? [{
             name: 'Competitions',
             value: loadingStats ? '-' : String(stats?.activeCompetitions || 0),
             icon: Trophy,
             subtitle: stats?.nextCompetitionName || 'None scheduled',
-        },
+        }] : []),
     ];
 
     return (
@@ -950,7 +952,7 @@ export function Dashboard() {
             {isParent && (
                 <>
                     {/* Today's Assignment Progress */}
-                    {assignmentProgress.length > 0 && (
+                    {assignmentProgress.length > 0 && isTabEnabled('assignments', enabledTabs) && (
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-slate-900">Today's Assignments</h2>
@@ -996,7 +998,7 @@ export function Dashboard() {
                     )}
 
                     {/* Recent Scores */}
-                    {recentScores.length > 0 && (
+                    {recentScores.length > 0 && isTabEnabled('scores', enabledTabs) && (
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-slate-900">Recent Scores</h2>
@@ -1036,7 +1038,7 @@ export function Dashboard() {
                     )}
 
                     {/* Recent Skill Changes */}
-                    {recentSkillChanges.length > 0 && (
+                    {recentSkillChanges.length > 0 && isTabEnabled('skills', enabledTabs) && (
                         <div className="mb-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-slate-900">Skill Updates</h2>
@@ -1082,7 +1084,7 @@ export function Dashboard() {
 
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
                         {/* Recent Group Posts */}
-                        {recentGroupPosts.length > 0 && (
+                        {recentGroupPosts.length > 0 && isTabEnabled('groups', enabledTabs) && (
                             <div className="card">
                                 <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                                     <h2 className="text-lg font-semibold text-slate-900">Group Posts</h2>
@@ -1121,7 +1123,7 @@ export function Dashboard() {
                         )}
 
                         {/* Recent Marketplace Items */}
-                        {recentMarketplaceItems.length > 0 && (
+                        {recentMarketplaceItems.length > 0 && isTabEnabled('marketplace', enabledTabs) && (
                             <div className="card">
                                 <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                                     <h2 className="text-lg font-semibold text-slate-900">New in Marketplace</h2>

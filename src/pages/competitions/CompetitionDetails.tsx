@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, UserPlus, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, UserPlus, ChevronDown, ChevronRight, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { clsx } from 'clsx';
@@ -76,6 +76,8 @@ export function CompetitionDetails() {
     const canManageRoster = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
     const [isAssignGymnastsModalOpen, setIsAssignGymnastsModalOpen] = useState(false);
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
+    const [editSession, setEditSession] = useState<Session | null>(null);
+    const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
 
     // Tab Data States
     const [roster, setRoster] = useState<Gymnast[]>([]);
@@ -216,6 +218,29 @@ export function CompetitionDetails() {
 
         if (error) console.error('Error fetching sessions:', error);
         else setSessions(data as Session[] || []);
+    };
+
+    const handleDeleteSession = async (sessionId: string) => {
+        if (!confirm('Are you sure you want to delete this session? This will also remove all gymnast and coach assignments.')) {
+            return;
+        }
+
+        setDeletingSessionId(sessionId);
+        try {
+            // Delete session (cascade will handle session_gymnasts and session_coaches)
+            const { error } = await supabase
+                .from('competition_sessions')
+                .delete()
+                .eq('id', sessionId);
+
+            if (error) throw error;
+            fetchSessions();
+        } catch (err) {
+            console.error('Error deleting session:', err);
+            alert('Failed to delete session. Please try again.');
+        } finally {
+            setDeletingSessionId(null);
+        }
     };
 
     // Helper function to group session gymnasts by level
@@ -480,16 +505,36 @@ export function CompetitionDetails() {
                                                     <span className="text-slate-400 italic">No coaches</span>
                                                 )}
                                                 {canManageRoster && (
-                                                    <button
-                                                        onClick={() => {
-                                                            setSelectedSession(session);
-                                                            setIsAssignCoachModalOpen(true);
-                                                        }}
-                                                        className="text-mint-600 hover:text-mint-500"
-                                                        title="Assign coaches"
-                                                    >
-                                                        <UserPlus className="h-4 w-4" />
-                                                    </button>
+                                                    <>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedSession(session);
+                                                                setIsAssignCoachModalOpen(true);
+                                                            }}
+                                                            className="text-mint-600 hover:text-mint-500"
+                                                            title="Assign coaches"
+                                                        >
+                                                            <UserPlus className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => {
+                                                                setEditSession(session);
+                                                                setIsCreateSessionModalOpen(true);
+                                                            }}
+                                                            className="text-slate-400 hover:text-slate-600"
+                                                            title="Edit session"
+                                                        >
+                                                            <Pencil className="h-4 w-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteSession(session.id)}
+                                                            disabled={deletingSessionId === session.id}
+                                                            className="text-slate-400 hover:text-red-600 disabled:opacity-50"
+                                                            title="Delete session"
+                                                        >
+                                                            <Trash2 className="h-4 w-4" />
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
                                         </div>
@@ -585,10 +630,14 @@ export function CompetitionDetails() {
             {competition && (
                 <CreateSessionModal
                     isOpen={isCreateSessionModalOpen}
-                    onClose={() => setIsCreateSessionModalOpen(false)}
+                    onClose={() => {
+                        setIsCreateSessionModalOpen(false);
+                        setEditSession(null);
+                    }}
                     onSessionCreated={fetchSessions}
                     competitionId={competition.id}
                     defaultDate={competition.start_date}
+                    editSession={editSession}
                 />
             )}
 

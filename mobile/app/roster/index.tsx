@@ -40,7 +40,7 @@ interface HubMember {
   profiles: {
     full_name: string;
     email: string;
-  } | null;
+  }[];
 }
 
 interface DisplayMember {
@@ -104,10 +104,11 @@ export default function RosterScreen() {
       // Process hub members (coaches, parents, admins)
       if (hubMembersResult.data) {
         (hubMembersResult.data as HubMember[]).forEach((m) => {
+          const profile = m.profiles?.[0];
           allMembers.push({
             id: m.user_id,
-            name: m.profiles?.full_name || 'Unknown',
-            email: m.profiles?.email || '',
+            name: profile?.full_name || 'Unknown',
+            email: profile?.email || '',
             role: m.role,
             type: 'hub_member',
           });

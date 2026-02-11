@@ -42,6 +42,7 @@ import { Badge } from '../../src/components/ui';
 import { SeasonPicker } from '../../src/components/ui/SeasonPicker';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { isTabEnabled } from '../../src/lib/permissions';
 
 interface Guardian {
   name?: string;
@@ -1074,18 +1075,23 @@ export default function GymnastProfileScreen() {
 
   const age = getAge(gymnast.date_of_birth);
 
-  // Build tabs based on permissions
+  // Build tabs based on permissions and enabled tabs
+  const hubEnabledTabs = currentHub?.settings?.enabledTabs;
   const availableTabs: { key: Tab; label: string }[] = [
     { key: 'overview', label: 'Overview' },
     { key: 'goals', label: 'Goals' },
     { key: 'assessment', label: 'Assessment' },
-    { key: 'skills', label: 'Skills' },
-    { key: 'scores', label: 'Scores' },
   ];
-  if (canViewAttendance) {
+  if (isTabEnabled('skills', hubEnabledTabs)) {
+    availableTabs.push({ key: 'skills', label: 'Skills' });
+  }
+  if (isTabEnabled('scores', hubEnabledTabs)) {
+    availableTabs.push({ key: 'scores', label: 'Scores' });
+  }
+  if (canViewAttendance && isTabEnabled('attendance', hubEnabledTabs)) {
     availableTabs.push({ key: 'attendance', label: 'Attendance' });
   }
-  if (canViewAssignments) {
+  if (canViewAssignments && isTabEnabled('assignments', hubEnabledTabs)) {
     availableTabs.push({ key: 'assignments', label: 'Assignments' });
   }
 

@@ -29,6 +29,8 @@ import {
   AVAILABLE_TABS,
   TabId,
 } from '../../stores/tabPreferencesStore';
+import { useHubStore } from '../../stores/hubStore';
+import { isTabEnabled } from '../../lib/permissions';
 
 // Map of all available tab icons
 const TAB_ICONS: Record<string, React.ComponentType<{ size: number; color: string }>> = {
@@ -50,7 +52,12 @@ interface CustomizeTabsModalProps {
 
 export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps) {
   const { selectedTabs, setSelectedTabs, resetToDefault } = useTabPreferencesStore();
+  const { currentHub } = useHubStore();
+  const enabledTabsList = currentHub?.settings?.enabledTabs;
   const [localSelection, setLocalSelection] = useState<TabId[]>([]);
+
+  // Only show tabs that are enabled by the hub
+  const availableTabs = AVAILABLE_TABS.filter(tab => isTabEnabled(tab.id, enabledTabsList));
 
   // Initialize local selection when modal opens
   useEffect(() => {
@@ -187,7 +194,7 @@ export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps)
         {/* Tab Options */}
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
           <View style={styles.optionsGrid}>
-            {AVAILABLE_TABS.map((tab) => {
+            {availableTabs.map((tab) => {
               const Icon = TAB_ICONS[tab.id] || Users;
               const isSelected = localSelection.includes(tab.id);
               const selectionIndex = localSelection.indexOf(tab.id);

@@ -296,7 +296,11 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
                 {documents.length > 0 ? (
                     <ul role="list" className="divide-y divide-slate-200">
                         {documents.map((doc) => (
-                            <li key={doc.id} className="flex items-center justify-between p-4 hover:bg-slate-50">
+                            <li
+                                key={doc.id}
+                                className="flex cursor-pointer items-center justify-between p-4 hover:bg-slate-50"
+                                onClick={() => window.open(doc.url, '_blank', 'noopener,noreferrer')}
+                            >
                                 <div className="flex items-center overflow-hidden">
                                     <div className="mr-3 flex-shrink-0">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50">
@@ -305,21 +309,19 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
                                     </div>
                                     <div className="min-w-0 truncate">
                                         <p className="truncate text-sm font-medium text-slate-900">{doc.name}</p>
-                                        <a
-                                            href={doc.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="flex items-center truncate text-xs text-slate-500 hover:text-brand-600"
-                                        >
+                                        <p className="flex items-center truncate text-xs text-slate-500">
                                             {doc.url}
                                             <ExternalLink className="ml-1 h-3 w-3" />
-                                        </a>
+                                        </p>
                                     </div>
                                 </div>
                                 {canManage && (
                                     <div className="ml-4 flex-shrink-0">
                                         <button
-                                            onClick={() => handleDeleteDocument(doc)}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteDocument(doc);
+                                            }}
                                             className="rounded-md bg-white text-slate-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
                                         >
                                             <span className="sr-only">Delete</span>

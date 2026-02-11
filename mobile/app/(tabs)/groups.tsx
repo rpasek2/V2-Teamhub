@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Users, Lock, ChevronRight } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
-import { NotificationBadge } from '../../src/components/ui';
+import { NotificationBadge, MobileTabGuard } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -207,6 +207,7 @@ export default function GroupsScreen() {
   }
 
   return (
+    <MobileTabGuard tabId="groups">
     <View style={styles.container}>
       {/* Header Stats */}
       <View style={styles.statsBar}>
@@ -245,6 +246,7 @@ export default function GroupsScreen() {
         }
       />
     </View>
+    </MobileTabGuard>
   );
 }
 

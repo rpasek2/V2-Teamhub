@@ -27,7 +27,7 @@ interface Comment {
   profiles?: {
     full_name: string;
     avatar_url: string | null;
-  };
+  }[];
 }
 
 interface PostCardProps {
@@ -42,7 +42,7 @@ interface PostCardProps {
     profiles?: {
       full_name: string;
       avatar_url: string | null;
-    };
+    }[];
     commentCount: number;
   };
   currentUserId: string;
@@ -292,15 +292,15 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
       {/* Post Header */}
       <View style={styles.header}>
         <View style={styles.avatar}>
-          {post.profiles?.avatar_url ? (
-            <Image source={{ uri: post.profiles.avatar_url }} style={styles.avatarImage} />
+          {post.profiles?.[0]?.avatar_url ? (
+            <Image source={{ uri: post.profiles[0].avatar_url }} style={styles.avatarImage} />
           ) : (
             <User size={20} color={colors.slate[400]} />
           )}
         </View>
         <View style={styles.headerContent}>
           <Text style={styles.authorName}>
-            {post.profiles?.full_name || 'Unknown'}
+            {post.profiles?.[0]?.full_name || 'Unknown'}
           </Text>
           <Text style={styles.timestamp}>{formatTime(post.created_at)}</Text>
         </View>
@@ -503,7 +503,7 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
               <View style={styles.commentContent}>
                 <View style={styles.commentHeader}>
                   <Text style={styles.commentAuthor}>
-                    {comment.profiles?.full_name || 'Unknown'}
+                    {comment.profiles?.[0]?.full_name || 'Unknown'}
                   </Text>
                   <Text style={styles.commentTime}>
                     {formatTime(comment.created_at)}

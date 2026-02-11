@@ -202,8 +202,8 @@ export default function InviteCodesScreen() {
         {/* Codes List */}
         {codes.length > 0 ? (
           codes.map((code) => {
-            const isExpired = code.expires_at && new Date(code.expires_at) < new Date();
-            const isMaxed = code.max_uses && code.uses >= code.max_uses;
+            const isExpired = !!(code.expires_at && new Date(code.expires_at) < new Date());
+            const isMaxed = !!(code.max_uses && code.uses >= code.max_uses);
             const isDisabled = !code.is_active || isExpired || isMaxed;
 
             return (

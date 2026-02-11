@@ -1,2 +1,10 @@
-// Re-export assignments screen for tab navigation
-export { default } from '../assignments/index';
+import { MobileTabGuard } from '../../src/components/ui';
+import AssignmentsScreen from '../assignments/index';
+
+export default function AssignmentsTab() {
+  return (
+    <MobileTabGuard tabId="assignments">
+      <AssignmentsScreen />
+    </MobileTabGuard>
+  );
+}

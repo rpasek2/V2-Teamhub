@@ -263,91 +263,79 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="bg-white rounded-xl border border-slate-200 w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-                {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-200">
-                    <h2 className="text-lg font-semibold text-slate-900">New Assignment</h2>
-                    <button
-                        onClick={onClose}
-                        className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
-                </div>
+            <div className="bg-white rounded-xl border border-slate-200 w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+                {/* Compact Header with all controls */}
+                <div className="p-4 border-b border-slate-200 space-y-3">
+                    {/* Top row: Title + Mode Toggle + Close */}
+                    <div className="flex items-center justify-between gap-4">
+                        <h2 className="text-lg font-semibold text-slate-900">New Assignment</h2>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                    {/* Success Message */}
-                    {successMessage && (
-                        <div className="bg-success-500/10 border border-success-500/30 rounded-lg p-4 flex items-center gap-3">
-                            <Check className="w-5 h-5 text-success-400" />
-                            <span className="text-success-400">{successMessage}</span>
+                        {/* Mode Toggle - compact */}
+                        <div className="flex space-x-1 rounded-lg bg-slate-100 p-1">
+                            <button
+                                onClick={() => setMode('checklist')}
+                                className={`flex items-center gap-1.5 rounded-md py-1.5 px-3 text-sm font-medium transition-all ${
+                                    mode === 'checklist'
+                                        ? 'bg-white text-slate-900 shadow'
+                                        : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                            >
+                                <ClipboardList className="w-4 h-4" />
+                                Checklist
+                            </button>
+                            <button
+                                onClick={() => setMode('stations')}
+                                className={`flex items-center gap-1.5 rounded-md py-1.5 px-3 text-sm font-medium transition-all ${
+                                    mode === 'stations'
+                                        ? 'bg-amber-100 text-amber-600 shadow'
+                                        : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                                Stations
+                            </button>
                         </div>
-                    )}
 
-                    {/* Mode Toggle */}
-                    <div className="flex space-x-1 rounded-lg bg-slate-100 p-1">
                         <button
-                            onClick={() => setMode('checklist')}
-                            className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all flex-1 justify-center ${
-                                mode === 'checklist'
-                                    ? 'bg-white text-slate-900 shadow'
-                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                            }`}
+                            onClick={onClose}
+                            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
                         >
-                            <ClipboardList className="w-4 h-4" />
-                            Checklist
-                        </button>
-                        <button
-                            onClick={() => setMode('stations')}
-                            className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all flex-1 justify-center ${
-                                mode === 'stations'
-                                    ? 'bg-amber-100 text-amber-600 shadow'
-                                    : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
-                            }`}
-                        >
-                            <LayoutGrid className="w-4 h-4" />
-                            Stations
+                            <X className="w-5 h-5" />
                         </button>
                     </div>
 
-                    {/* Date Selection */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-2">Date</label>
+                    {/* Bottom row: Date + Event + Templates - all inline */}
+                    <div className="flex items-center gap-4 flex-wrap">
+                        {/* Date - compact */}
                         <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-slate-500" />
+                            <Calendar className="w-4 h-4 text-slate-400" />
                             <input
                                 type="date"
                                 value={dateString}
                                 onChange={(e) => {
                                     if (e.target.value) {
-                                        // Parse the date string and create a new date at noon to avoid timezone issues
                                         const [year, month, day] = e.target.value.split('-').map(Number);
                                         setSelectedDate(new Date(year, month - 1, day, 12, 0, 0));
                                     }
                                 }}
-                                className="input py-1.5 text-sm"
+                                className="input py-1 px-2 text-sm"
                             />
-                            <span className="text-sm text-slate-500">
-                                {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-                            </span>
                         </div>
-                    </div>
 
-                    {/* Event Selection */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-2">Event</label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="h-6 w-px bg-slate-200" />
+
+                        {/* Event chips - compact */}
+                        <div className="flex items-center gap-1.5 flex-wrap">
                             {ASSIGNMENT_EVENTS.map(event => {
                                 const colors = ASSIGNMENT_EVENT_COLORS[event];
                                 return (
                                     <button
                                         key={event}
                                         onClick={() => setSelectedEvent(event)}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                                        className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                                             selectedEvent === event
                                                 ? `${colors.bg} ${colors.text} border ${colors.border}`
-                                                : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'
+                                                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                                         }`}
                                     >
                                         {ASSIGNMENT_EVENT_LABELS[event]}
@@ -355,30 +343,39 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                 );
                             })}
                         </div>
-                    </div>
 
-                    {/* Templates */}
-                    {templates.length > 0 && (
-                        <div>
-                            <label className="block text-sm font-medium text-slate-500 mb-2">
-                                {mode === 'checklist' ? 'Checklist Templates' : 'Station Templates'}
-                            </label>
-                            <div className="flex flex-wrap gap-2">
-                                {templates.map(template => (
-                                    <button
-                                        key={template.id}
-                                        onClick={() => handleApplyTemplate(template)}
-                                        className={`px-3 py-1.5 rounded-lg text-sm bg-white border transition-all flex items-center gap-1.5 ${
-                                            mode === 'stations'
-                                                ? 'text-amber-600 border-slate-200 hover:border-amber-500/50 hover:text-amber-700'
-                                                : 'text-slate-700 border-slate-200 hover:border-mint-500/50 hover:text-mint-600'
-                                        }`}
+                        {/* Templates dropdown - if available */}
+                        {templates.length > 0 && (
+                            <>
+                                <div className="h-6 w-px bg-slate-200" />
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-xs text-slate-500">Template:</span>
+                                    <select
+                                        onChange={(e) => {
+                                            const template = templates.find(t => t.id === e.target.value);
+                                            if (template) handleApplyTemplate(template);
+                                        }}
+                                        className="input py-1 px-2 text-xs"
+                                        defaultValue=""
                                     >
-                                        {mode === 'stations' && <LayoutGrid className="w-3 h-3" />}
-                                        {template.name}
-                                    </button>
-                                ))}
-                            </div>
+                                        <option value="" disabled>Select...</option>
+                                        {templates.map(template => (
+                                            <option key={template.id} value={template.id}>{template.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                    {/* Success Message */}
+                    {successMessage && (
+                        <div className="bg-success-500/10 border border-success-500/30 rounded-lg p-3 flex items-center gap-3">
+                            <Check className="w-5 h-5 text-success-400" />
+                            <span className="text-success-400">{successMessage}</span>
                         </div>
                     )}
 
@@ -433,7 +430,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                 </div>
 
                                 {/* Gymnast List */}
-                                <div className="max-h-[200px] overflow-y-auto space-y-1.5">
+                                <div className="max-h-[300px] overflow-y-auto space-y-1.5">
                                     {loadingGymnasts ? (
                                         <div className="flex items-center justify-center py-6">
                                             <Loader2 className="w-5 h-5 text-mint-600 animate-spin" />
@@ -488,7 +485,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                     value={exercises}
                                     onChange={(e) => setExercises(e.target.value)}
                                     placeholder={`Enter ${ASSIGNMENT_EVENT_LABELS[selectedEvent]} exercises...\nOne exercise per line`}
-                                    className="input w-full min-h-[200px] resize-none font-mono text-sm"
+                                    className="input w-full min-h-[300px] resize-none font-mono text-sm"
                                 />
                             </div>
                         </div>
@@ -565,7 +562,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                     </button>
                                 </div>
 
-                                <div className="space-y-3 max-h-[250px] overflow-y-auto">
+                                <div className="space-y-3 max-h-[350px] overflow-y-auto">
                                     {mainStations.map((station, idx) => (
                                         <div
                                             key={station.id}

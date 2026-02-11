@@ -117,3 +117,38 @@ export function canManageRole(role: string | null): boolean {
     if (!role) return false;
     return MANAGE_ROLES.includes(normalizeRole(role));
 }
+
+/**
+ * Tab dependencies: when a parent tab is disabled, its dependent tabs
+ * must also be treated as disabled.
+ */
+const TAB_DEPENDENCIES: Record<string, string[]> = {
+    schedule: ['attendance'],
+};
+
+/**
+ * Check if a feature tab is enabled in hub settings.
+ * Returns true if enabledTabs is not configured (all tabs enabled by default).
+ * Also enforces tab dependencies (e.g., schedule OFF → attendance OFF).
+ */
+export function isTabEnabled(tabId: string, enabledTabs?: string[] | null): boolean {
+    if (!enabledTabs) return true;
+    if (!enabledTabs.includes(tabId)) return false;
+
+    // Check if any parent tab dependency is disabled
+    for (const [parent, dependents] of Object.entries(TAB_DEPENDENCIES)) {
+        if (dependents.includes(tabId) && !enabledTabs.includes(parent)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * Get dependent tabs that should be disabled when a parent tab is toggled off.
+ * Used by Settings UI to auto-disable dependents.
+ */
+export function getTabDependents(tabId: string): string[] {
+    return TAB_DEPENDENCIES[tabId] || [];
+}
