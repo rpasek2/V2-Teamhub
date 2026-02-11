@@ -87,6 +87,7 @@ interface RecentScore {
   id: string;
   event: string;
   score: number;
+  competition_id: string;
   competition_name: string;
   competition_date: string;
   season_id: string | null;
@@ -365,6 +366,7 @@ export default function GymnastProfileScreen() {
             id,
             event,
             score,
+            competition_id,
             competitions(name, start_date, season_id)
           `)
           .eq('gymnast_profile_id', gymnastId)
@@ -373,7 +375,7 @@ export default function GymnastProfileScreen() {
         // Skills with hub_event_skill details
         supabase
           .from('gymnast_skills')
-          .select('id, hub_event_skill_id, event, status, achieved_date, hub_event_skills(id, name, event)')
+          .select('id, hub_event_skill_id, status, achieved_date, hub_event_skills(id, skill_name, event)')
           .eq('gymnast_profile_id', gymnastId),
 
         // Attendance (last 6 months)
@@ -414,6 +416,7 @@ export default function GymnastProfileScreen() {
           id: s.id,
           event: s.event,
           score: s.score,
+          competition_id: s.competition_id,
           competition_name: s.competitions?.name || 'Unknown',
           competition_date: s.competitions?.start_date || '',
           season_id: s.competitions?.season_id || null,
@@ -424,7 +427,7 @@ export default function GymnastProfileScreen() {
       // Process skills
       if (skillsResult.data) {
         const summary = events.map(event => {
-          const eventSkills = skillsResult.data.filter((s: any) => s.event === event);
+          const eventSkills = skillsResult.data.filter((s: any) => s.hub_event_skills?.event === event);
           return {
             event,
             total: eventSkills.length,
@@ -437,8 +440,8 @@ export default function GymnastProfileScreen() {
         const detailed = skillsResult.data.map((s: any) => ({
           id: s.id,
           hub_event_skill_id: s.hub_event_skill_id,
-          event: s.hub_event_skills?.event || s.event,
-          name: s.hub_event_skills?.name || 'Unknown Skill',
+          event: s.hub_event_skills?.event || '',
+          name: s.hub_event_skills?.skill_name || 'Unknown Skill',
           status: s.status,
           achieved_date: s.achieved_date,
         }));
@@ -2145,21 +2148,65 @@ export default function GymnastProfileScreen() {
                 ? recentScores.filter((s) => s.season_id === selectedSeasonId)
                 : recentScores;
 
-              return filteredScores.length > 0 ? (
-                filteredScores.map((score) => (
-                  <View key={score.id} style={styles.scoreCard}>
-                    <View style={styles.scoreHeader}>
-                      <Badge label={getEventLabel(score.event)} variant="neutral" size="sm" />
-                      <Text style={styles.scoreValue}>{score.score.toFixed(3)}</Text>
+              // Group scores by competition
+              const groupedByCompetition: Record<string, {
+                competition_id: string;
+                competition_name: string;
+                competition_date: string;
+                scores: RecentScore[];
+              }> = {};
+
+              filteredScores.forEach((score) => {
+                if (!groupedByCompetition[score.competition_id]) {
+                  groupedByCompetition[score.competition_id] = {
+                    competition_id: score.competition_id,
+                    competition_name: score.competition_name,
+                    competition_date: score.competition_date,
+                    scores: [],
+                  };
+                }
+                groupedByCompetition[score.competition_id].scores.push(score);
+              });
+
+              // Sort competitions by date (newest first)
+              const competitions = Object.values(groupedByCompetition).sort((a, b) => {
+                if (!a.competition_date) return 1;
+                if (!b.competition_date) return -1;
+                return new Date(b.competition_date).getTime() - new Date(a.competition_date).getTime();
+              });
+
+              return competitions.length > 0 ? (
+                competitions.map((comp) => {
+                  // Calculate All-Around (AA) score
+                  const aaScore = comp.scores.reduce((sum, s) => sum + s.score, 0);
+
+                  return (
+                    <View key={comp.competition_id} style={styles.competitionScoreCard}>
+                      <View style={styles.competitionScoreHeader}>
+                        <View style={styles.competitionScoreHeaderLeft}>
+                          <Text style={styles.competitionScoreName}>{comp.competition_name}</Text>
+                          {comp.competition_date && (
+                            <Text style={styles.competitionScoreDate}>
+                              {format(parseISO(comp.competition_date), 'MMM d, yyyy')}
+                            </Text>
+                          )}
+                        </View>
+                        <View style={styles.aaScoreContainer}>
+                          <Text style={styles.aaScoreLabel}>AA</Text>
+                          <Text style={styles.aaScoreValue}>{aaScore.toFixed(3)}</Text>
+                        </View>
+                      </View>
+                      <View style={styles.eventScoresGrid}>
+                        {comp.scores.map((score) => (
+                          <View key={score.id} style={styles.eventScoreItem}>
+                            <Text style={styles.eventScoreLabel}>{getEventLabel(score.event)}</Text>
+                            <Text style={styles.eventScoreValue}>{score.score.toFixed(3)}</Text>
+                          </View>
+                        ))}
+                      </View>
                     </View>
-                    <Text style={styles.scoreCompetition}>{score.competition_name}</Text>
-                    {score.competition_date && (
-                      <Text style={styles.scoreDate}>
-                        {format(parseISO(score.competition_date), 'MMM d, yyyy')}
-                      </Text>
-                    )}
-                  </View>
-                ))
+                  );
+                })
               ) : (
                 <View style={styles.emptyContainer}>
                   <BarChart3 size={48} color={colors.slate[300]} />
@@ -2760,6 +2807,78 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.slate[500],
     marginTop: 2,
+  },
+  // Competition score card styles (grouped by meet)
+  competitionScoreCard: {
+    backgroundColor: colors.white,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.slate[200],
+  },
+  competitionScoreHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.slate[100],
+  },
+  competitionScoreHeaderLeft: {
+    flex: 1,
+    marginRight: 12,
+  },
+  competitionScoreName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.slate[900],
+    marginBottom: 2,
+  },
+  competitionScoreDate: {
+    fontSize: 13,
+    color: colors.slate[500],
+  },
+  aaScoreContainer: {
+    backgroundColor: colors.brand[50],
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  aaScoreLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.brand[600],
+    marginBottom: 2,
+  },
+  aaScoreValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.brand[700],
+  },
+  eventScoresGrid: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  eventScoreItem: {
+    flex: 1,
+    backgroundColor: colors.slate[50],
+    borderRadius: 8,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  eventScoreLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.slate[500],
+    marginBottom: 2,
+  },
+  eventScoreValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.slate[900],
   },
   emptyText: {
     fontSize: 14,
