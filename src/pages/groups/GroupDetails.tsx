@@ -88,7 +88,7 @@ export default function GroupDetails() {
     const fetchMemberCount = async () => {
         const { count, error } = await supabase
             .from('group_members')
-            .select('group_id', { count: 'exact', head: true })
+            .select('*', { count: 'exact', head: true })
             .eq('group_id', groupId);
 
         if (!error && count !== null) {

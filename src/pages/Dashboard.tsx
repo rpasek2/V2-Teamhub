@@ -524,8 +524,8 @@ export function Dashboard() {
 
             // Group 1: Stats queries (all independent) - run in parallel
             const [memberCountResult, gymnastCountResult, eventsResult, competitionsResult] = await Promise.all([
-                supabase.from('hub_members').select('id', { count: 'exact', head: true }).eq('hub_id', hub.id),
-                supabase.from('gymnast_profiles').select('id', { count: 'exact', head: true }).eq('hub_id', hub.id),
+                supabase.from('hub_members').select('*', { count: 'exact', head: true }).eq('hub_id', hub.id),
+                supabase.from('gymnast_profiles').select('*', { count: 'exact', head: true }).eq('hub_id', hub.id),
                 supabase.from('events').select('id, title, start_time, type', { count: 'exact' })
                     .eq('hub_id', hub.id).gte('start_time', now).order('start_time', { ascending: true }).limit(5),
                 supabase.from('competitions').select('id, name, start_date, end_date', { count: 'exact' })
