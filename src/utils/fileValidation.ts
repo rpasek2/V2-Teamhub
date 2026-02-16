@@ -8,7 +8,8 @@ export type FileCategory =
     | 'postFile'
     | 'marketplaceImage'
     | 'resource'
-    | 'competitionDoc';
+    | 'competitionDoc'
+    | 'floorMusic';
 
 interface FileLimits {
     maxSize: number;
@@ -87,6 +88,23 @@ export const FILE_LIMITS: Record<FileCategory, FileLimits> = {
         ],
         extensions: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png'],
     },
+    floorMusic: {
+        maxSize: 20 * 1024 * 1024, // 20MB
+        maxSizeLabel: '20MB',
+        mimeTypes: [
+            'audio/mpeg',
+            'audio/wav',
+            'audio/x-wav',
+            'audio/aac',
+            'audio/mp4',
+            'audio/x-m4a',
+            'audio/ogg',
+            'audio/flac',
+            'audio/x-flac',
+            'audio/x-ms-wma',
+        ],
+        extensions: ['mp3', 'wav', 'aac', 'm4a', 'ogg', 'flac', 'wma'],
+    },
 };
 
 export interface ValidationResult {
@@ -108,19 +126,24 @@ export function validateFile(file: File, category: FileCategory): ValidationResu
         };
     }
 
-    // Check MIME type
-    const isValidMimeType = limits.mimeTypes.some(type => {
-        if (type.endsWith('/*')) {
-            // Handle wildcard types like 'image/*'
-            return file.type.startsWith(type.replace('/*', '/'));
-        }
-        return file.type === type;
-    });
+    // Always check file extension
+    const extension = file.name.split('.').pop()?.toLowerCase() || '';
+    if (!limits.extensions.includes(extension)) {
+        return {
+            valid: false,
+            error: `File type not allowed. Accepted types: ${limits.extensions.join(', ')}`,
+        };
+    }
 
-    if (!isValidMimeType && file.type) {
-        // Get file extension as fallback check
-        const extension = file.name.split('.').pop()?.toLowerCase() || '';
-        if (!limits.extensions.includes(extension)) {
+    // Additionally check MIME type if present
+    if (file.type) {
+        const isValidMimeType = limits.mimeTypes.some(type => {
+            if (type.endsWith('/*')) {
+                return file.type.startsWith(type.replace('/*', '/'));
+            }
+            return file.type === type;
+        });
+        if (!isValidMimeType) {
             return {
                 valid: false,
                 error: `File type not allowed. Accepted types: ${limits.extensions.join(', ')}`,

@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList, Pencil, X, Check, Loader2, ListChecks, Sparkles, Trophy, UserCheck } from 'lucide-react';
+import { ArrowLeft, Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Target, ClipboardList, Pencil, X, Check, Loader2, ListChecks, Sparkles, Trophy, UserCheck, Music, Upload, Download, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { isTabEnabled } from '../lib/permissions';
@@ -13,6 +13,7 @@ import { GymnastAssignmentStats } from '../components/gymnast/GymnastAssignmentS
 import { GymnastSkillsTab } from '../components/gymnast/GymnastSkillsTab';
 import { GymnastScoresTab } from '../components/gymnast/GymnastScoresTab';
 import { GymnastAttendanceTab } from '../components/gymnast/GymnastAttendanceTab';
+import { validateFile, generateSecureFileName } from '../utils/fileValidation';
 import type { GymnastProfile } from '../types';
 
 type PageTab = 'profile' | 'goals' | 'assessment' | 'assignments' | 'skills' | 'scores' | 'attendance';
@@ -31,6 +32,11 @@ export function GymnastDetails() {
     // Inline edit state
     const [editSection, setEditSection] = useState<EditSection>(null);
     const [saving, setSaving] = useState(false);
+
+    // Floor music state
+    const [uploadingMusic, setUploadingMusic] = useState(false);
+    const [musicError, setMusicError] = useState<string | null>(null);
+    const floorMusicInputRef = useRef<HTMLInputElement>(null);
 
     // Use custom hook for form state management (replaces 38 individual useState hooks)
     const { formState, setField, loadSection, getUpdateData } = useGymnastEditForm();
@@ -106,6 +112,11 @@ export function GymnastDetails() {
         return currentRole ? staffRoles.includes(currentRole) : false;
     }, [currentRole]);
 
+    const canManageFloorMusic = useMemo(() => {
+        const staffRoles = ['owner', 'director', 'admin', 'coach'];
+        return currentRole ? staffRoles.includes(currentRole) : false;
+    }, [currentRole]);
+
     const enabledTabs = hub?.settings?.enabledTabs;
 
     // Reset active tab to 'profile' if the current tab becomes disabled
@@ -174,6 +185,97 @@ export function GymnastDetails() {
             setSaving(false);
         }
     }, [gymnast, editSection, getUpdateData]);
+
+    // Floor music upload handler
+    const handleFloorMusicUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !gymnast || !hub || !canManageFloorMusic) return;
+
+        // Reset input so same file can be re-selected
+        if (floorMusicInputRef.current) floorMusicInputRef.current.value = '';
+
+        const validation = validateFile(file, 'floorMusic');
+        if (!validation.valid) {
+            setMusicError(validation.error || 'Invalid file');
+            return;
+        }
+
+        setUploadingMusic(true);
+        setMusicError(null);
+
+        try {
+            // Delete existing file if replacing
+            if (gymnast.floor_music_url) {
+                try {
+                    const oldUrl = new URL(gymnast.floor_music_url);
+                    const oldPath = oldUrl.pathname.match(/\/object\/public\/floor-music\/(.+)/);
+                    if (oldPath) {
+                        await supabase.storage.from('floor-music').remove([oldPath[1]]);
+                    }
+                } catch { /* ignore cleanup errors */ }
+            }
+
+            const fileName = generateSecureFileName(file.name);
+            const filePath = `${hub.id}/${gymnast.id}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('floor-music')
+                .upload(filePath, file);
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('floor-music')
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from('gymnast_profiles')
+                .update({ floor_music_url: publicUrl, floor_music_name: file.name.replace(/[<>"'&]/g, '_').slice(0, 255) })
+                .eq('id', gymnast.id);
+
+            if (updateError) throw updateError;
+
+            await fetchGymnast();
+        } catch (error) {
+            console.error('Error uploading floor music:', error);
+            setMusicError('Failed to upload floor music. Please try again.');
+        } finally {
+            setUploadingMusic(false);
+        }
+    };
+
+    // Floor music remove handler
+    const handleRemoveFloorMusic = async () => {
+        if (!gymnast?.floor_music_url || !hub || !canManageFloorMusic) return;
+
+        if (!window.confirm('Are you sure you want to remove this floor music?')) return;
+
+        setUploadingMusic(true);
+        setMusicError(null);
+
+        try {
+            // Extract storage path from URL
+            const url = new URL(gymnast.floor_music_url);
+            const pathMatch = url.pathname.match(/\/object\/public\/floor-music\/(.+)/);
+            if (pathMatch) {
+                await supabase.storage.from('floor-music').remove([pathMatch[1]]);
+            }
+
+            const { error } = await supabase
+                .from('gymnast_profiles')
+                .update({ floor_music_url: null, floor_music_name: null })
+                .eq('id', gymnast.id);
+
+            if (error) throw error;
+
+            await fetchGymnast();
+        } catch (error) {
+            console.error('Error removing floor music:', error);
+            setMusicError('Failed to remove floor music.');
+        } finally {
+            setUploadingMusic(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -737,6 +839,94 @@ export function GymnastDetails() {
                                                 )}
                                             </div>
                                         </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Floor Music Card */}
+                        <div className="card overflow-hidden">
+                            <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
+                                <Music className="h-4 w-4 text-slate-500" />
+                                <h3 className="text-sm font-semibold text-slate-900">Floor Music</h3>
+                                {canManageFloorMusic && (
+                                    <div className="flex items-center gap-1 ml-auto">
+                                        <button
+                                            onClick={() => floorMusicInputRef.current?.click()}
+                                            disabled={uploadingMusic}
+                                            className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                            title={gymnast.floor_music_url ? "Replace floor music" : "Upload floor music"}
+                                            aria-label={gymnast.floor_music_url ? "Replace floor music" : "Upload floor music"}
+                                        >
+                                            {uploadingMusic ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+                                        </button>
+                                        {gymnast.floor_music_url && (
+                                            <button
+                                                onClick={handleRemoveFloorMusic}
+                                                disabled={uploadingMusic}
+                                                className="p-1.5 rounded-md text-slate-400 hover:text-error-600 hover:bg-error-50 transition-colors"
+                                                title="Remove floor music"
+                                                aria-label="Remove floor music"
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                                <input
+                                    ref={floorMusicInputRef}
+                                    type="file"
+                                    accept=".mp3,.wav,.aac,.m4a,.ogg,.flac,.wma"
+                                    onChange={handleFloorMusicUpload}
+                                    className="hidden"
+                                />
+                            </div>
+                            <div className="p-4">
+                                {musicError && (
+                                    <div className="mb-3 text-sm text-error-600 bg-error-50 px-3 py-2 rounded-lg">
+                                        {musicError}
+                                    </div>
+                                )}
+                                {gymnast.floor_music_url ? (
+                                    <div className="space-y-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-9 w-9 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0">
+                                                <Music className="h-4 w-4 text-purple-600" />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-sm font-medium text-slate-900 truncate">
+                                                    {gymnast.floor_music_name || 'Floor Music'}
+                                                </p>
+                                            </div>
+                                            <a
+                                                href={gymnast.floor_music_url}
+                                                download={gymnast.floor_music_name || 'floor-music'}
+                                                className="p-1.5 rounded-md text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                                                title="Download"
+                                            >
+                                                <Download className="h-4 w-4" />
+                                            </a>
+                                        </div>
+                                        <audio
+                                            controls
+                                            src={gymnast.floor_music_url}
+                                            className="w-full h-10"
+                                            preload="metadata"
+                                        />
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-2">
+                                        <Music className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+                                        <p className="text-sm text-slate-500">No floor music uploaded</p>
+                                        {canManageFloorMusic && (
+                                            <button
+                                                onClick={() => floorMusicInputRef.current?.click()}
+                                                disabled={uploadingMusic}
+                                                className="mt-2 text-sm text-brand-600 hover:text-brand-700 font-medium"
+                                            >
+                                                Upload audio file
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                             </div>

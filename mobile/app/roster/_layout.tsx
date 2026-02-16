@@ -28,6 +28,12 @@ export default function RosterLayout() {
           title: 'Gymnast Profile',
         }}
       />
+      <Stack.Screen
+        name="floor-music"
+        options={{
+          title: 'All Floor Music',
+        }}
+      />
     </Stack>
   );
 }

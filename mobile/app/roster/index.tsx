@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Search, User, ChevronRight, Phone, Mail, Users, Shield, Dumbbell } from 'lucide-react-native';
+import { Search, User, ChevronRight, Phone, Mail, Users, Shield, Dumbbell, Music } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
@@ -331,15 +331,25 @@ export default function RosterScreen() {
     <View style={styles.container}>
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color={colors.slate[400]} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search members..."
-            placeholderTextColor={colors.slate[400]}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
+        <View style={styles.searchRow}>
+          <View style={[styles.searchBar, { flex: 1 }]}>
+            <Search size={20} color={colors.slate[400]} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search members..."
+              placeholderTextColor={colors.slate[400]}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+          {isStaff() && (
+            <TouchableOpacity
+              style={styles.floorMusicBtn}
+              onPress={() => router.push('/roster/floor-music')}
+            >
+              <Music size={18} color={colors.purple[600]} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -427,6 +437,19 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 12,
     backgroundColor: colors.white,
+  },
+  searchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  floorMusicBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    backgroundColor: colors.purple[50],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchBar: {
     flexDirection: 'row',

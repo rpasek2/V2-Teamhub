@@ -1,11 +1,12 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Users, EyeOff } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Users, EyeOff, Music } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
 import { ManageLevelsModal } from '../components/roster/ManageLevelsModal';
+import { FloorMusicModal } from '../components/roster/FloorMusicModal';
 import type { GymnastProfile } from '../types';
 
 type SortColumn = 'id' | 'name' | 'role' | 'level' | 'guardian' | 'contact';
@@ -47,6 +48,7 @@ export function Roster() {
     const [activeTab, setActiveTab] = useState<TabType>('All');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isManageLevelsOpen, setIsManageLevelsOpen] = useState(false);
+    const [isFloorMusicOpen, setIsFloorMusicOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<DisplayMember | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [sortColumn, setSortColumn] = useState<SortColumn>('level');
@@ -364,6 +366,16 @@ export function Roster() {
                     </p>
                 </div>
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
+                    {isStaff && (
+                        <button
+                            type="button"
+                            onClick={() => setIsFloorMusicOpen(true)}
+                            className="btn-secondary"
+                        >
+                            <Music className="h-4 w-4" />
+                            Floor Music
+                        </button>
+                    )}
                     {canManage && (
                         <button
                             type="button"
@@ -620,6 +632,13 @@ export function Roster() {
                 levels={hub?.settings?.levels || []}
                 hubId={hub?.id || ''}
                 onUpdated={fetchMembers}
+            />
+
+            <FloorMusicModal
+                isOpen={isFloorMusicOpen}
+                onClose={() => setIsFloorMusicOpen(false)}
+                hubId={hub?.id || ''}
+                levels={hub?.settings?.levels || []}
             />
         </div>
     );

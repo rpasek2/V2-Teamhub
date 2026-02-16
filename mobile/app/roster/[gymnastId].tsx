@@ -11,8 +11,12 @@ import {
   Modal,
   Alert,
   Pressable,
+  Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Audio } from 'expo-av';
+import * as Crypto from 'expo-crypto';
+import * as DocumentPicker from 'expo-document-picker';
 import {
   Target,
   BarChart3,
@@ -35,6 +39,11 @@ import {
   Activity,
   Heart,
   Zap,
+  Music,
+  Upload,
+  Download,
+  Play,
+  Square,
 } from 'lucide-react-native';
 import { format, parseISO, differenceInYears, subMonths, startOfMonth, endOfMonth, subDays, isAfter } from 'date-fns';
 import { colors, theme } from '../../src/constants/colors';
@@ -82,6 +91,8 @@ interface GymnastProfile {
   member_id: string | null;
   tshirt_size: string | null;
   leo_size: string | null;
+  floor_music_url: string | null;
+  floor_music_name: string | null;
 }
 
 interface RecentScore {
@@ -243,6 +254,11 @@ export default function GymnastProfileScreen() {
     notes: '',
   });
   const [savingProfile, setSavingProfile] = useState(false);
+
+  // Floor music state
+  const [uploadingMusic, setUploadingMusic] = useState(false);
+  const [playingMusic, setPlayingMusic] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
 
   const { currentHub, linkedGymnasts } = useHubStore();
   const isStaff = useHubStore((state) => state.isStaff);
@@ -951,6 +967,184 @@ export default function GymnastProfileScreen() {
     }
   };
 
+  // Floor music functions
+  const ALLOWED_AUDIO_EXTENSIONS = ['mp3', 'wav', 'aac', 'm4a', 'ogg', 'flac', 'wma'];
+
+  const handleFloorMusicUpload = async () => {
+    if (!gymnast || !currentHub) return;
+
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['audio/*'],
+        copyToCacheDirectory: true,
+      });
+
+      if (result.canceled || !result.assets?.[0]) return;
+
+      const file = result.assets[0];
+
+      // Check file size (20MB limit)
+      if (file.size && file.size > 20 * 1024 * 1024) {
+        Alert.alert('Error', 'File size exceeds 20MB limit');
+        return;
+      }
+
+      // Validate file type - extension is required
+      const extension = file.name.split('.').pop()?.toLowerCase() || '';
+      if (!ALLOWED_AUDIO_EXTENSIONS.includes(extension)) {
+        Alert.alert('Error', `File type not allowed. Accepted: ${ALLOWED_AUDIO_EXTENSIONS.join(', ')}`);
+        return;
+      }
+      // Additionally check MIME type if present
+      if (file.mimeType && !file.mimeType.startsWith('audio/')) {
+        Alert.alert('Error', 'File must be an audio file');
+        return;
+      }
+
+      setUploadingMusic(true);
+
+      // Delete existing file if replacing
+      if (gymnast.floor_music_url) {
+        try {
+          const oldPath = gymnast.floor_music_url.split('/floor-music/')[1];
+          if (oldPath) {
+            const decoded = decodeURIComponent(oldPath);
+            if (!decoded.includes('..') && decoded.split('/').length <= 3) {
+              await supabase.storage.from('floor-music').remove([decoded]);
+            }
+          }
+        } catch { /* ignore cleanup errors */ }
+      }
+
+      const fileExt = extension || 'mp3';
+      const fileName = `${Crypto.randomUUID()}.${fileExt}`;
+      const storagePath = `${currentHub.id}/${gymnast.id}/${fileName}`;
+
+      // Read file and upload
+      const response = await fetch(file.uri);
+      const blob = await response.blob();
+
+      const { error: uploadError } = await supabase.storage
+        .from('floor-music')
+        .upload(storagePath, blob, {
+          contentType: file.mimeType || 'audio/mpeg',
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('floor-music')
+        .getPublicUrl(storagePath);
+
+      const { error: updateError } = await supabase
+        .from('gymnast_profiles')
+        .update({
+          floor_music_url: urlData.publicUrl,
+          floor_music_name: file.name.replace(/[<>"'&]/g, '_').slice(0, 255),
+        })
+        .eq('id', gymnast.id);
+
+      if (updateError) throw updateError;
+      await fetchGymnastData();
+    } catch (err) {
+      console.error('Error uploading floor music:', err);
+      Alert.alert('Error', 'Failed to upload floor music');
+    } finally {
+      setUploadingMusic(false);
+    }
+  };
+
+  const handleRemoveFloorMusic = async () => {
+    if (!gymnast?.floor_music_url || !currentHub) return;
+
+    Alert.alert('Remove Floor Music', 'Are you sure you want to remove this floor music?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            // Extract storage path from URL
+            const url = gymnast.floor_music_url!;
+            const pathMatch = url.split('/floor-music/')[1];
+            if (pathMatch) {
+              await supabase.storage.from('floor-music').remove([decodeURIComponent(pathMatch)]);
+            }
+
+            const { error } = await supabase
+              .from('gymnast_profiles')
+              .update({ floor_music_url: null, floor_music_name: null })
+              .eq('id', gymnast.id);
+
+            if (error) throw error;
+            await stopMusic();
+            await fetchGymnastData();
+          } catch (err) {
+            console.error('Error removing floor music:', err);
+            Alert.alert('Error', 'Failed to remove floor music');
+          }
+        },
+      },
+    ]);
+  };
+
+  const playMusic = async () => {
+    if (!gymnast?.floor_music_url) return;
+
+    try {
+      if (sound) {
+        await sound.setPositionAsync(0);
+        await sound.playAsync();
+        setPlayingMusic(true);
+        return;
+      }
+
+      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
+      const { sound: newSound } = await Audio.Sound.createAsync(
+        { uri: gymnast.floor_music_url },
+        { shouldPlay: true }
+      );
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        if (status.isLoaded && status.didJustFinish) {
+          setPlayingMusic(false);
+        }
+      });
+      setSound(newSound);
+      setPlayingMusic(true);
+    } catch (err) {
+      console.error('Error playing music:', err);
+      Alert.alert('Error', 'Failed to play floor music');
+    }
+  };
+
+  const stopMusic = async () => {
+    if (sound) {
+      try {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+      } catch (err) {
+        console.error('Error stopping music:', err);
+      }
+      setSound(null);
+      setPlayingMusic(false);
+    }
+  };
+
+  const handleDownloadMusic = () => {
+    if (gymnast?.floor_music_url) {
+      Linking.openURL(gymnast.floor_music_url);
+    }
+  };
+
+  // Cleanup sound on unmount
+  useEffect(() => {
+    return () => {
+      if (sound) {
+        sound.unloadAsync();
+      }
+    };
+  }, [sound]);
+
   const cancelSectionEdit = (section: string) => {
     setEditingSection(null);
     // Reset form to current gymnast data
@@ -1234,6 +1428,91 @@ export default function GymnastProfileScreen() {
                 </View>
               </View>
             )}
+
+            {/* Floor Music */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Music size={18} color={colors.purple[600]} />
+                  <Text style={styles.sectionTitle}>Floor Music</Text>
+                </View>
+                {isStaff() && !gymnast.floor_music_url && (
+                  <TouchableOpacity
+                    style={styles.floorMusicUploadBtn}
+                    onPress={handleFloorMusicUpload}
+                    disabled={uploadingMusic}
+                  >
+                    {uploadingMusic ? (
+                      <ActivityIndicator size="small" color={colors.white} />
+                    ) : (
+                      <>
+                        <Upload size={14} color={colors.white} />
+                        <Text style={styles.floorMusicUploadBtnText}>Upload</Text>
+                      </>
+                    )}
+                  </TouchableOpacity>
+                )}
+              </View>
+              <View style={styles.card}>
+                {gymnast.floor_music_url ? (
+                  <View>
+                    <Text style={styles.floorMusicName} numberOfLines={1}>
+                      {gymnast.floor_music_name || 'Floor Music'}
+                    </Text>
+                    <View style={styles.floorMusicControls}>
+                      <TouchableOpacity
+                        style={[styles.floorMusicBtn, { backgroundColor: colors.brand[50] }]}
+                        onPress={playingMusic ? stopMusic : playMusic}
+                      >
+                        {playingMusic ? (
+                          <Square size={16} color={colors.brand[600]} />
+                        ) : (
+                          <Play size={16} color={colors.brand[600]} />
+                        )}
+                        <Text style={[styles.floorMusicBtnText, { color: colors.brand[600] }]}>
+                          {playingMusic ? 'Stop' : 'Play'}
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.floorMusicBtn, { backgroundColor: colors.slate[100] }]}
+                        onPress={handleDownloadMusic}
+                      >
+                        <Download size={16} color={colors.slate[600]} />
+                        <Text style={[styles.floorMusicBtnText, { color: colors.slate[600] }]}>
+                          Download
+                        </Text>
+                      </TouchableOpacity>
+                      {isStaff() && (
+                        <TouchableOpacity
+                          style={[styles.floorMusicBtn, { backgroundColor: colors.error[50] }]}
+                          onPress={handleRemoveFloorMusic}
+                        >
+                          <Trash2 size={16} color={colors.error[600]} />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    {isStaff() && (
+                      <TouchableOpacity
+                        style={styles.floorMusicReplaceBtn}
+                        onPress={handleFloorMusicUpload}
+                        disabled={uploadingMusic}
+                      >
+                        {uploadingMusic ? (
+                          <ActivityIndicator size="small" color={colors.brand[600]} />
+                        ) : (
+                          <Text style={styles.floorMusicReplaceBtnText}>Replace file</Text>
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.floorMusicEmpty}>
+                    <Music size={32} color={colors.slate[300]} />
+                    <Text style={styles.floorMusicEmptyText}>No floor music uploaded</Text>
+                  </View>
+                )}
+              </View>
+            </View>
 
             {/* Guardian Info - Staff or own gymnast */}
             {canViewMedical && (
@@ -3632,5 +3911,60 @@ const styles = StyleSheet.create({
   skillStatusText: {
     fontSize: 11,
     fontWeight: '600',
+  },
+  // Floor Music styles
+  floorMusicUploadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.brand[600],
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  floorMusicUploadBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.white,
+  },
+  floorMusicName: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.slate[700],
+    marginBottom: 12,
+  },
+  floorMusicControls: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  floorMusicBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  floorMusicBtnText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  floorMusicReplaceBtn: {
+    marginTop: 12,
+    alignItems: 'center',
+  },
+  floorMusicReplaceBtnText: {
+    fontSize: 13,
+    color: colors.brand[600],
+    fontWeight: '500',
+  },
+  floorMusicEmpty: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  floorMusicEmptyText: {
+    fontSize: 14,
+    color: colors.slate[400],
   },
 });
