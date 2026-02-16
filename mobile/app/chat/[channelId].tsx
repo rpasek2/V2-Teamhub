@@ -47,9 +47,9 @@ export default function ChatScreen() {
   const { channelId } = useLocalSearchParams<{ channelId: string }>();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const { user } = useAuthStore();
-  const { currentHub } = useHubStore();
-  const { fetchNotificationCounts } = useNotificationStore();
+  const user = useAuthStore((state) => state.user);
+  const currentHub = useHubStore((state) => state.currentHub);
+  const fetchNotificationCounts = useNotificationStore((state) => state.fetchNotificationCounts);
   const flatListRef = useRef<FlatList>(null);
 
   const [channel, setChannel] = useState<Channel | null>(null);

@@ -46,7 +46,7 @@ export function PollDisplay({ postId, question, options, settings, currentUserId
     try {
       const { data, error } = await supabase
         .from('poll_responses')
-        .select('*')
+        .select('id, post_id, user_id, option_indices')
         .eq('post_id', postId);
 
       if (error) throw error;

@@ -323,7 +323,8 @@ export default function AssignmentsScreen() {
     index: number;
   } | null>(null);
 
-  const { currentHub, linkedGymnasts } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
   const isParent = useHubStore((state) => state.isParent);
 

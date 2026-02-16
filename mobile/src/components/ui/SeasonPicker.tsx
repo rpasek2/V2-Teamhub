@@ -49,7 +49,7 @@ export function SeasonPicker({
     try {
       const { data, error } = await supabase
         .from('seasons')
-        .select('*')
+        .select('id, name, start_date, end_date, hub_id')
         .eq('hub_id', hubId)
         .order('start_date', { ascending: false });
 

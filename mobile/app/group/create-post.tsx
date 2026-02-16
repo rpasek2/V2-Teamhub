@@ -64,7 +64,7 @@ function decode(base64: string): Uint8Array {
 
 export default function CreatePostScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const [content, setContent] = useState('');
   const [images, setImages] = useState<SelectedImage[]>([]);
   const [poll, setPoll] = useState<PollData | null>(null);

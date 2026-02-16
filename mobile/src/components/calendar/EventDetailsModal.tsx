@@ -70,7 +70,7 @@ export function EventDetailsModal({
   event,
   onEventUpdated,
 }: EventDetailsModalProps) {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const [rsvpStatus, setRsvpStatus] = useState<'going' | 'maybe' | 'not_going' | null>(null);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [loading, setLoading] = useState(false);

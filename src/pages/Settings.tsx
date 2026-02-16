@@ -3,21 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { useHub } from '../context/HubContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { supabase } from '../lib/supabase';
-import { Loader2, Save, Shield, ListOrdered, Plus, X, GripVertical, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, LayoutGrid, Info, AlertTriangle, Calendar, Cake, ShieldAlert, Mail, Phone, Award, CalendarDays } from 'lucide-react';
-import type { HubPermissions, RolePermissions, PermissionScope, HubInvite, HubRole, HubFeatureTab, Season, SeasonConfig } from '../types';
+import { Loader2, Plus, Hash, Trash2, MessageSquare, Link, Copy, Check, UserPlus, Building2, User, Info, AlertTriangle, Calendar, Cake, ShieldAlert } from 'lucide-react';
+import type { HubPermissions, HubInvite, HubRole, HubFeatureTab, SeasonConfig } from '../types';
 import { HUB_FEATURE_TABS } from '../types';
-import { getTabDependents } from '../lib/permissions';
 import { LinkedHubsSettings } from '../components/marketplace/LinkedHubsSettings';
 import { CollapsibleSection } from '../components/ui/CollapsibleSection';
 import { DeleteHubModal } from '../components/hubs/DeleteHubModal';
 import { ScoresSettingsSection } from '../components/settings/ScoresSettingsSection';
-import { useAuth } from '../context/AuthContext';
-import { fetchSeasonsForHub, getMonthName, DEFAULT_SEASON_CONFIG } from '../lib/seasons';
-import { format, parseISO } from 'date-fns';
+import { PermissionsSection } from '../components/settings/PermissionsSection';
+import { FeatureTabsSection } from '../components/settings/FeatureTabsSection';
+import { LevelsSection } from '../components/settings/LevelsSection';
+import { SeasonsSection } from '../components/settings/SeasonsSection';
+import { ParentPrivacySection } from '../components/settings/ParentPrivacySection';
+import { DEFAULT_SEASON_CONFIG } from '../lib/seasons';
 
 const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'marketplace', 'groups', 'mentorship'] as const;
-const ROLES = ['director', 'admin', 'coach', 'parent', 'athlete'] as const;
-const VALID_PERMISSION_SCOPES: PermissionScope[] = ['all', 'own', 'none'];
 
 interface HubChannel {
     id: string;
@@ -28,42 +28,15 @@ interface HubChannel {
     created_at: string;
 }
 
-interface ParentPrivacySettingsData {
-    show_email: boolean;
-    show_phone: boolean;
-    show_gymnast_level: boolean;
-    show_gymnast_birthday: boolean;
-}
-
-const DEFAULT_PRIVACY_SETTINGS: ParentPrivacySettingsData = {
-    show_email: false,
-    show_phone: false,
-    show_gymnast_level: true,
-    show_gymnast_birthday: false,
-};
-
 export function Settings() {
     const navigate = useNavigate();
     const { hub, currentRole, refreshHub } = useHub();
     const { isParent } = useRoleChecks();
-    const { user } = useAuth();
-
-    // Parent privacy settings state
-    const [privacySettings, setPrivacySettings] = useState<ParentPrivacySettingsData>(DEFAULT_PRIVACY_SETTINGS);
-    const [loadingPrivacy, setLoadingPrivacy] = useState(true);
-    const [savingPrivacy, setSavingPrivacy] = useState(false);
-    const [privacyMessage, setPrivacyMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
-    const [hasExistingPrivacyRecord, setHasExistingPrivacyRecord] = useState(false);
 
     // Delete hub modal state
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [permissions, setPermissions] = useState<HubPermissions>({});
     const [levels, setLevels] = useState<string[]>([]);
-    const [newLevel, setNewLevel] = useState('');
-    const [saving, setSaving] = useState(false);
-    const [savingLevels, setSavingLevels] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-    const [levelsMessage, setLevelsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Channels state
     const [channels, setChannels] = useState<HubChannel[]>([]);
@@ -86,8 +59,6 @@ export function Settings() {
 
     // Enabled tabs state
     const [enabledTabs, setEnabledTabs] = useState<Set<HubFeatureTab>>(new Set(HUB_FEATURE_TABS.map(t => t.id)));
-    const [savingTabs, setSavingTabs] = useState(false);
-    const [tabsMessage, setTabsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Calendar settings state
     const [showBirthdays, setShowBirthdays] = useState(false);
@@ -100,11 +71,7 @@ export function Settings() {
     const [messagingSettingsMessage, setMessagingSettingsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     // Season settings state
-    const [seasons, setSeasons] = useState<Season[]>([]);
-    const [loadingSeasons, setLoadingSeasons] = useState(false);
     const [seasonConfig, setSeasonConfig] = useState<SeasonConfig>(DEFAULT_SEASON_CONFIG);
-    const [savingSeasonConfig, setSavingSeasonConfig] = useState(false);
-    const [seasonMessage, setSeasonMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     useEffect(() => {
         if (hub?.settings?.permissions) {
@@ -158,101 +125,13 @@ export function Settings() {
             setSeasonConfig(DEFAULT_SEASON_CONFIG);
         }
 
-        // Load channels, invites, owner info, and seasons
+        // Load channels, invites, and owner info
         if (hub) {
             fetchChannels();
             fetchInvites();
             fetchOwnerInfo();
-            loadSeasons();
         }
-
-        // Load parent privacy settings if user is a parent
-        if (hub && user && currentRole === 'parent') {
-            fetchPrivacySettings();
-        }
-    }, [hub, user, currentRole]);
-
-    // Fetch parent privacy settings
-    const fetchPrivacySettings = async () => {
-        if (!hub || !user) return;
-        setLoadingPrivacy(true);
-
-        try {
-            const { data, error } = await supabase
-                .from('parent_privacy_settings')
-                .select('*')
-                .eq('hub_id', hub.id)
-                .eq('user_id', user.id)
-                .maybeSingle();
-
-            if (error) throw error;
-
-            if (data) {
-                setPrivacySettings({
-                    show_email: data.show_email ?? false,
-                    show_phone: data.show_phone ?? false,
-                    show_gymnast_level: data.show_gymnast_level ?? true,
-                    show_gymnast_birthday: data.show_gymnast_birthday ?? false,
-                });
-                setHasExistingPrivacyRecord(true);
-            } else {
-                setPrivacySettings(DEFAULT_PRIVACY_SETTINGS);
-                setHasExistingPrivacyRecord(false);
-            }
-        } catch (error) {
-            console.error('Error fetching privacy settings:', error);
-        } finally {
-            setLoadingPrivacy(false);
-        }
-    };
-
-    // Save parent privacy settings
-    const handleSavePrivacy = async () => {
-        if (!hub || !user) return;
-        setSavingPrivacy(true);
-        setPrivacyMessage(null);
-
-        try {
-            if (hasExistingPrivacyRecord) {
-                const { error } = await supabase
-                    .from('parent_privacy_settings')
-                    .update({
-                        ...privacySettings,
-                        updated_at: new Date().toISOString(),
-                    })
-                    .eq('hub_id', hub.id)
-                    .eq('user_id', user.id);
-
-                if (error) throw error;
-            } else {
-                const { error } = await supabase
-                    .from('parent_privacy_settings')
-                    .insert({
-                        hub_id: hub.id,
-                        user_id: user.id,
-                        ...privacySettings,
-                    });
-
-                if (error) throw error;
-                setHasExistingPrivacyRecord(true);
-            }
-
-            setPrivacyMessage({ type: 'success', text: 'Privacy settings saved!' });
-        } catch (error) {
-            console.error('Error saving privacy settings:', error);
-            setPrivacyMessage({ type: 'error', text: 'Failed to save settings.' });
-        } finally {
-            setSavingPrivacy(false);
-        }
-    };
-
-    // Toggle a privacy setting
-    const handlePrivacyToggle = (key: keyof ParentPrivacySettingsData) => {
-        setPrivacySettings(prev => ({
-            ...prev,
-            [key]: !prev[key],
-        }));
-    };
+    }, [hub]);
 
     const fetchOwnerInfo = async () => {
         if (!hub) return;
@@ -275,9 +154,10 @@ export function Settings() {
         }
 
         if (data?.user) {
+            const userProfile = Array.isArray(data.user) ? data.user[0] : data.user as any;
             setOwnerInfo({
-                name: (data.user as any).full_name,
-                organization: (data.user as any).organization
+                name: userProfile?.full_name || '',
+                organization: userProfile?.organization || null
             });
         }
     };
@@ -318,42 +198,6 @@ export function Settings() {
             setInvites(data || []);
         }
         setLoadingInvites(false);
-    };
-
-    const loadSeasons = async () => {
-        if (!hub) return;
-        setLoadingSeasons(true);
-        const data = await fetchSeasonsForHub(hub.id);
-        setSeasons(data);
-        setLoadingSeasons(false);
-    };
-
-    const handleSaveSeasonConfig = async () => {
-        if (!hub) return;
-        setSavingSeasonConfig(true);
-        setSeasonMessage(null);
-
-        try {
-            const updatedSettings = {
-                ...hub.settings,
-                seasonConfig
-            };
-
-            const { error } = await supabase
-                .from('hubs')
-                .update({ settings: updatedSettings })
-                .eq('id', hub.id);
-
-            if (error) throw error;
-
-            await refreshHub();
-            setSeasonMessage({ type: 'success', text: 'Season settings saved!' });
-        } catch (err: unknown) {
-            console.error('Error saving season settings:', err);
-            setSeasonMessage({ type: 'error', text: 'Failed to save season settings.' });
-        } finally {
-            setSavingSeasonConfig(false);
-        }
     };
 
     const generateInviteCode = () => {
@@ -480,9 +324,9 @@ export function Settings() {
             setNewChannelName('');
             await fetchChannels();
             setChannelsMessage({ type: 'success', text: 'Channel created successfully.' });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error creating channel:', err);
-            setChannelsMessage({ type: 'error', text: err.message || 'Failed to create channel.' });
+            setChannelsMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to create channel.' });
         } finally {
             setAddingChannel(false);
         }
@@ -505,193 +349,14 @@ export function Settings() {
 
             await fetchChannels();
             setChannelsMessage({ type: 'success', text: 'Channel deleted successfully.' });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error deleting channel:', err);
-            setChannelsMessage({ type: 'error', text: err.message || 'Failed to delete channel.' });
-        }
-    };
-
-    const handlePermissionChange = (feature: string, role: string, value: PermissionScope) => {
-        // Validate inputs to prevent injection of invalid permission data
-        if (!FEATURES.includes(feature as typeof FEATURES[number])) {
-            console.error(`Invalid feature: ${feature}`);
-            return;
-        }
-        if (!ROLES.includes(role as typeof ROLES[number])) {
-            console.error(`Invalid role: ${role}`);
-            return;
-        }
-        if (!VALID_PERMISSION_SCOPES.includes(value)) {
-            console.error(`Invalid permission scope: ${value}`);
-            return;
-        }
-
-        setPermissions((prev: HubPermissions) => ({
-            ...prev,
-            [feature]: {
-                ...prev[feature],
-                [role]: value
-            }
-        }));
-    };
-
-    const handleAddLevel = () => {
-        const trimmed = newLevel.trim();
-        if (trimmed && !levels.includes(trimmed)) {
-            setLevels([...levels, trimmed]);
-            setNewLevel('');
-        }
-    };
-
-    const handleRemoveLevel = (levelToRemove: string) => {
-        setLevels(levels.filter(l => l !== levelToRemove));
-    };
-
-    const handleMoveLevel = (index: number, direction: 'up' | 'down') => {
-        const newLevels = [...levels];
-        const targetIndex = direction === 'up' ? index - 1 : index + 1;
-        if (targetIndex < 0 || targetIndex >= newLevels.length) return;
-        [newLevels[index], newLevels[targetIndex]] = [newLevels[targetIndex], newLevels[index]];
-        setLevels(newLevels);
-    };
-
-    const handleSaveLevels = async () => {
-        if (!hub) return;
-        setSavingLevels(true);
-        setLevelsMessage(null);
-
-        try {
-            const updatedSettings = {
-                ...hub.settings,
-                levels
-            };
-
-            const { error } = await supabase
-                .from('hubs')
-                .update({ settings: updatedSettings })
-                .eq('id', hub.id);
-
-            if (error) throw error;
-
-            await refreshHub();
-            setLevelsMessage({ type: 'success', text: 'Levels saved successfully.' });
-        } catch (err: any) {
-            console.error('Error saving levels:', err);
-            setLevelsMessage({ type: 'error', text: 'Failed to save levels.' });
-        } finally {
-            setSavingLevels(false);
-        }
-    };
-
-    const validatePermissions = (perms: HubPermissions): boolean => {
-        for (const [feature, rolePerms] of Object.entries(perms)) {
-            if (!FEATURES.includes(feature as typeof FEATURES[number])) {
-                console.error(`Invalid feature in permissions: ${feature}`);
-                return false;
-            }
-            if (rolePerms && typeof rolePerms === 'object') {
-                for (const [role, scope] of Object.entries(rolePerms)) {
-                    if (!ROLES.includes(role as typeof ROLES[number])) {
-                        console.error(`Invalid role in permissions: ${role}`);
-                        return false;
-                    }
-                    if (scope && !VALID_PERMISSION_SCOPES.includes(scope as PermissionScope)) {
-                        console.error(`Invalid scope in permissions: ${scope}`);
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
-    };
-
-    const handleSave = async () => {
-        if (!hub) return;
-        setSaving(true);
-        setMessage(null);
-
-        try {
-            // Validate permissions before saving
-            if (!validatePermissions(permissions)) {
-                setMessage({ type: 'error', text: 'Invalid permission configuration detected.' });
-                setSaving(false);
-                return;
-            }
-
-            const updatedSettings = {
-                ...hub.settings,
-                permissions
-            };
-
-            const { error } = await supabase
-                .from('hubs')
-                .update({ settings: updatedSettings })
-                .eq('id', hub.id);
-
-            if (error) throw error;
-
-            await refreshHub();
-            setMessage({ type: 'success', text: 'Permissions saved successfully.' });
-        } catch (err: any) {
-            console.error('Error saving permissions:', err);
-            setMessage({ type: 'error', text: 'Failed to save permissions.' });
-        } finally {
-            setSaving(false);
+            setChannelsMessage({ type: 'error', text: err instanceof Error ? err.message : 'Failed to delete channel.' });
         }
     };
 
     // Only owner can manage permissions (director permissions are now configurable by owner)
     const canManagePermissions = currentRole === 'owner';
-
-    const handleToggleTab = (tabId: HubFeatureTab) => {
-        setEnabledTabs(prev => {
-            const newSet = new Set(prev);
-            if (newSet.has(tabId)) {
-                // Don't allow disabling all tabs - keep at least one
-                if (newSet.size > 1) {
-                    newSet.delete(tabId);
-                    // Auto-disable dependent tabs (e.g., schedule OFF → attendance OFF)
-                    const dependents = getTabDependents(tabId);
-                    dependents.forEach(dep => newSet.delete(dep as HubFeatureTab));
-                }
-            } else {
-                newSet.add(tabId);
-            }
-            return newSet;
-        });
-    };
-
-    const handleSaveTabs = async () => {
-        if (!hub) return;
-        setSavingTabs(true);
-        setTabsMessage(null);
-
-        try {
-            // Validate: only allow known tab IDs
-            const validTabIds = new Set(HUB_FEATURE_TABS.map(t => t.id));
-            const validatedTabs = Array.from(enabledTabs).filter(t => validTabIds.has(t)) as HubFeatureTab[];
-
-            const updatedSettings = {
-                ...hub.settings,
-                enabledTabs: validatedTabs
-            };
-
-            const { error } = await supabase
-                .from('hubs')
-                .update({ settings: updatedSettings })
-                .eq('id', hub.id);
-
-            if (error) throw error;
-
-            await refreshHub();
-            setTabsMessage({ type: 'success', text: 'Feature tabs saved successfully.' });
-        } catch (err: unknown) {
-            console.error('Error saving feature tabs:', err);
-            setTabsMessage({ type: 'error', text: 'Failed to save feature tabs.' });
-        } finally {
-            setSavingTabs(false);
-        }
-    };
 
     const handleToggleBirthdays = async () => {
         if (!hub) return;
@@ -765,171 +430,7 @@ export function Settings() {
                 </div>
 
                 {/* Privacy Settings for Parents */}
-                <CollapsibleSection
-                    title="Privacy Settings"
-                    icon={Shield}
-                    defaultOpen={true}
-                    description="Control what other parents can see about you"
-                >
-                    {loadingPrivacy ? (
-                        <div className="flex items-center justify-center py-8">
-                            <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-                        </div>
-                    ) : (
-                        <>
-                            {privacyMessage && (
-                                <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${
-                                    privacyMessage.type === 'success'
-                                        ? 'bg-green-50 text-green-700 border border-green-200'
-                                        : 'bg-red-50 text-red-700 border border-red-200'
-                                }`}>
-                                    {privacyMessage.type === 'success' && <Check className="h-4 w-4" />}
-                                    {privacyMessage.text}
-                                </div>
-                            )}
-
-                            <p className="text-sm text-slate-600 mb-4">
-                                Your gymnast's name and your name are always visible to other parents in this hub.
-                                Choose what additional information you'd like to share:
-                            </p>
-
-                            <div className="space-y-3">
-                                {/* Email Toggle */}
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-blue-100 rounded-lg">
-                                            <Mail className="h-4 w-4 text-blue-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900">Email Address</p>
-                                            <p className="text-xs text-slate-500">Allow other parents to see your email</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={privacySettings.show_email}
-                                        onClick={() => handlePrivacyToggle('show_email')}
-                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                            privacySettings.show_email ? 'bg-brand-600' : 'bg-slate-200'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                                privacySettings.show_email ? 'translate-x-5' : 'translate-x-0'
-                                            }`}
-                                        />
-                                    </button>
-                                </div>
-
-                                {/* Phone Toggle */}
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-green-100 rounded-lg">
-                                            <Phone className="h-4 w-4 text-green-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900">Phone Number</p>
-                                            <p className="text-xs text-slate-500">Allow other parents to see your phone number</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={privacySettings.show_phone}
-                                        onClick={() => handlePrivacyToggle('show_phone')}
-                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                            privacySettings.show_phone ? 'bg-brand-600' : 'bg-slate-200'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                                privacySettings.show_phone ? 'translate-x-5' : 'translate-x-0'
-                                            }`}
-                                        />
-                                    </button>
-                                </div>
-
-                                {/* Level Toggle */}
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-purple-100 rounded-lg">
-                                            <Award className="h-4 w-4 text-purple-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900">Gymnast's Level</p>
-                                            <p className="text-xs text-slate-500">Allow other parents to see your gymnast's level</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={privacySettings.show_gymnast_level}
-                                        onClick={() => handlePrivacyToggle('show_gymnast_level')}
-                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                            privacySettings.show_gymnast_level ? 'bg-brand-600' : 'bg-slate-200'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                                privacySettings.show_gymnast_level ? 'translate-x-5' : 'translate-x-0'
-                                            }`}
-                                        />
-                                    </button>
-                                </div>
-
-                                {/* Birthday Toggle */}
-                                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-pink-100 rounded-lg">
-                                            <Cake className="h-4 w-4 text-pink-600" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium text-slate-900">Gymnast's Birthday</p>
-                                            <p className="text-xs text-slate-500">Allow other parents to see your gymnast's birthday</p>
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        role="switch"
-                                        aria-checked={privacySettings.show_gymnast_birthday}
-                                        onClick={() => handlePrivacyToggle('show_gymnast_birthday')}
-                                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                            privacySettings.show_gymnast_birthday ? 'bg-brand-600' : 'bg-slate-200'
-                                        }`}
-                                    >
-                                        <span
-                                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                                                privacySettings.show_gymnast_birthday ? 'translate-x-5' : 'translate-x-0'
-                                            }`}
-                                        />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end pt-4">
-                                <button
-                                    type="button"
-                                    onClick={handleSavePrivacy}
-                                    disabled={savingPrivacy}
-                                    className="btn-primary disabled:opacity-50"
-                                >
-                                    {savingPrivacy ? (
-                                        <>
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Save className="h-4 w-4" />
-                                            Save Settings
-                                        </>
-                                    )}
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </CollapsibleSection>
+                <ParentPrivacySection />
 
                 {/* Hub Information for Parents */}
                 <CollapsibleSection
@@ -1017,81 +518,7 @@ export function Settings() {
 
             {/* Feature Tabs Section */}
             {canManagePermissions && (
-                <CollapsibleSection
-                    title="Feature Tabs"
-                    icon={LayoutGrid}
-                    description="Choose which features are available in your hub"
-                    actions={
-                        <button
-                            onClick={handleSaveTabs}
-                            disabled={savingTabs}
-                            className="btn-primary disabled:opacity-50"
-                        >
-                            {savingTabs ? (
-                                <>
-                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="-ml-1 mr-2 h-4 w-4" />
-                                    Save Tabs
-                                </>
-                            )}
-                        </button>
-                    }
-                >
-                    {tabsMessage && (
-                        <div className={`mb-4 p-4 rounded-md ${tabsMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-                            {tabsMessage.text}
-                        </div>
-                    )}
-
-                    <div className="grid gap-3 sm:grid-cols-2">
-                        {HUB_FEATURE_TABS.map((tab) => {
-                            const isEnabled = enabledTabs.has(tab.id);
-                            const isLastEnabled = isEnabled && enabledTabs.size === 1;
-                            // Check if this tab is force-disabled by a parent dependency
-                            const isForceDisabled = tab.id === 'attendance' && !enabledTabs.has('schedule');
-
-                            return (
-                                <button
-                                    key={tab.id}
-                                    type="button"
-                                    onClick={() => handleToggleTab(tab.id)}
-                                    disabled={isLastEnabled || isForceDisabled}
-                                    className={`flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-all ${
-                                        isEnabled && !isForceDisabled
-                                            ? 'border-mint-500 bg-mint-50'
-                                            : 'border-slate-200 bg-slate-50 opacity-60'
-                                    } ${isLastEnabled || isForceDisabled ? 'cursor-not-allowed' : 'hover:border-mint-400'}`}
-                                    title={isForceDisabled ? 'Requires Schedule to be enabled' : isLastEnabled ? 'At least one tab must be enabled' : undefined}
-                                >
-                                    <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
-                                        isEnabled && !isForceDisabled
-                                            ? 'bg-mint-500 border-mint-500'
-                                            : 'border-slate-300 bg-white'
-                                    }`}>
-                                        {isEnabled && !isForceDisabled && (
-                                            <Check className="h-3.5 w-3.5 text-white" />
-                                        )}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className={`text-sm font-medium ${isEnabled && !isForceDisabled ? 'text-slate-900' : 'text-slate-500'}`}>
-                                            {tab.label}
-                                        </p>
-                                        <p className="text-xs text-slate-500 mt-0.5">
-                                            {tab.description}
-                                        </p>
-                                        {isForceDisabled && (
-                                            <p className="text-xs text-amber-600 mt-1">Requires Schedule to be enabled</p>
-                                        )}
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-                </CollapsibleSection>
+                <FeatureTabsSection enabledTabs={enabledTabs} setEnabledTabs={setEnabledTabs} />
             )}
 
             {/* Calendar Settings Section */}
@@ -1311,217 +738,12 @@ export function Settings() {
             )}
 
             {canManagePermissions && (
-                <CollapsibleSection
-                    title="Levels"
-                    icon={ListOrdered}
-                    description="Define the competition levels for your program"
-                    actions={
-                        <button
-                            onClick={handleSaveLevels}
-                            disabled={savingLevels}
-                            className="btn-primary disabled:opacity-50"
-                        >
-                            {savingLevels ? (
-                                <>
-                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="-ml-1 mr-2 h-4 w-4" />
-                                    Save Levels
-                                </>
-                            )}
-                        </button>
-                    }
-                >
-                    {levelsMessage && (
-                        <div className={`mb-4 p-4 rounded-md ${levelsMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-                            {levelsMessage.text}
-                        </div>
-                    )}
-
-                    {/* Add new level input */}
-                    <div className="flex gap-2 mb-4">
-                        <input
-                            type="text"
-                            value={newLevel}
-                            onChange={(e) => setNewLevel(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddLevel())}
-                            placeholder="Enter level name (e.g., Level 3, Xcel Gold)"
-                            className="input flex-1"
-                        />
-                        <button
-                            type="button"
-                            onClick={handleAddLevel}
-                            disabled={!newLevel.trim()}
-                            className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Add
-                        </button>
-                    </div>
-
-                    {/* Levels list */}
-                    {levels.length === 0 ? (
-                        <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
-                            <ListOrdered className="mx-auto h-8 w-8 text-slate-400" />
-                            <p className="mt-2 text-sm text-slate-500">No levels defined yet.</p>
-                            <p className="text-xs text-slate-400">Add levels above to get started.</p>
-                        </div>
-                    ) : (
-                        <ul className="space-y-2">
-                            {levels.map((level, index) => (
-                                <li
-                                    key={level}
-                                    className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-slate-200"
-                                >
-                                    <div className="flex items-center">
-                                        <GripVertical className="h-4 w-4 text-slate-400 mr-3" />
-                                        <span className="text-sm font-medium text-slate-900">{level}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleMoveLevel(index, 'up')}
-                                            disabled={index === 0}
-                                            className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                                            title="Move up"
-                                        >
-                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleMoveLevel(index, 'down')}
-                                            disabled={index === levels.length - 1}
-                                            className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
-                                            title="Move down"
-                                        >
-                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleRemoveLevel(level)}
-                                            className="p-1 text-slate-400 hover:text-red-600 ml-2"
-                                            title="Remove level"
-                                        >
-                                            <X className="h-4 w-4" />
-                                        </button>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </CollapsibleSection>
+                <LevelsSection levels={levels} setLevels={setLevels} />
             )}
 
             {/* Seasons Settings Section */}
             {canManagePermissions && (
-                <CollapsibleSection
-                    title="Seasons"
-                    icon={CalendarDays}
-                    description="Configure competition seasons for organizing scores and competitions"
-                    actions={
-                        <button
-                            onClick={handleSaveSeasonConfig}
-                            disabled={savingSeasonConfig}
-                            className="btn-primary disabled:opacity-50"
-                        >
-                            {savingSeasonConfig ? (
-                                <>
-                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="-ml-1 mr-2 h-4 w-4" />
-                                    Save
-                                </>
-                            )}
-                        </button>
-                    }
-                >
-                    {seasonMessage && (
-                        <div className={`mb-4 p-4 rounded-md ${seasonMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-                            {seasonMessage.text}
-                        </div>
-                    )}
-
-                    {/* Season Start Date Configuration */}
-                    <div className="mb-6">
-                        <h4 className="text-sm font-medium text-slate-900 mb-2">Season Start Date</h4>
-                        <p className="text-xs text-slate-500 mb-3">
-                            New seasons automatically start on this date each year. The current season is determined by this setting.
-                        </p>
-                        <div className="flex gap-3">
-                            <div>
-                                <label className="block text-xs font-medium text-slate-600 mb-1">Month</label>
-                                <select
-                                    value={seasonConfig.startMonth}
-                                    onChange={(e) => setSeasonConfig({ ...seasonConfig, startMonth: parseInt(e.target.value) })}
-                                    className="input w-36"
-                                >
-                                    {Array.from({ length: 12 }, (_, i) => i + 1).map(month => (
-                                        <option key={month} value={month}>{getMonthName(month)}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-medium text-slate-600 mb-1">Day</label>
-                                <select
-                                    value={seasonConfig.startDay}
-                                    onChange={(e) => setSeasonConfig({ ...seasonConfig, startDay: parseInt(e.target.value) })}
-                                    className="input w-20"
-                                >
-                                    {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
-                                        <option key={day} value={day}>{day}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Seasons List */}
-                    <div>
-                        <h4 className="text-sm font-medium text-slate-900 mb-2">Your Seasons</h4>
-                        {loadingSeasons ? (
-                            <div className="flex items-center justify-center py-6">
-                                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
-                            </div>
-                        ) : seasons.length === 0 ? (
-                            <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
-                                <CalendarDays className="mx-auto h-8 w-8 text-slate-400" />
-                                <p className="mt-2 text-sm text-slate-500">No seasons yet.</p>
-                                <p className="text-xs text-slate-400">Seasons are created automatically when you create competitions.</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-2">
-                                {seasons.map((season) => (
-                                    <div
-                                        key={season.id}
-                                        className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-slate-200"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-sm font-medium text-slate-900">{season.name}</span>
-                                            {season.is_current && (
-                                                <span className="px-2 py-0.5 text-xs font-medium bg-brand-100 text-brand-700 rounded-full">
-                                                    Current
-                                                </span>
-                                            )}
-                                        </div>
-                                        <span className="text-xs text-slate-500">
-                                            {format(parseISO(season.start_date), 'MMM d, yyyy')} - {format(parseISO(season.end_date), 'MMM d, yyyy')}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </CollapsibleSection>
+                <SeasonsSection seasonConfig={seasonConfig} setSeasonConfig={setSeasonConfig} />
             )}
 
             {/* Scores Settings Section */}
@@ -1613,77 +835,7 @@ export function Settings() {
             <LinkedHubsSettings />
 
             {canManagePermissions && (
-                <CollapsibleSection
-                    title="Permissions"
-                    icon={Shield}
-                    description="Control what each role can access"
-                    actions={
-                        <button
-                            onClick={handleSave}
-                            disabled={saving}
-                            className="btn-primary disabled:opacity-50"
-                        >
-                            {saving ? (
-                                <>
-                                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="-ml-1 mr-2 h-4 w-4" />
-                                    Save Changes
-                                </>
-                            )}
-                        </button>
-                    }
-                >
-                    {message && (
-                        <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
-                            {message.text}
-                        </div>
-                    )}
-
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-slate-200">
-                            <thead>
-                                <tr>
-                                    <th className="px-6 py-3 bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                        Feature
-                                    </th>
-                                    {ROLES.map(role => (
-                                        <th key={role} className="px-6 py-3 bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
-                                            {role}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-slate-200">
-                                {FEATURES.map(feature => (
-                                    <tr key={feature}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">
-                                            {feature}
-                                        </td>
-                                        {ROLES.map(role => (
-                                            <td key={role} className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                                                <select
-                                                    value={permissions[feature]?.[role as keyof RolePermissions] || 'none'}
-                                                    onChange={(e) => handlePermissionChange(feature, role, e.target.value as PermissionScope)}
-                                                    className="input"
-                                                >
-                                                    <option value="none">No Access</option>
-                                                    <option value="all">View All</option>
-                                                    {role === 'parent' && (
-                                                        <option value="own">View Own</option>
-                                                    )}
-                                                </select>
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </CollapsibleSection>
+                <PermissionsSection permissions={permissions} setPermissions={setPermissions} />
             )}
 
             {/* Danger Zone - Only visible to hub owner */}

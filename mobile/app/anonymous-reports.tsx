@@ -30,7 +30,8 @@ export default function AnonymousReportsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedReport, setSelectedReport] = useState<AnonymousReport | null>(null);
 
-  const { currentHub, currentMember } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
   const isOwner = currentMember?.role === 'owner';
 
   useEffect(() => {
@@ -47,7 +48,7 @@ export default function AnonymousReportsScreen() {
     try {
       const { data, error } = await supabase
         .from('anonymous_reports')
-        .select('*')
+        .select('id, message, created_at, read_at')
         .eq('hub_id', currentHub.id)
         .order('created_at', { ascending: false });
 

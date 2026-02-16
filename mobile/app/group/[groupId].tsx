@@ -40,7 +40,7 @@ interface Post {
   user_id: string;
   is_pinned: boolean;
   image_url: string | null;
-  attachments: any[];
+  attachments: Record<string, unknown>[];
   profiles?: {
     full_name: string;
     avatar_url: string | null;
@@ -51,13 +51,15 @@ interface Post {
 export default function GroupDetailsScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const navigation = useNavigation();
-  const { user } = useAuthStore();
-  const { currentHub, isStaff } = useHubStore();
-  const { fetchNotificationCounts } = useNotificationStore();
+  const user = useAuthStore((state) => state.user);
+  const currentHub = useHubStore((state) => state.currentHub);
+  const isStaff = useHubStore((state) => state.isStaff);
+  const fetchNotificationCounts = useNotificationStore((state) => state.fetchNotificationCounts);
 
   const [group, setGroup] = useState<Group | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isMember, setIsMember] = useState(false);
   const [isGroupAdmin, setIsGroupAdmin] = useState(false);
@@ -105,6 +107,7 @@ export default function GroupDetailsScreen() {
 
   const fetchGroupDetails = async () => {
     if (!groupId) return;
+    setError(null);
 
     const { data, error } = await supabase
       .from('groups')
@@ -114,6 +117,7 @@ export default function GroupDetailsScreen() {
 
     if (error) {
       console.error('Error fetching group:', error);
+      setError('Failed to load data. Pull to refresh.');
     } else {
       setGroup(data);
     }
@@ -187,6 +191,7 @@ export default function GroupDetailsScreen() {
 
     if (error) {
       console.error('Error fetching posts:', error);
+      setError('Failed to load data. Pull to refresh.');
       setPosts([]);
     } else {
       // Fetch comment counts for each post
@@ -395,6 +400,13 @@ export default function GroupDetailsScreen() {
             <Users size={18} color={colors.white} />
             <Text style={styles.joinButtonText}>Join Group</Text>
           </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Error Banner */}
+      {error && (
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
+          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
         </View>
       )}
 

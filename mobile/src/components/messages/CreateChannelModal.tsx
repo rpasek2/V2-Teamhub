@@ -30,8 +30,8 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
   const [isPrivate, setIsPrivate] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const { currentHub } = useHubStore();
-  const { user } = useAuthStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const user = useAuthStore((state) => state.user);
 
   const handleClose = () => {
     setName('');

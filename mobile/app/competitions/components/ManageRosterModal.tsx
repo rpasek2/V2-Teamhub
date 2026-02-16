@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -124,7 +124,7 @@ export function ManageRosterModal({
     );
   };
 
-  const renderItem = ({ item }: { item: AllGymnast }) => {
+  const renderItem = useCallback(({ item }: { item: AllGymnast }) => {
     const isSelected = selectedIds.has(item.id);
     return (
       <TouchableOpacity
@@ -170,7 +170,7 @@ export function ManageRosterModal({
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [selectedIds, onToggleSelection]);
 
   return (
     <Modal
@@ -220,6 +220,10 @@ export function ManageRosterModal({
           renderItem={renderItem}
           contentContainerStyle={styles.modalList}
           stickySectionHeadersEnabled={false}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
           ListEmptyComponent={
             <View style={styles.modalEmpty}>
               <Text style={styles.modalEmptyText}>No gymnasts in this hub</Text>

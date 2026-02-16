@@ -79,11 +79,11 @@ export function CreateSessionModal({
     if (error) {
       console.error('Error fetching coaches:', error);
     } else if (data) {
-      const mapped = data.map((d: { user_id: string; profiles: { full_name: string } | { full_name: string }[] }) => ({
+      const mapped: Coach[] = data.map((d: { user_id: string; profiles: { full_name: string } | { full_name: string }[] | null }) => ({
         user_id: d.user_id,
-        profiles: Array.isArray(d.profiles) ? d.profiles[0] : d.profiles,
+        profiles: Array.isArray(d.profiles) ? d.profiles[0] : d.profiles ?? { full_name: 'Unknown' },
       }));
-      setCoaches(mapped as Coach[]);
+      setCoaches(mapped);
     }
   };
 
@@ -144,14 +144,14 @@ export function CreateSessionModal({
     }
   };
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
+  const onDateChange = (_event: unknown, selectedDate?: Date) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setDate(selectedDate);
     }
   };
 
-  const onTimeChange = (event: any, selectedTime?: Date) => {
+  const onTimeChange = (_event: unknown, selectedTime?: Date) => {
     setShowTimePicker(Platform.OS === 'ios');
     if (selectedTime) {
       setWarmupTime(selectedTime);

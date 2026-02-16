@@ -30,7 +30,10 @@ const queryClient = new QueryClient({
 });
 
 function RootLayoutNav() {
-  const { user, loading, initialized, initialize } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
+  const loading = useAuthStore((state) => state.loading);
+  const initialized = useAuthStore((state) => state.initialized);
+  const initialize = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
     initialize();

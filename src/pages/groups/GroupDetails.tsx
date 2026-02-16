@@ -77,7 +77,7 @@ export default function GroupDetails() {
     const fetchGroupDetails = async () => {
         const { data, error } = await supabase
             .from('groups')
-            .select('*')
+            .select('id, hub_id, name, description, type, created_by, created_at')
             .eq('id', groupId)
             .single();
 
@@ -88,7 +88,7 @@ export default function GroupDetails() {
     const fetchMemberCount = async () => {
         const { count, error } = await supabase
             .from('group_members')
-            .select('*', { count: 'exact', head: true })
+            .select('group_id', { count: 'exact', head: true })
             .eq('group_id', groupId);
 
         if (!error && count !== null) {

@@ -51,8 +51,10 @@ interface CustomizeTabsModalProps {
 }
 
 export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps) {
-  const { selectedTabs, setSelectedTabs, resetToDefault } = useTabPreferencesStore();
-  const { currentHub } = useHubStore();
+  const selectedTabs = useTabPreferencesStore((state) => state.selectedTabs);
+  const setSelectedTabs = useTabPreferencesStore((state) => state.setSelectedTabs);
+  const resetToDefault = useTabPreferencesStore((state) => state.resetToDefault);
+  const currentHub = useHubStore((state) => state.currentHub);
   const enabledTabsList = currentHub?.settings?.enabledTabs;
   const [localSelection, setLocalSelection] = useState<TabId[]>([]);
 

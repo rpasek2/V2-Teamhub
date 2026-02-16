@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -115,10 +115,11 @@ export default function ScoresScreen() {
   const [placementInput, setPlacementInput] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const { currentHub, linkedGymnasts } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
   const isParent = useHubStore((state) => state.isParent);
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const events: GymEvent[] = activeGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
   const levels: string[] = currentHub?.settings?.levels || [];
@@ -438,7 +439,7 @@ export default function ScoresScreen() {
 
   const qualifyingScores = currentHub?.settings?.qualifyingScores;
 
-  const renderGymnastRow = ({ item }: { item: GymnastWithScores }) => (
+  const renderGymnastRow = useCallback(({ item }: { item: GymnastWithScores }) => (
     <View style={styles.gymnastRow}>
       <Text style={styles.gymnastName} numberOfLines={1}>
         {item.gymnast.first_name} {item.gymnast.last_name}
@@ -502,7 +503,7 @@ export default function ScoresScreen() {
         </View>
       </ScrollView>
     </View>
-  );
+  ), [events, canEdit, qualifyingScores, selectedCompetition, handleEditScore, formatScore, formatPlacement]);
 
   const renderSectionHeader = ({ section }: { section: LevelSection }) => {
     const isExpanded = expandedLevels.has(section.title);
@@ -673,6 +674,10 @@ export default function ScoresScreen() {
           renderSectionHeader={renderSectionHeader}
           contentContainerStyle={styles.listContent}
           stickySectionHeadersEnabled={false}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>

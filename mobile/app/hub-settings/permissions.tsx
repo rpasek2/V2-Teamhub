@@ -50,7 +50,8 @@ const SCOPE_LABELS: Record<string, string> = {
 };
 
 export default function PermissionsScreen() {
-  const { currentHub, currentRole } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentRole = useHubStore((state) => state.currentRole);
 
   const [permissions, setPermissions] = useState<Record<string, RolePermissions>>({});
   const [loading, setLoading] = useState(true);

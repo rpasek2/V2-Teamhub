@@ -7,17 +7,13 @@ import {
     startOfWeek,
     endOfWeek,
     eachDayOfInterval,
-    isSameMonth,
-    isSameDay,
     addMonths,
     subMonths,
     addWeeks,
     subWeeks,
-    parseISO,
-    isToday,
-    getDay
+    parseISO
 } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, List, Plus, Filter, LayoutGrid, MapPin, Clock } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { supabase } from '../lib/supabase';
@@ -25,6 +21,11 @@ import { useHub } from '../context/HubContext';
 import { useNotifications } from '../context/NotificationContext';
 import { CreateEventModal } from '../components/calendar/CreateEventModal';
 import { EventDetailsModal } from '../components/calendar/EventDetailsModal';
+import { CalendarHeader } from '../components/calendar/CalendarHeader';
+import { CalendarGrid } from '../components/calendar/CalendarGrid';
+import { AgendaView } from '../components/calendar/AgendaView';
+import { ALL_HOLIDAYS_MAP, EVENT_TYPE_COLORS } from '../components/calendar/calendarUtils';
+import type { Birthday } from '../components/calendar/calendarUtils';
 import type { Event } from '../types';
 
 function cn(...inputs: (string | undefined | null | false)[]) {
@@ -47,122 +48,6 @@ function useIsMobile() {
 
 type ViewType = 'month' | 'week' | 'agenda';
 type EventType = 'all' | 'practice' | 'competition' | 'mentorship' | 'meeting' | 'social' | 'private_lesson' | 'camp' | 'clinic' | 'fundraiser' | 'other';
-
-const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-    practice: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
-    competition: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
-    mentorship: { bg: 'bg-pink-100', text: 'text-pink-700', dot: 'bg-pink-500' },
-    meeting: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
-    social: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
-    private_lesson: { bg: 'bg-violet-100', text: 'text-violet-700', dot: 'bg-violet-500' },
-    camp: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-    clinic: { bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500' },
-    fundraiser: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' },
-    other: { bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-500' }
-};
-
-// Holiday definitions with emoji icons
-interface Holiday {
-    name: string;
-    emoji: string;
-    bgColor: string;
-    textColor: string;
-}
-
-// Get nth weekday of month (e.g., 4th Thursday)
-function getNthWeekdayOfMonth(year: number, month: number, weekday: number, n: number): Date {
-    const firstOfMonth = new Date(year, month, 1);
-    const firstWeekday = getDay(firstOfMonth);
-    let dayOffset = weekday - firstWeekday;
-    if (dayOffset < 0) dayOffset += 7;
-    return new Date(year, month, 1 + dayOffset + (n - 1) * 7);
-}
-
-// Get last weekday of month (e.g., last Monday)
-function getLastWeekdayOfMonth(year: number, month: number, weekday: number): Date {
-    const lastOfMonth = new Date(year, month + 1, 0);
-    const lastDay = lastOfMonth.getDate();
-    const lastWeekday = getDay(lastOfMonth);
-    let dayOffset = lastWeekday - weekday;
-    if (dayOffset < 0) dayOffset += 7;
-    return new Date(year, month, lastDay - dayOffset);
-}
-
-// Calculate Easter Sunday using the Anonymous Gregorian algorithm
-function getEasterSunday(year: number): Date {
-    const a = year % 19;
-    const b = Math.floor(year / 100);
-    const c = year % 100;
-    const d = Math.floor(b / 4);
-    const e = b % 4;
-    const f = Math.floor((b + 8) / 25);
-    const g = Math.floor((b - f + 1) / 3);
-    const h = (19 * a + b - d - g + 15) % 30;
-    const i = Math.floor(c / 4);
-    const k = c % 4;
-    const l = (32 + 2 * e + 2 * i - h - k) % 7;
-    const m = Math.floor((a + 11 * h + 22 * l) / 451);
-    const month = Math.floor((h + l - 7 * m + 114) / 31) - 1;
-    const day = ((h + l - 7 * m + 114) % 31) + 1;
-    return new Date(year, month, day);
-}
-
-// Get all US holidays for a given year
-function getUSHolidays(year: number): Map<string, Holiday> {
-    const holidays = new Map<string, Holiday>();
-
-    // Helper to add holiday
-    const addHoliday = (date: Date, name: string, emoji: string, bgColor: string, textColor: string) => {
-        const key = format(date, 'yyyy-MM-dd');
-        holidays.set(key, { name, emoji, bgColor, textColor });
-    };
-
-    // Fixed date holidays - light theme compatible
-    addHoliday(new Date(year, 0, 1), "New Year's Day", '🎉', 'bg-yellow-50', 'text-yellow-700');
-    addHoliday(new Date(year, 1, 14), "Valentine's Day", '💕', 'bg-pink-50', 'text-pink-700');
-    addHoliday(new Date(year, 2, 17), "St. Patrick's Day", '☘️', 'bg-emerald-50', 'text-emerald-700');
-    addHoliday(new Date(year, 6, 4), "Independence Day", '🇺🇸', 'bg-blue-50', 'text-blue-700');
-    addHoliday(new Date(year, 9, 31), "Halloween", '🎃', 'bg-orange-50', 'text-orange-700');
-    addHoliday(new Date(year, 10, 11), "Veterans Day", '🎖️', 'bg-red-50', 'text-red-700');
-    addHoliday(new Date(year, 11, 25), "Christmas Day", '🎄', 'bg-red-50', 'text-red-700');
-    addHoliday(new Date(year, 11, 31), "New Year's Eve", '🥳', 'bg-purple-50', 'text-purple-700');
-    addHoliday(new Date(year, 11, 24), "Christmas Eve", '🎅', 'bg-red-50', 'text-red-700');
-
-    // Floating holidays
-    addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", '✊🏿', 'bg-slate-100', 'text-slate-700');
-    addHoliday(getNthWeekdayOfMonth(year, 1, 1, 3), "Presidents' Day", '🏛️', 'bg-blue-50', 'text-blue-700');
-    addHoliday(getNthWeekdayOfMonth(year, 4, 0, 2), "Mother's Day", '💐', 'bg-pink-50', 'text-pink-700');
-    addHoliday(getLastWeekdayOfMonth(year, 4, 1), "Memorial Day", '🇺🇸', 'bg-red-50', 'text-red-700');
-    addHoliday(getNthWeekdayOfMonth(year, 5, 0, 3), "Father's Day", '👔', 'bg-blue-50', 'text-blue-700');
-    addHoliday(getNthWeekdayOfMonth(year, 8, 1, 1), "Labor Day", '⚒️', 'bg-amber-50', 'text-amber-700');
-    addHoliday(getNthWeekdayOfMonth(year, 9, 1, 2), "Columbus Day", '🧭', 'bg-indigo-50', 'text-indigo-700');
-    addHoliday(getNthWeekdayOfMonth(year, 10, 4, 4), "Thanksgiving", '🦃', 'bg-orange-50', 'text-orange-700');
-
-    // Easter (calculated)
-    const easter = getEasterSunday(year);
-    addHoliday(easter, "Easter Sunday", '🐰', 'bg-pink-50', 'text-pink-700');
-
-    // Juneteenth
-    addHoliday(new Date(year, 5, 19), "Juneteenth", '✊🏿', 'bg-red-50', 'text-red-700');
-
-    return holidays;
-}
-
-// Pre-compute holidays for a reasonable range of years (module-level constant)
-// This avoids recalculating holidays on every currentDate change
-const ALL_HOLIDAYS_MAP = new Map<string, Holiday>();
-for (let year = 2020; year <= 2035; year++) {
-    const yearHolidays = getUSHolidays(year);
-    yearHolidays.forEach((holiday, key) => ALL_HOLIDAYS_MAP.set(key, holiday));
-}
-
-// Birthday type for calendar display
-interface Birthday {
-    id: string;
-    name: string;
-    date: string; // MM-DD format for matching
-    fullDate: string; // Original DOB
-}
 
 export function Calendar() {
     const { hub, currentRole } = useHub();
@@ -202,16 +87,9 @@ export function Calendar() {
     }, [hub, markAsViewed]);
 
     // Helper to get holiday for a day (uses pre-computed module-level holidays)
-    const getHolidayForDay = (day: Date): Holiday | undefined => {
+    const getHolidayForDay = (day: Date) => {
         const key = format(day, 'yyyy-MM-dd');
         return ALL_HOLIDAYS_MAP.get(key);
-    };
-
-    // Helper to get birthdays for a day
-    const getBirthdaysForDay = (day: Date): Birthday[] => {
-        if (!showBirthdays) return [];
-        const monthDay = format(day, 'MM-dd');
-        return birthdays.filter(b => b.date === monthDay);
     };
 
     // Fetch birthdays from gymnast profiles (respecting parent privacy settings)
@@ -248,15 +126,16 @@ export function Calendar() {
 
             // Build email -> user_id map for parents
             const emailToUserId = new Map<string, string>();
-            parentMembers.forEach((m: any) => {
-                if (m.profile?.email) {
-                    emailToUserId.set(m.profile.email.toLowerCase(), m.user_id);
+            parentMembers.forEach((m) => {
+                const profile = Array.isArray(m.profile) ? m.profile[0] : m.profile;
+                if (profile?.email) {
+                    emailToUserId.set(profile.email.toLowerCase(), m.user_id);
                 }
             });
 
             // Build user_id -> privacy settings map
             const userPrivacyMap = new Map<string, boolean>();
-            privacySettings.forEach((p: any) => {
+            privacySettings.forEach((p) => {
                 userPrivacyMap.set(p.user_id, p.show_gymnast_birthday ?? false);
             });
 
@@ -467,6 +346,11 @@ export function Calendar() {
         }
     };
 
+    const handleEventClick = (event: Event) => {
+        setSelectedEvent(event);
+        setIsDetailsModalOpen(true);
+    };
+
     const monthStart = startOfMonth(currentDate);
     const monthEnd = endOfMonth(monthStart);
     const calendarStart = startOfWeek(view === 'week' ? currentDate : monthStart);
@@ -481,589 +365,59 @@ export function Calendar() {
         ? events
         : events.filter(e => e.type === filterType);
 
-    const getEventsForDay = (day: Date) => {
-        return filteredEvents.filter(event => {
-            const eventStart = parseISO(event.start_time);
-            const eventEnd = parseISO(event.end_time);
-            // Check if the day falls within the event's date range (inclusive)
-            // For all-day events spanning multiple days, show on each day
-            const dayStart = new Date(day);
-            dayStart.setHours(0, 0, 0, 0);
-            const dayEnd = new Date(day);
-            dayEnd.setHours(23, 59, 59, 999);
-
-            return eventStart <= dayEnd && eventEnd >= dayStart;
-        });
-    };
-
-    const getEventColors = (type: string) => {
-        return EVENT_TYPE_COLORS[type] || EVENT_TYPE_COLORS.other;
-    };
-
-    const getHeaderText = () => {
-        if (view === 'week') {
-            const weekStart = startOfWeek(currentDate);
-            const weekEnd = endOfWeek(currentDate);
-            if (weekStart.getMonth() === weekEnd.getMonth()) {
-                return format(weekStart, 'MMMM yyyy');
-            }
-            return `${format(weekStart, 'MMM')} - ${format(weekEnd, 'MMM yyyy')}`;
-        }
-        return format(currentDate, 'MMMM yyyy');
-    };
-
     return (
         <div className="flex h-full flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             {/* Header */}
-            <header className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-200 px-4 sm:px-6 py-4 gap-4">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-xl font-bold text-slate-900">
-                        <time dateTime={format(currentDate, 'yyyy-MM')}>{getHeaderText()}</time>
-                    </h1>
-                    <div className="flex items-center rounded-lg bg-slate-100 p-0.5">
-                        <button
-                            type="button"
-                            onClick={prevPeriod}
-                            className="p-1.5 rounded-md text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
-                        >
-                            <ChevronLeft className="h-5 w-5" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={goToToday}
-                            className="px-3 py-1 text-sm font-medium text-slate-600 hover:bg-slate-200 hover:text-slate-900 rounded-md transition-all"
-                        >
-                            Today
-                        </button>
-                        <button
-                            type="button"
-                            onClick={nextPeriod}
-                            className="p-1.5 rounded-md text-slate-500 hover:bg-slate-200 hover:text-slate-900 transition-all"
-                        >
-                            <ChevronRight className="h-5 w-5" />
-                        </button>
-                    </div>
-                </div>
+            <CalendarHeader
+                currentDate={currentDate}
+                view={view}
+                filterType={filterType}
+                showFilter={showFilter}
+                canAddEvents={canAddEvents}
+                onPrevPeriod={prevPeriod}
+                onNextPeriod={nextPeriod}
+                onGoToToday={goToToday}
+                onViewChange={setView}
+                onFilterTypeChange={setFilterType}
+                onToggleFilter={() => setShowFilter(!showFilter)}
+                onAddEvent={() => {
+                    setSelectedDate(null);
+                    setIsCreateModalOpen(true);
+                }}
+            />
 
-                <div className="flex items-center gap-3">
-                    {/* Filter Dropdown */}
-                    <div className="relative">
-                        <button
-                            type="button"
-                            onClick={() => setShowFilter(!showFilter)}
-                            className={cn(
-                                "flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border transition-all",
-                                filterType !== 'all'
-                                    ? "bg-mint-100 border-mint-300 text-mint-700"
-                                    : "bg-slate-100 border-slate-200 text-slate-600 hover:bg-slate-200"
-                            )}
-                        >
-                            <Filter className="h-4 w-4" />
-                            <span className="hidden sm:inline">
-                                {filterType === 'all' ? 'All Types' : filterType === 'private_lesson' ? 'Private Lessons' : filterType.charAt(0).toUpperCase() + filterType.slice(1)}
-                            </span>
-                        </button>
-                        {showFilter && (
-                            <>
-                                <div className="fixed inset-0 z-10" onClick={() => setShowFilter(false)} />
-                                <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-20">
-                                    {['all', 'practice', 'competition', 'mentorship', 'meeting', 'social', 'private_lesson', 'camp', 'clinic', 'fundraiser', 'other'].map((type) => (
-                                        <button
-                                            key={type}
-                                            onClick={() => {
-                                                setFilterType(type as EventType);
-                                                setShowFilter(false);
-                                            }}
-                                            className={cn(
-                                                "w-full px-4 py-2 text-left text-sm flex items-center gap-3",
-                                                filterType === type ? "bg-mint-100 text-mint-700" : "text-slate-700 hover:bg-slate-100"
-                                            )}
-                                        >
-                                            {type !== 'all' && (
-                                                <span className={cn("w-2 h-2 rounded-full", EVENT_TYPE_COLORS[type]?.dot || 'bg-slate-400')} />
-                                            )}
-                                            <span className="capitalize">{type === 'all' ? 'All Types' : type.replace('_', ' ')}</span>
-                                        </button>
-                                    ))}
-                                </div>
-                            </>
-                        )}
-                    </div>
-
-                    {/* View Toggle */}
-                    <div className="flex rounded-lg bg-slate-100 p-0.5">
-                        <button
-                            type="button"
-                            onClick={() => setView('month')}
-                            className={cn(
-                                "p-2 rounded-md text-sm font-medium transition-all",
-                                view === 'month' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                            )}
-                            title="Month View"
-                        >
-                            <LayoutGrid className="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setView('week')}
-                            className={cn(
-                                "p-2 rounded-md text-sm font-medium transition-all",
-                                view === 'week' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                            )}
-                            title="Week View"
-                        >
-                            <CalendarIcon className="h-4 w-4" />
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => setView('agenda')}
-                            className={cn(
-                                "p-2 rounded-md text-sm font-medium transition-all",
-                                view === 'agenda' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-900'
-                            )}
-                            title="Agenda View"
-                        >
-                            <List className="h-4 w-4" />
-                        </button>
-                    </div>
-
-                    {/* Add Event Button */}
-                    {canAddEvents && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSelectedDate(null);
-                                setIsCreateModalOpen(true);
-                            }}
-                            className="btn-primary"
-                        >
-                            <Plus className="h-4 w-4" />
-                            <span className="hidden sm:inline">Add Event</span>
-                        </button>
-                    )}
-                </div>
-            </header>
-
-            {/* Calendar Grid */}
+            {/* Calendar Grid or Agenda View */}
             {view === 'month' || view === 'week' ? (
-                <div className="flex-1 flex flex-col overflow-hidden">
-                    {/* Day Headers */}
-                    <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
-                        {(isMobile ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((day, idx) => (
-                            <div key={idx} className="py-2 sm:py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                                {day}
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Calendar Days */}
-                    <div className={cn(
-                        "flex-1 grid grid-cols-7",
-                        view === 'week' ? 'grid-rows-1' : 'auto-rows-fr'
-                    )}>
-                        {calendarDays.map((day, idx) => {
-                            const dayEvents = getEventsForDay(day);
-                            const dayBirthdays = getBirthdaysForDay(day);
-                            const isCurrentMonth = view === 'week' || isSameMonth(day, currentDate);
-                            const isCurrentDay = isToday(day);
-                            const isSelected = selectedDayForMobile && isSameDay(day, selectedDayForMobile);
-                            const holiday = getHolidayForDay(day);
-                            const hasBirthday = dayBirthdays.length > 0;
-
-                            return (
-                                <div
-                                    key={day.toString()}
-                                    onClick={() => handleDayClick(day)}
-                                    className={cn(
-                                        "min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border-b border-r border-slate-200 transition-colors relative overflow-hidden",
-                                        isCurrentMonth ? 'bg-white' : 'bg-slate-50',
-                                        (canAddEvents || isMobile) && 'cursor-pointer hover:bg-slate-100',
-                                        isSelected && 'bg-mint-100 ring-2 ring-inset ring-mint-500',
-                                        idx % 7 === 0 && 'border-l-0',
-                                        holiday && !isSelected && holiday.bgColor
-                                    )}
-                                >
-                                    {/* Holiday background decoration */}
-                                    {holiday && (
-                                        <div className="absolute -right-2 -bottom-2 text-4xl sm:text-6xl opacity-20 pointer-events-none select-none">
-                                            {holiday.emoji}
-                                        </div>
-                                    )}
-
-                                    <div className="flex items-center justify-between mb-0.5 sm:mb-1 relative z-10">
-                                        <div className="flex items-center gap-1">
-                                            <time
-                                                dateTime={format(day, 'yyyy-MM-dd')}
-                                                className={cn(
-                                                    "flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs sm:text-sm font-medium",
-                                                    isCurrentDay
-                                                        ? 'bg-mint-500 text-white'
-                                                        : holiday
-                                                            ? holiday.textColor
-                                                            : isCurrentMonth
-                                                                ? 'text-slate-900'
-                                                                : 'text-slate-400'
-                                                )}
-                                            >
-                                                {format(day, 'd')}
-                                            </time>
-                                            {/* Holiday emoji indicator (mobile) */}
-                                            {isMobile && holiday && (
-                                                <span className="text-sm">{holiday.emoji}</span>
-                                            )}
-                                            {/* Birthday cake indicator (mobile) */}
-                                            {isMobile && hasBirthday && (
-                                                <span className="text-sm" title={dayBirthdays.map(b => b.name).join(', ')}>🎂</span>
-                                            )}
-                                        </div>
-                                        {/* Mobile: Show dot indicators for events */}
-                                        {isMobile && dayEvents.length > 0 && (
-                                            <div className="flex gap-0.5">
-                                                {dayEvents.slice(0, 3).map((event) => (
-                                                    <span
-                                                        key={event.id}
-                                                        className={cn("w-1.5 h-1.5 rounded-full", getEventColors(event.type).dot)}
-                                                    />
-                                                ))}
-                                                {dayEvents.length > 3 && (
-                                                    <span className="text-[10px] text-slate-400 ml-0.5">+{dayEvents.length - 3}</span>
-                                                )}
-                                            </div>
-                                        )}
-                                        {/* Desktop: Show holiday name in top right */}
-                                        {!isMobile && holiday && (
-                                            <div className={cn(
-                                                "flex items-center gap-1 text-[10px] sm:text-xs font-semibold truncate max-w-[60%]",
-                                                holiday.textColor
-                                            )}>
-                                                <span>{holiday.emoji}</span>
-                                                <span className="truncate">{holiday.name}</span>
-                                            </div>
-                                        )}
-                                        {/* Desktop: Show overflow count */}
-                                        {!isMobile && dayEvents.length > 3 && (
-                                            <span className={cn(
-                                                "text-xs font-medium",
-                                                holiday ? holiday.textColor : "text-slate-500"
-                                            )}>
-                                                +{dayEvents.length - 3}
-                                            </span>
-                                        )}
-                                    </div>
-
-                                    {/* Desktop: Show birthday banners */}
-                                    {!isMobile && hasBirthday && (
-                                        <div className="space-y-0.5 mb-1">
-                                            {dayBirthdays.slice(0, 2).map((birthday) => (
-                                                <div
-                                                    key={birthday.id}
-                                                    className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-pink-50 text-pink-700 truncate"
-                                                    title={`${birthday.name}'s Birthday`}
-                                                >
-                                                    <span>🎂</span>
-                                                    <span className="truncate">{birthday.name}</span>
-                                                </div>
-                                            ))}
-                                            {dayBirthdays.length > 2 && (
-                                                <div className="text-[10px] text-pink-600 px-1.5">
-                                                    +{dayBirthdays.length - 2} more
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Desktop: Show event cards */}
-                                    {!isMobile && (
-                                        <div className="space-y-1 overflow-hidden relative z-10">
-                                            {dayEvents.slice(0, 3).map((event) => {
-                                                const colors = getEventColors(event.type);
-                                                return (
-                                                    <button
-                                                        key={event.id}
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            setSelectedEvent(event);
-                                                            setIsDetailsModalOpen(true);
-                                                        }}
-                                                        className={cn(
-                                                            "w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate transition-all hover:ring-2 hover:ring-mint-400/50",
-                                                            colors.bg,
-                                                            colors.text
-                                                        )}
-                                                    >
-                                                        <span className="hidden sm:inline">{event.is_all_day ? 'All Day' : format(parseISO(event.start_time), 'h:mma')} </span>
-                                                        {event.title}
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Mobile: Selected Day Events Panel */}
-                    {isMobile && selectedDayForMobile && (
-                        <div className="border-t border-slate-200 bg-white">
-                            <div className={cn(
-                                "px-4 py-3 flex items-center justify-between border-b border-slate-200",
-                                getHolidayForDay(selectedDayForMobile)?.bgColor
-                            )}>
-                                <div>
-                                    <h3 className="font-semibold text-slate-900 flex items-center gap-2">
-                                        {format(selectedDayForMobile, 'EEEE, MMMM d')}
-                                        {getHolidayForDay(selectedDayForMobile) && (
-                                            <span className="text-lg">{getHolidayForDay(selectedDayForMobile)?.emoji}</span>
-                                        )}
-                                        {getBirthdaysForDay(selectedDayForMobile).length > 0 && (
-                                            <span className="text-lg">🎂</span>
-                                        )}
-                                    </h3>
-                                    {getHolidayForDay(selectedDayForMobile) ? (
-                                        <p className={cn("text-xs font-medium", getHolidayForDay(selectedDayForMobile)?.textColor)}>
-                                            {getHolidayForDay(selectedDayForMobile)?.name}
-                                        </p>
-                                    ) : (
-                                        <p className="text-xs text-slate-500">
-                                            {getEventsForDay(selectedDayForMobile).length} event{getEventsForDay(selectedDayForMobile).length !== 1 ? 's' : ''}
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    {canAddEvents && (
-                                        <button
-                                            onClick={handleMobileAddEvent}
-                                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-mint-500 text-white text-xs font-medium"
-                                        >
-                                            <Plus className="h-3.5 w-3.5" />
-                                            Add
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => setSelectedDayForMobile(null)}
-                                        className="p-1.5 text-slate-400 hover:text-slate-900"
-                                    >
-                                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="max-h-48 overflow-y-auto">
-                                {/* Birthdays for selected day */}
-                                {getBirthdaysForDay(selectedDayForMobile).length > 0 && (
-                                    <div className="px-4 py-2 bg-pink-50 border-b border-pink-100">
-                                        {getBirthdaysForDay(selectedDayForMobile).map((birthday) => (
-                                            <div key={birthday.id} className="flex items-center gap-2 py-1">
-                                                <span className="text-lg">🎂</span>
-                                                <span className="text-sm font-medium text-pink-700">{birthday.name}'s Birthday</span>
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                                {getEventsForDay(selectedDayForMobile).length > 0 ? (
-                                    <div className="divide-y divide-slate-200">
-                                        {getEventsForDay(selectedDayForMobile).map((event) => {
-                                            const colors = getEventColors(event.type);
-                                            return (
-                                                <button
-                                                    key={event.id}
-                                                    onClick={() => {
-                                                        setSelectedEvent(event);
-                                                        setIsDetailsModalOpen(true);
-                                                    }}
-                                                    className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-slate-50 active:bg-slate-100 transition-colors"
-                                                >
-                                                    <div className={cn("w-1 h-full min-h-[40px] rounded-full flex-shrink-0", colors.dot)} />
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="font-medium text-slate-900 text-sm truncate">{event.title}</p>
-                                                        <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
-                                                            <Clock className="h-3 w-3" />
-                                                            <span>{event.is_all_day ? 'All Day' : format(parseISO(event.start_time), 'h:mm a')}</span>
-                                                            {event.location && (
-                                                                <>
-                                                                    <MapPin className="h-3 w-3 ml-2" />
-                                                                    <span className="truncate">{event.location}</span>
-                                                                </>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    <span className={cn(
-                                                        "flex-shrink-0 px-2 py-0.5 rounded-full text-[10px] font-medium capitalize",
-                                                        colors.bg,
-                                                        colors.text
-                                                    )}>
-                                                        {event.type}
-                                                    </span>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                ) : (
-                                    <div className="px-4 py-8 text-center">
-                                        <p className="text-sm text-slate-500">No events scheduled</p>
-                                        {canAddEvents && (
-                                            <button
-                                                onClick={handleMobileAddEvent}
-                                                className="mt-2 text-sm text-mint-600 font-medium"
-                                            >
-                                                Add an event
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
+                <CalendarGrid
+                    view={view}
+                    calendarDays={calendarDays}
+                    currentDate={currentDate}
+                    filteredEvents={filteredEvents}
+                    isMobile={isMobile}
+                    canAddEvents={canAddEvents}
+                    selectedDayForMobile={selectedDayForMobile}
+                    showBirthdays={showBirthdays}
+                    birthdays={birthdays}
+                    getHolidayForDay={getHolidayForDay}
+                    onDayClick={handleDayClick}
+                    onEventClick={handleEventClick}
+                    onMobileAddEvent={handleMobileAddEvent}
+                    onCloseMobilePanel={() => setSelectedDayForMobile(null)}
+                />
             ) : (
-                /* Agenda View */
-                <div className="flex-1 overflow-y-auto bg-slate-50">
-                    <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6">
-                        {/* Agenda Mode Toggle */}
-                        <div className="flex items-center justify-between mb-6">
-                            <div className="flex rounded-lg bg-white border border-slate-200 p-1 shadow-sm">
-                                <button
-                                    type="button"
-                                    onClick={() => setAgendaMode('upcoming')}
-                                    className={cn(
-                                        "px-4 py-2 rounded-md text-sm font-medium transition-all",
-                                        agendaMode === 'upcoming'
-                                            ? 'bg-mint-500 text-white shadow-sm'
-                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                                    )}
-                                >
-                                    Upcoming
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={() => setAgendaMode('save_the_dates')}
-                                    className={cn(
-                                        "px-4 py-2 rounded-md text-sm font-medium transition-all",
-                                        agendaMode === 'save_the_dates'
-                                            ? 'bg-mint-500 text-white shadow-sm'
-                                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                                    )}
-                                >
-                                    Save the Dates
-                                </button>
-                            </div>
-                            {agendaMode === 'save_the_dates' && currentSeason && (
-                                <span className="text-sm text-slate-500">
-                                    {currentSeason.name}
-                                </span>
-                            )}
-                        </div>
-
-                        {/* Event List */}
-                        {(agendaMode === 'upcoming' ? loading : loadingSaveTheDates) ? (
-                            <div className="text-center py-12">
-                                <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-mint-500 border-r-transparent"></div>
-                                <p className="mt-4 text-sm text-slate-500">Loading events...</p>
-                            </div>
-                        ) : (agendaMode === 'upcoming' ? filteredEvents : saveTheDateEvents).length > 0 ? (
-                            <div className="space-y-4">
-                                {(agendaMode === 'upcoming' ? filteredEvents : saveTheDateEvents).map((event) => {
-                                    const colors = getEventColors(event.type);
-                                    return (
-                                        <div
-                                            key={event.id}
-                                            onClick={() => {
-                                                setSelectedEvent(event);
-                                                setIsDetailsModalOpen(true);
-                                            }}
-                                            className="group flex gap-4 rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer bg-white"
-                                        >
-                                            {/* Date Badge */}
-                                            <div className="flex-shrink-0 text-center">
-                                                <div className={cn(
-                                                    "w-14 h-14 rounded-xl flex flex-col items-center justify-center",
-                                                    colors.bg
-                                                )}>
-                                                    <span className={cn("text-lg font-bold leading-none", colors.text)}>
-                                                        {format(parseISO(event.start_time), 'd')}
-                                                    </span>
-                                                    <span className={cn("text-xs font-medium mt-0.5", colors.text)}>
-                                                        {format(parseISO(event.start_time), 'MMM')}
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Event Details */}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-start justify-between gap-2">
-                                                    <h3 className="text-base font-semibold text-slate-900 group-hover:text-mint-600 transition-colors">
-                                                        {event.title}
-                                                    </h3>
-                                                    <span className={cn(
-                                                        "flex-shrink-0 px-2 py-0.5 rounded-full text-xs font-medium capitalize",
-                                                        colors.bg,
-                                                        colors.text
-                                                    )}>
-                                                        {event.type}
-                                                    </span>
-                                                </div>
-
-                                                <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
-                                                    <span className="flex items-center gap-1">
-                                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                        </svg>
-                                                        {event.is_all_day ? 'All Day' : `${format(parseISO(event.start_time), 'h:mm a')} - ${format(parseISO(event.end_time), 'h:mm a')}`}
-                                                    </span>
-                                                    {event.location && (
-                                                        <span className="flex items-center gap-1">
-                                                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                            </svg>
-                                                            {event.location}
-                                                        </span>
-                                                    )}
-                                                </div>
-
-                                                {event.description && (
-                                                    <p className="mt-2 text-sm text-slate-500 line-clamp-2">
-                                                        {event.description}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        ) : (
-                            <div className="text-center py-16">
-                                <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
-                                    <CalendarIcon className="h-8 w-8 text-slate-400" />
-                                </div>
-                                <h3 className="text-lg font-semibold text-slate-900">
-                                    {agendaMode === 'save_the_dates' ? 'No save the dates' : 'No events'}
-                                </h3>
-                                <p className="mt-1 text-sm text-slate-500">
-                                    {agendaMode === 'save_the_dates'
-                                        ? (!currentSeason
-                                            ? 'No current season is set. Please set a current season in Settings.'
-                                            : 'No competitions, mentorship events, or flagged events for this season.')
-                                        : (filterType !== 'all'
-                                            ? `No ${filterType} events scheduled.`
-                                            : `No upcoming events scheduled.`)
-                                    }
-                                </p>
-                                {canAddEvents && agendaMode === 'upcoming' && (
-                                    <button
-                                        onClick={() => setIsCreateModalOpen(true)}
-                                        className="btn-primary mt-4"
-                                    >
-                                        <Plus className="h-4 w-4" />
-                                        Add Event
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </div>
+                <AgendaView
+                    agendaMode={agendaMode}
+                    filteredEvents={filteredEvents}
+                    saveTheDateEvents={saveTheDateEvents}
+                    loading={loading}
+                    loadingSaveTheDates={loadingSaveTheDates}
+                    filterType={filterType}
+                    canAddEvents={canAddEvents}
+                    currentSeason={currentSeason}
+                    onAgendaModeChange={setAgendaMode}
+                    onEventClick={handleEventClick}
+                    onAddEvent={() => setIsCreateModalOpen(true)}
+                />
             )}
 
             {/* Legend - Desktop always visible, Mobile scrollable */}

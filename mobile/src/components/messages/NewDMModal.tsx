@@ -36,8 +36,8 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
 
-  const { currentHub } = useHubStore();
-  const { user } = useAuthStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const user = useAuthStore((state) => state.user);
 
   useEffect(() => {
     if (isOpen) {

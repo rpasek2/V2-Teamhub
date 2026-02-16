@@ -25,6 +25,7 @@ export function Scores() {
     const [selectedCompetition, setSelectedCompetition] = useState<CompetitionWithGymnasts | null>(null);
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [scores, setScores] = useState<CompetitionScore[]>([]);
     const [teamPlacements, setTeamPlacements] = useState<CompetitionTeamPlacement[]>([]);
     const [userGymnastIds, setUserGymnastIds] = useState<string[]>([]);
@@ -70,11 +71,12 @@ export function Scores() {
     const fetchCompetitions = async () => {
         if (!hub || !selectedSeasonId) return;
         setLoading(true);
+        setError(null);
 
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
             .from('competitions')
             .select(`
-                *,
+                id, hub_id, name, start_date, end_date, location, created_by, created_at, season_id, championship_type,
                 competition_gymnasts(
                     gymnast_profile_id,
                     gymnast_profiles(id, first_name, last_name, gender, level)
@@ -84,12 +86,13 @@ export function Scores() {
             .eq('season_id', selectedSeasonId)
             .order('start_date', { ascending: false });
 
-        if (error) {
-            console.error('Error fetching competitions:', error);
+        if (fetchError) {
+            console.error('Error fetching competitions:', fetchError);
+            setError('Failed to load data. Please try refreshing.');
         } else {
-            setCompetitions(data || []);
+            setCompetitions((data || []) as unknown as CompetitionWithGymnasts[]);
             if (data && data.length > 0) {
-                setSelectedCompetition(data[0]);
+                setSelectedCompetition(data[0] as unknown as CompetitionWithGymnasts);
             }
         }
         setLoading(false);
@@ -116,13 +119,13 @@ export function Scores() {
 
         const { data, error } = await supabase
             .from('competition_scores')
-            .select('*, gymnast_profiles(*)')
+            .select('id, competition_id, gymnast_profile_id, event, score, placement, gymnast_level, created_at, updated_at, created_by')
             .eq('competition_id', selectedCompetition.id);
 
         if (error) {
             console.error('Error fetching scores:', error);
         } else {
-            setScores(data || []);
+            setScores((data || []) as unknown as CompetitionScore[]);
         }
     };
 
@@ -131,13 +134,13 @@ export function Scores() {
 
         const { data, error } = await supabase
             .from('competition_team_placements')
-            .select('*')
+            .select('id, competition_id, level, gender, event, placement, created_at, updated_at')
             .eq('competition_id', selectedCompetition.id);
 
         if (error) {
             console.error('Error fetching team placements:', error);
         } else {
-            setTeamPlacements(data || []);
+            setTeamPlacements((data || []) as unknown as CompetitionTeamPlacement[]);
         }
     };
 
@@ -173,6 +176,12 @@ export function Scores() {
                     />
                 </div>
             </header>
+
+            {error && (
+                <div className="mx-4 mt-4 p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
+                    {error}
+                </div>
+            )}
 
             <main className="flex-1 overflow-y-auto p-6">
                 {loading ? (

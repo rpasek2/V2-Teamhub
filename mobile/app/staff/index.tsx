@@ -52,11 +52,13 @@ export default function StaffScreen() {
   const router = useRouter();
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
 
-  const { currentHub, currentMember } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
   const currentRole = currentMember?.role;
 
   // Check if user is staff
@@ -75,6 +77,7 @@ export default function StaffScreen() {
       return;
     }
 
+    setError(null);
     try {
       // Fetch hub members with staff roles
       const { data: membersData, error: membersError } = await supabase
@@ -89,6 +92,7 @@ export default function StaffScreen() {
 
       if (membersError) {
         console.error('Error fetching staff members:', membersError);
+        setError('Failed to load data. Pull to refresh.');
         setStaffMembers([]);
         setLoading(false);
         return;
@@ -158,6 +162,7 @@ export default function StaffScreen() {
       setStaffMembers(combined);
     } catch (err) {
       console.error('Error:', err);
+      setError('Failed to load data. Pull to refresh.');
       setStaffMembers([]);
     } finally {
       setLoading(false);
@@ -263,6 +268,13 @@ export default function StaffScreen() {
           ))}
         </ScrollView>
       </View>
+
+      {/* Error Banner */}
+      {error && (
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
+          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        </View>
+      )}
 
       {/* Staff List */}
       <ScrollView

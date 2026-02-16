@@ -130,7 +130,8 @@ export default function StaffDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { currentHub, currentMember } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
   const currentRole = currentMember?.role;
 
   // Check if user is staff

@@ -43,7 +43,8 @@ type TabType = 'roster' | 'sessions';
 
 export default function CompetitionDetailsScreen() {
   const { competitionId } = useLocalSearchParams<{ competitionId: string }>();
-  const { currentHub, isStaff } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const isStaff = useHubStore((state) => state.isStaff);
 
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [roster, setRoster] = useState<Gymnast[]>([]);
@@ -86,7 +87,7 @@ export default function CompetitionDetailsScreen() {
 
     const { data, error } = await supabase
       .from('competitions')
-      .select('*')
+      .select('id, hub_id, name, start_date, end_date, location')
       .eq('id', competitionId)
       .single();
 
@@ -129,7 +130,7 @@ export default function CompetitionDetailsScreen() {
     const { data, error } = await supabase
       .from('competition_sessions')
       .select(`
-        *,
+        id, name, date, warmup_time, awards_time,
         session_coaches(
           user_id,
           profiles(full_name)
@@ -146,7 +147,7 @@ export default function CompetitionDetailsScreen() {
     if (error) {
       console.error('Error fetching sessions:', error);
     } else {
-      setSessions((data as Session[]) || []);
+      setSessions((data as unknown as Session[]) || []);
     }
   };
 

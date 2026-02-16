@@ -47,6 +47,7 @@ export function Mentorship() {
     const [groupedPairings, setGroupedPairings] = useState<GroupedPairing[]>([]);
     const [events, setEvents] = useState<CalendarMentorshipEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [mobileTab, setMobileTab] = useState<MobileTab>('pairings');
     const [showCreatePairingModal, setShowCreatePairingModal] = useState(false);
@@ -78,6 +79,7 @@ export function Mentorship() {
 
     const fetchData = async () => {
         setLoading(true);
+        setError(null);
         await Promise.all([fetchPairings(), fetchEvents()]);
         setLoading(false);
     };
@@ -87,15 +89,16 @@ export function Mentorship() {
         const { data: pairingsData, error: pairingsError } = await supabase
             .from('mentorship_pairs')
             .select(`
-                *,
-                big_gymnast:gymnast_profiles!mentorship_pairs_big_gymnast_id_fkey(*),
-                little_gymnast:gymnast_profiles!mentorship_pairs_little_gymnast_id_fkey(*)
+                id, big_gymnast_id, little_gymnast_id, hub_id, status, notes, created_at,
+                big_gymnast:gymnast_profiles!mentorship_pairs_big_gymnast_id_fkey(id, first_name, last_name, date_of_birth, level),
+                little_gymnast:gymnast_profiles!mentorship_pairs_little_gymnast_id_fkey(id, first_name, last_name, date_of_birth, level)
             `)
             .eq('hub_id', hubId)
             .order('created_at', { ascending: false });
 
         if (pairingsError) {
             console.error('Error fetching pairings:', pairingsError);
+            setError('Failed to load data. Please try refreshing.');
             return;
         }
 
@@ -140,7 +143,7 @@ export function Mentorship() {
             if (!groupedMap.has(bigId)) {
                 groupedMap.set(bigId, {
                     big_gymnast_id: bigId,
-                    big_gymnast: p.big_gymnast as GymnastProfile,
+                    big_gymnast: p.big_gymnast as unknown as GymnastProfile,
                     big_next_competition: nextCompetitionMap.get(bigId) || null,
                     littles: [],
                     status: p.status,
@@ -151,7 +154,7 @@ export function Mentorship() {
             const group = groupedMap.get(bigId)!;
             group.littles.push({
                 id: p.id,
-                gymnast: p.little_gymnast as GymnastProfile,
+                gymnast: p.little_gymnast as unknown as GymnastProfile,
                 next_competition: nextCompetitionMap.get(p.little_gymnast_id) || null
             });
         });
@@ -183,6 +186,7 @@ export function Mentorship() {
 
         if (error) {
             console.error('Error fetching events:', error);
+            setError('Failed to load data. Please try refreshing.');
             return;
         }
 
@@ -280,6 +284,12 @@ export function Mentorship() {
                     Manage pairings, events, and mentorship programs
                 </p>
             </div>
+
+            {error && (
+                <div className="mx-4 mt-4 p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
+                    {error}
+                </div>
+            )}
 
             {/* Mobile Tab Navigation */}
             <div className="lg:hidden flex border-b border-slate-200">

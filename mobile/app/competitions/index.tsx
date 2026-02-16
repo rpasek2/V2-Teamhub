@@ -31,10 +31,11 @@ export default function CompetitionsScreen() {
   const router = useRouter();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('upcoming');
 
-  const { currentHub } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
 
   useEffect(() => {
     fetchCompetitions();
@@ -47,6 +48,7 @@ export default function CompetitionsScreen() {
       return;
     }
 
+    setError(null);
     try {
       const { data, error } = await supabase
         .from('competitions')
@@ -63,6 +65,7 @@ export default function CompetitionsScreen() {
 
       if (error) {
         console.error('Error fetching competitions:', error);
+        setError('Failed to load data. Pull to refresh.');
         setCompetitions([]);
       } else {
         const mapped = (data || []).map((c: any) => ({
@@ -77,6 +80,7 @@ export default function CompetitionsScreen() {
       }
     } catch (err) {
       console.error('Error:', err);
+      setError('Failed to load data. Pull to refresh.');
       setCompetitions([]);
     } finally {
       setLoading(false);
@@ -185,6 +189,13 @@ export default function CompetitionsScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Error Banner */}
+      {error && (
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
+          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        </View>
+      )}
 
       {/* Competition List */}
       <FlatList

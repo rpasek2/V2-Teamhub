@@ -33,7 +33,8 @@ interface HubSettings {
 
 export default function HubSettingsScreen() {
   const router = useRouter();
-  const { currentHub, currentRole } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentRole = useHubStore((state) => state.currentRole);
 
   const [settings, setSettings] = useState<HubSettings>({});
   const [loading, setLoading] = useState(true);

@@ -78,8 +78,9 @@ export default function PrivateLessonsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>('coaches');
 
-  const { currentHub, currentMember } = useHubStore();
-  const { user } = useAuthStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
+  const user = useAuthStore((state) => state.user);
   const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentMember?.role || '');
 
   useEffect(() => {
@@ -106,13 +107,13 @@ export default function PrivateLessonsScreen() {
       const [coachResult, packageResult] = await Promise.all([
         supabase
           .from('coach_lesson_profiles')
-          .select('*, coach_profile:profiles!coach_user_id(id, full_name, avatar_url)')
+          .select('id, hub_id, coach_user_id, bio, events, levels, cost_per_lesson, lesson_duration_minutes, is_active, coach_profile:profiles!coach_user_id(id, full_name, avatar_url)')
           .eq('hub_id', currentHub.id)
           .eq('is_active', true)
           .order('created_at', { ascending: true }),
         supabase
           .from('lesson_packages')
-          .select('*')
+          .select('id, coach_user_id, name, description, duration_minutes, cost, is_active')
           .eq('hub_id', currentHub.id)
           .eq('is_active', true)
           .order('sort_order', { ascending: true }),
@@ -123,7 +124,7 @@ export default function PrivateLessonsScreen() {
         return;
       }
 
-      setCoaches(coachResult.data || []);
+      setCoaches((coachResult.data || []) as unknown as CoachLessonProfile[]);
 
       // Group packages by coach_user_id
       if (packageResult.data) {
@@ -148,9 +149,9 @@ export default function PrivateLessonsScreen() {
       const { data, error } = await supabase
         .from('lesson_bookings')
         .select(`
-          *,
+          id, start_time, end_time, status, notes,
           coach_profiles:coach_user_id (id, full_name, avatar_url),
-          lesson_packages:package_id (*)
+          lesson_packages:package_id (id, name, cost, duration_minutes)
         `)
         .eq('hub_id', currentHub.id)
         .eq('booked_by', user.id)
@@ -161,7 +162,7 @@ export default function PrivateLessonsScreen() {
         return;
       }
 
-      setBookings(data || []);
+      setBookings((data || []) as unknown as LessonBooking[]);
     } catch (err) {
       console.error('Error:', err);
     }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -248,7 +248,7 @@ export function AssignSessionGymnastsModal({
     );
   };
 
-  const renderItem = ({ item, section }: { item: Gymnast; section: Section }) => {
+  const renderItem = useCallback(({ item, section }: { item: Gymnast; section: Section }) => {
     if (collapsedLevels.has(section.title)) {
       return null;
     }
@@ -267,7 +267,7 @@ export function AssignSessionGymnastsModal({
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [collapsedLevels, selectedGymnasts, toggleGymnast]);
 
   return (
     <Modal
@@ -321,6 +321,10 @@ export function AssignSessionGymnastsModal({
             renderItem={renderItem}
             contentContainerStyle={styles.listContent}
             stickySectionHeadersEnabled={false}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
           />
         )}
       </SafeAreaView>

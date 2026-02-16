@@ -4,11 +4,24 @@ import { Modal } from '../ui/Modal';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 
+interface MemberInitialData {
+    id?: string;
+    type?: string;
+    name?: string;
+    email?: string;
+    role?: string;
+    level?: string;
+    guardian_name?: string;
+    guardian_phone?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    full_profile?: Record<string, any>;
+}
+
 interface AddMemberModalProps {
     isOpen: boolean;
     onClose: () => void;
     onMemberAdded: () => void;
-    initialData?: any;
+    initialData?: MemberInitialData | null;
 }
 
 type Role = 'parent' | 'coach' | 'admin' | 'director';
@@ -110,25 +123,28 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                     setAddingGymnastProfile(true);
 
                     // Get the full profile data (either directly or from full_profile property)
-                    const profile = initialData.full_profile || initialData;
+                    // Cast to record for safe property access from dynamic data shapes
+                    const profile = (initialData.full_profile || initialData) as Record<string, unknown>;
+                    const str = (val: unknown): string => (typeof val === 'string' ? val : '');
 
                     // Basic Info
-                    setFirstName(profile.first_name || initialData.name?.split(' ')[0] || '');
-                    setLastName(profile.last_name || initialData.name?.split(' ').slice(1).join(' ') || '');
-                    setDateOfBirth(profile.date_of_birth || profile.dob || '');
-                    setGender(profile.gender || '');
-                    setLevel(profile.level || initialData.level || '');
-                    setMemberId(profile.member_id || '');
-                    setMemberIdType(profile.member_id_type || '');
-                    setTshirtSize(profile.tshirt_size || '');
-                    setLeoSize(profile.leo_size || '');
+                    setFirstName(str(profile.first_name) || initialData.name?.split(' ')[0] || '');
+                    setLastName(str(profile.last_name) || initialData.name?.split(' ').slice(1).join(' ') || '');
+                    setDateOfBirth(str(profile.date_of_birth) || str(profile.dob) || '');
+                    setGender((str(profile.gender) || '') as '' | 'Male' | 'Female');
+                    setLevel(str(profile.level) || initialData.level || '');
+                    setMemberId(str(profile.member_id) || '');
+                    setMemberIdType((str(profile.member_id_type) || '') as '' | 'USAG' | 'AAU' | 'Other');
+                    setTshirtSize(str(profile.tshirt_size) || '');
+                    setLeoSize(str(profile.leo_size) || '');
 
                     // Guardian 1
-                    if (profile.guardian_1) {
-                        setG1FirstName(profile.guardian_1.first_name || '');
-                        setG1LastName(profile.guardian_1.last_name || '');
-                        setG1Email(profile.guardian_1.email || '');
-                        setG1Phone(profile.guardian_1.phone || '');
+                    const g1 = profile.guardian_1 as Record<string, unknown> | null | undefined;
+                    if (g1) {
+                        setG1FirstName(str(g1.first_name));
+                        setG1LastName(str(g1.last_name));
+                        setG1Email(str(g1.email));
+                        setG1Phone(str(g1.phone));
                     } else if (initialData.guardian_name) {
                         const parts = initialData.guardian_name.split(' ');
                         setG1FirstName(parts[0] || '');
@@ -138,19 +154,21 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                     }
 
                     // Guardian 2
-                    if (profile.guardian_2) {
-                        setG2FirstName(profile.guardian_2.first_name || '');
-                        setG2LastName(profile.guardian_2.last_name || '');
-                        setG2Email(profile.guardian_2.email || '');
-                        setG2Phone(profile.guardian_2.phone || '');
+                    const g2 = profile.guardian_2 as Record<string, unknown> | null | undefined;
+                    if (g2) {
+                        setG2FirstName(str(g2.first_name));
+                        setG2LastName(str(g2.last_name));
+                        setG2Email(str(g2.email));
+                        setG2Phone(str(g2.phone));
                     }
 
                     // Medical Info
-                    if (profile.medical_info) {
-                        setAllergies(profile.medical_info.allergies || '');
-                        setMedications(profile.medical_info.medications || '');
-                        setConditions(profile.medical_info.conditions || '');
-                        setMedicalNotes(profile.medical_info.notes || '');
+                    const med = profile.medical_info as Record<string, unknown> | null | undefined;
+                    if (med) {
+                        setAllergies(str(med.allergies));
+                        setMedications(str(med.medications));
+                        setConditions(str(med.conditions));
+                        setMedicalNotes(str(med.notes));
                     }
                 } else {
                     // Editing a regular member
@@ -178,7 +196,17 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
     }> => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlContent, 'text/html');
-        const gymnasts: any[] = [];
+        const gymnasts: Array<{
+            firstName: string;
+            lastName: string;
+            dateOfBirth: string;
+            gender: 'Male' | 'Female' | '';
+            level: string;
+            guardianFirstName: string;
+            guardianLastName: string;
+            guardianEmail: string;
+            guardianPhone: string;
+        }> = [];
 
         // Find all page sections (each class is in a page-break div)
         // iClass Pro structure: div[style*="page-break"] contains .full-width-header and .table-roll-sheet
@@ -350,9 +378,9 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                     resetForm();
                 }, 2000);
 
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Error bulk importing gymnasts:', err);
-                setError(err.message || 'Failed to import gymnasts');
+                setError(err instanceof Error ? err.message : 'Failed to import gymnasts');
             } finally {
                 setLoading(false);
             }
@@ -425,9 +453,9 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                 resetForm();
             }, 2000);
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error bulk adding members:', err);
-            setError(err.message || 'Failed to add members');
+            setError(err instanceof Error ? err.message : 'Failed to add members');
         } finally {
             setLoading(false);
         }
@@ -508,9 +536,9 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
             onClose();
             resetForm();
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error saving gymnast:', err);
-            setError(err.message || 'Failed to save gymnast');
+            setError(err instanceof Error ? err.message : 'Failed to save gymnast');
         } finally {
             setLoading(false);
         }
@@ -574,9 +602,9 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
             onClose();
             resetForm();
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error saving member:', err);
-            setError(err.message || 'Failed to save member');
+            setError(err instanceof Error ? err.message : 'Failed to save member');
         } finally {
             setLoading(false);
         }
@@ -620,9 +648,9 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
             onClose();
             resetForm();
 
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error('Error deleting member:', err);
-            setError(err.message || 'Failed to delete member');
+            setError(err instanceof Error ? err.message : 'Failed to delete member');
             setLoading(false);
         }
     };

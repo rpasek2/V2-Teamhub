@@ -224,6 +224,17 @@ export function Roster() {
             : <ChevronDown className="h-4 w-4 text-mint-600" />;
     };
 
+    // Memoized map from guardian email (lowercased) to parent hub_member id for O(1) lookups
+    const parentEmailToIdMap = useMemo(() => {
+        const map = new Map<string, string>();
+        for (const m of members) {
+            if (m.type === 'hub_member' && m.role === 'parent' && m.email) {
+                map.set(m.email.toLowerCase(), m.id);
+            }
+        }
+        return map;
+    }, [members]);
+
     // Helper to check if we should show a field based on privacy settings
     // Returns true if the field should be shown, false if hidden
     const shouldShowField = (member: DisplayMember, field: 'email' | 'phone' | 'level'): boolean => {
@@ -242,17 +253,12 @@ export function Roster() {
         const guardianEmail = member.guardian_email?.toLowerCase();
         if (!guardianEmail) return true; // No guardian email, show by default
 
-        // Find parent's privacy settings by looking up their user_id via email match
-        // We need to find which hub_member has this email
-        const parentMember = members.find(m =>
-            m.type === 'hub_member' &&
-            m.role === 'parent' &&
-            m.email?.toLowerCase() === guardianEmail
-        );
+        // O(1) lookup using memoized map instead of O(n) members.find()
+        const parentMemberId = parentEmailToIdMap.get(guardianEmail);
 
-        if (!parentMember) return true; // No parent account found, show by default
+        if (!parentMemberId) return true; // No parent account found, show by default
 
-        const settings = privacySettings.get(parentMember.id);
+        const settings = privacySettings.get(parentMemberId);
 
         // If no privacy settings, use defaults (email=false, phone=false, level=true)
         if (!settings) {

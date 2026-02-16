@@ -164,6 +164,7 @@ export default function CalendarScreen() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [birthdays, setBirthdays] = useState<Birthday[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [showEventModal, setShowEventModal] = useState(false);
@@ -171,7 +172,8 @@ export default function CalendarScreen() {
   const [filterType, setFilterType] = useState<EventType>('all');
   const [showFilter, setShowFilter] = useState(false);
 
-  const { currentHub, isStaff } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const isStaff = useHubStore((state) => state.isStaff);
   const canAddEvents = isStaff();
   const showBirthdays = currentHub?.settings?.showBirthdays === true;
 
@@ -190,6 +192,7 @@ export default function CalendarScreen() {
       return;
     }
 
+    setError(null);
     try {
       const monthStart = startOfMonth(currentDate);
       const monthEnd = endOfMonth(currentDate);
@@ -204,12 +207,14 @@ export default function CalendarScreen() {
 
       if (error) {
         console.error('Error fetching events:', error);
+        setError('Failed to load data. Pull to refresh.');
         setEvents([]);
       } else {
         setEvents(data || []);
       }
     } catch (err) {
       console.error('Error:', err);
+      setError('Failed to load data. Pull to refresh.');
       setEvents([]);
     } finally {
       setLoading(false);
@@ -281,6 +286,7 @@ export default function CalendarScreen() {
       setBirthdays(birthdayData);
     } catch (err) {
       console.error('Error fetching birthdays:', err);
+      setError('Failed to load data. Pull to refresh.');
       setBirthdays([]);
     }
   };
@@ -603,6 +609,13 @@ export default function CalendarScreen() {
           renderCalendarDays()
         )}
       </View>
+
+      {/* Error Banner */}
+      {error && (
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
+          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        </View>
+      )}
 
       {/* Events List */}
       <View style={styles.eventsSection}>

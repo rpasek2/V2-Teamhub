@@ -332,7 +332,7 @@ export default function Messages() {
         } else if (data) {
             setOwnerInfo({
                 user_id: data.user_id,
-                full_name: (data.profile as any)?.full_name || 'Hub Owner'
+                full_name: (Array.isArray(data.profile) ? data.profile[0]?.full_name : (data.profile as any)?.full_name) || 'Hub Owner'
             });
         }
     };
@@ -344,7 +344,7 @@ export default function Messages() {
 
         const { data, error } = await supabase
             .from('anonymous_reports')
-            .select('*')
+            .select('id, hub_id, message, read_at, created_at')
             .eq('hub_id', hub.id)
             .order('created_at', { ascending: false });
 
@@ -412,11 +412,14 @@ export default function Messages() {
         if (error) {
             console.error('Error fetching hub members:', error);
         } else {
-            const members: HubMemberOption[] = (data || []).map((m: any) => ({
-                user_id: m.user_id,
-                full_name: m.profile?.full_name || 'Unknown',
-                email: m.profile?.email || ''
-            }));
+            const members: HubMemberOption[] = (data || []).map((m) => {
+                const profile = Array.isArray(m.profile) ? m.profile[0] : m.profile;
+                return {
+                    user_id: m.user_id,
+                    full_name: profile?.full_name || 'Unknown',
+                    email: profile?.email || ''
+                };
+            });
             setHubMembers(members);
         }
         setLoadingMembers(false);

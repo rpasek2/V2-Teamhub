@@ -24,6 +24,7 @@ export function Skills() {
     const [gymnastSkills, setGymnastSkills] = useState<GymnastSkill[]>([]);
     const [eventComments, setEventComments] = useState<GymnastEventComment[]>([]);
     const [initialLoading, setInitialLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const [isManageEventsModalOpen, setIsManageEventsModalOpen] = useState(false);
     const levels = hub?.settings?.levels || [];
@@ -131,8 +132,9 @@ export function Skills() {
 
     const fetchGymnasts = async () => {
         if (!hub || !selectedLevel) return;
+        setError(null);
 
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
             .from('gymnast_profiles')
             .select('id, first_name, last_name, level, gender')
             .eq('hub_id', hub.id)
@@ -140,8 +142,9 @@ export function Skills() {
             .eq('gender', activeGender)
             .order('last_name', { ascending: true });
 
-        if (error) {
-            console.error('Error fetching gymnasts:', error);
+        if (fetchError) {
+            console.error('Error fetching gymnasts:', fetchError);
+            setError('Failed to load data. Please try refreshing.');
         } else {
             setAllGymnasts((data || []) as GymnastProfile[]);
         }
@@ -151,16 +154,17 @@ export function Skills() {
     const fetchSkills = async () => {
         if (!hub || !selectedLevel || !selectedEvent) return;
 
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
             .from('hub_event_skills')
-            .select('*')
+            .select('id, hub_id, level, event, skill_name, skill_order, created_at, created_by')
             .eq('hub_id', hub.id)
             .eq('level', selectedLevel)
             .eq('event', selectedEvent)
             .order('skill_order', { ascending: true });
 
-        if (error) {
-            console.error('Error fetching skills:', error);
+        if (fetchError) {
+            console.error('Error fetching skills:', fetchError);
+            setError('Failed to load data. Please try refreshing.');
         } else {
             setSkills(data || []);
         }
@@ -172,14 +176,15 @@ export function Skills() {
         const gymnastIds = gymnasts.map(g => g.id);
         const skillIds = skills.map(s => s.id);
 
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
             .from('gymnast_skills')
-            .select('*')
+            .select('id, gymnast_profile_id, hub_event_skill_id, status, notes, achieved_date, updated_at, updated_by')
             .in('gymnast_profile_id', gymnastIds)
             .in('hub_event_skill_id', skillIds);
 
-        if (error) {
-            console.error('Error fetching gymnast skills:', error);
+        if (fetchError) {
+            console.error('Error fetching gymnast skills:', fetchError);
+            setError('Failed to load data. Please try refreshing.');
         } else {
             setGymnastSkills(data || []);
         }
@@ -190,15 +195,16 @@ export function Skills() {
 
         const gymnastIds = gymnasts.map(g => g.id);
 
-        const { data, error } = await supabase
+        const { data, error: fetchError } = await supabase
             .from('gymnast_event_comments')
-            .select('*')
+            .select('id, gymnast_profile_id, hub_id, event, comment, created_by, created_at, updated_at')
             .eq('hub_id', hub.id)
             .eq('event', selectedEvent)
             .in('gymnast_profile_id', gymnastIds);
 
-        if (error) {
-            console.error('Error fetching event comments:', error);
+        if (fetchError) {
+            console.error('Error fetching event comments:', fetchError);
+            setError('Failed to load data. Please try refreshing.');
         } else {
             setEventComments(data || []);
         }
@@ -318,6 +324,12 @@ export function Skills() {
                     </div>
                 </header>
 
+                {error && (
+                    <div className="mx-4 mt-4 p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
+                        {error}
+                    </div>
+                )}
+
                 <main className="flex-1 overflow-y-auto p-6">
                     {!linkedGymnast ? (
                         <div className="flex h-full flex-col items-center justify-center text-center">
@@ -410,6 +422,12 @@ export function Skills() {
                     </button>
                 </div>
             </header>
+
+            {error && (
+                <div className="mx-4 mt-4 p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
+                    {error}
+                </div>
+            )}
 
             <main className="flex-1 overflow-y-auto p-6">
                 {levels.length === 0 ? (

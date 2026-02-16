@@ -20,7 +20,8 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const { signIn, loading } = useAuthStore();
+  const signIn = useAuthStore((state) => state.signIn);
+  const loading = useAuthStore((state) => state.loading);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -29,14 +30,11 @@ export default function LoginScreen() {
     }
 
     setError('');
-    console.log('[Login] Attempting login for:', email);
     const { error: signInError } = await signIn(email, password);
-    console.log('[Login] Sign in complete, error:', signInError);
 
     if (signInError) {
       setError(signInError.message || 'Invalid email or password');
     } else {
-      console.log('[Login] Navigating to hub-selection');
       router.replace('/hub-selection');
     }
   };

@@ -56,7 +56,7 @@ export default function ResourcesScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  const { currentHub } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
 
   useEffect(() => {
     if (currentHub?.id) {
@@ -82,7 +82,7 @@ export default function ResourcesScreen() {
       let query = supabase
         .from('hub_resources')
         .select(`
-          *,
+          id, hub_id, name, description, url, type, category, file_type, file_size, created_by, created_at,
           profiles:created_by (full_name, avatar_url)
         `)
         .eq('hub_id', currentHub.id)
@@ -99,7 +99,7 @@ export default function ResourcesScreen() {
         return;
       }
 
-      setResources(data || []);
+      setResources((data || []) as unknown as HubResource[]);
     } catch (err) {
       console.error('Error:', err);
     }
@@ -111,7 +111,7 @@ export default function ResourcesScreen() {
     try {
       const { data, error } = await supabase
         .from('hub_resource_categories')
-        .select('*')
+        .select('id, hub_id, name, display_order')
         .eq('hub_id', currentHub.id)
         .order('display_order', { ascending: true });
 

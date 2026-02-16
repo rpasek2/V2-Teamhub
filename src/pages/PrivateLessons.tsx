@@ -67,7 +67,7 @@ export default function PrivateLessons() {
                     .order('created_at', { ascending: true }),
                 supabase
                     .from('lesson_packages')
-                    .select('*')
+                    .select('id, hub_id, coach_user_id, name, duration_minutes, max_gymnasts, price, description, is_active, sort_order, created_at, updated_at')
                     .eq('hub_id', hub.id)
                     .eq('is_active', true)
                     .order('sort_order', { ascending: true })

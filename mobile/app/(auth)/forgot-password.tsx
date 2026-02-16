@@ -21,7 +21,7 @@ export default function ForgotPasswordScreen() {
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const { resetPassword } = useAuthStore();
+  const resetPassword = useAuthStore((state) => state.resetPassword);
 
   const handleResetPassword = async () => {
     if (!email) {

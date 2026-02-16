@@ -91,7 +91,7 @@ const CARD_WIDTH = (SCREEN_WIDTH - 48) / 2; // 2 columns with padding
 
 export default function MarketplaceScreen() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const [items, setItems] = useState<MarketplaceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -120,7 +120,7 @@ export default function MarketplaceScreen() {
     images: [] as string[],
   });
 
-  const { currentHub } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
 
   useEffect(() => {
     if (currentHub?.id) {

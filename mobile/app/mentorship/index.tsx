@@ -75,7 +75,11 @@ export default function MentorshipScreen() {
   const [activeTab, setActiveTab] = useState<MobileTab>('pairings');
   const [showPastEvents, setShowPastEvents] = useState(false);
 
-  const { currentHub, currentMember, linkedGymnasts, hasPermission, getPermissionScope } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
+  const hasPermission = useHubStore((state) => state.hasPermission);
+  const getPermissionScope = useHubStore((state) => state.getPermissionScope);
   const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentMember?.role || '');
   const mentorshipScope = getPermissionScope('mentorship');
 

@@ -80,7 +80,7 @@ export default function MarketplaceItemDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const { currentHub } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
 
   useEffect(() => {
     if (itemId) {

@@ -260,7 +260,8 @@ export default function GymnastProfileScreen() {
   const [playingMusic, setPlayingMusic] = useState(false);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
 
-  const { currentHub, linkedGymnasts } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
   const isParent = useHubStore((state) => state.isParent);
   const getPermissionScope = useHubStore((state) => state.getPermissionScope);
@@ -320,7 +321,7 @@ export default function GymnastProfileScreen() {
       // Fetch gymnast profile
       const { data: gymnastData, error: gymnastError } = await supabase
         .from('gymnast_profiles')
-        .select('*')
+        .select('id, first_name, last_name, level, gender, date_of_birth, schedule_group, guardian_1, guardian_2, medical_info, emergency_contact_1, emergency_contact_2, member_id, tshirt_size, leo_size, floor_music_url, floor_music_name')
         .eq('id', gymnastId)
         .single();
 
@@ -398,7 +399,7 @@ export default function GymnastProfileScreen() {
         // Attendance (last 6 months)
         canViewAttendance ? supabase
           .from('attendance_records')
-          .select('*')
+          .select('id, attendance_date, status, check_in_time, check_out_time, notes')
           .eq('hub_id', currentHub.id)
           .eq('gymnast_profile_id', gymnastId)
           .gte('attendance_date', fetchStartDate)
@@ -415,14 +416,14 @@ export default function GymnastProfileScreen() {
         // Goals with subgoals
         supabase
           .from('gymnast_goals')
-          .select('*, subgoals:gymnast_subgoals(*)')
+          .select('id, gymnast_profile_id, title, description, event, target_date, completed_at, created_by, created_at, subgoals:gymnast_subgoals(id, goal_id, title, target_date, completed_at)')
           .eq('gymnast_profile_id', gymnastId)
           .order('created_at', { ascending: false }),
 
         // Assessment
         supabase
           .from('gymnast_assessments')
-          .select('*')
+          .select('id, gymnast_profile_id, strengths, weaknesses, overall_plan, injuries')
           .eq('gymnast_profile_id', gymnastId)
           .maybeSingle(),
       ]);

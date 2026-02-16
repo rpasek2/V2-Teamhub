@@ -9,6 +9,7 @@ import {
   RefreshControl,
   TextInput,
   Linking,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Audio } from 'expo-av';
@@ -45,11 +46,12 @@ export default function FloorMusicScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [collapsedLevels, setCollapsedLevels] = useState<Set<string>>(new Set());
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
 
-  const { currentHub } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
   const isStaff = useHubStore((state) => state.isStaff);
   const levels = currentHub?.settings?.levels || [];
 
@@ -96,12 +98,23 @@ export default function FloorMusicScreen() {
   };
 
   const filtered = useMemo(() => {
-    if (!searchTerm) return gymnasts;
-    const q = searchTerm.toLowerCase();
-    return gymnasts.filter((g) =>
-      `${g.first_name} ${g.last_name}`.toLowerCase().includes(q)
-    );
-  }, [gymnasts, searchTerm]);
+    let result = gymnasts;
+    if (selectedLevel) {
+      result = result.filter((g) => g.level === selectedLevel);
+    }
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter((g) =>
+        `${g.first_name} ${g.last_name}`.toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [gymnasts, searchTerm, selectedLevel]);
+
+  const levelsWithMusic = useMemo(() => {
+    const set = new Set(gymnasts.map((g) => g.level));
+    return levels.filter((l) => set.has(l));
+  }, [gymnasts, levels]);
 
   const groupedByLevel = useMemo((): LevelGroup[] => {
     const groups: Record<string, FloorMusicGymnast[]> = {};
@@ -203,7 +216,7 @@ export default function FloorMusicScreen() {
     [playingId, sound]
   );
 
-  const renderLevelGroup = ({ item }: { item: LevelGroup }) => {
+  const renderLevelGroup = useCallback(({ item }: { item: LevelGroup }) => {
     const isCollapsed = collapsedLevels.has(item.level);
     return (
       <View style={styles.levelGroup}>
@@ -228,7 +241,7 @@ export default function FloorMusicScreen() {
         )}
       </View>
     );
-  };
+  }, [collapsedLevels, renderGymnast, toggleLevel]);
 
   if (loading) {
     return (
@@ -257,11 +270,38 @@ export default function FloorMusicScreen() {
         </Text>
       </View>
 
+      {/* Level Filter */}
+      {levelsWithMusic.length > 1 && (
+        <View style={styles.filterContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList}>
+            <TouchableOpacity
+              style={[styles.filterChip, selectedLevel === null && styles.filterChipActive]}
+              onPress={() => setSelectedLevel(null)}
+            >
+              <Text style={[styles.filterChipText, selectedLevel === null && styles.filterChipTextActive]}>
+                All
+              </Text>
+            </TouchableOpacity>
+            {levelsWithMusic.map((level) => (
+              <TouchableOpacity
+                key={level}
+                style={[styles.filterChip, selectedLevel === level && styles.filterChipActive]}
+                onPress={() => setSelectedLevel(selectedLevel === level ? null : level)}
+              >
+                <Text style={[styles.filterChipText, selectedLevel === level && styles.filterChipTextActive]}>
+                  {level}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
       {groupedByLevel.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Music size={48} color={colors.slate[300]} />
           <Text style={styles.emptyTitle}>
-            {searchTerm ? 'No results found' : 'No floor music uploaded yet'}
+            {searchTerm || selectedLevel ? 'No results found' : 'No floor music uploaded yet'}
           </Text>
           <Text style={styles.emptyText}>
             {searchTerm
@@ -275,6 +315,10 @@ export default function FloorMusicScreen() {
           keyExtractor={(item) => item.level}
           renderItem={renderLevelGroup}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
@@ -393,6 +437,33 @@ const styles = StyleSheet.create({
   },
   actionBtnActive: {
     backgroundColor: colors.brand[50],
+  },
+  filterContainer: {
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.slate[200],
+    paddingVertical: 8,
+  },
+  filterList: {
+    paddingHorizontal: 16,
+    gap: 8,
+  },
+  filterChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: colors.slate[100],
+  },
+  filterChipActive: {
+    backgroundColor: colors.brand[500],
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.slate[600],
+  },
+  filterChipTextActive: {
+    color: colors.white,
   },
   emptyContainer: {
     flex: 1,

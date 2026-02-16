@@ -118,9 +118,11 @@ const SKILL_STATUS_CONFIG: Record<string, { label: string; color: string; bgColo
 };
 
 export default function DashboardScreen() {
-  const { currentHub, currentMember, linkedGymnasts } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);

@@ -78,10 +78,11 @@ function GroupCard({ group, onPress }: { group: Group; onPress: () => void }) {
 export default function GroupsScreen() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { currentHub } = useHubStore();
-  const { user } = useAuthStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const user = useAuthStore((state) => state.user);
 
   const fetchGroups = async () => {
     if (!currentHub || !user) {
@@ -90,6 +91,7 @@ export default function GroupsScreen() {
       return;
     }
 
+    setError(null);
     try {
       // Fetch groups for this hub that the user is a member of
       const { data: memberGroups, error: memberError } = await supabase
@@ -113,6 +115,7 @@ export default function GroupsScreen() {
 
       if (error) {
         console.error('Error fetching groups:', error);
+        setError('Failed to load data. Pull to refresh.');
         setGroups([]);
         return;
       }
@@ -173,6 +176,7 @@ export default function GroupsScreen() {
       setGroups(processedGroups);
     } catch (err) {
       console.error('Error:', err);
+      setError('Failed to load data. Pull to refresh.');
       setGroups([]);
     } finally {
       setLoading(false);
@@ -221,6 +225,13 @@ export default function GroupsScreen() {
           <Text style={styles.statLabel}>Unread</Text>
         </View>
       </View>
+
+      {/* Error Banner */}
+      {error && (
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
+          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        </View>
+      )}
 
       {/* Groups List */}
       <FlatList

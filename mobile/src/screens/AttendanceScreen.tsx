@@ -77,10 +77,11 @@ export function AttendanceScreen() {
   const [saving, setSaving] = useState<string | null>(null);
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
 
-  const { currentHub, linkedGymnasts } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
   const isParent = useHubStore((state) => state.isParent);
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const canManage = isStaff();
   const selectedDayOfWeek = parseISO(selectedDate).getDay();
@@ -106,7 +107,7 @@ export function AttendanceScreen() {
     const [schedulesResult, gymnastsResult] = await Promise.all([
       supabase
         .from('practice_schedules')
-        .select('*')
+        .select('id, level, schedule_group, day_of_week, start_time, end_time')
         .eq('hub_id', currentHub.id),
       supabase
         .from('gymnast_profiles')

@@ -45,8 +45,12 @@ function HubCard({ hub, onPress }: { hub: Hub; onPress: () => void }) {
 }
 
 export default function HubSelectionScreen() {
-  const { user, signOut } = useAuthStore();
-  const { hubs, hubsLoading, fetchHubs, setCurrentHub } = useHubStore();
+  const user = useAuthStore((state) => state.user);
+  const signOut = useAuthStore((state) => state.signOut);
+  const hubs = useHubStore((state) => state.hubs);
+  const hubsLoading = useHubStore((state) => state.hubsLoading);
+  const fetchHubs = useHubStore((state) => state.fetchHubs);
+  const setCurrentHub = useHubStore((state) => state.setCurrentHub);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {

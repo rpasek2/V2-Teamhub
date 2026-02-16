@@ -109,6 +109,7 @@ export default function MessagesScreen() {
   const [activeTab, setActiveTab] = useState<'all' | 'channels' | 'direct'>('all');
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showNewDMModal, setShowNewDMModal] = useState(false);
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
@@ -118,8 +119,10 @@ export default function MessagesScreen() {
   const [anonymousReports, setAnonymousReports] = useState<AnonymousReport[]>([]);
   const [ownerInfo, setOwnerInfo] = useState<OwnerInfo | null>(null);
 
-  const { currentHub, currentMember, isStaff } = useHubStore();
-  const { user } = useAuthStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
+  const isStaff = useHubStore((state) => state.isStaff);
+  const user = useAuthStore((state) => state.user);
 
   const isOwner = currentMember?.role === 'owner';
   const isStaffUser = isStaff();
@@ -132,6 +135,7 @@ export default function MessagesScreen() {
       return;
     }
 
+    setError(null);
     try {
       // Fetch channels for this hub
       const { data: channelData, error } = await supabase
@@ -142,6 +146,7 @@ export default function MessagesScreen() {
 
       if (error) {
         console.error('Error fetching channels:', error);
+        setError('Failed to load data. Pull to refresh.');
         setChannels([]);
         return;
       }
@@ -241,6 +246,7 @@ export default function MessagesScreen() {
       setChannels(processedChannels);
     } catch (err) {
       console.error('Error:', err);
+      setError('Failed to load data. Pull to refresh.');
       setChannels([]);
     } finally {
       setLoading(false);
@@ -289,7 +295,7 @@ export default function MessagesScreen() {
     try {
       const { data, error } = await supabase
         .from('anonymous_reports')
-        .select('*')
+        .select('id, message, created_at, read_at')
         .eq('hub_id', currentHub.id)
         .order('created_at', { ascending: false });
 
@@ -386,6 +392,13 @@ export default function MessagesScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Error Banner */}
+      {error && (
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
+          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        </View>
+      )}
 
       {/* Anonymous Reports Section */}
       {(isOwner || (!isStaffUser && anonymousReportsEnabled && ownerInfo)) && (

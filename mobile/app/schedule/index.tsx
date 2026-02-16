@@ -285,7 +285,7 @@ export default function ScheduleScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
 
-  const { currentHub } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
   const levels = currentHub?.settings?.levels || [];
 
   useEffect(() => {
@@ -308,7 +308,7 @@ export default function ScheduleScreen() {
     try {
       const { data, error } = await supabase
         .from('practice_schedules')
-        .select('*')
+        .select('id, hub_id, level, schedule_group, group_label, day_of_week, start_time, end_time, is_external_group')
         .eq('hub_id', currentHub.id)
         .order('level')
         .order('schedule_group')
@@ -341,13 +341,13 @@ export default function ScheduleScreen() {
       const [blocksResult, settingsResult] = await Promise.all([
         supabase
           .from('rotation_blocks')
-          .select('*, coach:profiles!rotation_blocks_coach_id_fkey(full_name)')
+          .select('id, hub_id, day_of_week, level, schedule_group, rotation_event_id, event_name, start_time, end_time, color, coach_id, coach:profiles!rotation_blocks_coach_id_fkey(full_name)')
           .eq('hub_id', currentHub.id)
           .eq('day_of_week', selectedDay)
           .order('start_time'),
         supabase
           .from('rotation_grid_settings')
-          .select('*')
+          .select('id, hub_id, day_of_week, column_order, combined_indices, column_names, hidden_columns')
           .eq('hub_id', currentHub.id)
           .eq('day_of_week', selectedDay)
           .maybeSingle(),
@@ -357,7 +357,7 @@ export default function ScheduleScreen() {
         console.error('Error fetching rotation blocks:', blocksResult.error);
         setRotationBlocks([]);
       } else {
-        setRotationBlocks(blocksResult.data || []);
+        setRotationBlocks((blocksResult.data || []) as unknown as RotationBlock[]);
       }
 
       if (settingsResult.error && settingsResult.error.code !== 'PGRST116') {

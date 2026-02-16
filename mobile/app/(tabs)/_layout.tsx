@@ -22,6 +22,7 @@ import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useTabPreferencesStore, TabId } from '../../src/stores/tabPreferencesStore';
 import { isTabEnabled } from '../../src/lib/permissions';
+import { supabase } from '../../src/services/supabase';
 
 // Map of all available tab icons
 const TAB_ICONS: Record<string, React.ComponentType<{ size: number; color: string }>> = {
@@ -65,70 +66,72 @@ function TabBarIcon({
 }
 
 export default function TabLayout() {
-  const { currentHub } = useHubStore();
-  const { user } = useAuthStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const user = useAuthStore((state) => state.user);
   const insets = useSafeAreaInsets();
-  const {
-    unreadMessages,
-    unreadGroups,
-    upcomingEvents,
-    hasMoreNotifications,
-    fetchNotificationCounts,
-  } = useNotificationStore();
+  const unreadMessages = useNotificationStore((state) => state.unreadMessages);
+  const unreadGroups = useNotificationStore((state) => state.unreadGroups);
+  const upcomingEvents = useNotificationStore((state) => state.upcomingEvents);
+  const hasMoreNotifications = useNotificationStore((state) => state.hasMoreNotifications);
+  const fetchNotificationCounts = useNotificationStore((state) => state.fetchNotificationCounts);
 
   // Get tab preferences
-  const { selectedTabs, loading: tabsLoading, initialize: initializeTabPrefs } = useTabPreferencesStore();
+  const selectedTabs = useTabPreferencesStore((state) => state.selectedTabs);
+  const tabsLoading = useTabPreferencesStore((state) => state.loading);
+  const initializeTabPrefs = useTabPreferencesStore((state) => state.initialize);
 
   // Initialize tab preferences on mount
   useEffect(() => {
     initializeTabPrefs();
   }, []);
 
-  // Track app state and polling interval
+  // Track app state for foreground refresh
   const appState = useRef(AppState.currentState);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Fetch notification counts when hub or user changes
+  // Fetch notification counts and subscribe to Realtime changes
   useEffect(() => {
     if (!currentHub?.id || !user?.id) return;
 
+    const hubId = currentHub.id;
+    const userId = user.id;
+
     // Initial fetch
-    fetchNotificationCounts(currentHub.id, user.id);
+    fetchNotificationCounts(hubId, userId);
 
-    // Start polling (every 60 seconds - reduced from 30s for better performance)
-    const startPolling = () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      intervalRef.current = setInterval(() => {
-        fetchNotificationCounts(currentHub.id, user.id);
-      }, 60000);
-    };
+    // Subscribe to Realtime changes on relevant tables
+    const channel = supabase
+      .channel(`mobile-notifications:${hubId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        () => { fetchNotificationCounts(hubId, userId); }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'posts' },
+        () => { fetchNotificationCounts(hubId, userId); }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'events', filter: `hub_id=eq.${hubId}` },
+        () => { fetchNotificationCounts(hubId, userId); }
+      )
+      .subscribe();
 
-    const stopPolling = () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-
-    // Handle app state changes - pause polling when app is backgrounded
+    // Handle app state changes - refresh counts when app comes to foreground
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App came to foreground - fetch immediately and restart polling
-        fetchNotificationCounts(currentHub.id, user.id);
-        startPolling();
-      } else if (nextAppState.match(/inactive|background/)) {
-        // App went to background - stop polling to save battery
-        stopPolling();
+        // App came to foreground - fetch immediately
+        fetchNotificationCounts(hubId, userId);
       }
       appState.current = nextAppState;
     };
 
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    startPolling();
+    const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
     return () => {
-      stopPolling();
-      subscription.remove();
+      supabase.removeChannel(channel);
+      appStateSubscription.remove();
     };
   }, [currentHub?.id, user?.id]);
 

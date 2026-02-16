@@ -79,11 +79,13 @@ const DEFAULT_MAG_SKILL_EVENTS: SkillEvent[] = [
 ];
 
 export default function SkillsScreen() {
-  const { currentHub, linkedGymnasts } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
   const isParent = useHubStore((state) => state.isParent);
 
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedLevel, setSelectedLevel] = useState<string>('');
   const [selectedEvent, setSelectedEvent] = useState<string>('');
@@ -155,6 +157,7 @@ export default function SkillsScreen() {
 
   const fetchGymnasts = async () => {
     if (!currentHub || !selectedLevel) return;
+    setError(null);
 
     let query = supabase
       .from('gymnast_profiles')
@@ -172,6 +175,7 @@ export default function SkillsScreen() {
 
     if (error) {
       console.error('Error fetching gymnasts:', error);
+      setError('Failed to load data. Pull to refresh.');
       setGymnasts([]);
     } else {
       setGymnasts(data || []);
@@ -184,7 +188,7 @@ export default function SkillsScreen() {
 
     const { data, error } = await supabase
       .from('hub_event_skills')
-      .select('*')
+      .select('id, hub_id, level, event, skill_name, skill_order')
       .eq('hub_id', currentHub.id)
       .eq('level', selectedLevel)
       .eq('event', selectedEvent)
@@ -192,6 +196,7 @@ export default function SkillsScreen() {
 
     if (error) {
       console.error('Error fetching skills:', error);
+      setError('Failed to load data. Pull to refresh.');
       setSkills([]);
     } else {
       setSkills(data || []);
@@ -207,12 +212,13 @@ export default function SkillsScreen() {
 
     const { data, error } = await supabase
       .from('gymnast_skills')
-      .select('*')
+      .select('id, gymnast_profile_id, hub_event_skill_id, status, achieved_date')
       .in('gymnast_profile_id', gymnastIds)
       .in('hub_event_skill_id', skillIds);
 
     if (error) {
       console.error('Error fetching gymnast skills:', error);
+      setError('Failed to load data. Pull to refresh.');
       setGymnastSkills([]);
     } else {
       setGymnastSkills(data || []);
@@ -416,6 +422,13 @@ export default function SkillsScreen() {
           </View>
         </Pressable>
       </Modal>
+
+      {/* Error Banner */}
+      {error && (
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
+          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        </View>
+      )}
 
       {/* Content */}
       {loading ? (

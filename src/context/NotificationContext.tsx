@@ -225,12 +225,12 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
             )
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'events' },
+                { event: 'INSERT', schema: 'public', table: 'events', filter: `hub_id=eq.${hub.id}` },
                 handleNewEvent
             )
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'competitions' },
+                { event: '*', schema: 'public', table: 'competitions', filter: `hub_id=eq.${hub.id}` },
                 handleCompetitionChange
             )
             .on(
@@ -245,17 +245,17 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
             )
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'gymnast_assignments' },
+                { event: 'INSERT', schema: 'public', table: 'gymnast_assignments', filter: `hub_id=eq.${hub.id}` },
                 handleNewAssignment
             )
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'marketplace_items' },
+                { event: 'INSERT', schema: 'public', table: 'marketplace_items', filter: `hub_id=eq.${hub.id}` },
                 handleNewItem
             )
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'hub_resources' },
+                { event: 'INSERT', schema: 'public', table: 'hub_resources', filter: `hub_id=eq.${hub.id}` },
                 handleNewResource
             )
             .subscribe();

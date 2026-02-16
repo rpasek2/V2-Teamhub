@@ -140,7 +140,7 @@ export function CompetitionDetails() {
         if (!competitionId) return;
         const { data, error } = await supabase
             .from('competitions')
-            .select('*')
+            .select('id, hub_id, name, start_date, end_date, location')
             .eq('id', competitionId)
             .single();
 

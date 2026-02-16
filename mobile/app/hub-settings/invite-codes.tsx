@@ -45,8 +45,9 @@ const ROLES = [
 ];
 
 export default function InviteCodesScreen() {
-  const { currentHub, currentRole } = useHubStore();
-  const { user } = useAuthStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentRole = useHubStore((state) => state.currentRole);
+  const user = useAuthStore((state) => state.user);
 
   const [codes, setCodes] = useState<InviteCode[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,7 +73,7 @@ export default function InviteCodesScreen() {
     try {
       const { data, error } = await supabase
         .from('invite_codes')
-        .select('*')
+        .select('id, code, role, max_uses, uses, expires_at, is_active, created_at')
         .eq('hub_id', currentHub.id)
         .order('created_at', { ascending: false });
 

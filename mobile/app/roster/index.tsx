@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
@@ -68,7 +68,9 @@ export default function RosterScreen() {
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('Gymnasts');
 
-  const { currentHub, linkedGymnasts, currentMember } = useHubStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
+  const currentMember = useHubStore((state) => state.currentMember);
   const isStaff = useHubStore((state) => state.isStaff);
   const isParent = useHubStore((state) => state.isParent);
 
@@ -257,7 +259,7 @@ export default function RosterScreen() {
     return colors.slate[600];
   };
 
-  const renderMember = ({ item }: { item: DisplayMember }) => {
+  const renderMember = useCallback(({ item }: { item: DisplayMember }) => {
     const canNavigate = item.type === 'gymnast_profile' &&
       (isStaff() || linkedGymnasts.some((g) => g.id === item.id));
 
@@ -317,7 +319,7 @@ export default function RosterScreen() {
         )}
       </TouchableOpacity>
     );
-  };
+  }, [isStaff, linkedGymnasts, handleMemberPress]);
 
   if (loading) {
     return (
@@ -403,6 +405,10 @@ export default function RosterScreen() {
         keyExtractor={(item) => `${item.type}-${item.id}`}
         renderItem={renderMember}
         contentContainerStyle={styles.listContent}
+        initialNumToRender={15}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }

@@ -172,7 +172,7 @@ export const useHubStore = create<HubState>()(
           // Fetch hub data
           const { data: hubData, error: hubError } = await supabase
             .from('hubs')
-            .select('*')
+            .select('id, name, slug, sport_type, settings, created_at')
             .eq('id', hubId)
             .single();
 
@@ -181,7 +181,7 @@ export const useHubStore = create<HubState>()(
           // Fetch member data
           const { data: memberData, error: memberError } = await supabase
             .from('hub_members')
-            .select('*')
+            .select('id, hub_id, user_id, role, created_at')
             .eq('hub_id', hubId)
             .eq('user_id', userId)
             .single();
@@ -202,7 +202,7 @@ export const useHubStore = create<HubState>()(
               // Find gymnasts where this email is in guardians
               const { data: gymnasts } = await supabase
                 .from('gymnast_profiles')
-                .select('*')
+                .select('id, hub_id, user_id, first_name, last_name, gender, level, date_of_birth, profile_image_url, schedule_group')
                 .eq('hub_id', hubId)
                 .or(`guardians->g1_email.eq.${profile.email},guardians->g2_email.eq.${profile.email}`);
 

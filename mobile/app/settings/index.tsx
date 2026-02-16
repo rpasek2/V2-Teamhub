@@ -31,7 +31,7 @@ import { useAuthStore } from '../../src/stores/authStore';
 
 export default function UserSettingsScreen() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
 
   const [profile, setProfile] = useState<{
     full_name: string;

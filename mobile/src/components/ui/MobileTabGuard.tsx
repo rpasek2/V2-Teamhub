@@ -14,7 +14,7 @@ interface MobileTabGuardProps {
  * when the feature tab has been disabled by the hub owner.
  */
 export function MobileTabGuard({ tabId, children }: MobileTabGuardProps) {
-    const { currentHub } = useHubStore();
+    const currentHub = useHubStore((state) => state.currentHub);
     const enabled = isTabEnabled(tabId, currentHub?.settings?.enabledTabs);
 
     if (!enabled) {

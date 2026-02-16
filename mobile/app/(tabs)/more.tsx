@@ -220,8 +220,12 @@ function SettingToggle({
 }
 
 export default function MoreScreen() {
-  const { user, signOut } = useAuthStore();
-  const { currentHub, currentMember, clearHub, hasPermission } = useHubStore();
+  const user = useAuthStore((state) => state.user);
+  const signOut = useAuthStore((state) => state.signOut);
+  const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
+  const clearHub = useHubStore((state) => state.clearHub);
+  const hasPermission = useHubStore((state) => state.hasPermission);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [userProfile, setUserProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);

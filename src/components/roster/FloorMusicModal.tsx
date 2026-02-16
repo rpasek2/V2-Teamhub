@@ -25,12 +25,14 @@ export function FloorMusicModal({ isOpen, onClose, hubId, levels }: FloorMusicMo
     const [gymnasts, setGymnasts] = useState<FloorMusicGymnast[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
     const [collapsedLevels, setCollapsedLevels] = useState<Set<string>>(new Set());
 
     useEffect(() => {
         if (isOpen) {
             fetchFloorMusic();
             setSearchTerm('');
+            setSelectedLevel(null);
             setCollapsedLevels(new Set());
         }
     }, [isOpen, hubId]);
@@ -54,12 +56,24 @@ export function FloorMusicModal({ isOpen, onClose, hubId, levels }: FloorMusicMo
     };
 
     const filtered = useMemo(() => {
-        if (!searchTerm) return gymnasts;
-        const q = searchTerm.toLowerCase();
-        return gymnasts.filter(g =>
-            `${g.first_name} ${g.last_name}`.toLowerCase().includes(q)
-        );
-    }, [gymnasts, searchTerm]);
+        let result = gymnasts;
+        if (selectedLevel) {
+            result = result.filter(g => g.level === selectedLevel);
+        }
+        if (searchTerm) {
+            const q = searchTerm.toLowerCase();
+            result = result.filter(g =>
+                `${g.first_name} ${g.last_name}`.toLowerCase().includes(q)
+            );
+        }
+        return result;
+    }, [gymnasts, searchTerm, selectedLevel]);
+
+    // Levels that actually have floor music (for filter chips)
+    const levelsWithMusic = useMemo(() => {
+        const set = new Set(gymnasts.map(g => g.level));
+        return levels.filter(l => set.has(l));
+    }, [gymnasts, levels]);
 
     const groupedByLevel = useMemo(() => {
         const groups: Record<string, FloorMusicGymnast[]> = {};
@@ -119,6 +133,35 @@ export function FloorMusicModal({ isOpen, onClose, hubId, levels }: FloorMusicMo
                     </div>
                 </div>
 
+                {/* Level Filter */}
+                {levelsWithMusic.length > 1 && (
+                    <div className="px-6 py-2 border-b border-slate-200 flex items-center gap-2 flex-wrap">
+                        <button
+                            onClick={() => setSelectedLevel(null)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                selectedLevel === null
+                                    ? 'bg-brand-500 text-white'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                            }`}
+                        >
+                            All
+                        </button>
+                        {levelsWithMusic.map(level => (
+                            <button
+                                key={level}
+                                onClick={() => setSelectedLevel(selectedLevel === level ? null : level)}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                    selectedLevel === level
+                                        ? 'bg-brand-500 text-white'
+                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                }`}
+                            >
+                                {level}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6">
                     {loading ? (
@@ -127,7 +170,7 @@ export function FloorMusicModal({ isOpen, onClose, hubId, levels }: FloorMusicMo
                         <div className="text-center py-8">
                             <Music className="h-12 w-12 text-slate-300 mx-auto mb-3" />
                             <p className="text-slate-500">
-                                {searchTerm ? 'No results found' : 'No floor music uploaded yet'}
+                                {searchTerm || selectedLevel ? 'No results found' : 'No floor music uploaded yet'}
                             </p>
                         </div>
                     ) : (

@@ -52,8 +52,8 @@ const MAX_DESCRIPTION_LENGTH = 2000;
 const MAX_LOCATION_LENGTH = 200;
 
 export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate }: CreateEventModalProps) {
-  const { currentHub } = useHubStore();
-  const { user } = useAuthStore();
+  const currentHub = useHubStore((state) => state.currentHub);
+  const user = useAuthStore((state) => state.user);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -164,15 +164,15 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
       onEventCreated();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error creating event:', err);
-      setError(err.message || 'Failed to create event');
+      setError(err instanceof Error ? err.message : 'Failed to create event');
     } finally {
       setLoading(false);
     }
   };
 
-  const onStartDateChange = (_: any, selectedDate?: Date) => {
+  const onStartDateChange = (_event: unknown, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
       setShowStartPicker(false);
     }
@@ -187,7 +187,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
     }
   };
 
-  const onEndDateChange = (_: any, selectedDate?: Date) => {
+  const onEndDateChange = (_event: unknown, selectedDate?: Date) => {
     if (Platform.OS === 'android') {
       setShowEndPicker(false);
     }

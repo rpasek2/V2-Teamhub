@@ -22,7 +22,8 @@ export default function RegisterScreen() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
 
-  const { signUp, loading } = useAuthStore();
+  const signUp = useAuthStore((state) => state.signUp);
+  const loading = useAuthStore((state) => state.loading);
 
   const handleRegister = async () => {
     if (!fullName || !email || !password || !confirmPassword) {

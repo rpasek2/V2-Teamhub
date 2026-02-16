@@ -38,6 +38,7 @@ export function Staff() {
 
     const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
     const [showInviteModal, setShowInviteModal] = useState(false);
@@ -51,6 +52,7 @@ export function Staff() {
 
     const fetchStaffMembers = async () => {
         setLoading(true);
+        setError(null);
 
         // Fetch hub members with staff roles
         const { data: membersData, error: membersError } = await supabase
@@ -65,6 +67,7 @@ export function Staff() {
 
         if (membersError) {
             console.error('Error fetching staff members:', membersError);
+            setError('Failed to load data. Please try refreshing.');
             setLoading(false);
             return;
         }
@@ -94,11 +97,25 @@ export function Staff() {
         const timeOffCounts = timeOffResult.data;
         const taskCounts = tasksResult.data;
 
+        // Build O(1) lookup maps to avoid N+1 .filter() calls per member
+        const staffProfileMap = new Map<string, (typeof staffProfiles extends (infer T)[] | null ? T : never)>();
+        staffProfiles?.forEach(sp => staffProfileMap.set(sp.user_id, sp));
+
+        const timeOffCountMap = new Map<string, number>();
+        timeOffCounts?.forEach(t => {
+            timeOffCountMap.set(t.staff_user_id, (timeOffCountMap.get(t.staff_user_id) || 0) + 1);
+        });
+
+        const taskCountMap = new Map<string, number>();
+        taskCounts?.forEach(t => {
+            taskCountMap.set(t.staff_user_id, (taskCountMap.get(t.staff_user_id) || 0) + 1);
+        });
+
         // Combine data
         const combined: StaffMember[] = (membersData || []).map(member => {
-            const staffProfile = staffProfiles?.find(sp => sp.user_id === member.user_id);
-            const pendingTimeOff = timeOffCounts?.filter(t => t.staff_user_id === member.user_id).length || 0;
-            const pendingTasks = taskCounts?.filter(t => t.staff_user_id === member.user_id).length || 0;
+            const staffProfile = staffProfileMap.get(member.user_id);
+            const pendingTimeOff = timeOffCountMap.get(member.user_id) || 0;
+            const pendingTasks = taskCountMap.get(member.user_id) || 0;
 
             // Profile comes from a join and could be an array or single object
             const profileData = Array.isArray(member.profile) ? member.profile[0] : member.profile;
@@ -211,6 +228,12 @@ export function Staff() {
                     )}
                 </div>
             </div>
+
+            {error && (
+                <div className="mx-4 mt-4 p-3 bg-error-50 border border-error-200 rounded-lg text-error-700 text-sm">
+                    {error}
+                </div>
+            )}
 
             {/* Content Container with smooth transitions */}
             <div className="relative">
