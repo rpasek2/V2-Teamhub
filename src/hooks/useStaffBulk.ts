@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
+import { createStaffTaskNotification } from '../lib/notifications';
 
 export interface ScheduleBlock {
     id: string;
@@ -185,15 +186,30 @@ export function useBulkAssignTask() {
             status: 'pending' as const,
         }));
 
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
             .from('staff_tasks')
-            .insert(tasks);
+            .insert(tasks)
+            .select('id, staff_user_id');
 
         setLoading(false);
 
         if (error) {
             console.error('Error bulk assigning tasks:', error);
             return false;
+        }
+
+        // Send notifications to each assignee
+        if (inserted && input.assigned_by) {
+            for (const task of inserted) {
+                createStaffTaskNotification({
+                    hubId: input.hub_id,
+                    userId: task.staff_user_id,
+                    actorId: input.assigned_by,
+                    taskId: task.id,
+                    title: `New task: ${input.title}`,
+                    body: input.due_date ? `Due ${input.due_date} • Priority: ${input.priority}` : `Priority: ${input.priority}`,
+                });
+            }
         }
 
         return true;

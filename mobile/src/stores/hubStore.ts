@@ -72,7 +72,6 @@ export interface HubSettings {
 }
 
 export interface HubMember {
-  id: string;
   hub_id: string;
   user_id: string;
   role: HubRole;
@@ -181,7 +180,7 @@ export const useHubStore = create<HubState>()(
           // Fetch member data
           const { data: memberData, error: memberError } = await supabase
             .from('hub_members')
-            .select('id, hub_id, user_id, role, created_at')
+            .select('hub_id, user_id, role, created_at')
             .eq('hub_id', hubId)
             .eq('user_id', userId)
             .single();

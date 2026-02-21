@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { useLocation } from 'react-router-dom';
+import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2, UserPlus, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
@@ -21,19 +23,21 @@ interface OwnerInfo {
     full_name: string;
 }
 
+interface DmUserInfo {
+    id: string;
+    full_name: string;
+    email: string;
+}
+
 interface Channel {
     id: string;
     name: string;
     type: 'public' | 'private';
     group_id?: string | null;
     dm_participant_ids?: string[] | null;
-    // For DM channels, we'll store the other user's info
-    dm_other_user?: {
-        id: string;
-        full_name: string;
-        email: string;
-    };
-    // Unread message count for this channel
+    dm_other_user?: DmUserInfo;
+    dm_other_users?: DmUserInfo[];
+    created_by?: string | null;
     unread_count?: number;
 }
 
@@ -58,19 +62,33 @@ export default function Messages() {
     const { hub } = useHub();
     const { user } = useAuth();
     const { markAsViewed } = useNotifications();
-    const { isOwner, isStaff } = useRoleChecks();
+    const { isOwner, isStaff, isAthlete } = useRoleChecks();
+    const location = useLocation();
     const [channels, setChannels] = useState<Channel[]>([]);
     const [dmChannels, setDmChannels] = useState<Channel[]>([]);
     const [selectedChannel, setSelectedChannel] = useState<Channel | null>(null);
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [loadingChannels, setLoadingChannels] = useState(true);
 
     // New DM modal state
     const [showNewDmModal, setShowNewDmModal] = useState(false);
     const [hubMembers, setHubMembers] = useState<HubMemberOption[]>([]);
     const [dmSearchTerm, setDmSearchTerm] = useState('');
     const [loadingMembers, setLoadingMembers] = useState(false);
+
+    // New channel modal state
+    const [showNewChannelModal, setShowNewChannelModal] = useState(false);
+    const [newChannelName, setNewChannelName] = useState('');
+    const [creatingChannel, setCreatingChannel] = useState(false);
+    const [channelMemberSearch, setChannelMemberSearch] = useState('');
+    const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
+
+    // Manage members modal state
+    const [showManageMembersModal, setShowManageMembersModal] = useState(false);
+    const [existingMembers, setExistingMembers] = useState<HubMemberOption[]>([]);
+    const [manageMemberSearch, setManageMemberSearch] = useState('');
 
     // Mark messages as viewed when page loads
     useEffect(() => {
@@ -124,12 +142,13 @@ export default function Messages() {
 
     const fetchChannels = async () => {
         if (!hub || !user) return;
+        setLoadingChannels(true);
 
         // Fetch all channels (RLS will filter) and unread counts in parallel
         const [channelsResult, unreadResult] = await Promise.all([
             supabase
                 .from('channels')
-                .select('id, name, type, group_id, dm_participant_ids')
+                .select('id, name, type, group_id, dm_participant_ids, created_by')
                 .eq('hub_id', hub.id)
                 .order('name'),
             supabase.rpc('get_channel_unread_counts', {
@@ -140,6 +159,7 @@ export default function Messages() {
 
         if (channelsResult.error) {
             console.error('Error fetching channels:', channelsResult.error);
+            setLoadingChannels(false);
             return;
         }
 
@@ -160,12 +180,16 @@ export default function Messages() {
             .filter(c => c.dm_participant_ids)
             .map(c => ({ ...c, unread_count: unreadMap.get(c.id) || 0 })) as Channel[];
 
-        // For DM channels, fetch the other user's profile
+        // For DM channels, fetch all other users' profiles
         if (dmChans.length > 0) {
-            const otherUserIds = dmChans.map(c => {
+            const otherUserIdSet = new Set<string>();
+            dmChans.forEach(c => {
                 const participants = c.dm_participant_ids || [];
-                return participants.find((id: string) => id !== user.id);
-            }).filter(Boolean);
+                participants.forEach((id: string) => {
+                    if (id !== user.id) otherUserIdSet.add(id);
+                });
+            });
+            const otherUserIds = Array.from(otherUserIdSet);
 
             if (otherUserIds.length > 0) {
                 const { data: profiles } = await supabase
@@ -176,21 +200,36 @@ export default function Messages() {
                 // Attach profile info to DM channels
                 dmChans.forEach(c => {
                     const participants = c.dm_participant_ids || [];
-                    const otherId = participants.find((id: string) => id !== user.id);
-                    const profile = profiles?.find(p => p.id === otherId);
-                    if (profile) {
-                        (c as Channel).dm_other_user = {
-                            id: profile.id,
-                            full_name: profile.full_name || profile.email,
-                            email: profile.email
-                        };
-                    }
+                    const otherIds = participants.filter((id: string) => id !== user.id);
+                    const otherProfiles = otherIds
+                        .map(id => {
+                            const profile = profiles?.find(p => p.id === id);
+                            return profile ? { id: profile.id, full_name: profile.full_name || profile.email, email: profile.email } : null;
+                        })
+                        .filter((p: DmUserInfo | null): p is DmUserInfo => p !== null);
+
+                    c.dm_other_users = otherProfiles;
+                    c.dm_other_user = otherProfiles[0] || undefined;
                 });
             }
         }
 
         setChannels(regularChannels);
         setDmChannels(dmChans);
+
+        // Check for incoming channel ID from navigation state (e.g., "Message" button on profiles)
+        const incomingChannelId = (location.state as { selectedChannelId?: string })?.selectedChannelId;
+
+        if (incomingChannelId) {
+            const allChans = [...regularChannels, ...dmChans];
+            const target = allChans.find(c => c.id === incomingChannelId);
+            if (target) {
+                setSelectedChannel(target);
+                // Clear the navigation state so refreshing doesn't re-select
+                window.history.replaceState({}, '');
+                return;
+            }
+        }
 
         // Select default channel if none selected
         if (!selectedChannel) {
@@ -201,6 +240,7 @@ export default function Messages() {
                 createDefaultChannel();
             }
         }
+        setLoadingChannels(false);
     };
 
     const createDefaultChannel = async () => {
@@ -281,6 +321,150 @@ export default function Messages() {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // Delete a channel (DM or regular)
+    const deleteChannel = async (channelId: string) => {
+        if (!confirm('Delete this conversation? All messages will be permanently removed.')) return;
+
+        const { error } = await supabase
+            .from('channels')
+            .delete()
+            .eq('id', channelId);
+
+        if (error) {
+            console.error('Error deleting channel:', error);
+            return;
+        }
+
+        // Clear selection and refresh
+        if (selectedChannel?.id === channelId) {
+            setSelectedChannel(null);
+            setMessages([]);
+        }
+        setChannels(prev => prev.filter(c => c.id !== channelId));
+        setDmChannels(prev => prev.filter(c => c.id !== channelId));
+    };
+
+    const toggleMemberSelection = (userId: string) => {
+        setSelectedMemberIds(prev => {
+            const next = new Set(prev);
+            if (next.has(userId)) next.delete(userId);
+            else next.add(userId);
+            return next;
+        });
+    };
+
+    // Create a new channel
+    const createNewChannel = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!hub || !user || !newChannelName.trim()) return;
+        setCreatingChannel(true);
+
+        const name = newChannelName.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9\-_]/g, '');
+        if (!name || name.length < 2 || name.length > 50) {
+            setCreatingChannel(false);
+            return;
+        }
+        const isPrivate = selectedMemberIds.size > 0;
+        const { data, error } = await supabase
+            .from('channels')
+            .insert([{ hub_id: hub.id, name, created_by: user.id, type: isPrivate ? 'private' : 'public' }])
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Error creating channel:', error);
+        } else if (data) {
+            // Add members if private
+            if (isPrivate) {
+                const now = new Date().toISOString();
+                const memberRows = [user.id, ...selectedMemberIds].map(uid => ({
+                    channel_id: data.id,
+                    user_id: uid,
+                    added_at: now,
+                    last_read_at: now
+                }));
+                const { error: membersError } = await supabase
+                    .from('channel_members')
+                    .insert(memberRows);
+                if (membersError) console.error('Error adding channel members:', membersError);
+            }
+            setChannels(prev => [...prev, data]);
+            setSelectedChannel(data);
+            setViewingAnonymousReports(false);
+        }
+
+        setCreatingChannel(false);
+        setShowNewChannelModal(false);
+        setNewChannelName('');
+        setSelectedMemberIds(new Set());
+    };
+
+    // Add members to an existing channel
+    const addMembersToChannel = async (channelId: string, memberIds: string[]) => {
+        const now = new Date().toISOString();
+        const memberRows = memberIds.map(uid => ({
+            channel_id: channelId,
+            user_id: uid,
+            added_at: now,
+            last_read_at: now
+        }));
+        const { error } = await supabase
+            .from('channel_members')
+            .upsert(memberRows, { onConflict: 'channel_id,user_id' });
+        if (error) console.error('Error adding members:', error);
+    };
+
+    // Remove a member from a channel
+    const removeMemberFromChannel = async (channelId: string, userId: string) => {
+        const { error } = await supabase
+            .from('channel_members')
+            .delete()
+            .eq('channel_id', channelId)
+            .eq('user_id', userId);
+        if (error) {
+            console.error('Error removing member:', error);
+        } else {
+            setExistingMembers(prev => prev.filter(m => m.user_id !== userId));
+        }
+    };
+
+    // Fetch existing members of a channel
+    const fetchExistingMembers = async (channelId: string) => {
+        const { data, error } = await supabase
+            .from('channel_members')
+            .select(`
+                user_id,
+                profile:profiles (
+                    full_name,
+                    email
+                )
+            `)
+            .eq('channel_id', channelId);
+
+        if (error) {
+            console.error('Error fetching channel members:', error);
+        } else {
+            const members: HubMemberOption[] = (data || []).map((m) => {
+                const profile = Array.isArray(m.profile) ? m.profile[0] : m.profile;
+                return {
+                    user_id: m.user_id,
+                    full_name: profile?.full_name || 'Unknown',
+                    email: profile?.email || ''
+                };
+            });
+            setExistingMembers(members);
+        }
+    };
+
+    // Open manage members modal
+    const openManageMembersModal = () => {
+        if (!selectedChannel) return;
+        setShowManageMembersModal(true);
+        setManageMemberSearch('');
+        fetchExistingMembers(selectedChannel.id);
+        fetchHubMembers();
+    };
+
     // Mark a channel as read by upserting last_read_at in channel_members
     const markChannelAsRead = async (channelId: string) => {
         if (!user) return;
@@ -332,7 +516,7 @@ export default function Messages() {
         } else if (data) {
             setOwnerInfo({
                 user_id: data.user_id,
-                full_name: (Array.isArray(data.profile) ? data.profile[0]?.full_name : (data.profile as any)?.full_name) || 'Hub Owner'
+                full_name: (Array.isArray(data.profile) ? data.profile[0]?.full_name : (data.profile as { full_name?: string })?.full_name) || 'Hub Owner'
             });
         }
     };
@@ -454,20 +638,25 @@ export default function Messages() {
         const channelId = data;
         const { data: channelData } = await supabase
             .from('channels')
-            .select('id, name, type, group_id, dm_participant_ids')
+            .select('id, name, type, group_id, dm_participant_ids, created_by')
             .eq('id', channelId)
             .single();
 
         if (channelData) {
-            // Get the other user's profile
-            const otherUser = hubMembers.find(m => m.user_id === otherUserId);
+            // Get all other users' profiles
+            const participants = channelData.dm_participant_ids || [];
+            const otherIds = participants.filter((id: string) => id !== user.id);
+            const otherProfiles: DmUserInfo[] = otherIds
+                .map((id: string) => {
+                    const member = hubMembers.find(m => m.user_id === id);
+                    return member ? { id: member.user_id, full_name: member.full_name, email: member.email } : null;
+                })
+                .filter((p: DmUserInfo | null): p is DmUserInfo => p !== null);
+
             const dmChannel: Channel = {
                 ...channelData,
-                dm_other_user: otherUser ? {
-                    id: otherUser.user_id,
-                    full_name: otherUser.full_name,
-                    email: otherUser.email
-                } : undefined
+                dm_other_users: otherProfiles,
+                dm_other_user: otherProfiles[0] || undefined
             };
             setSelectedChannel(dmChannel);
         }
@@ -480,6 +669,14 @@ export default function Messages() {
         m.email.toLowerCase().includes(dmSearchTerm.toLowerCase())
     );
 
+    if (loadingChannels) {
+        return (
+            <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-white shadow-sm ring-1 ring-slate-200 sm:rounded-xl">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+            </div>
+        );
+    }
+
     return (
         <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-white shadow-sm ring-1 ring-slate-200 sm:rounded-xl">
             {/* Sidebar */}
@@ -491,64 +688,107 @@ export default function Messages() {
                     {/* Channels Section */}
                     <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
                         <span>Channels</span>
+                        {!isAthlete && (
+                            <button
+                                onClick={() => {
+                                    setShowNewChannelModal(true);
+                                    setNewChannelName('');
+                                    setSelectedMemberIds(new Set());
+                                    setChannelMemberSearch('');
+                                    fetchHubMembers();
+                                }}
+                                className="p-1 rounded hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-900"
+                                title="New channel"
+                            >
+                                <Plus className="h-3.5 w-3.5" />
+                            </button>
+                        )}
                     </div>
 
                     {/* Hub-wide channels */}
                     {channels.filter(c => !c.group_id).map((channel) => (
-                        <button
-                            key={channel.id}
-                            onClick={() => {
-                                setSelectedChannel(channel);
-                                setViewingAnonymousReports(false);
-                                if (channel.unread_count && channel.unread_count > 0) {
-                                    markChannelAsRead(channel.id);
-                                }
-                            }}
-                            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                                selectedChannel?.id === channel.id && !viewingAnonymousReports
-                                    ? 'bg-white text-brand-600 shadow-sm'
-                                    : 'text-slate-600 hover:bg-slate-100'
-                            }`}
-                        >
-                            <div className="flex items-center min-w-0">
-                                <Hash className="mr-2 h-4 w-4 opacity-50 flex-shrink-0" />
-                                <span className="truncate">{channel.name}</span>
-                            </div>
-                            {channel.unread_count !== undefined && channel.unread_count > 0 && (
-                                <span className="ml-2 h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                    {channel.unread_count > 99 ? '99+' : channel.unread_count}
-                                </span>
+                        <div key={channel.id} className="group relative">
+                            <button
+                                onClick={() => {
+                                    setSelectedChannel(channel);
+                                    setViewingAnonymousReports(false);
+                                    if (channel.unread_count && channel.unread_count > 0) {
+                                        markChannelAsRead(channel.id);
+                                    }
+                                }}
+                                className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    selectedChannel?.id === channel.id && !viewingAnonymousReports
+                                        ? 'bg-white text-brand-600 shadow-sm'
+                                        : 'text-slate-600 hover:bg-slate-100'
+                                }`}
+                            >
+                                <div className="flex items-center min-w-0">
+                                    {channel.type === 'private' ? (
+                                        <Lock className="mr-2 h-4 w-4 opacity-50 flex-shrink-0" />
+                                    ) : (
+                                        <Hash className="mr-2 h-4 w-4 opacity-50 flex-shrink-0" />
+                                    )}
+                                    <span className="truncate">{channel.name}</span>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                    {channel.unread_count !== undefined && channel.unread_count > 0 && (
+                                        <span className="h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center">
+                                            {channel.unread_count > 99 ? '99+' : channel.unread_count}
+                                        </span>
+                                    )}
+                                </div>
+                            </button>
+                            {isStaff && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); deleteChannel(channel.id); }}
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    title="Delete channel"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                </button>
                             )}
-                        </button>
+                        </div>
                     ))}
 
                     {/* Group channels */}
                     {channels.filter(c => c.group_id).map((channel) => (
-                        <button
-                            key={channel.id}
-                            onClick={() => {
-                                setSelectedChannel(channel);
-                                setViewingAnonymousReports(false);
-                                if (channel.unread_count && channel.unread_count > 0) {
-                                    markChannelAsRead(channel.id);
-                                }
-                            }}
-                            className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                                selectedChannel?.id === channel.id && !viewingAnonymousReports
-                                    ? 'bg-white text-brand-600 shadow-sm'
-                                    : 'text-slate-600 hover:bg-slate-100'
-                            }`}
-                        >
-                            <div className="flex items-center min-w-0">
-                                <Users className="mr-2 h-4 w-4 opacity-50 flex-shrink-0" />
-                                <span className="truncate">{channel.name}</span>
-                            </div>
-                            {channel.unread_count !== undefined && channel.unread_count > 0 && (
-                                <span className="ml-2 h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                    {channel.unread_count > 99 ? '99+' : channel.unread_count}
-                                </span>
+                        <div key={channel.id} className="group/gc relative">
+                            <button
+                                onClick={() => {
+                                    setSelectedChannel(channel);
+                                    setViewingAnonymousReports(false);
+                                    if (channel.unread_count && channel.unread_count > 0) {
+                                        markChannelAsRead(channel.id);
+                                    }
+                                }}
+                                className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    selectedChannel?.id === channel.id && !viewingAnonymousReports
+                                        ? 'bg-white text-brand-600 shadow-sm'
+                                        : 'text-slate-600 hover:bg-slate-100'
+                                }`}
+                            >
+                                <div className="flex items-center min-w-0">
+                                    <Users className="mr-2 h-4 w-4 opacity-50 flex-shrink-0" />
+                                    <span className="truncate">{channel.name}</span>
+                                </div>
+                                <div className="flex items-center gap-1 flex-shrink-0">
+                                    {channel.unread_count !== undefined && channel.unread_count > 0 && (
+                                        <span className="h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center">
+                                            {channel.unread_count > 99 ? '99+' : channel.unread_count}
+                                        </span>
+                                    )}
+                                </div>
+                            </button>
+                            {isStaff && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); deleteChannel(channel.id); }}
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/gc:opacity-100 transition-opacity"
+                                    title="Delete channel"
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                </button>
                             )}
-                        </button>
+                        </div>
                     ))}
 
                     {/* Direct Messages Section */}
@@ -567,33 +807,49 @@ export default function Messages() {
                         <p className="px-3 py-2 text-xs text-slate-400">No conversations yet</p>
                     ) : (
                         dmChannels.map((channel) => (
-                            <button
-                                key={channel.id}
-                                onClick={() => {
-                                    setSelectedChannel(channel);
-                                    setViewingAnonymousReports(false);
-                                    if (channel.unread_count && channel.unread_count > 0) {
-                                        markChannelAsRead(channel.id);
-                                    }
-                                }}
-                                className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                                    selectedChannel?.id === channel.id && !viewingAnonymousReports
-                                        ? 'bg-white text-brand-600 shadow-sm'
-                                        : 'text-slate-600 hover:bg-slate-100'
-                                }`}
-                            >
-                                <div className="flex items-center min-w-0">
-                                    <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2 flex-shrink-0">
-                                        {channel.dm_other_user?.full_name?.[0] || '?'}
+                            <div key={channel.id} className="group/dm relative">
+                                <button
+                                    onClick={() => {
+                                        setSelectedChannel(channel);
+                                        setViewingAnonymousReports(false);
+                                        if (channel.unread_count && channel.unread_count > 0) {
+                                            markChannelAsRead(channel.id);
+                                        }
+                                    }}
+                                    className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                                        selectedChannel?.id === channel.id && !viewingAnonymousReports
+                                            ? 'bg-white text-brand-600 shadow-sm'
+                                            : 'text-slate-600 hover:bg-slate-100'
+                                    }`}
+                                >
+                                    <div className="flex items-center min-w-0">
+                                        <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2 flex-shrink-0">
+                                            {channel.dm_other_user?.full_name?.[0] || '?'}
+                                        </div>
+                                        <span className="truncate">
+                                            {(channel.dm_other_users && channel.dm_other_users.length > 1)
+                                                ? channel.dm_other_users.map(u => u.full_name).join(', ')
+                                                : channel.dm_other_user?.full_name || 'Unknown'}
+                                        </span>
                                     </div>
-                                    <span className="truncate">{channel.dm_other_user?.full_name || 'Unknown'}</span>
-                                </div>
-                                {channel.unread_count !== undefined && channel.unread_count > 0 && (
-                                    <span className="ml-2 h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                        {channel.unread_count > 99 ? '99+' : channel.unread_count}
-                                    </span>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                        {channel.unread_count !== undefined && channel.unread_count > 0 && (
+                                            <span className="h-5 min-w-5 px-1.5 text-xs font-semibold text-white bg-error-500 rounded-full flex items-center justify-center">
+                                                {channel.unread_count > 99 ? '99+' : channel.unread_count}
+                                            </span>
+                                        )}
+                                    </div>
+                                </button>
+                                {user && channel.dm_participant_ids?.includes(user.id) && (
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); deleteChannel(channel.id); }}
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/dm:opacity-100 transition-opacity"
+                                        title="Delete conversation"
+                                    >
+                                        <Trash2 className="h-3.5 w-3.5" />
+                                    </button>
                                 )}
-                            </button>
+                            </div>
                         ))
                     )}
 
@@ -760,30 +1016,48 @@ export default function Messages() {
                 ) : selectedChannel ? (
                     <>
                         {/* Header */}
-                        <div className="px-6 py-4 border-b border-slate-200 flex items-center">
-                            {selectedChannel.dm_participant_ids ? (
-                                <>
-                                    <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium text-slate-600 mr-3">
-                                        {selectedChannel.dm_other_user?.full_name?.[0] || '?'}
-                                    </div>
-                                    <h3 className="text-lg font-medium text-slate-900">
-                                        {selectedChannel.dm_other_user?.full_name || 'Unknown'}
-                                    </h3>
-                                </>
-                            ) : (
-                                <>
-                                    {selectedChannel.group_id ? (
-                                        <Users className="mr-2 h-5 w-5 text-slate-400" />
-                                    ) : (
-                                        <Hash className="mr-2 h-5 w-5 text-slate-400" />
-                                    )}
-                                    <h3 className="text-lg font-medium text-slate-900">{selectedChannel.name}</h3>
-                                    {selectedChannel.group_id && (
-                                        <span className="ml-2 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
-                                            Group
-                                        </span>
-                                    )}
-                                </>
+                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                            <div className="flex items-center">
+                                {selectedChannel.dm_participant_ids ? (
+                                    <>
+                                        <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium text-slate-600 mr-3">
+                                            {selectedChannel.dm_other_user?.full_name?.[0] || '?'}
+                                        </div>
+                                        <h3 className="text-lg font-medium text-slate-900">
+                                            {(selectedChannel.dm_other_users && selectedChannel.dm_other_users.length > 1)
+                                                ? selectedChannel.dm_other_users.map(u => u.full_name).join(', ')
+                                                : selectedChannel.dm_other_user?.full_name || 'Unknown'}
+                                        </h3>
+                                    </>
+                                ) : (
+                                    <>
+                                        {selectedChannel.group_id ? (
+                                            <Users className="mr-2 h-5 w-5 text-slate-400" />
+                                        ) : selectedChannel.type === 'private' ? (
+                                            <Lock className="mr-2 h-5 w-5 text-slate-400" />
+                                        ) : (
+                                            <Hash className="mr-2 h-5 w-5 text-slate-400" />
+                                        )}
+                                        <h3 className="text-lg font-medium text-slate-900">{selectedChannel.name}</h3>
+                                        {selectedChannel.group_id && (
+                                            <span className="ml-2 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                                                Group
+                                            </span>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                            {selectedChannel.type === 'private'
+                                && !selectedChannel.dm_participant_ids
+                                && (selectedChannel.created_by === user?.id || isStaff) && (
+                                <button
+                                    onClick={openManageMembersModal}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                    title="Manage members"
+                                >
+                                    <UserPlus className="h-4 w-4" />
+                                    <span>Members</span>
+                                </button>
                             )}
                         </div>
 
@@ -851,7 +1125,9 @@ export default function Messages() {
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder={
                                         selectedChannel.dm_participant_ids
-                                            ? `Message ${selectedChannel.dm_other_user?.full_name || 'user'}`
+                                            ? `Message ${(selectedChannel.dm_other_users && selectedChannel.dm_other_users.length > 1)
+                                                ? selectedChannel.dm_other_users.map(u => u.full_name).join(', ')
+                                                : selectedChannel.dm_other_user?.full_name || 'user'}`
                                             : `Message #${selectedChannel.name}`
                                     }
                                     className="input flex-1"
@@ -878,7 +1154,7 @@ export default function Messages() {
             </div>
 
             {/* New DM Modal */}
-            {showNewDmModal && (
+            {showNewDmModal && createPortal(
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                     <div
                         className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
@@ -933,7 +1209,244 @@ export default function Messages() {
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
+            )}
+
+            {/* New Channel Modal */}
+            {showNewChannelModal && createPortal(
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
+                        onClick={() => setShowNewChannelModal(false)}
+                    />
+                    <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200">
+                        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                            <h3 className="text-lg font-semibold text-slate-900">New Channel</h3>
+                            <button
+                                onClick={() => setShowNewChannelModal(false)}
+                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <form onSubmit={createNewChannel} className="p-4 space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Channel name</label>
+                                <div className="relative">
+                                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={newChannelName}
+                                        onChange={(e) => setNewChannelName(e.target.value)}
+                                        placeholder="e.g. announcements"
+                                        className="input w-full pl-10"
+                                        maxLength={50}
+                                        autoFocus
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                    Add members <span className="text-slate-400 font-normal">(optional)</span>
+                                </label>
+                                <p className="text-xs text-slate-500 mb-2">
+                                    Leave empty for a hub-wide channel visible to everyone, or select members for a private channel.
+                                </p>
+
+                                {/* Selected members chips */}
+                                {selectedMemberIds.size > 0 && (
+                                    <div className="flex flex-wrap gap-1.5 mb-2">
+                                        {Array.from(selectedMemberIds).map(id => {
+                                            const member = hubMembers.find(m => m.user_id === id);
+                                            if (!member) return null;
+                                            return (
+                                                <span
+                                                    key={id}
+                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-brand-100 text-brand-700"
+                                                >
+                                                    {member.full_name}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => toggleMemberSelection(id)}
+                                                        className="hover:text-brand-900"
+                                                    >
+                                                        <X className="h-3 w-3" />
+                                                    </button>
+                                                </span>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* Search */}
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={channelMemberSearch}
+                                        onChange={(e) => setChannelMemberSearch(e.target.value)}
+                                        placeholder="Search members..."
+                                        className="input w-full pl-10"
+                                    />
+                                </div>
+
+                                {/* Member list */}
+                                <div className="mt-2 max-h-48 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                    {hubMembers
+                                        .filter(m =>
+                                            m.full_name.toLowerCase().includes(channelMemberSearch.toLowerCase()) ||
+                                            m.email.toLowerCase().includes(channelMemberSearch.toLowerCase())
+                                        )
+                                        .map((member) => {
+                                            const isSelected = selectedMemberIds.has(member.user_id);
+                                            return (
+                                                <button
+                                                    key={member.user_id}
+                                                    type="button"
+                                                    onClick={() => toggleMemberSelection(member.user_id)}
+                                                    className={`w-full flex items-center px-3 py-2 text-left transition-colors ${
+                                                        isSelected ? 'bg-brand-50' : 'hover:bg-slate-50'
+                                                    }`}
+                                                >
+                                                    <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2.5 flex-shrink-0">
+                                                        {member.full_name[0]}
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-slate-900 truncate">{member.full_name}</p>
+                                                    </div>
+                                                    {isSelected && (
+                                                        <Check className="h-4 w-4 text-brand-600 flex-shrink-0" />
+                                                    )}
+                                                </button>
+                                            );
+                                        })}
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowNewChannelModal(false)}
+                                    className="btn-secondary"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={!newChannelName.trim() || creatingChannel}
+                                    className="btn-primary disabled:opacity-50"
+                                >
+                                    {creatingChannel ? 'Creating...' : selectedMemberIds.size > 0 ? 'Create Private Channel' : 'Create Channel'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>,
+                document.body
+            )}
+
+            {/* Manage Members Modal */}
+            {showManageMembersModal && selectedChannel && createPortal(
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                    <div
+                        className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
+                        onClick={() => setShowManageMembersModal(false)}
+                    />
+                    <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200">
+                        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                            <h3 className="text-lg font-semibold text-slate-900">Channel Members</h3>
+                            <button
+                                onClick={() => setShowManageMembersModal(false)}
+                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                            >
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            {/* Current members */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                    Current members ({existingMembers.length})
+                                </label>
+                                <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                    {existingMembers.map((member) => (
+                                        <div key={member.user_id} className="flex items-center justify-between px-3 py-2">
+                                            <div className="flex items-center min-w-0">
+                                                <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2.5 flex-shrink-0">
+                                                    {member.full_name[0]}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-sm font-medium text-slate-900 truncate">{member.full_name}</p>
+                                                    {member.user_id === user?.id && (
+                                                        <span className="text-xs text-slate-400">You</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {member.user_id !== user?.id && (
+                                                <button
+                                                    onClick={() => removeMemberFromChannel(selectedChannel.id, member.user_id)}
+                                                    className="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                                    title="Remove member"
+                                                >
+                                                    <X className="h-3.5 w-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Add new members */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700 mb-1">Add members</label>
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <input
+                                        type="text"
+                                        value={manageMemberSearch}
+                                        onChange={(e) => setManageMemberSearch(e.target.value)}
+                                        placeholder="Search members..."
+                                        className="input w-full pl-10"
+                                    />
+                                </div>
+                                <div className="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                    {hubMembers
+                                        .filter(m =>
+                                            !existingMembers.some(em => em.user_id === m.user_id) &&
+                                            (m.full_name.toLowerCase().includes(manageMemberSearch.toLowerCase()) ||
+                                             m.email.toLowerCase().includes(manageMemberSearch.toLowerCase()))
+                                        )
+                                        .map((member) => (
+                                            <button
+                                                key={member.user_id}
+                                                onClick={async () => {
+                                                    await addMembersToChannel(selectedChannel.id, [member.user_id]);
+                                                    setExistingMembers(prev => [...prev, member]);
+                                                }}
+                                                className="w-full flex items-center px-3 py-2 text-left hover:bg-slate-50 transition-colors"
+                                            >
+                                                <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2.5 flex-shrink-0">
+                                                    {member.full_name[0]}
+                                                </div>
+                                                <p className="text-sm font-medium text-slate-900 truncate flex-1">{member.full_name}</p>
+                                                <Plus className="h-4 w-4 text-slate-400" />
+                                            </button>
+                                        ))}
+                                    {hubMembers.filter(m =>
+                                        !existingMembers.some(em => em.user_id === m.user_id) &&
+                                        (m.full_name.toLowerCase().includes(manageMemberSearch.toLowerCase()) ||
+                                         m.email.toLowerCase().includes(manageMemberSearch.toLowerCase()))
+                                    ).length === 0 && (
+                                        <p className="px-3 py-3 text-sm text-slate-500 text-center">No more members to add</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>,
+                document.body
             )}
 
             {/* Anonymous Report Modal - For Non-Staff */}

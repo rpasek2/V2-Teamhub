@@ -125,7 +125,7 @@ export const InlineScoreCell = memo(function InlineScoreCell({
 
             if (existing) {
                 // Update existing
-                await supabase
+                const { error: updateError } = await supabase
                     .from('competition_scores')
                     .update({
                         score: scoreNum,
@@ -133,9 +133,10 @@ export const InlineScoreCell = memo(function InlineScoreCell({
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', existing.id);
+                if (updateError) throw updateError;
             } else if (scoreNum !== null || placementNum !== null) {
                 // Insert new - include gymnast_level snapshot
-                await supabase
+                const { error: insertError } = await supabase
                     .from('competition_scores')
                     .insert({
                         competition_id: competitionId,
@@ -146,6 +147,7 @@ export const InlineScoreCell = memo(function InlineScoreCell({
                         gymnast_level: gymnastLevel,
                         created_by: user?.id
                     });
+                if (insertError) throw insertError;
             }
 
             onSaved();
@@ -171,9 +173,9 @@ export const InlineScoreCell = memo(function InlineScoreCell({
     };
 
     return (
-        <div className="flex">
+        <div className="flex h-8 overflow-hidden">
             {/* Score cell */}
-            <div className="flex-1 text-center">
+            <div className="flex-1 text-center flex items-center min-w-0">
                 {editingField === 'score' ? (
                     <input
                         ref={inputRef}
@@ -184,17 +186,17 @@ export const InlineScoreCell = memo(function InlineScoreCell({
                         onKeyDown={handleKeyDown}
                         onBlur={handleBlur}
                         disabled={saving}
-                        className="w-full rounded border border-brand-300 px-1 py-0.5 text-center text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        className="w-full min-w-0 h-7 box-border rounded border border-brand-300 px-1 text-center text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-500"
                     />
                 ) : (
                     <button
                         onClick={() => handleStartEdit('score')}
                         disabled={!isStaff}
-                        className={`w-full py-1 text-sm ${
+                        className={`w-full h-7 box-border border border-transparent px-1 text-sm ${
                             isStaff ? 'hover:bg-slate-100 rounded cursor-pointer' : ''
                         } ${isCounting ? 'font-semibold text-brand-600' : 'text-slate-900'}`}
                     >
-                        <span className="inline-flex items-center gap-1">
+                        <span className="inline-flex items-center justify-center gap-1">
                             {formatScore(currentScore)}
                             {isCounting && <span className="text-brand-500">*</span>}
                             {currentScore != null && (
@@ -216,7 +218,7 @@ export const InlineScoreCell = memo(function InlineScoreCell({
             </div>
 
             {/* Placement cell */}
-            <div className="flex-1 text-center">
+            <div className="flex-1 text-center flex items-center min-w-0">
                 {editingField === 'placement' ? (
                     <input
                         ref={inputRef}
@@ -227,13 +229,13 @@ export const InlineScoreCell = memo(function InlineScoreCell({
                         onKeyDown={handleKeyDown}
                         onBlur={handleBlur}
                         disabled={saving}
-                        className="w-full rounded border border-brand-300 px-1 py-0.5 text-center text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        className="w-full min-w-0 h-7 box-border rounded border border-brand-300 px-1 text-center text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-500"
                     />
                 ) : (
                     <button
                         onClick={() => handleStartEdit('placement')}
                         disabled={!isStaff}
-                        className={`w-full py-1 text-sm rounded ${getPlacementStyles(currentPlacement)} ${
+                        className={`w-full h-7 box-border border border-transparent px-1 text-sm rounded flex items-center justify-center ${getPlacementStyles(currentPlacement)} ${
                             isStaff ? 'hover:opacity-80 cursor-pointer' : ''
                         }`}
                     >

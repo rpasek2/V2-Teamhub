@@ -26,9 +26,10 @@ interface StaffMember {
 interface StaffCardProps {
     member: StaffMember;
     getRoleBadgeColor: (role: string) => string;
+    isParentView?: boolean;
 }
 
-export function StaffCard({ member, getRoleBadgeColor }: StaffCardProps) {
+export function StaffCard({ member, getRoleBadgeColor, isParentView }: StaffCardProps) {
     const navigate = useNavigate();
     const { hubId } = useParams();
 
@@ -96,27 +97,29 @@ export function StaffCard({ member, getRoleBadgeColor }: StaffCardProps) {
                 )}
             </div>
 
-            {/* Status Badges */}
-            <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
-                {member.pending_tasks > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs">
-                        <CheckSquare className="w-3.5 h-3.5 text-amber-500" />
-                        <span className="text-slate-600">{member.pending_tasks} task{member.pending_tasks !== 1 ? 's' : ''}</span>
-                    </div>
-                )}
-                {member.pending_time_off > 0 && (
-                    <div className="flex items-center gap-1.5 text-xs">
-                        <Calendar className="w-3.5 h-3.5 text-blue-500" />
-                        <span className="text-slate-600">{member.pending_time_off} request{member.pending_time_off !== 1 ? 's' : ''}</span>
-                    </div>
-                )}
-                {member.pending_tasks === 0 && member.pending_time_off === 0 && (
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>No pending items</span>
-                    </div>
-                )}
-            </div>
+            {/* Status Badges (staff only) */}
+            {!isParentView && (
+                <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+                    {member.pending_tasks > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs">
+                            <CheckSquare className="w-3.5 h-3.5 text-amber-500" />
+                            <span className="text-slate-600">{member.pending_tasks} task{member.pending_tasks !== 1 ? 's' : ''}</span>
+                        </div>
+                    )}
+                    {member.pending_time_off > 0 && (
+                        <div className="flex items-center gap-1.5 text-xs">
+                            <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                            <span className="text-slate-600">{member.pending_time_off} request{member.pending_time_off !== 1 ? 's' : ''}</span>
+                        </div>
+                    )}
+                    {member.pending_tasks === 0 && member.pending_time_off === 0 && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                            <Clock className="w-3.5 h-3.5" />
+                            <span>No pending items</span>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

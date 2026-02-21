@@ -16,6 +16,7 @@ import {
 } from 'react-native';
 import { BarChart3, Trophy, ChevronDown, ChevronRight, X } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, theme } from '../../src/constants/colors';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
@@ -709,6 +710,7 @@ export default function ScoresScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setEditingScore(null)}
       >
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }} edges={['top', 'bottom']}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.modalContainer}
@@ -785,6 +787,7 @@ export default function ScoresScreen() {
             )}
           </View>
         </KeyboardAvoidingView>
+        </SafeAreaView>
       </Modal>
     </View>
   );

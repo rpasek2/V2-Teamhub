@@ -14,8 +14,16 @@
 - **Android:** `cd mobile && npx expo start --android` - Run on Android
 - **iOS:** `cd mobile && npx expo start --ios` - Run on iOS simulator
 - **Install:** `cd mobile && npm install` - Install mobile dependencies
-- **APK Build:** `cd mobile/android && ./gradlew assembleRelease` - Build release APK with Gradle (NOT Expo EAS)
+- **Release Build:** `cd mobile/android && ./gradlew bundleRelease` - Build release AAB (app bundle) with Gradle (NOT Expo EAS)
 - **Debug APK:** `cd mobile/android && ./gradlew assembleDebug` - Build debug APK with Gradle
+
+### Mobile Build Checklist
+When building a new release, **always**:
+1. Increment `versionCode` in `mobile/android/app/build.gradle` (integer, e.g. 4 → 5)
+2. Update `versionName` in `mobile/android/app/build.gradle` to match (e.g. "1.0.0-beta.5")
+3. Update `version` in `mobile/app.json` to match the versionName
+4. Build an **AAB** (app bundle) with `./gradlew bundleRelease`, NOT an APK
+5. Output location: `mobile/android/app/build/outputs/bundle/release/app-release.aab`
 
 ## Tech Stack
 - **Framework:** React 19 + Vite 7

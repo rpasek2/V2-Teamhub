@@ -51,7 +51,7 @@ export default function LoginScreen() {
       >
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Text style={styles.logoText}>TeamHub</Text>
+            <Text style={styles.logoText}>Gym{'\n'}TeamHub</Text>
           </View>
           <Text style={styles.title}>Welcome back</Text>
           <Text style={styles.subtitle}>Sign in to your account</Text>

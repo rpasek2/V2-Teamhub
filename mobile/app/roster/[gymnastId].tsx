@@ -14,7 +14,6 @@ import {
   Linking,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Audio } from 'expo-av';
 import * as Crypto from 'expo-crypto';
 import * as DocumentPicker from 'expo-document-picker';
 import {
@@ -44,6 +43,7 @@ import {
   Download,
   Play,
   Square,
+  Check,
 } from 'lucide-react-native';
 import { format, parseISO, differenceInYears, subMonths, startOfMonth, endOfMonth, subDays, isAfter } from 'date-fns';
 import { colors, theme } from '../../src/constants/colors';
@@ -51,6 +51,8 @@ import { Badge } from '../../src/components/ui';
 import { SeasonPicker } from '../../src/components/ui/SeasonPicker';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { useOfflineMusicStore } from '../../src/stores/offlineMusicStore';
+import { useMusicPlayerStore } from '../../src/stores/musicPlayerStore';
 import { isTabEnabled } from '../../src/lib/permissions';
 
 interface Guardian {
@@ -107,6 +109,7 @@ interface RecentScore {
 
 interface SkillSummary {
   event: string;
+  eventLabel: string;
   total: number;
   compete_ready: number;
 }
@@ -116,7 +119,7 @@ interface DetailedSkill {
   hub_event_skill_id: string;
   event: string;
   name: string;
-  status: 'none' | 'achieved' | 'compete_ready' | 'mastered' | null;
+  status: 'none' | 'learning' | 'achieved' | 'mastered' | 'injured' | null;
   achieved_date: string | null;
 }
 
@@ -257,17 +260,36 @@ export default function GymnastProfileScreen() {
 
   // Floor music state
   const [uploadingMusic, setUploadingMusic] = useState(false);
-  const [playingMusic, setPlayingMusic] = useState(false);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const playerStore = useMusicPlayerStore();
+  const playingMusic = playerStore.track?.gymnastId === gymnast?.id && (playerStore.isPlaying || !!playerStore.track);
 
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
   const isParent = useHubStore((state) => state.isParent);
   const getPermissionScope = useHubStore((state) => state.getPermissionScope);
+  const offlineStore = useOfflineMusicStore();
 
-  const WAG_EVENTS = ['vault', 'bars', 'beam', 'floor'];
-  const MAG_EVENTS = ['floor', 'pommel', 'rings', 'vault', 'pbars', 'highbar'];
+  useEffect(() => {
+    if (currentHub?.id) offlineStore.initialize(currentHub.id);
+  }, [currentHub?.id]);
+
+  const DEFAULT_WAG_EVENTS = ['vault', 'bars', 'beam', 'floor'];
+  const DEFAULT_MAG_EVENTS = ['floor', 'pommel', 'rings', 'vault', 'pbars', 'highbar'];
+
+  const EVENT_LABELS: Record<string, string> = {
+    vault: 'VT', bars: 'UB', beam: 'BB', floor: 'FX',
+    pommel: 'PH', rings: 'SR', pbars: 'PB', highbar: 'HB',
+  };
+
+  const getEventsForGender = (gender: string | null) => {
+    const g = gender === 'Male' ? 'Male' : 'Female';
+    const customEvents = currentHub?.settings?.skillEvents?.[g];
+    if (customEvents && customEvents.length > 0) {
+      return customEvents.map((e: any) => typeof e === 'string' ? e : e.id);
+    }
+    return g === 'Female' ? DEFAULT_WAG_EVENTS : DEFAULT_MAG_EVENTS;
+  };
 
   // Check if user can access this gymnast
   const canAccess = useMemo(() => {
@@ -372,7 +394,7 @@ export default function GymnastProfileScreen() {
       }
 
       // Parallel fetch for other data
-      const events = gymnastData?.gender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
+      const events = getEventsForGender(gymnastData?.gender);
       const fetchStartDate = format(startOfMonth(subMonths(new Date(), 5)), 'yyyy-MM-dd');
       const fetchEndDate = format(endOfMonth(new Date()), 'yyyy-MM-dd');
 
@@ -390,11 +412,12 @@ export default function GymnastProfileScreen() {
           .eq('gymnast_profile_id', gymnastId)
           .order('created_at', { ascending: false }),
 
-        // Skills with hub_event_skill details
+        // Skills with hub_event_skill details (filtered to current hub)
         supabase
           .from('gymnast_skills')
-          .select('id, hub_event_skill_id, status, achieved_date, hub_event_skills(id, skill_name, event)')
-          .eq('gymnast_profile_id', gymnastId),
+          .select('id, hub_event_skill_id, status, achieved_date, hub_event_skills!inner(id, skill_name, event, hub_id)')
+          .eq('gymnast_profile_id', gymnastId)
+          .eq('hub_event_skills.hub_id', currentHub.id),
 
         // Attendance (last 6 months)
         canViewAttendance ? supabase
@@ -444,12 +467,13 @@ export default function GymnastProfileScreen() {
 
       // Process skills
       if (skillsResult.data) {
-        const summary = events.map(event => {
+        const summary = events.map((event: string) => {
           const eventSkills = skillsResult.data.filter((s: any) => s.hub_event_skills?.event === event);
           return {
             event,
+            eventLabel: EVENT_LABELS[event] || event.toUpperCase(),
             total: eventSkills.length,
-            compete_ready: eventSkills.filter((s: any) => s.status === 'compete_ready' || s.status === 'mastered').length,
+            compete_ready: eventSkills.filter((s: any) => s.status === 'achieved' || s.status === 'mastered').length,
           };
         });
         setSkillSummary(summary);
@@ -1078,7 +1102,8 @@ export default function GymnastProfileScreen() {
               .eq('id', gymnast.id);
 
             if (error) throw error;
-            await stopMusic();
+            stopMusic();
+            offlineStore.removeFile(gymnast.id);
             await fetchGymnastData();
           } catch (err) {
             console.error('Error removing floor music:', err);
@@ -1089,46 +1114,20 @@ export default function GymnastProfileScreen() {
     ]);
   };
 
-  const playMusic = async () => {
+  const playMusic = () => {
     if (!gymnast?.floor_music_url) return;
-
-    try {
-      if (sound) {
-        await sound.setPositionAsync(0);
-        await sound.playAsync();
-        setPlayingMusic(true);
-        return;
-      }
-
-      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: gymnast.floor_music_url },
-        { shouldPlay: true }
-      );
-      newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          setPlayingMusic(false);
-        }
-      });
-      setSound(newSound);
-      setPlayingMusic(true);
-    } catch (err) {
-      console.error('Error playing music:', err);
-      Alert.alert('Error', 'Failed to play floor music');
-    }
+    const localUri = offlineStore.getLocalUri(gymnast.id, gymnast.floor_music_url);
+    const uri = localUri || gymnast.floor_music_url;
+    playerStore.play({
+      gymnastId: gymnast.id,
+      gymnastName: `${gymnast.first_name} ${gymnast.last_name}`,
+      fileName: gymnast.floor_music_name || 'Floor Music',
+      uri,
+    });
   };
 
-  const stopMusic = async () => {
-    if (sound) {
-      try {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-      } catch (err) {
-        console.error('Error stopping music:', err);
-      }
-      setSound(null);
-      setPlayingMusic(false);
-    }
+  const stopMusic = () => {
+    playerStore.stop();
   };
 
   const handleDownloadMusic = () => {
@@ -1136,15 +1135,6 @@ export default function GymnastProfileScreen() {
       Linking.openURL(gymnast.floor_music_url);
     }
   };
-
-  // Cleanup sound on unmount
-  useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
 
   const cancelSectionEdit = (section: string) => {
     setEditingSection(null);
@@ -1197,32 +1187,36 @@ export default function GymnastProfileScreen() {
     }
   };
 
-  // Skills editing functions
-  const SKILL_STATUS_ORDER: (DetailedSkill['status'])[] = [null, 'achieved', 'compete_ready', 'mastered'];
+  // Skills editing functions — matches main skills tab statuses
+  const SKILL_STATUS_ORDER: (DetailedSkill['status'])[] = ['none', 'learning', 'achieved', 'mastered', 'injured'];
   const SKILL_STATUS_LABELS: Record<string, string> = {
     'null': 'Not Started',
     'none': 'Not Started',
+    'learning': 'Learning',
     'achieved': 'Achieved',
-    'compete_ready': 'Compete Ready',
     'mastered': 'Mastered',
+    'injured': 'Injured',
   };
   const SKILL_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
     'null': { bg: colors.slate[100], text: colors.slate[500] },
     'none': { bg: colors.slate[100], text: colors.slate[500] },
-    'achieved': { bg: colors.blue[100], text: colors.blue[700] },
-    'compete_ready': { bg: colors.emerald[100], text: colors.emerald[700] },
-    'mastered': { bg: colors.amber[100], text: colors.amber[700] },
+    'learning': { bg: colors.amber[100], text: colors.amber[700] },
+    'achieved': { bg: colors.emerald[100], text: colors.emerald[700] },
+    'mastered': { bg: colors.yellow[100], text: colors.yellow[700] },
+    'injured': { bg: colors.red[100], text: colors.red[700] },
   };
 
   const cycleSkillStatus = async (skill: DetailedSkill) => {
     if (!isStaff()) return;
 
-    const currentIndex = SKILL_STATUS_ORDER.indexOf(skill.status);
+    // Normalize null/unknown to 'none' for lookup
+    const currentStatus = skill.status || 'none';
+    const currentIndex = SKILL_STATUS_ORDER.indexOf(currentStatus);
     const nextIndex = (currentIndex + 1) % SKILL_STATUS_ORDER.length;
     const newStatus = SKILL_STATUS_ORDER[nextIndex];
 
     try {
-      const achievedDate = newStatus && newStatus !== 'none' ? new Date().toISOString() : null;
+      const achievedDate = newStatus !== 'none' ? new Date().toISOString() : null;
 
       const { error } = await supabase
         .from('gymnast_skills')
@@ -1457,9 +1451,17 @@ export default function GymnastProfileScreen() {
               <View style={styles.card}>
                 {gymnast.floor_music_url ? (
                   <View>
-                    <Text style={styles.floorMusicName} numberOfLines={1}>
-                      {gymnast.floor_music_name || 'Floor Music'}
-                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                      <Text style={[styles.floorMusicName, { flex: 1, marginBottom: 0 }]} numberOfLines={1}>
+                        {gymnast.floor_music_name || 'Floor Music'}
+                      </Text>
+                      {offlineStore.isDownloaded(gymnast.id, gymnast.floor_music_url) && (
+                        <View style={styles.offlineBadge}>
+                          <Check size={12} color={colors.success[600]} />
+                          <Text style={styles.offlineBadgeText}>Offline</Text>
+                        </View>
+                      )}
+                    </View>
                     <View style={styles.floorMusicControls}>
                       <TouchableOpacity
                         style={[styles.floorMusicBtn, { backgroundColor: colors.brand[50] }]}
@@ -1474,15 +1476,39 @@ export default function GymnastProfileScreen() {
                           {playingMusic ? 'Stop' : 'Play'}
                         </Text>
                       </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.floorMusicBtn, { backgroundColor: colors.slate[100] }]}
-                        onPress={handleDownloadMusic}
-                      >
-                        <Download size={16} color={colors.slate[600]} />
-                        <Text style={[styles.floorMusicBtnText, { color: colors.slate[600] }]}>
-                          Download
-                        </Text>
-                      </TouchableOpacity>
+                      {offlineStore.activeDownloads[gymnast.id] ? (
+                        <View style={[styles.floorMusicBtn, { backgroundColor: colors.brand[50] }]}>
+                          <ActivityIndicator size="small" color={colors.brand[600]} />
+                          <Text style={[styles.floorMusicBtnText, { color: colors.brand[600] }]}>
+                            {Math.round((offlineStore.activeDownloads[gymnast.id]?.progress || 0) * 100)}%
+                          </Text>
+                        </View>
+                      ) : offlineStore.isDownloaded(gymnast.id, gymnast.floor_music_url) ? (
+                        <TouchableOpacity
+                          style={[styles.floorMusicBtn, { backgroundColor: colors.success[50] }]}
+                          onPress={() => {
+                            Alert.alert(
+                              'Remove Offline Copy',
+                              'Remove the downloaded copy? You can re-download it later.',
+                              [
+                                { text: 'Cancel', style: 'cancel' },
+                                { text: 'Remove', style: 'destructive', onPress: () => offlineStore.removeFile(gymnast.id) },
+                              ]
+                            );
+                          }}
+                        >
+                          <Check size={16} color={colors.success[600]} />
+                          <Text style={[styles.floorMusicBtnText, { color: colors.success[600] }]}>Saved</Text>
+                        </TouchableOpacity>
+                      ) : (
+                        <TouchableOpacity
+                          style={[styles.floorMusicBtn, { backgroundColor: colors.slate[100] }]}
+                          onPress={() => offlineStore.downloadFile(gymnast.id, gymnast.floor_music_url!, gymnast.floor_music_name || 'floor-music')}
+                        >
+                          <Download size={16} color={colors.slate[600]} />
+                          <Text style={[styles.floorMusicBtnText, { color: colors.slate[600] }]}>Save</Text>
+                        </TouchableOpacity>
+                      )}
                       {isStaff() && (
                         <TouchableOpacity
                           style={[styles.floorMusicBtn, { backgroundColor: colors.error[50] }]}
@@ -3967,5 +3993,19 @@ const styles = StyleSheet.create({
   floorMusicEmptyText: {
     fontSize: 14,
     color: colors.slate[400],
+  },
+  offlineBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.success[50],
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  offlineBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.success[600],
   },
 });

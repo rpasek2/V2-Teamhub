@@ -137,7 +137,7 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
                 disabled={saving}
-                className="w-full rounded border border-brand-300 bg-white px-1 py-0.5 text-center text-sm font-bold focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                className="w-full min-w-0 h-7 box-border rounded border border-brand-300 bg-white px-1 text-center text-sm font-bold focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-500"
             />
         );
     }
@@ -153,7 +153,7 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
         <button
             onClick={handleStartEdit}
             disabled={!isStaff}
-            className={`w-full py-1 text-sm font-bold rounded ${getPlacementStyles(currentPlacement)} ${
+            className={`w-full min-w-0 h-7 box-border border border-transparent text-sm font-bold rounded ${getPlacementStyles(currentPlacement)} ${
                 isStaff ? 'hover:opacity-80 cursor-pointer' : ''
             }`}
         >

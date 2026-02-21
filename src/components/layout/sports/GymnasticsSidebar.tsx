@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Music, Megaphone, Waves, Swords, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, GraduationCap, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, GraduationCap } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
@@ -9,19 +9,13 @@ import { supabase } from '../../../lib/supabase';
 import { isTabEnabled as isTabEnabledUtil } from '../../../lib/permissions';
 import { NotificationBadge } from '../../ui/NotificationBadge';
 import type { HubFeatureTab, NotificationFeature } from '../../../types';
+import appIcon from '../../../assets/app-icon.png';
 
 interface UserProfile {
     full_name: string | null;
     avatar_url: string | null;
 }
 
-const SPORT_ICONS: Record<string, LucideIcon> = {
-    Trophy,
-    Music,
-    Megaphone,
-    Waves,
-    Swords
-};
 
 // Map tab names to notification feature keys
 const TAB_TO_NOTIFICATION: Record<string, NotificationFeature> = {
@@ -34,6 +28,7 @@ const TAB_TO_NOTIFICATION: Record<string, NotificationFeature> = {
     'Assignments': 'assignments',
     'Marketplace': 'marketplace',
     'Resources': 'resources',
+    'Staff': 'staff_tasks',
 };
 
 export function GymnasticsSidebar() {
@@ -56,7 +51,7 @@ export function GymnasticsSidebar() {
         // Staff roles only need notifications for messages, groups, and marketplace
         const isStaffRole = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
         if (isStaffRole) {
-            const staffRelevantFeatures: NotificationFeature[] = ['messages', 'groups', 'marketplace'];
+            const staffRelevantFeatures: NotificationFeature[] = ['messages', 'groups', 'marketplace', 'staff_tasks'];
             if (!staffRelevantFeatures.includes(feature)) {
                 return false;
             }
@@ -86,8 +81,6 @@ export function GymnasticsSidebar() {
         fetchProfile();
     }, [user]);
 
-    // Get the icon for the current sport
-    const SportIcon = SPORT_ICONS[sportConfig.icon] || Trophy;
 
     const navigation = [
         { name: 'Dashboard', href: `/hub/${hubId}`, icon: LayoutDashboard, permission: 'dashboard', tabId: null },
@@ -172,8 +165,8 @@ export function GymnasticsSidebar() {
             {/* Hub Name */}
             <div className="border-b border-slate-200 px-3 py-3">
                 <div className="flex items-center" title={!isExpanded ? hub?.name : undefined}>
-                    <div className="flex h-10 w-10 items-center justify-center flex-shrink-0 rounded-lg bg-mint-100 border border-mint-300">
-                        <SportIcon className="h-5 w-5 text-mint-600" />
+                    <div className="flex h-10 w-10 items-center justify-center flex-shrink-0 rounded-lg overflow-hidden">
+                        <img src={appIcon} alt="TeamHub" className="h-10 w-10 object-contain" />
                     </div>
                     <div
                         className="flex flex-col ml-3 overflow-hidden whitespace-nowrap"

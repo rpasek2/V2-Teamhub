@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Award, Target, ClipboardList, ListChecks, Sparkles, Trophy, UserCheck } from 'lucide-react';
+import { ArrowLeft, User, Award, Target, ClipboardList, ListChecks, Sparkles, Trophy, UserCheck, MessageCircle, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isTabEnabled } from '../lib/permissions';
 import { useHub } from '../context/HubContext';
+import { useAuth } from '../context/AuthContext';
 import { GymnastProfileTab } from '../components/gymnast/GymnastProfileTab';
 import { GoalsSection } from '../components/gymnast/GoalsSection';
 import { AssessmentSection } from '../components/gymnast/AssessmentSection';
@@ -19,10 +20,12 @@ export function GymnastDetails() {
     const { gymnastId } = useParams<{ gymnastId: string }>();
     const navigate = useNavigate();
     const { hub, linkedGymnasts, currentRole } = useHub();
+    const { user } = useAuth();
 
     const [gymnast, setGymnast] = useState<GymnastProfile | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<PageTab>('profile');
+    const [creatingDm, setCreatingDm] = useState(false);
 
     // Fetch gymnast data
     useEffect(() => {
@@ -100,6 +103,27 @@ export function GymnastDetails() {
 
     const canEditAssessment = canReportInjury;
 
+    // Message the linked parent from gymnast profile
+    const showMessageButton = isStaff && gymnast?.user_id && gymnast.user_id !== user?.id;
+
+    const handleMessageClick = async () => {
+        if (!hub || !user || !gymnast?.user_id) return;
+        setCreatingDm(true);
+        try {
+            const { data, error } = await supabase.rpc('get_or_create_dm_channel', {
+                p_hub_id: hub.id,
+                p_user1_id: user.id,
+                p_user2_id: gymnast.user_id,
+            });
+            if (error) throw error;
+            navigate(`/hub/${hub.id}/messages`, { state: { selectedChannelId: data } });
+        } catch (err) {
+            console.error('Error creating DM:', err);
+        } finally {
+            setCreatingDm(false);
+        }
+    };
+
     const enabledTabs = hub?.settings?.enabledTabs;
 
     // Reset active tab to 'profile' if the current tab becomes disabled
@@ -156,31 +180,43 @@ export function GymnastDetails() {
 
             {/* Header */}
             <div className="bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 rounded-xl p-6 text-white mb-6">
-                <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
-                        <span className="text-2xl font-bold text-white">
-                            {gymnast.first_name[0]}{gymnast.last_name[0]}
-                        </span>
-                    </div>
-                    <div>
-                        <p className="text-brand-200 text-sm font-medium">ID: {gymnast.gymnast_id}</p>
-                        <h1 className="text-2xl font-bold tracking-tight">
-                            {gymnast.first_name} {gymnast.last_name}
-                        </h1>
-                        <div className="flex items-center gap-2 mt-1.5">
-                            {gymnast.level && (
-                                <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-sm font-medium">
-                                    <Award className="h-3.5 w-3.5 mr-1.5" />
-                                    {gymnast.level}
-                                </span>
-                            )}
-                            {gymnast.gender && (
-                                <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium">
-                                    {gymnast.gender}
-                                </span>
-                            )}
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
+                            <span className="text-2xl font-bold text-white">
+                                {(gymnast.first_name || '?')[0]}{(gymnast.last_name || '?')[0]}
+                            </span>
+                        </div>
+                        <div>
+                            <p className="text-brand-200 text-sm font-medium">ID: {gymnast.gymnast_id}</p>
+                            <h1 className="text-2xl font-bold tracking-tight">
+                                {gymnast.first_name} {gymnast.last_name}
+                            </h1>
+                            <div className="flex items-center gap-2 mt-1.5">
+                                {gymnast.level && (
+                                    <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-sm font-medium">
+                                        <Award className="h-3.5 w-3.5 mr-1.5" />
+                                        {gymnast.level}
+                                    </span>
+                                )}
+                                {gymnast.gender && (
+                                    <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium">
+                                        {gymnast.gender}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
+                    {showMessageButton && (
+                        <button
+                            onClick={handleMessageClick}
+                            disabled={creatingDm}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                        >
+                            {creatingDm ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                            Message Parent
+                        </button>
+                    )}
                 </div>
             </div>
 

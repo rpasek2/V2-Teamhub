@@ -23,6 +23,8 @@ import {
   AlertTriangle,
   Check,
   X,
+  Bell,
+  ChevronRight,
 } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { colors, theme } from '../../src/constants/colors';
@@ -261,6 +263,22 @@ export default function UserSettingsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Notification Preferences */}
+      <TouchableOpacity
+        style={styles.notificationLink}
+        onPress={() => router.push('/settings/notifications')}
+        activeOpacity={0.7}
+      >
+        <View style={styles.notificationLinkIcon}>
+          <Bell size={18} color={colors.brand[600]} />
+        </View>
+        <View style={styles.notificationLinkText}>
+          <Text style={styles.notificationLinkTitle}>Notification Preferences</Text>
+          <Text style={styles.notificationLinkDescription}>Choose which features show notifications</Text>
+        </View>
+        <ChevronRight size={18} color={colors.slate[400]} />
+      </TouchableOpacity>
+
       {/* Profile Section */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Profile</Text>
@@ -526,6 +544,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: colors.slate[50],
+  },
+  notificationLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.white,
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.slate[200],
+  },
+  notificationLinkIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: colors.brand[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  notificationLinkText: {
+    flex: 1,
+  },
+  notificationLinkTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.slate[900],
+  },
+  notificationLinkDescription: {
+    fontSize: 13,
+    color: colors.slate[500],
+    marginTop: 1,
   },
   section: {
     marginBottom: 20,

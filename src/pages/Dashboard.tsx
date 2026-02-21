@@ -6,12 +6,13 @@ import { supabase } from '../lib/supabase';
 import { format, subWeeks, subDays } from 'date-fns';
 import { StaffStatCards } from '../components/dashboard/StaffStatCards';
 import { PendingTimeOffSection } from '../components/dashboard/PendingTimeOffSection';
+import { MyTasksSection } from '../components/dashboard/MyTasksSection';
 import { ParentGymnastCards } from '../components/dashboard/ParentGymnastCards';
 import { ParentDashboardSections } from '../components/dashboard/ParentDashboardSections';
 import { RecentActivityCard } from '../components/dashboard/RecentActivityCard';
 import { UpcomingScheduleCard } from '../components/dashboard/UpcomingScheduleCard';
-import type { GymnastProfile } from '../types';
-import type { SkillStatus } from '../types';
+import { NotificationBell } from '../components/notifications/NotificationBell';
+import type { GymnastProfile, SkillStatus } from '../types';
 
 interface DashboardStats {
     totalMembers: number;
@@ -126,6 +127,9 @@ export function Dashboard() {
     const [recentGroupPosts, setRecentGroupPosts] = useState<RecentGroupPost[]>([]);
     const [assignmentProgress, setAssignmentProgress] = useState<AssignmentProgress[]>([]);
     const [, setLoadingParentData] = useState(false);
+
+    // Staff-specific data
+    const [myTasks, setMyTasks] = useState<{ id: string; title: string; description: string | null; due_date: string | null; priority: 'low' | 'medium' | 'high' | 'urgent'; status: 'pending' | 'in_progress' | 'completed'; assigned_by: string | null; created_at: string }[]>([]);
 
     // Owner-specific data
     const [pendingTimeOff, setPendingTimeOff] = useState<PendingTimeOffRequest[]>([]);
@@ -384,7 +388,7 @@ export function Dashboard() {
                 const progress: AssignmentProgress[] = [];
                 const events = ['vault', 'bars', 'beam', 'floor', 'strength', 'flexibility', 'conditioning'];
 
-                (assignmentsResult.data as any[]).forEach((a: any) => {
+                (assignmentsResult.data as { gymnast_profile_id: string; completed_items: Record<string, string[]> | null; gymnast_profiles: { first_name?: string; last_name?: string } | { first_name?: string; last_name?: string }[]; [key: string]: unknown }[]).forEach((a) => {
                     const gymnast = Array.isArray(a.gymnast_profiles) ? a.gymnast_profiles[0] : a.gymnast_profiles;
                     const gymnastName = `${gymnast?.first_name || ''} ${gymnast?.last_name || ''}`.trim();
                     const completedItems = a.completed_items || {};
@@ -420,6 +424,43 @@ export function Dashboard() {
         }
     }, [hub, user, linkedGymnasts]);
 
+    const fetchMyTasks = useCallback(async () => {
+        if (!hub || !user) return;
+        const { data, error } = await supabase
+            .from('staff_tasks')
+            .select('id, title, description, due_date, priority, status, assigned_by, created_at')
+            .eq('hub_id', hub.id)
+            .eq('staff_user_id', user.id)
+            .in('status', ['pending', 'in_progress'])
+            .order('due_date', { ascending: true, nullsFirst: false })
+            .order('priority', { ascending: true })
+            .limit(10);
+        if (error) console.error('Error fetching my tasks:', error);
+        else setMyTasks(data || []);
+    }, [hub, user]);
+
+    const handleTaskStatusChange = useCallback(async (taskId: string, newStatus: 'pending' | 'in_progress' | 'completed') => {
+        const updates: Record<string, unknown> = {
+            status: newStatus,
+            updated_at: new Date().toISOString(),
+        };
+        if (newStatus === 'completed') updates.completed_at = new Date().toISOString();
+        else updates.completed_at = null;
+
+        const { error } = await supabase
+            .from('staff_tasks')
+            .update(updates)
+            .eq('id', taskId);
+
+        if (!error) {
+            if (newStatus === 'completed') {
+                setMyTasks(prev => prev.filter(t => t.id !== taskId));
+            } else {
+                setMyTasks(prev => prev.map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+            }
+        }
+    }, []);
+
     const fetchPendingTimeOff = useCallback(async () => {
         if (!hub) return;
 
@@ -442,7 +483,7 @@ export function Dashboard() {
 
             if (error) throw error;
 
-            const requests: PendingTimeOffRequest[] = ((data || []) as any[]).map((r: any) => {
+            const requests: PendingTimeOffRequest[] = ((data || []) as { id: string; staff_user_id: string; start_date: string; end_date: string; type: PendingTimeOffRequest['type']; notes: string | null; created_at: string; profiles: { full_name: string } | { full_name: string }[] }[]).map((r) => {
                 const profile = Array.isArray(r.profiles) ? r.profiles[0] : r.profiles;
                 return {
                     id: r.id,
@@ -700,11 +741,14 @@ export function Dashboard() {
                 fetchLinkedGymnastInfo();
                 fetchParentDashboardData();
             }
+            if (isStaff) {
+                fetchMyTasks();
+            }
             if (isOwner) {
                 fetchPendingTimeOff();
             }
         }
-    }, [hub, user, linkedGymnasts, isParent, isOwner, fetchDashboardData, fetchUserName, fetchLinkedGymnastInfo, fetchParentDashboardData, fetchPendingTimeOff]);
+    }, [hub, user, linkedGymnasts, isParent, isStaff, isOwner, fetchDashboardData, fetchUserName, fetchLinkedGymnastInfo, fetchParentDashboardData, fetchMyTasks, fetchPendingTimeOff]);
 
     if (loading) {
         return (
@@ -726,13 +770,16 @@ export function Dashboard() {
     return (
         <div className="animate-fade-in">
             {/* Header */}
-            <div className="mb-8">
-                <h1 className="text-2xl font-semibold text-slate-900">
-                    {getGreeting()}{userName ? `, ${userName}` : ''}
-                </h1>
-                <p className="text-slate-500 mt-1">
-                    Welcome to {hub.name} • {format(new Date(), 'EEEE, MMMM d')}
-                </p>
+            <div className="mb-8 flex items-start justify-between">
+                <div>
+                    <h1 className="text-2xl font-semibold text-slate-900">
+                        {getGreeting()}{userName ? `, ${userName}` : ''}
+                    </h1>
+                    <p className="text-slate-500 mt-1">
+                        Welcome to {hub.name} • {format(new Date(), 'EEEE, MMMM d')}
+                    </p>
+                </div>
+                <NotificationBell />
             </div>
 
             {/* Parent: Linked Gymnast Cards */}
@@ -741,6 +788,14 @@ export function Dashboard() {
             {/* Stat Cards - only for staff, parents see gymnast card + schedule below */}
             {!isParent && (
                 <StaffStatCards stats={stats} loadingStats={loadingStats} enabledTabs={enabledTabs} />
+            )}
+
+            {/* Staff: My Tasks */}
+            {isStaff && myTasks.length > 0 && (
+                <MyTasksSection
+                    tasks={myTasks}
+                    onStatusChange={handleTaskStatusChange}
+                />
             )}
 
             {/* Owner: Pending Time Off Requests */}

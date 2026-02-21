@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import { useHub } from '../../context/HubContext';
 import type {
     Competition,
@@ -23,6 +23,7 @@ interface ScoresTableProps {
     isStaff: boolean;
     isParent: boolean;
     userGymnastIds: string[];
+    ageGroupMap?: Record<string, string>;
     onScoresUpdated: () => void;
     onTeamPlacementsUpdated: () => void;
 }
@@ -52,6 +53,7 @@ export function ScoresTable({
     isStaff,
     isParent,
     userGymnastIds,
+    ageGroupMap = {},
     onScoresUpdated,
     onTeamPlacementsUpdated
 }: ScoresTableProps) {
@@ -91,9 +93,15 @@ export function ScoresTable({
         return result;
     }, [gymnasts, levels]);
 
-    // Get score for a gymnast and event
+    // Pre-built lookup map for O(1) score access per gymnast+event
+    const scoreMap = useMemo(() => {
+        const map = new Map<string, CompetitionScore>();
+        scores.forEach(s => map.set(`${s.gymnast_profile_id}-${s.event}`, s));
+        return map;
+    }, [scores]);
+
     const getScore = (gymnastId: string, event: GymEvent) => {
-        return scores.find(s => s.gymnast_profile_id === gymnastId && s.event === event);
+        return scoreMap.get(`${gymnastId}-${event}`);
     };
 
     // Calculate gymnast score data with all-around
@@ -261,23 +269,34 @@ export function ScoresTable({
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-slate-200">
+                            <table className="min-w-full divide-y divide-slate-200 table-fixed">
+                                <colgroup>
+                                    <col className="w-36 md:w-48" />
+                                    {events.map(event => (
+                                        <Fragment key={event}>
+                                            <col className="w-[62px]" />
+                                            <col className="w-[62px]" />
+                                        </Fragment>
+                                    ))}
+                                    <col className="w-[62px]" />
+                                    <col className="w-[62px]" />
+                                </colgroup>
                                 <thead>
                                     <tr className="bg-slate-50">
-                                        <th className="sticky left-0 z-10 bg-slate-50 py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-48 min-w-48 max-w-48">
+                                        <th className="sticky left-0 z-10 bg-slate-50 py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-36 min-w-36 max-w-36 md:w-48 md:min-w-48 md:max-w-48 overflow-hidden">
                                             Gymnast
                                         </th>
                                         {events.map((event, idx) => (
-                                            <th key={event} colSpan={2} className={`px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-slate-700 ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
+                                            <th key={event} colSpan={2} className={`px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-slate-700 w-[124px] min-w-[124px] max-w-[124px] overflow-hidden ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
                                                 {EVENT_LABELS[event]}
                                             </th>
                                         ))}
-                                        <th colSpan={2} className="border-l border-slate-200 px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-slate-700">
+                                        <th colSpan={2} className="border-l border-slate-200 px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-slate-700 w-[124px] min-w-[124px] max-w-[124px] overflow-hidden">
                                             AA
                                         </th>
                                     </tr>
                                     <tr className="bg-slate-50 text-xs text-slate-400">
-                                        <th className="sticky left-0 z-10 bg-slate-50 w-48 min-w-48 max-w-48"></th>
+                                        <th className="sticky left-0 z-10 bg-slate-50"></th>
                                         {events.map((event, idx) => (
                                             <th key={event} colSpan={2} className={`border-b border-slate-200 ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
                                                 <div className="flex">
@@ -297,16 +316,16 @@ export function ScoresTable({
                                 <tbody className="divide-y divide-slate-200">
                                     {/* Team Score Row */}
                                     <tr className="bg-brand-100 font-bold">
-                                        <td className="sticky left-0 z-10 bg-brand-100 whitespace-nowrap py-3 pl-4 pr-3 text-sm text-brand-900 w-48 min-w-48 max-w-48">
+                                        <td className="sticky left-0 z-10 bg-brand-100 whitespace-nowrap py-3 pl-4 pr-3 text-sm text-brand-900">
                                             <span className="font-bold">TEAM TOTAL</span>
                                         </td>
                                         {events.map((event, idx) => (
                                             <td key={event} colSpan={2} className={`px-1 py-2 text-center ${idx > 0 ? 'border-l border-brand-200' : ''}`}>
                                                 <div className="flex">
-                                                    <span className="flex-1 text-sm font-bold text-brand-900 py-1">
+                                                    <span className="flex-1 min-w-0 text-sm font-bold text-brand-900 py-1 truncate">
                                                         {formatScore(teamScores.eventScores[event])}
                                                     </span>
-                                                    <span className="flex-1">
+                                                    <span className="flex-1 min-w-0">
                                                         <InlineTeamPlacementCell
                                                             competitionId={competition.id}
                                                             level={level}
@@ -322,10 +341,10 @@ export function ScoresTable({
                                         ))}
                                         <td colSpan={2} className="px-1 py-2 text-center border-l border-brand-200">
                                             <div className="flex">
-                                                <span className="flex-1 text-sm font-bold text-brand-900 py-1">
+                                                <span className="flex-1 min-w-0 text-sm font-bold text-brand-900 py-1 truncate">
                                                     {formatScore(teamScores.allAroundTotal)}
                                                 </span>
-                                                <span className="flex-1">
+                                                <span className="flex-1 min-w-0">
                                                     <InlineTeamPlacementCell
                                                         competitionId={competition.id}
                                                         level={level}
@@ -347,15 +366,22 @@ export function ScoresTable({
 
                                         return (
                                             <tr key={gymnast.id} className="hover:bg-slate-50">
-                                                <td className="sticky left-0 z-10 bg-white py-2 pl-4 pr-3 text-sm font-medium text-slate-900 w-48 min-w-48 max-w-48 truncate">
-                                                    {gymnast.first_name} {gymnast.last_name}
+                                                <td className="sticky left-0 z-10 bg-white py-2 pl-4 pr-3 text-sm font-medium text-slate-900">
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <span className="truncate">{gymnast.first_name} {gymnast.last_name}</span>
+                                                        {ageGroupMap[gymnast.id] && (
+                                                            <span className="inline-flex items-center rounded-full bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 flex-shrink-0">
+                                                                {ageGroupMap[gymnast.id]}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 {events.map((event, idx) => {
                                                     const scoreData = gymnastData.scores[event];
                                                     const isCounting = gymnastCounting[event];
 
                                                     return (
-                                                        <td key={event} colSpan={2} className={`px-1 py-1 ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
+                                                        <td key={event} colSpan={2} className={`px-1 py-1 overflow-hidden ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
                                                             <InlineScoreCell
                                                                 gymnastId={gymnast.id}
                                                                 gymnastLevel={gymnast.level}

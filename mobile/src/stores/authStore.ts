@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../services/supabase';
+import { usePushNotificationStore } from './pushNotificationStore';
 
 interface AuthState {
   user: User | null;
@@ -34,13 +35,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         initialized: true,
       });
 
-      // Listen for auth changes
-      supabase.auth.onAuthStateChange((_event, session) => {
-        set({
-          session,
-          user: session?.user ?? null,
+      // Listen for auth changes (only register once)
+      if (!get().initialized) {
+        supabase.auth.onAuthStateChange((_event, session) => {
+          set({
+            session,
+            user: session?.user ?? null,
+          });
         });
-      });
+      }
     } catch (error) {
       console.error('Auth initialization error:', error);
       set({ loading: false, initialized: true });
@@ -118,7 +121,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   signOut: async () => {
     set({ loading: true });
     try {
-      await supabase.auth.signOut();
+      // Deregister push token before signing out
+      await usePushNotificationStore.getState().deregisterPushToken();
+      await supabase.auth.signOut({ scope: 'local' });
       set({
         session: null,
         user: null,

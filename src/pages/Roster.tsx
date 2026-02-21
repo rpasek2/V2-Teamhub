@@ -441,7 +441,7 @@ export function Roster() {
             <div className="mt-8 flow-root">
                 <div className="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                     <div className="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                        <div className="overflow-hidden card">
+                        <div className="overflow-visible card">
                             <table className="min-w-full divide-y divide-slate-200">
                                 <thead className="bg-slate-50">
                                     <tr>
@@ -572,7 +572,7 @@ export function Roster() {
                                                             </button>
 
                                                             {openMenuId === member.id && (
-                                                                <div className="absolute right-0 z-10 mt-1 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-slate-200 focus:outline-none">
+                                                                <div className="absolute right-full top-0 z-10 mr-1 w-48 origin-top-right rounded-lg bg-white shadow-lg ring-1 ring-slate-200 focus:outline-none">
                                                                     <div className="py-1">
                                                                         <button
                                                                             onClick={(e) => {

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../services/supabase';
+import { useActivityFeedStore } from './activityFeedStore';
 
 interface NotificationState {
   // Badge counts
@@ -51,7 +52,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
         // Get today's events count
         supabase
           .from('events')
-          .select('id', { count: 'exact', head: true })
+          .select('id', { count: 'exact' })
           .eq('hub_id', hubId)
           .gte('start_time', todayStart.toISOString())
           .lt('start_time', todayEnd.toISOString()),
@@ -68,7 +69,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
           const lastRead = membership.last_read_at || '1970-01-01';
           return supabase
             .from('messages')
-            .select('id', { count: 'exact', head: true })
+            .select('id', { count: 'exact' })
             .eq('channel_id', membership.channel_id)
             .gt('created_at', lastRead)
             .neq('user_id', userId);
@@ -85,7 +86,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
           const lastViewed = membership.last_viewed_at || '1970-01-01';
           return supabase
             .from('posts')
-            .select('id', { count: 'exact', head: true })
+            .select('id', { count: 'exact' })
             .eq('group_id', membership.group_id)
             .gt('created_at', lastViewed)
             .neq('user_id', userId); // Exclude user's own posts
@@ -95,10 +96,12 @@ export const useNotificationStore = create<NotificationState>((set) => ({
         unreadGroups = postCounts.reduce((total, result) => total + (result.count || 0), 0);
       }
 
+      // Apply preference filters
+      const prefs = useActivityFeedStore.getState().preferences;
       set({
-        unreadMessages,
-        unreadGroups,
-        upcomingEvents,
+        unreadMessages: prefs && !prefs.messages_enabled ? 0 : unreadMessages,
+        unreadGroups: prefs && !prefs.groups_enabled ? 0 : unreadGroups,
+        upcomingEvents: prefs && !prefs.calendar_enabled ? 0 : upcomingEvents,
         hasMoreNotifications: false,
         loading: false,
       });

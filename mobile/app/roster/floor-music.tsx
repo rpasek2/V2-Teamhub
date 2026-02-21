@@ -8,11 +8,10 @@ import {
   ActivityIndicator,
   RefreshControl,
   TextInput,
-  Linking,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Audio } from 'expo-av';
 import {
   Search,
   Music,
@@ -21,10 +20,15 @@ import {
   Square,
   ChevronDown,
   ChevronRight,
+  Check,
+  Trash2,
+  CloudDownload,
 } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { useOfflineMusicStore } from '../../src/stores/offlineMusicStore';
+import { useMusicPlayerStore } from '../../src/stores/musicPlayerStore';
 
 interface FloorMusicGymnast {
   id: string;
@@ -48,12 +52,14 @@ export default function FloorMusicScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [collapsedLevels, setCollapsedLevels] = useState<Set<string>>(new Set());
-  const [playingId, setPlayingId] = useState<string | null>(null);
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
-
   const currentHub = useHubStore((state) => state.currentHub);
   const isStaff = useHubStore((state) => state.isStaff);
   const levels = currentHub?.settings?.levels || [];
+
+  const offlineStore = useOfflineMusicStore();
+  const { activeDownloads, bulkDownloading, downloads } = offlineStore;
+  const playerStore = useMusicPlayerStore();
+  const playingId = playerStore.track?.gymnastId ?? null;
 
   // Auth guard - staff only
   useEffect(() => {
@@ -63,17 +69,12 @@ export default function FloorMusicScreen() {
   }, [isStaff]);
 
   useEffect(() => {
-    fetchFloorMusic();
+    if (currentHub?.id) offlineStore.initialize(currentHub.id);
   }, [currentHub?.id]);
 
-  // Cleanup sound on unmount
   useEffect(() => {
-    return () => {
-      if (sound) {
-        sound.unloadAsync();
-      }
-    };
-  }, [sound]);
+    fetchFloorMusic();
+  }, [currentHub?.id]);
 
   const fetchFloorMusic = async () => {
     if (!currentHub) return;
@@ -139,39 +140,15 @@ export default function FloorMusicScreen() {
     });
   };
 
-  const handlePlay = async (gymnast: FloorMusicGymnast) => {
-    try {
-      // If already playing this gymnast, stop
-      if (playingId === gymnast.id && sound) {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-        setSound(null);
-        setPlayingId(null);
-        return;
-      }
-
-      // Stop any currently playing sound
-      if (sound) {
-        await sound.stopAsync();
-        await sound.unloadAsync();
-        setSound(null);
-      }
-
-      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true });
-      const { sound: newSound } = await Audio.Sound.createAsync(
-        { uri: gymnast.floor_music_url },
-        { shouldPlay: true }
-      );
-      newSound.setOnPlaybackStatusUpdate((status) => {
-        if (status.isLoaded && status.didJustFinish) {
-          setPlayingId(null);
-        }
-      });
-      setSound(newSound);
-      setPlayingId(gymnast.id);
-    } catch (err) {
-      console.error('Error playing music:', err);
-    }
+  const handlePlay = (gymnast: FloorMusicGymnast) => {
+    const localUri = offlineStore.getLocalUri(gymnast.id, gymnast.floor_music_url);
+    const uri = localUri || gymnast.floor_music_url;
+    playerStore.play({
+      gymnastId: gymnast.id,
+      gymnastName: `${gymnast.first_name} ${gymnast.last_name}`,
+      fileName: gymnast.floor_music_name || 'Floor Music',
+      uri,
+    });
   };
 
   const handleRefresh = () => {
@@ -182,12 +159,23 @@ export default function FloorMusicScreen() {
   const renderGymnast = useCallback(
     (gymnast: FloorMusicGymnast) => {
       const isPlaying = playingId === gymnast.id;
+      const downloaded = offlineStore.isDownloaded(gymnast.id, gymnast.floor_music_url);
+      const progress = activeDownloads[gymnast.id];
+      const isDownloading = !!progress;
+
       return (
         <View key={gymnast.id} style={styles.gymnastRow}>
           <View style={styles.gymnastInfo}>
-            <Text style={styles.gymnastName}>
-              {gymnast.first_name} {gymnast.last_name}
-            </Text>
+            <View style={styles.gymnastNameRow}>
+              <Text style={styles.gymnastName}>
+                {gymnast.first_name} {gymnast.last_name}
+              </Text>
+              {downloaded && (
+                <View style={styles.downloadedBadge}>
+                  <Check size={10} color={colors.success[600]} />
+                </View>
+              )}
+            </View>
             <Text style={styles.musicFileName} numberOfLines={1}>
               {gymnast.floor_music_name || 'Floor Music'}
             </Text>
@@ -203,17 +191,39 @@ export default function FloorMusicScreen() {
                 <Play size={16} color={colors.brand[600]} />
               )}
             </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.actionBtn}
-              onPress={() => Linking.openURL(gymnast.floor_music_url)}
-            >
-              <Download size={16} color={colors.slate[600]} />
-            </TouchableOpacity>
+            {isDownloading ? (
+              <View style={[styles.actionBtn, styles.downloadingBtn]}>
+                <ActivityIndicator size="small" color={colors.brand[600]} />
+              </View>
+            ) : downloaded ? (
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.downloadedBtn]}
+                onPress={() => {
+                  Alert.alert(
+                    'Remove Download',
+                    `Remove offline copy of ${gymnast.first_name}'s floor music?`,
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Remove', style: 'destructive', onPress: () => offlineStore.removeFile(gymnast.id) },
+                    ]
+                  );
+                }}
+              >
+                <Check size={16} color={colors.success[600]} />
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.actionBtn}
+                onPress={() => offlineStore.downloadFile(gymnast.id, gymnast.floor_music_url, gymnast.floor_music_name || 'floor-music')}
+              >
+                <Download size={16} color={colors.slate[600]} />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
       );
     },
-    [playingId, sound]
+    [playingId, activeDownloads, downloads]
   );
 
   const renderLevelGroup = useCallback(({ item }: { item: LevelGroup }) => {
@@ -294,6 +304,56 @@ export default function FloorMusicScreen() {
               </TouchableOpacity>
             ))}
           </ScrollView>
+        </View>
+      )}
+
+      {/* Offline Toolbar */}
+      {gymnasts.length > 0 && (
+        <View style={styles.offlineToolbar}>
+          <Text style={styles.offlineInfoText}>
+            {offlineStore.getDownloadCount()} of {gymnasts.length} saved offline
+          </Text>
+          <View style={styles.offlineActions}>
+            {bulkDownloading ? (
+              <TouchableOpacity style={styles.cancelBtn} onPress={offlineStore.cancelBulkDownload}>
+                <Text style={styles.cancelBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                {offlineStore.getDownloadCount() > 0 && (
+                  <TouchableOpacity
+                    style={styles.removeAllBtn}
+                    onPress={() => {
+                      Alert.alert(
+                        'Remove All Downloads',
+                        'Remove all offline floor music files? You can re-download them later.',
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'Remove', style: 'destructive', onPress: () => offlineStore.removeAllFiles() },
+                        ]
+                      );
+                    }}
+                  >
+                    <Trash2 size={16} color={colors.error[600]} />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity
+                  style={styles.downloadAllBtn}
+                  onPress={async () => {
+                    const result = await offlineStore.downloadAll(
+                      gymnasts.map(g => ({ id: g.id, floor_music_url: g.floor_music_url, floor_music_name: g.floor_music_name }))
+                    );
+                    if (result.failed > 0) {
+                      Alert.alert('Download Complete', `Downloaded ${result.downloaded} files. ${result.failed} failed.`);
+                    }
+                  }}
+                >
+                  <CloudDownload size={16} color={colors.white} />
+                  <Text style={styles.downloadAllBtnText}>Download All</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
         </View>
       )}
 
@@ -483,5 +543,76 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  gymnastNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  downloadedBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.success[50],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  downloadedBtn: {
+    backgroundColor: colors.success[50],
+  },
+  downloadingBtn: {
+    backgroundColor: colors.brand[50],
+  },
+  offlineToolbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: colors.white,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.slate[200],
+  },
+  offlineInfoText: {
+    fontSize: 13,
+    color: colors.slate[500],
+  },
+  offlineActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  downloadAllBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: colors.brand[600],
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  downloadAllBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.white,
+  },
+  cancelBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: colors.slate[100],
+  },
+  cancelBtnText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: colors.slate[600],
+  },
+  removeAllBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    backgroundColor: colors.error[50],
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

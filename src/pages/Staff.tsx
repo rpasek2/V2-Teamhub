@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Users, Search, Loader2, LayoutGrid, UsersRound, UserPlus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useRoleChecks } from '../hooks/useRoleChecks';
+import { useNotificationsSafe } from '../context/NotificationContext';
 import { StaffCard } from '../components/staff/StaffCard';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
 import { TeamViewDashboard } from '../components/staff/TeamViewDashboard';
@@ -35,6 +36,12 @@ type ViewTab = 'individual' | 'team';
 export function Staff() {
     const { hubId } = useParams();
     const { isOwner, isStaff, canManage } = useRoleChecks();
+    const notifications = useNotificationsSafe();
+
+    // Mark staff_tasks as viewed when page loads
+    useEffect(() => {
+        notifications?.markAsViewed('staff_tasks');
+    }, [notifications]);
 
     const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
     const [loading, setLoading] = useState(true);
@@ -166,13 +173,7 @@ export function Staff() {
         }
     };
 
-    if (!isStaff) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <p className="text-slate-400">You don't have permission to view this page.</p>
-            </div>
-        );
-    }
+    const isParentView = !isStaff;
 
     return (
         <div className="space-y-6">
@@ -189,8 +190,8 @@ export function Staff() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* View Toggle - only for managers */}
-                    {canManage && (
+                    {/* View Toggle - only for managers (staff only) */}
+                    {canManage && !isParentView && (
                         <div className="flex bg-slate-100 rounded-lg p-1">
                             <button
                                 onClick={() => setActiveTab('individual')}
@@ -235,29 +236,12 @@ export function Staff() {
                 </div>
             )}
 
-            {/* Content Container with smooth transitions */}
-            <div className="relative">
-                {/* Team View */}
-                <div
-                    className={`transition-all duration-200 ease-in-out ${
-                        activeTab === 'team' && canManage
-                            ? 'opacity-100 translate-y-0'
-                            : 'opacity-0 absolute inset-0 pointer-events-none -translate-y-2'
-                    }`}
-                >
-                    {canManage && hubId && (
-                        <TeamViewDashboard hubId={hubId} />
-                    )}
-                </div>
-
-                {/* Individual View */}
-                <div
-                    className={`transition-all duration-200 ease-in-out space-y-6 ${
-                        activeTab === 'individual'
-                            ? 'opacity-100 translate-y-0'
-                            : 'opacity-0 absolute inset-0 pointer-events-none -translate-y-2'
-                    }`}
-                >
+            {/* Content */}
+            <div>
+                {activeTab === 'team' && canManage && hubId ? (
+                    <TeamViewDashboard hubId={hubId} />
+                ) : (
+                <div className="space-y-6">
                     {/* Filters */}
                     <div className="flex flex-col sm:flex-row gap-4">
                         {/* Search */}
@@ -272,8 +256,8 @@ export function Staff() {
                             />
                         </div>
 
-                        {/* Role Filter */}
-                        <div className="flex gap-2 overflow-x-auto pb-1">
+                        {/* Role Filter (staff only) */}
+                        {!isParentView && <div className="flex gap-2 overflow-x-auto pb-1">
                             {(['all', 'owner', 'director', 'admin', 'coach'] as RoleFilter[]).map((role) => (
                                 <button
                                     key={role}
@@ -287,7 +271,7 @@ export function Staff() {
                                     {role === 'all' ? 'All' : role.charAt(0).toUpperCase() + role.slice(1) + 's'}
                                 </button>
                             ))}
-                        </div>
+                        </div>}
                     </div>
 
                     {/* Staff List */}
@@ -312,11 +296,13 @@ export function Staff() {
                                     key={member.user_id}
                                     member={member}
                                     getRoleBadgeColor={getRoleBadgeColor}
+                                    isParentView={isParentView}
                                 />
                             ))}
                         </div>
                     )}
                 </div>
+                )}
             </div>
 
             {/* Invite Staff Modal */}

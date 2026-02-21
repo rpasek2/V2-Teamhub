@@ -53,6 +53,17 @@ const benefits = [
     'Real-time updates and notifications'
 ];
 
+function getAge(dateOfBirth: string): number {
+    const today = new Date();
+    const birth = new Date(dateOfBirth);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+        age--;
+    }
+    return age;
+}
+
 export function Register() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
@@ -60,14 +71,32 @@ export function Register() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [fullName, setFullName] = useState('');
     const [organization, setOrganization] = useState('');
+    const [dateOfBirth, setDateOfBirth] = useState('');
+    const [ageBlocked, setAgeBlocked] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const passwordStrength = useMemo(() => getPasswordStrength(password), [password]);
     const isPasswordValid = passwordStrength.score >= 3; // Require at least "Good" strength
 
+    const handleDateOfBirthChange = (value: string) => {
+        setDateOfBirth(value);
+        if (value) {
+            const age = getAge(value);
+            setAgeBlocked(age < 13);
+        } else {
+            setAgeBlocked(false);
+        }
+    };
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate age
+        if (!dateOfBirth || ageBlocked) {
+            setError('You must be at least 13 years old to create an account');
+            return;
+        }
 
         // Validate password strength before submitting
         if (!isPasswordValid) {
@@ -128,7 +157,7 @@ export function Register() {
                             <span className="text-brand-200">Your Team Today</span>
                         </h1>
                         <p className="text-lg text-brand-100 max-w-md">
-                            Join thousands of coaches and team managers who trust TeamHub for their organization needs.
+                            Join thousands of coaches and team managers who trust The Gymnastics TeamHub for their organization needs.
                         </p>
                     </div>
 
@@ -148,7 +177,7 @@ export function Register() {
                     {/* Quote */}
                     <div className="mt-12 pt-8 border-t border-white/10">
                         <blockquote className="text-brand-100 italic text-lg">
-                            "TeamHub transformed how we manage our gymnastics program. Everything is organized and accessible."
+                            "The Gymnastics TeamHub transformed how we manage our program. Everything is organized and accessible."
                         </blockquote>
                         <div className="mt-4 flex items-center gap-3">
                             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
@@ -186,7 +215,7 @@ export function Register() {
                             Create your account
                         </h2>
                         <p className="text-slate-600">
-                            Get started with TeamHub in just a few steps
+                            Get started with The Gymnastics TeamHub in just a few steps
                         </p>
                     </div>
 
@@ -206,6 +235,27 @@ export function Register() {
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
                             />
+                        </div>
+
+                        <div>
+                            <label htmlFor="dateOfBirth" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                Date of birth
+                            </label>
+                            <input
+                                id="dateOfBirth"
+                                name="dateOfBirth"
+                                type="date"
+                                required
+                                max={new Date().toISOString().split('T')[0]}
+                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                value={dateOfBirth}
+                                onChange={(e) => handleDateOfBirthChange(e.target.value)}
+                            />
+                            {ageBlocked && (
+                                <p className="mt-2 text-sm text-red-600">
+                                    You must be at least 13 years old to create an account. If you are a gymnast under 13, ask your parent or guardian to manage your profile through their account.
+                                </p>
+                            )}
                         </div>
 
                         <div>
@@ -364,7 +414,7 @@ export function Register() {
 
                         <button
                             type="submit"
-                            disabled={loading || !isPasswordValid || password !== confirmPassword}
+                            disabled={loading || !isPasswordValid || password !== confirmPassword || !dateOfBirth || ageBlocked}
                             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
                         >
                             {loading ? (
@@ -389,9 +439,9 @@ export function Register() {
                     {/* Footer */}
                     <p className="mt-8 text-center text-xs text-slate-500">
                         By creating an account, you agree to our{' '}
-                        <a href="#" className="text-brand-600 hover:underline">Terms of Service</a>
+                        <a href="https://twotreesapps-site.web.app/teamhub-terms.html" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">Terms of Service</a>
                         {' '}and{' '}
-                        <a href="#" className="text-brand-600 hover:underline">Privacy Policy</a>
+                        <a href="https://twotreesapps-site.web.app/teamhub-privacy.html" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">Privacy Policy</a>
                     </p>
                 </div>
             </div>

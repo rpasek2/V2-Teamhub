@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, User, Calendar, ClipboardList, CheckSquare, Award,
-    Clock, FileText, Mail, Phone, Loader2, Pencil, X, Check, AlertCircle
+    Clock, FileText, Mail, Phone, Loader2, Pencil, X, Check, AlertCircle, MessageCircle
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isTabEnabled } from '../lib/permissions';
@@ -70,6 +70,8 @@ export function StaffDetails() {
         email: '',
     });
 
+    const [creatingDm, setCreatingDm] = useState(false);
+
     const isOwner = currentRole === 'owner';
     const isSelf = user?.id === staffUserId;
     const canEdit = isOwner || isSelf;
@@ -78,6 +80,27 @@ export function StaffDetails() {
         const staffRoles = ['owner', 'director', 'admin', 'coach'];
         return currentRole ? staffRoles.includes(currentRole) : false;
     }, [currentRole]);
+
+    const isParentView = !isStaff;
+    const showMessageButton = !isSelf && staffMember?.user_id;
+
+    const handleMessageClick = async () => {
+        if (!hub || !user || !staffMember) return;
+        setCreatingDm(true);
+        try {
+            const { data, error } = await supabase.rpc('get_or_create_dm_channel', {
+                p_hub_id: hub.id,
+                p_user1_id: user.id,
+                p_user2_id: staffMember.user_id,
+            });
+            if (error) throw error;
+            navigate(`/hub/${hubId}/messages`, { state: { selectedChannelId: data } });
+        } catch (err) {
+            console.error('Error creating DM:', err);
+        } finally {
+            setCreatingDm(false);
+        }
+    };
 
     useEffect(() => {
         if (hubId && staffUserId && hub) {
@@ -208,20 +231,13 @@ export function StaffDetails() {
     ];
 
     const enabledTabsList = hub?.settings?.enabledTabs;
+    const parentVisibleTabs: TabType[] = ['profile', 'certifications'];
     const visibleTabs = tabs.filter(tab => {
+        if (isParentView) return parentVisibleTabs.includes(tab.id);
         if (tab.ownerOnly && !isOwner) return false;
-        // Hide schedule tab when schedule feature is disabled
         if (tab.id === 'schedule' && !isTabEnabled('schedule', enabledTabsList)) return false;
         return true;
     });
-
-    if (!isStaff) {
-        return (
-            <div className="flex items-center justify-center h-64">
-                <p className="text-slate-400">You don't have permission to view this page.</p>
-            </div>
-        );
-    }
 
     if (loading) {
         return (
@@ -269,38 +285,50 @@ export function StaffDetails() {
 
             {/* Header */}
             <div className="bg-gradient-to-br from-teal-500 via-teal-600 to-teal-700 rounded-xl p-6 text-white mb-6">
-                <div className="flex items-center gap-4">
-                    {staffMember.profile?.avatar_url ? (
-                        <img
-                            src={staffMember.profile.avatar_url}
-                            alt={staffMember.profile.full_name}
-                            className="h-16 w-16 rounded-full object-cover ring-4 ring-white/30"
-                        />
-                    ) : (
-                        <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
-                            <span className="text-2xl font-bold text-white">{initials}</span>
-                        </div>
-                    )}
-                    <div>
-                        <h1 className="text-2xl font-bold tracking-tight">
-                            {staffMember.profile?.full_name}
-                        </h1>
-                        <div className="flex items-center gap-2 mt-1.5">
-                            {staffMember.staff_profile?.title && (
-                                <span className="text-teal-200 text-sm">
-                                    {staffMember.staff_profile.title}
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        {staffMember.profile?.avatar_url ? (
+                            <img
+                                src={staffMember.profile.avatar_url}
+                                alt={staffMember.profile.full_name}
+                                className="h-16 w-16 rounded-full object-cover ring-4 ring-white/30"
+                            />
+                        ) : (
+                            <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
+                                <span className="text-2xl font-bold text-white">{initials}</span>
+                            </div>
+                        )}
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight">
+                                {staffMember.profile?.full_name}
+                            </h1>
+                            <div className="flex items-center gap-2 mt-1.5">
+                                {staffMember.staff_profile?.title && (
+                                    <span className="text-teal-200 text-sm">
+                                        {staffMember.staff_profile.title}
+                                    </span>
+                                )}
+                                <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
+                                    staffMember.role === 'owner' ? 'bg-amber-500/20 text-amber-100' :
+                                    staffMember.role === 'director' ? 'bg-purple-500/20 text-purple-100' :
+                                    staffMember.role === 'admin' ? 'bg-blue-500/20 text-blue-100' :
+                                    'bg-green-500/20 text-green-100'
+                                }`}>
+                                    {staffMember.role.charAt(0).toUpperCase() + staffMember.role.slice(1)}
                                 </span>
-                            )}
-                            <span className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium ${
-                                staffMember.role === 'owner' ? 'bg-amber-500/20 text-amber-100' :
-                                staffMember.role === 'director' ? 'bg-purple-500/20 text-purple-100' :
-                                staffMember.role === 'admin' ? 'bg-blue-500/20 text-blue-100' :
-                                'bg-green-500/20 text-green-100'
-                            }`}>
-                                {staffMember.role.charAt(0).toUpperCase() + staffMember.role.slice(1)}
-                            </span>
+                            </div>
                         </div>
                     </div>
+                    {showMessageButton && (
+                        <button
+                            onClick={handleMessageClick}
+                            disabled={creatingDm}
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                        >
+                            {creatingDm ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
+                            Message
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -509,8 +537,8 @@ export function StaffDetails() {
                                         </p>
                                     </div>
 
-                                    {/* Hire Date */}
-                                    {staffMember.staff_profile?.hire_date && (
+                                    {/* Hire Date (staff only) */}
+                                    {!isParentView && staffMember.staff_profile?.hire_date && (
                                         <div>
                                             <h3 className="text-sm font-medium text-slate-700 mb-2">Hire Date</h3>
                                             <p className="text-sm text-slate-600">
@@ -523,37 +551,39 @@ export function StaffDetails() {
                                         </div>
                                     )}
 
-                                    {/* Emergency Contact */}
-                                    <div className="pt-4 border-t border-slate-200">
-                                        <div className="flex items-center gap-2 mb-3">
-                                            <AlertCircle className="w-4 h-4 text-red-500" />
-                                            <h3 className="text-sm font-medium text-slate-700">Emergency Contact</h3>
-                                        </div>
-                                        {staffMember.staff_profile?.emergency_contact ? (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                <div className="p-3 bg-red-50 rounded-lg">
-                                                    <p className="text-xs text-red-600 font-medium">Name</p>
-                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.name}</p>
-                                                </div>
-                                                <div className="p-3 bg-red-50 rounded-lg">
-                                                    <p className="text-xs text-red-600 font-medium">Relationship</p>
-                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.relationship || 'Not specified'}</p>
-                                                </div>
-                                                <div className="p-3 bg-red-50 rounded-lg">
-                                                    <p className="text-xs text-red-600 font-medium">Phone</p>
-                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.phone}</p>
-                                                </div>
-                                                {staffMember.staff_profile.emergency_contact.email && (
-                                                    <div className="p-3 bg-red-50 rounded-lg">
-                                                        <p className="text-xs text-red-600 font-medium">Email</p>
-                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.email}</p>
-                                                    </div>
-                                                )}
+                                    {/* Emergency Contact (staff only) */}
+                                    {!isParentView && (
+                                        <div className="pt-4 border-t border-slate-200">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <AlertCircle className="w-4 h-4 text-red-500" />
+                                                <h3 className="text-sm font-medium text-slate-700">Emergency Contact</h3>
                                             </div>
-                                        ) : (
-                                            <p className="text-sm text-slate-500 italic">No emergency contact added yet.</p>
-                                        )}
-                                    </div>
+                                            {staffMember.staff_profile?.emergency_contact ? (
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                    <div className="p-3 bg-red-50 rounded-lg">
+                                                        <p className="text-xs text-red-600 font-medium">Name</p>
+                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.name}</p>
+                                                    </div>
+                                                    <div className="p-3 bg-red-50 rounded-lg">
+                                                        <p className="text-xs text-red-600 font-medium">Relationship</p>
+                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.relationship || 'Not specified'}</p>
+                                                    </div>
+                                                    <div className="p-3 bg-red-50 rounded-lg">
+                                                        <p className="text-xs text-red-600 font-medium">Phone</p>
+                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.phone}</p>
+                                                    </div>
+                                                    {staffMember.staff_profile.emergency_contact.email && (
+                                                        <div className="p-3 bg-red-50 rounded-lg">
+                                                            <p className="text-xs text-red-600 font-medium">Email</p>
+                                                            <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.email}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm text-slate-500 italic">No emergency contact added yet.</p>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>

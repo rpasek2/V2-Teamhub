@@ -374,6 +374,7 @@ export function Calendar() {
                 filterType={filterType}
                 showFilter={showFilter}
                 canAddEvents={canAddEvents}
+                isSaveTheDatesActive={view === 'agenda' && agendaMode === 'save_the_dates'}
                 onPrevPeriod={prevPeriod}
                 onNextPeriod={nextPeriod}
                 onGoToToday={goToToday}
@@ -383,6 +384,10 @@ export function Calendar() {
                 onAddEvent={() => {
                     setSelectedDate(null);
                     setIsCreateModalOpen(true);
+                }}
+                onSaveTheDates={() => {
+                    setView('agenda');
+                    setAgendaMode('save_the_dates');
                 }}
             />
 

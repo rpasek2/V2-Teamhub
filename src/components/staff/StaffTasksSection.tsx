@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Plus, Trash2, Loader2, CheckSquare, Circle, CheckCircle2, Clock, AlertCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { createStaffTaskNotification } from '../../lib/notifications';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 
 interface Task {
@@ -67,7 +68,7 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
         if (!hubId || !title.trim()) return;
         setSaving(true);
 
-        const { error } = await supabase
+        const { data: inserted, error } = await supabase
             .from('staff_tasks')
             .insert({
                 hub_id: hubId,
@@ -77,11 +78,23 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                 due_date: dueDate || null,
                 priority,
                 assigned_by: user?.id,
-            });
+            })
+            .select('id')
+            .single();
 
         if (error) {
             console.error('Error adding task:', error);
         } else {
+            if (inserted && user) {
+                createStaffTaskNotification({
+                    hubId,
+                    userId: staffUserId,
+                    actorId: user.id,
+                    taskId: inserted.id,
+                    title: `New task: ${title.trim()}`,
+                    body: dueDate ? `Due ${format(parseISO(dueDate), 'MMM d, yyyy')} • Priority: ${priority}` : `Priority: ${priority}`,
+                });
+            }
             await fetchTasks();
             setShowAddForm(false);
             setTitle('');
@@ -112,6 +125,20 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
         if (error) {
             console.error('Error updating task:', error);
         } else {
+            // Notify assignee if someone else changed their task status
+            if (user && hubId && user.id !== staffUserId) {
+                const task = tasks.find(t => t.id === taskId);
+                if (task) {
+                    createStaffTaskNotification({
+                        hubId,
+                        userId: staffUserId,
+                        actorId: user.id,
+                        taskId,
+                        title: `Task ${newStatus === 'completed' ? 'completed' : 'updated'}: ${task.title}`,
+                        body: `Status changed to ${newStatus.replace('_', ' ')}`,
+                    });
+                }
+            }
             setTasks(tasks.map(t =>
                 t.id === taskId
                     ? { ...t, status: newStatus, completed_at: newStatus === 'completed' ? new Date().toISOString() : null }
@@ -121,6 +148,8 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
     };
 
     const handleDeleteTask = async (taskId: string) => {
+        if (!confirm('Are you sure you want to delete this task? This cannot be undone.')) return;
+
         const { error } = await supabase
             .from('staff_tasks')
             .delete()

@@ -162,22 +162,23 @@ export default function ChatScreen() {
       return;
     }
 
-    // If it's a DM, get the other user's info
+    // If it's a DM, get the other users' info
     if (data.dm_participant_ids) {
-      const otherUserId = data.dm_participant_ids.find((id: string) => id !== user.id);
-      if (otherUserId) {
-        const { data: profile } = await supabase
+      const otherIds = data.dm_participant_ids.filter((id: string) => id !== user.id);
+      if (otherIds.length > 0) {
+        const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name')
-          .eq('id', otherUserId)
-          .single();
+          .in('id', otherIds);
 
-        if (profile) {
+        if (profiles && profiles.length > 0) {
           setChannel({
             ...data,
             dm_other_user: {
-              id: profile.id,
-              full_name: profile.full_name || 'Unknown',
+              id: profiles[0].id,
+              full_name: profiles.length > 1
+                ? profiles.map(p => p.full_name || 'Unknown').join(', ')
+                : profiles[0].full_name || 'Unknown',
             },
           });
           return;

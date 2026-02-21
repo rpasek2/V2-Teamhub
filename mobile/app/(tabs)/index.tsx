@@ -27,8 +27,11 @@ import {
 import { colors, theme } from '../../src/constants/colors';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
+import { useActivityFeedStore } from '../../src/stores/activityFeedStore';
 import { isTabEnabled } from '../../src/lib/permissions';
 import { supabase } from '../../src/services/supabase';
+import { NotificationBell } from '../../src/components/notifications/NotificationBell';
+import { MyTasksSection } from '../../src/components/dashboard/MyTasksSection';
 import { format, parseISO, subWeeks, subDays } from 'date-fns';
 
 // Interfaces
@@ -123,6 +126,7 @@ export default function DashboardScreen() {
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
   const user = useAuthStore((state) => state.user);
+  const { fetchUnreadCount, fetchPreferences } = useActivityFeedStore();
 
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -135,6 +139,9 @@ export default function DashboardScreen() {
   const [linkedGymnastInfo, setLinkedGymnastInfo] = useState<LinkedGymnastInfo[]>([]);
   const [recentScores, setRecentScores] = useState<RecentScore[]>([]);
   const [recentSkillChanges, setRecentSkillChanges] = useState<RecentSkillChange[]>([]);
+
+  // Staff tasks
+  const [myTasks, setMyTasks] = useState<{ id: string; title: string; description: string | null; due_date: string | null; priority: 'low' | 'medium' | 'high' | 'urgent'; status: 'pending' | 'in_progress' | 'completed'; assigned_by: string | null; created_at: string }[]>([]);
 
   // Shared data
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
@@ -279,6 +286,22 @@ export default function DashboardScreen() {
     }
   }, [currentHub, user, linkedGymnasts]);
 
+  const fetchMyTasks = useCallback(async () => {
+    if (!currentHub || !user) return;
+    const { data, error } = await supabase
+      .from('staff_tasks')
+      .select('id, title, description, due_date, priority, status, assigned_by, created_at')
+      .eq('hub_id', currentHub.id)
+      .eq('staff_user_id', user.id)
+      .in('status', ['pending', 'in_progress'])
+      .order('due_date', { ascending: true, nullsFirst: false });
+    if (error) {
+      console.error('Error fetching my tasks:', error);
+    } else {
+      setMyTasks(data || []);
+    }
+  }, [currentHub, user]);
+
   const fetchDashboardData = useCallback(async () => {
     if (!currentHub || !user) return;
 
@@ -396,6 +419,30 @@ export default function DashboardScreen() {
     }
   }, [currentHub, user]);
 
+  const handleTaskStatusChange = useCallback(async (taskId: string, newStatus: 'pending' | 'in_progress' | 'completed') => {
+    const updates: Record<string, unknown> = {
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    };
+    if (newStatus === 'completed') {
+      updates.completed_at = new Date().toISOString();
+    } else {
+      updates.completed_at = null;
+    }
+    const { error } = await supabase
+      .from('staff_tasks')
+      .update(updates)
+      .eq('id', taskId);
+    if (error) {
+      console.error('Error updating task status:', error);
+    } else {
+      setMyTasks(prev => prev.filter(t => {
+        if (t.id !== taskId) return true;
+        return newStatus !== 'completed';
+      }).map(t => t.id === taskId ? { ...t, status: newStatus } : t));
+    }
+  }, []);
+
   const isParentRole = currentMember?.role === 'parent';
 
   useEffect(() => {
@@ -406,16 +453,19 @@ export default function DashboardScreen() {
         fetchDashboardData(),
         isParentRole ? fetchLinkedGymnastInfo() : Promise.resolve(),
         isParentRole ? fetchParentData() : Promise.resolve(),
+        !isParentRole && isStaff() ? fetchMyTasks() : Promise.resolve(),
       ]);
       setLoading(false);
     };
 
     if (currentHub && user) {
       loadData();
+      fetchUnreadCount(currentHub.id, user.id);
+      fetchPreferences(currentHub.id, user.id);
     } else {
       setLoading(false);
     }
-  }, [currentHub?.id, user?.id, isParentRole, fetchUserName, fetchDashboardData, fetchLinkedGymnastInfo, fetchParentData]);
+  }, [currentHub?.id, user?.id, isParentRole, fetchUserName, fetchDashboardData, fetchLinkedGymnastInfo, fetchParentData, fetchMyTasks]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -423,6 +473,7 @@ export default function DashboardScreen() {
       fetchDashboardData(),
       isParentRole ? fetchLinkedGymnastInfo() : Promise.resolve(),
       isParentRole ? fetchParentData() : Promise.resolve(),
+      !isParentRole && isStaff() ? fetchMyTasks() : Promise.resolve(),
     ]);
     setRefreshing(false);
   };
@@ -459,12 +510,17 @@ export default function DashboardScreen() {
     >
       {/* Header with Greeting */}
       <View style={styles.headerSection}>
-        <Text style={styles.greeting}>
-          {getGreeting()}{userName ? `, ${userName}` : ''}
-        </Text>
-        <Text style={styles.subGreeting}>
-          Welcome to {currentHub?.name} • {format(new Date(), 'EEEE, MMMM d')}
-        </Text>
+        <View style={styles.headerRow}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.greeting}>
+              {getGreeting()}{userName ? `, ${userName}` : ''}
+            </Text>
+            <Text style={styles.subGreeting}>
+              Welcome to {currentHub?.name} • {format(new Date(), 'EEEE, MMMM d')}
+            </Text>
+          </View>
+          <NotificationBell />
+        </View>
       </View>
 
       {/* Parent: Linked Gymnast Cards */}
@@ -575,6 +631,11 @@ export default function DashboardScreen() {
             )}
           </View>
         </View>
+      )}
+
+      {/* Staff: My Tasks */}
+      {isStaff() && myTasks.length > 0 && (
+        <MyTasksSection tasks={myTasks} onStatusChange={handleTaskStatusChange} />
       )}
 
       {/* Parent: Recent Scores */}
@@ -761,6 +822,14 @@ const styles = StyleSheet.create({
   },
   headerSection: {
     marginBottom: 24,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   greeting: {
     fontSize: 24,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { Search, Edit, Users, User, Hash, ShieldAlert, ChevronRight, Plus } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { NotificationBadge, MobileTabGuard } from '../../src/components/ui';
@@ -155,8 +155,9 @@ export default function MessagesScreen() {
       const dmUserIds = new Set<string>();
       for (const ch of channelData || []) {
         if (ch.dm_participant_ids && ch.dm_participant_ids.length > 0) {
-          const otherUserId = ch.dm_participant_ids.find((id: string) => id !== user.id);
-          if (otherUserId) dmUserIds.add(otherUserId);
+          ch.dm_participant_ids.forEach((id: string) => {
+            if (id !== user.id) dmUserIds.add(id);
+          });
         }
       }
 
@@ -218,10 +219,11 @@ export default function MessagesScreen() {
 
           if (ch.dm_participant_ids && ch.dm_participant_ids.length > 0) {
             channelType = 'dm';
-            const otherUserId = ch.dm_participant_ids.find((id: string) => id !== user.id);
-            if (otherUserId) {
-              channelName = profileMap.get(otherUserId) || 'Unknown User';
-            }
+            const otherIds = ch.dm_participant_ids.filter((id: string) => id !== user.id);
+            const names = otherIds
+              .map((id: string) => profileMap.get(id) || 'Unknown User')
+              .join(', ');
+            channelName = names || 'Unknown User';
           }
 
           return {
@@ -257,6 +259,15 @@ export default function MessagesScreen() {
   useEffect(() => {
     fetchChannels();
   }, [currentHub?.id, user?.id]);
+
+  // Re-fetch channels when screen regains focus (clears stale badges)
+  useFocusEffect(
+    useCallback(() => {
+      if (currentHub && user) {
+        fetchChannels();
+      }
+    }, [currentHub?.id, user?.id])
+  );
 
   // Fetch owner info for non-staff users
   const fetchOwnerInfo = async () => {

@@ -600,8 +600,8 @@ export function ItemDetailModal({
                                             {canMessage && (
                                                 <button
                                                     onClick={() => {
-                                                        // TODO: Navigate to messages with this user
-                                                        console.log('Message seller:', item.seller_id);
+                                                        // Navigate to messages with seller
+                                                        onClose();
                                                     }}
                                                     className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
                                                 >

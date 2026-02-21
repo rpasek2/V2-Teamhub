@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { Loader2, Calendar, Trophy, MessageSquare, ChevronRight, Users } from 'lucide-react';
-import teamhubLogo from '../../assets/teamhub-logo.svg';
+import teamhubLogo from '../../assets/teamhub-logo.png';
+import landingLogo from '../../assets/landing-logo.png';
 
 const features = [
     {
@@ -69,13 +70,9 @@ export function Login() {
                 <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-20 text-center">
                     {/* Logo/Brand */}
                     <div className="mb-12">
-                        <div className="flex items-center justify-center gap-3 mb-8">
-                            <img src={teamhubLogo} alt="TeamHub" className="h-64 xl:h-80 w-auto" />
+                        <div className="flex items-center justify-center mb-8">
+                            <img src={landingLogo} alt="The Gymnastics TeamHub" className="h-72 xl:h-80 w-auto" />
                         </div>
-                        <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
-                            Your Team's<br />
-                            <span className="text-brand-200">Command Center</span>
-                        </h1>
                         <p className="text-lg text-brand-100 max-w-md">
                             The all-in-one platform for managing your gymnastics team, from roster to competitions.
                         </p>
@@ -104,7 +101,7 @@ export function Login() {
                 <div className="w-full max-w-md">
                     {/* Mobile Logo */}
                     <div className="lg:hidden text-center mb-8">
-                        <img src={teamhubLogo} alt="TeamHub" className="h-48 w-auto mx-auto" />
+                        <img src={teamhubLogo} alt="The Gymnastics TeamHub" className="h-20 w-auto mx-auto" />
                     </div>
 
                     {/* Form Header */}
@@ -141,9 +138,7 @@ export function Login() {
                                 <label htmlFor="password" className="block text-sm font-medium text-slate-700">
                                     Password
                                 </label>
-                                <button type="button" className="text-sm text-brand-600 hover:text-brand-500 font-medium">
-                                    Forgot password?
-                                </button>
+                                <span></span>
                             </div>
                             <input
                                 id="password"
@@ -186,7 +181,7 @@ export function Login() {
                             <div className="w-full border-t border-slate-200" />
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-white text-slate-500">New to TeamHub?</span>
+                            <span className="px-4 bg-white text-slate-500">New to The Gymnastics TeamHub?</span>
                         </div>
                     </div>
 
@@ -201,9 +196,9 @@ export function Login() {
                     {/* Footer */}
                     <p className="mt-8 text-center text-xs text-slate-500">
                         By signing in, you agree to our{' '}
-                        <a href="#" className="text-brand-600 hover:underline">Terms of Service</a>
+                        <a href="https://twotreesapps-site.web.app/teamhub-terms.html" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">Terms of Service</a>
                         {' '}and{' '}
-                        <a href="#" className="text-brand-600 hover:underline">Privacy Policy</a>
+                        <a href="https://twotreesapps-site.web.app/teamhub-privacy.html" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">Privacy Policy</a>
                     </p>
                 </div>
             </div>

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Plus, Filter, Circle, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
+import { Plus, Circle, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 import type { StaffWithData, Task } from '../../hooks/useStaffBulk';
 import { useBulkUpdateTasks } from '../../hooks/useStaffBulk';
@@ -135,40 +135,35 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
     return (
         <div className="space-y-4">
             {/* Controls */}
-            <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
                 {/* Filters */}
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-slate-400" />
-                        <select
-                            value={staffFilter}
-                            onChange={(e) => setStaffFilter(e.target.value)}
-                            className="input py-1.5 text-sm"
-                        >
-                            <option value="all">All Staff</option>
-                            {staffData.map(staff => (
-                                <option key={staff.user_id} value={staff.user_id}>
-                                    {staff.profile?.full_name || 'Unknown'}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
+                <div className="flex flex-wrap items-center gap-2">
+                    <select
+                        value={staffFilter}
+                        onChange={(e) => setStaffFilter(e.target.value)}
+                        className="input py-1.5 text-sm min-w-0"
+                    >
+                        <option value="all">All Staff</option>
+                        {staffData.map(staff => (
+                            <option key={staff.user_id} value={staff.user_id}>
+                                {staff.profile?.full_name || 'Unknown'}
+                            </option>
+                        ))}
+                    </select>
                     <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-                        className="input py-1.5 text-sm"
+                        className="input py-1.5 text-sm min-w-0"
                     >
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
                         <option value="in_progress">In Progress</option>
                         <option value="completed">Completed</option>
                     </select>
-
                     <select
                         value={priorityFilter}
                         onChange={(e) => setPriorityFilter(e.target.value as PriorityFilter)}
-                        className="input py-1.5 text-sm"
+                        className="input py-1.5 text-sm min-w-0"
                     >
                         <option value="all">All Priority</option>
                         <option value="urgent">Urgent</option>
@@ -176,26 +171,27 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
                         <option value="medium">Medium</option>
                         <option value="low">Low</option>
                     </select>
+                </div>
 
+                {/* Sort + Actions */}
+                <div className="flex items-center gap-2">
                     <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as SortBy)}
-                        className="input py-1.5 text-sm"
+                        className="input py-1.5 text-sm min-w-0"
                     >
-                        <option value="due_date">Sort by Due Date</option>
-                        <option value="priority">Sort by Priority</option>
-                        <option value="staff">Sort by Staff</option>
+                        <option value="due_date">Due Date</option>
+                        <option value="priority">Priority</option>
+                        <option value="staff">Staff</option>
                     </select>
+                    <button
+                        onClick={() => setShowBulkModal(true)}
+                        className="btn-primary text-sm whitespace-nowrap"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Assign Task
+                    </button>
                 </div>
-
-                {/* Actions */}
-                <button
-                    onClick={() => setShowBulkModal(true)}
-                    className="btn-primary text-sm"
-                >
-                    <Plus className="w-4 h-4" />
-                    Bulk Assign Task
-                </button>
             </div>
 
             {/* Bulk Actions Bar */}

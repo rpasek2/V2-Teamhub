@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Trophy, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
-import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { ScoresTable } from '../components/scores/ScoresTable';
@@ -12,13 +11,13 @@ import type { Competition, GymnastProfile, CompetitionScore, CompetitionTeamPlac
 interface CompetitionWithGymnasts extends Competition {
     competition_gymnasts: {
         gymnast_profile_id: string;
+        age_group: string | null;
         gymnast_profiles: GymnastProfile;
     }[];
 }
 
 export function Scores() {
-    const { hub } = useHub();
-    const { user } = useAuth();
+    const { hub, linkedGymnasts } = useHub();
     const { markAsViewed } = useNotifications();
     const { isStaff, isParent } = useRoleChecks();
     const [competitions, setCompetitions] = useState<CompetitionWithGymnasts[]>([]);
@@ -28,7 +27,7 @@ export function Scores() {
     const [error, setError] = useState<string | null>(null);
     const [scores, setScores] = useState<CompetitionScore[]>([]);
     const [teamPlacements, setTeamPlacements] = useState<CompetitionTeamPlacement[]>([]);
-    const [userGymnastIds, setUserGymnastIds] = useState<string[]>([]);
+    const userGymnastIds = useMemo(() => linkedGymnasts.map(g => g.id), [linkedGymnasts]);
     const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
 
     // Mark scores as viewed when page loads
@@ -38,20 +37,10 @@ export function Scores() {
         }
     }, [hub, markAsViewed]);
 
-    // Fetch user's linked gymnasts if parent
-    useEffect(() => {
-        if (isParent && user && hub) {
-            fetchUserGymnasts();
-        }
-    }, [hub, user, isParent]);
-
     // Fetch competitions when season changes
     useEffect(() => {
         if (hub && selectedSeasonId) {
             fetchCompetitions();
-        } else if (hub && !selectedSeasonId) {
-            // Season not yet selected, stop loading state
-            setLoading(false);
         }
     }, [hub, selectedSeasonId]);
 
@@ -79,6 +68,7 @@ export function Scores() {
                 id, hub_id, name, start_date, end_date, location, created_by, created_at, season_id, championship_type,
                 competition_gymnasts(
                     gymnast_profile_id,
+                    age_group,
                     gymnast_profiles(id, first_name, last_name, gender, level)
                 )
             `)
@@ -96,22 +86,6 @@ export function Scores() {
             }
         }
         setLoading(false);
-    };
-
-    const fetchUserGymnasts = async () => {
-        if (!hub || !user) return;
-
-        const { data, error } = await supabase
-            .from('gymnast_profiles')
-            .select('id')
-            .eq('hub_id', hub.id)
-            .eq('user_id', user.id);
-
-        if (error) {
-            console.error('Error fetching user gymnasts:', error);
-        } else {
-            setUserGymnastIds(data?.map(g => g.id) || []);
-        }
     };
 
     const fetchScores = async () => {
@@ -151,6 +125,18 @@ export function Scores() {
             .filter(cg => cg.gymnast_profiles?.gender === activeGender)
             .map(cg => cg.gymnast_profiles);
     };
+
+    // Build age group map from competition gymnasts
+    const ageGroupMap = useMemo(() => {
+        if (!selectedCompetition) return {};
+        const map: Record<string, string> = {};
+        selectedCompetition.competition_gymnasts.forEach(cg => {
+            if (cg.age_group) {
+                map[cg.gymnast_profile_id] = cg.age_group;
+            }
+        });
+        return map;
+    }, [selectedCompetition]);
 
     // Get unique levels from hub settings
     const getLevels = (): string[] => {
@@ -259,6 +245,7 @@ export function Scores() {
                                 isStaff={isStaff}
                                 isParent={isParent}
                                 userGymnastIds={userGymnastIds}
+                                ageGroupMap={ageGroupMap}
                                 onScoresUpdated={fetchScores}
                                 onTeamPlacementsUpdated={fetchTeamPlacements}
                             />

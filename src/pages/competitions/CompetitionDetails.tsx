@@ -30,6 +30,7 @@ interface Competition {
 interface Gymnast {
     gymnast_profile_id: string;
     events: GymEvent[];
+    age_group: string | null;
     gymnast_profiles: {
         id: string;
         first_name: string;
@@ -153,15 +154,16 @@ export function CompetitionDetails() {
         if (!competitionId) return;
         const { data, error } = await supabase
             .from('competition_gymnasts')
-            .select('gymnast_profile_id, events, gymnast_profiles(id, first_name, last_name, level, gymnast_id, gender)')
+            .select('gymnast_profile_id, events, age_group, gymnast_profiles(id, first_name, last_name, level, gymnast_id, gender)')
             .eq('competition_id', competitionId);
 
         if (error) {
             console.error('Error fetching roster:', error);
         } else if (data) {
-            const mapped = data.map((d: { gymnast_profile_id: string; events: string[] | null; gymnast_profiles: { id: string; first_name: string; last_name: string; level: string | null; gymnast_id: string; gender: 'Male' | 'Female' | null } | { id: string; first_name: string; last_name: string; level: string | null; gymnast_id: string; gender: 'Male' | 'Female' | null }[] }) => ({
+            const mapped = data.map((d: { gymnast_profile_id: string; events: string[] | null; age_group: string | null; gymnast_profiles: { id: string; first_name: string; last_name: string; level: string | null; gymnast_id: string; gender: 'Male' | 'Female' | null } | { id: string; first_name: string; last_name: string; level: string | null; gymnast_id: string; gender: 'Male' | 'Female' | null }[] }) => ({
                 gymnast_profile_id: d.gymnast_profile_id,
                 events: (d.events || []) as GymEvent[],
+                age_group: d.age_group || null,
                 gymnast_profiles: Array.isArray(d.gymnast_profiles) ? d.gymnast_profiles[0] : d.gymnast_profiles
             }));
             setRoster(mapped as Gymnast[]);
@@ -188,6 +190,27 @@ export function CompetitionDetails() {
             setRoster(prev => prev.map(g =>
                 g.gymnast_profile_id === gymnastProfileId
                     ? { ...g, events: newEvents }
+                    : g
+            ));
+        }
+    };
+
+    const updateAgeGroup = async (gymnastProfileId: string, ageGroup: string) => {
+        if (!canManageRoster || !competitionId) return;
+
+        const value = ageGroup.trim() || null;
+        const { error } = await supabase
+            .from('competition_gymnasts')
+            .update({ age_group: value })
+            .eq('competition_id', competitionId)
+            .eq('gymnast_profile_id', gymnastProfileId);
+
+        if (error) {
+            console.error('Error updating age group:', error);
+        } else {
+            setRoster(prev => prev.map(g =>
+                g.gymnast_profile_id === gymnastProfileId
+                    ? { ...g, age_group: value }
                     : g
             ));
         }
@@ -414,13 +437,29 @@ export function CompetitionDetails() {
                                                     const availableEvents = getEventsForGender(gymnast.gymnast_profiles.gender);
                                                     return (
                                                         <li key={gymnast.gymnast_profile_id} className="flex items-center justify-between p-3 hover:bg-slate-50">
-                                                            <div className="flex items-center">
-                                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-mint-100 text-mint-700 text-sm font-semibold">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-mint-100 text-mint-700 text-sm font-semibold flex-shrink-0">
                                                                     {gymnast.gymnast_profiles.first_name[0]}{gymnast.gymnast_profiles.last_name[0]}
                                                                 </div>
-                                                                <p className="ml-3 text-sm font-medium text-slate-900">
+                                                                <p className="text-sm font-medium text-slate-900">
                                                                     {gymnast.gymnast_profiles.first_name} {gymnast.gymnast_profiles.last_name}
                                                                 </p>
+                                                                {canManageRoster ? (
+                                                                    <input
+                                                                        type="text"
+                                                                        placeholder="Age group"
+                                                                        defaultValue={gymnast.age_group || ''}
+                                                                        onBlur={(e) => updateAgeGroup(gymnast.gymnast_profile_id, e.target.value)}
+                                                                        onKeyDown={(e) => {
+                                                                            if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                                                        }}
+                                                                        className="w-24 px-2 py-1 text-xs rounded-md border border-slate-200 text-slate-600 placeholder:text-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 focus:outline-none"
+                                                                    />
+                                                                ) : gymnast.age_group ? (
+                                                                    <span className="inline-flex items-center rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-700">
+                                                                        {gymnast.age_group}
+                                                                    </span>
+                                                                ) : null}
                                                             </div>
                                                             <div className="flex items-center gap-1">
                                                                 {availableEvents.map((event) => {

@@ -876,7 +876,8 @@ export type NotificationFeature =
     | 'skills'
     | 'assignments'
     | 'marketplace'
-    | 'resources';
+    | 'resources'
+    | 'staff_tasks';
 
 export interface NotificationCounts {
     messages: number;       // Count of unread messages
@@ -888,6 +889,7 @@ export interface NotificationCounts {
     assignments: boolean;   // Has new assignments
     marketplace: boolean;   // Has new items
     resources: boolean;     // Has new resources
+    staff_tasks: boolean;   // Has new staff tasks
 }
 
 export interface UserHubNotification {
@@ -903,9 +905,85 @@ export interface UserHubNotification {
     assignments_last_viewed_at: string | null;
     marketplace_last_viewed_at: string | null;
     resources_last_viewed_at: string | null;
+    staff_tasks_last_viewed_at: string | null;
     created_at: string;
     updated_at: string;
 }
+
+// ============================================
+// Activity Feed Notification Types
+// ============================================
+
+export type NotificationType =
+    | 'message'
+    | 'post'
+    | 'event'
+    | 'competition'
+    | 'score'
+    | 'skill'
+    | 'assignment'
+    | 'marketplace_item'
+    | 'resource'
+    | 'staff_task';
+
+export interface ActivityNotification {
+    id: string;
+    user_id: string;
+    hub_id: string;
+    type: NotificationType;
+    title: string;
+    body: string | null;
+    actor_id: string | null;
+    reference_id: string | null;
+    reference_type: string | null;
+    is_read: boolean;
+    created_at: string;
+    actor_profile?: { full_name: string; avatar_url: string | null };
+}
+
+export interface UserNotificationPreferences {
+    id: string;
+    user_id: string;
+    hub_id: string;
+    messages_enabled: boolean;
+    groups_enabled: boolean;
+    calendar_enabled: boolean;
+    competitions_enabled: boolean;
+    scores_enabled: boolean;
+    skills_enabled: boolean;
+    assignments_enabled: boolean;
+    marketplace_enabled: boolean;
+    resources_enabled: boolean;
+    staff_tasks_enabled: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export const NOTIFICATION_TYPE_TO_PREF: Record<NotificationType, keyof Omit<UserNotificationPreferences, 'id' | 'user_id' | 'hub_id' | 'created_at' | 'updated_at'>> = {
+    message: 'messages_enabled',
+    post: 'groups_enabled',
+    event: 'calendar_enabled',
+    competition: 'competitions_enabled',
+    score: 'scores_enabled',
+    skill: 'skills_enabled',
+    assignment: 'assignments_enabled',
+    marketplace_item: 'marketplace_enabled',
+    resource: 'resources_enabled',
+    staff_task: 'staff_tasks_enabled',
+};
+
+export const NOTIFICATION_TYPE_TO_FEATURE: Record<NotificationType, NotificationFeature> = {
+    message: 'messages',
+    post: 'groups',
+    event: 'calendar',
+    competition: 'competitions',
+    score: 'scores',
+    skill: 'skills',
+    assignment: 'assignments',
+    marketplace_item: 'marketplace',
+    resource: 'resources',
+    staff_task: 'staff_tasks',
+};
 
 // ============================================
 // Schedule Types
