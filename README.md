@@ -4,39 +4,53 @@ A premium, multi-tenant team management platform for gymnastics programs (and ot
 
 ## Tech Stack
 
+### Web App
 - **Framework:** React 19 + Vite 7
 - **Language:** TypeScript 5.9
 - **Styling:** Tailwind CSS 4 (Digital Gym design system)
 - **UI Components:** Headless UI, Lucide React icons
 - **Routing:** React Router DOM v7
 - **Backend:** Supabase (PostgreSQL, Auth, Storage, Realtime)
+- **Hosting:** Firebase Hosting
 - **Date Handling:** date-fns v4
 - **Utilities:** clsx + tailwind-merge
 
+### Mobile App
+- **Framework:** React Native (Expo SDK 52)
+- **Routing:** Expo Router (file-based)
+- **State Management:** Zustand
+- **Icons:** Lucide React Native
+- **Push Notifications:** Expo Notifications + FCM (Android)
+- **Audio:** Expo AV (floor music playback)
+- **Builds:** Gradle (AAB for Android)
+
 ## Getting Started
 
+### Web App
 ```bash
-# Install dependencies
 npm install
+npm run dev          # Start dev server
+npm run build        # Production build
+npm run preview      # Preview build
+npm run lint         # Lint check
+```
 
-# Start development server
-npm run dev
+### Mobile App
+```bash
+cd mobile
+npm install
+npx expo start       # Start Expo dev server
+npx expo start --android  # Run on Android
 
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Run linting
-npm run lint
+# Release build (AAB for Google Play)
+cd android && ./gradlew bundleRelease
 ```
 
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| **Dashboard** | Overview stats, upcoming events, recent activity feed |
+| **Dashboard** | Overview stats, upcoming events, coach tasks widget |
 | **Roster** | Gymnast list with dedicated profile pages, medical info, guardians, emergency contacts, apparel sizes |
 | **Gymnast Profile** | Full-page view with 7 tabs: Profile, Goals, Assessment, Assignments, Skills, Scores, and Attendance |
 | **Calendar** | Events with RSVP, color-coded types, US holidays, optional birthday display |
@@ -53,6 +67,9 @@ npm run lint
 | **Attendance** | Daily attendance tracking with metrics and absence warnings |
 | **Staff** | Staff profiles, schedules, responsibilities, time-off requests |
 | **Settings** | Hub configuration, permissions, feature toggles |
+| **Notifications** | In-app notification bell, activity feed, push notifications (Android), per-feature preferences |
+| **Private Lessons** | Coach availability, package pricing, parent booking, calendar view |
+| **Floor Music** | Upload, playback, offline download, media player with play/pause controls |
 
 ## Architecture
 
@@ -85,7 +102,7 @@ src/
 │   ├── Staff.tsx           # Staff list
 │   ├── StaffDetails.tsx    # Staff profile (/staff/:staffUserId)
 │   └── ...
-├── components/             # 80+ reusable components
+├── components/             # 90+ reusable components
 │   ├── layout/             # App shell, sidebar
 │   ├── attendance/         # Daily attendance, metrics
 │   ├── assignments/        # Coach dashboard, templates
@@ -99,7 +116,25 @@ src/
 │   ├── staff/              # Staff profiles, schedules
 │   └── ui/                 # Modal, badges, loaders
 ├── types/index.ts          # TypeScript type definitions
-└── lib/supabase.ts         # Supabase client singleton
+└── lib/
+    ├── supabase.ts         # Supabase client singleton
+    ├── permissions.ts      # Permission helpers
+    ├── notifications.ts    # Notification utilities
+    ├── qualifyingScores.ts # Qualifying score thresholds
+    └── seasons.ts          # Season utilities
+
+mobile/                     # React Native mobile app
+├── app/                    # Expo Router screens (65+)
+│   ├── (auth)/             # Login, register
+│   ├── (tabs)/             # Tab navigator
+│   ├── roster/             # Roster + floor music
+│   ├── notifications/      # Activity feed
+│   └── settings/           # User + notification prefs
+├── src/
+│   ├── stores/             # Zustand stores (7)
+│   ├── components/         # Mobile components
+│   └── lib/                # Shared utilities
+└── android/                # Native Android (Gradle builds)
 ```
 
 ### Permission System
@@ -144,7 +179,7 @@ Badges:           bg-brand-100 text-brand-700, bg-slate-100 text-slate-600
 
 ## Database
 
-PostgreSQL via Supabase with 55+ tables including:
+PostgreSQL via Supabase with 60+ tables including:
 - `profiles`, `organizations`, `hubs`, `hub_members`
 - `gymnast_profiles`, `events`, `seasons`, `competitions`, `competition_scores`
 - `groups`, `posts`, `channels`, `messages`
@@ -154,8 +189,10 @@ PostgreSQL via Supabase with 55+ tables including:
 - `practice_schedules`, `rotation_events`, `rotation_blocks`
 - `attendance_records`
 - `assignments`, `assignment_templates`
+- `notifications`, `user_notification_preferences`, `user_push_tokens`
+- `coach_lesson_settings`, `lesson_bookings`
 
-All tables use Row Level Security (RLS) policies.
+All tables use Row Level Security (RLS) policies. Push notifications are delivered via database triggers on `notifications` INSERT using `pg_net` to call the Expo Push API.
 
 ## Sport Support
 

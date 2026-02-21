@@ -1,9 +1,9 @@
-# Bugs & Issues
+# Roadmap
 
 ## Mobile
 
-### Push Notifications (Device Alerts)
-In-app notification system is built (bell + activity feed + preferences). Next step is enabling actual device push notifications via expo-notifications so the phone buzzes.
+### ~~Push Notifications (Device Alerts)~~ (DONE)
+Device push notifications implemented via expo-notifications + FCM (Android). Database trigger on `notifications` INSERT calls `send_push_notification()` which looks up active tokens in `user_push_tokens`, checks user preferences, and sends via Expo Push API through `pg_net`. Mobile app registers token on login, deregisters on sign out. Notification taps deep link to the relevant screen. Preferences respected per notification type.
 
 ### Schedule - Rotations Display
 The schedule tab has a rotations section. On web this is shown as a grid, but on mobile it's just a list sorted by level showing the day's rotations. Makes it hard to determine multiple groups' events quickly. Needs a reworked display.
@@ -38,3 +38,6 @@ Downloaded floor music files are saved locally but the roster/floor music list d
 
 ### Music Player Safe Area
 The mini music player bar at the bottom of the screen needs safe area inset checks so it doesn't overlap with the system navigation bar / home indicator on devices with gesture navigation.
+
+### Score Metrics
+Add score metrics/analytics to the main Scores tab and to the Scores section within individual gymnast profiles. Should show trends, averages, highs/lows, and other useful statistical breakdowns of competition scores.

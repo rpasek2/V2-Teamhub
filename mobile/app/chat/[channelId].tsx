@@ -209,21 +209,13 @@ export default function ChatScreen() {
   const markChannelAsRead = async () => {
     if (!channelId || !user) return;
 
-    const now = new Date().toISOString();
+    const { error } = await supabase.rpc('mark_channel_read', {
+      p_channel_id: channelId,
+    });
 
-    await supabase
-      .from('channel_members')
-      .upsert(
-        {
-          channel_id: channelId,
-          user_id: user.id,
-          last_read_at: now,
-          added_at: now,
-        },
-        {
-          onConflict: 'channel_id,user_id',
-        }
-      );
+    if (error) {
+      console.error('Error marking channel as read:', error);
+    }
 
     // Refresh notification counts
     if (currentHub?.id && user?.id) {
@@ -249,6 +241,9 @@ export default function ChatScreen() {
     if (error) {
       console.error('Error sending message:', error);
       setNewMessage(content); // Restore message on error
+    } else {
+      // Mark as read after sending so badge clears on messages list
+      markChannelAsRead();
     }
     setSending(false);
   };

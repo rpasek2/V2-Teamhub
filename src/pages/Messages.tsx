@@ -465,22 +465,13 @@ export default function Messages() {
         fetchHubMembers();
     };
 
-    // Mark a channel as read by upserting last_read_at in channel_members
+    // Mark a channel as read via RPC (bypasses RLS upsert issues)
     const markChannelAsRead = async (channelId: string) => {
         if (!user) return;
 
-        const now = new Date().toISOString();
-
-        const { error } = await supabase
-            .from('channel_members')
-            .upsert({
-                channel_id: channelId,
-                user_id: user.id,
-                last_read_at: now,
-                added_at: now
-            }, {
-                onConflict: 'channel_id,user_id'
-            });
+        const { error } = await supabase.rpc('mark_channel_read', {
+            p_channel_id: channelId,
+        });
 
         if (error) {
             console.error('Error marking channel as read:', error);

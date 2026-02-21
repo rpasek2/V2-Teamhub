@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -128,6 +128,9 @@ export default function MessagesScreen() {
   const isStaffUser = isStaff();
   const anonymousReportsEnabled = currentHub?.settings?.anonymous_reports_enabled !== false;
 
+  // Track channels that were recently opened so re-fetch doesn't resurrect their badges
+  const recentlyReadChannelIds = useRef<Set<string>>(new Set());
+
   const fetchChannels = async () => {
     if (!currentHub || !user) {
       setChannels([]);
@@ -226,6 +229,17 @@ export default function MessagesScreen() {
             channelName = names || 'Unknown User';
           }
 
+          // If this channel was recently opened, force unread to 0
+          // (the mark_channel_read RPC may not have completed before this re-fetch)
+          const dbUnread = unreadResult.count || 0;
+          const wasRecentlyRead = recentlyReadChannelIds.current.has(ch.id);
+          const unreadCount = wasRecentlyRead ? 0 : dbUnread;
+
+          // If DB confirms 0, remove from recently-read set (no longer needed)
+          if (wasRecentlyRead && dbUnread === 0) {
+            recentlyReadChannelIds.current.delete(ch.id);
+          }
+
           return {
             id: ch.id,
             name: channelName,
@@ -233,7 +247,7 @@ export default function MessagesScreen() {
             description: ch.description,
             lastMessage: lastMsg?.content || null,
             lastMessageTime: lastMsg?.created_at || null,
-            unreadCount: unreadResult.count || 0,
+            unreadCount,
           };
         })
       );
@@ -348,6 +362,16 @@ export default function MessagesScreen() {
   });
 
   const handleChannelPress = (channel: Channel) => {
+    // Track this channel as recently read so re-fetch doesn't resurrect the badge
+    recentlyReadChannelIds.current.add(channel.id);
+
+    // Optimistically clear badge and mark as read in DB
+    if (channel.unreadCount > 0) {
+      setChannels(prev => prev.map(c =>
+        c.id === channel.id ? { ...c, unreadCount: 0 } : c
+      ));
+    }
+    supabase.rpc('mark_channel_read', { p_channel_id: channel.id });
     router.push(`/chat/${channel.id}`);
   };
 
