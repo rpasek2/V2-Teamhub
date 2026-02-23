@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Trophy, Loader2, Calendar } from 'lucide-react';
+import { Trophy, Loader2, Calendar, TrendingUp } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
@@ -8,6 +8,7 @@ import type { Competition, CompetitionScore, Season, GymEvent } from '../../type
 import { WAG_EVENTS, MAG_EVENTS, EVENT_LABELS, EVENT_FULL_NAMES } from '../../types';
 import { getQualifyingLevels } from '../../lib/qualifyingScores';
 import { QualifyingBadges } from '../scores/QualifyingBadge';
+import { GymnastScoreMetrics } from '../scores/GymnastScoreMetrics';
 
 interface GymnastScoresTabProps {
     gymnastId: string;
@@ -24,6 +25,7 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
     const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
     const [competitions, setCompetitions] = useState<CompetitionWithScores[]>([]);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<'by-meet' | 'metrics'>('by-meet');
 
     const events = gymnastGender === 'Male' ? MAG_EVENTS : WAG_EVENTS;
     const qualifyingScores = hub?.settings?.qualifyingScores;
@@ -99,13 +101,39 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
 
     return (
         <div className="space-y-6">
-            {/* Season Picker */}
-            <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-slate-700">Season:</span>
-                <SeasonPicker
-                    selectedSeasonId={selectedSeasonId}
-                    onSeasonChange={handleSeasonChange}
-                />
+            {/* Season Picker + View Toggle */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-slate-700">Season:</span>
+                    <SeasonPicker
+                        selectedSeasonId={selectedSeasonId}
+                        onSeasonChange={handleSeasonChange}
+                    />
+                </div>
+                <div className="flex bg-slate-100 rounded-lg p-1 w-fit">
+                    <button
+                        onClick={() => setViewMode('by-meet')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                            viewMode === 'by-meet'
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                        <Trophy className="w-3.5 h-3.5" />
+                        By Meet
+                    </button>
+                    <button
+                        onClick={() => setViewMode('metrics')}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                            viewMode === 'metrics'
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                        <TrendingUp className="w-3.5 h-3.5" />
+                        Metrics
+                    </button>
+                </div>
             </div>
 
             {/* Loading State */}
@@ -133,6 +161,11 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                         No competition scores found for this season.
                     </p>
                 </div>
+            ) : viewMode === 'metrics' ? (
+                <GymnastScoreMetrics
+                    gymnastGender={gymnastGender}
+                    competitions={competitions}
+                />
             ) : (
                 <div className="space-y-6">
                     {competitions.map((competition) => {

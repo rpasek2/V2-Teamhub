@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trophy, ChevronDown } from 'lucide-react';
+import { Trophy, ChevronDown, TrendingUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { ScoresTable } from '../components/scores/ScoresTable';
+import { ScoreMetrics } from '../components/scores/ScoreMetrics';
 import { SeasonPicker } from '../components/ui/SeasonPicker';
 import type { Competition, GymnastProfile, CompetitionScore, CompetitionTeamPlacement, Season } from '../types';
 
@@ -29,6 +30,7 @@ export function Scores() {
     const [teamPlacements, setTeamPlacements] = useState<CompetitionTeamPlacement[]>([]);
     const userGymnastIds = useMemo(() => linkedGymnasts.map(g => g.id), [linkedGymnasts]);
     const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
+    const [viewMode, setViewMode] = useState<'by-meet' | 'metrics'>('by-meet');
 
     // Mark scores as viewed when page loads
     useEffect(() => {
@@ -143,6 +145,19 @@ export function Scores() {
         return hub?.settings?.levels || [];
     };
 
+    // Build set of gymnast IDs for the active gender across ALL competitions in the season
+    const genderGymnastIds = useMemo(() => {
+        const ids = new Set<string>();
+        competitions.forEach(comp => {
+            comp.competition_gymnasts.forEach(cg => {
+                if (cg.gymnast_profiles?.gender === activeGender) {
+                    ids.add(cg.gymnast_profile_id);
+                }
+            });
+        });
+        return ids;
+    }, [competitions, activeGender]);
+
     // Check if there are gymnasts of each gender in the selected competition
     const hasGender = (gender: 'Female' | 'Male') => {
         if (!selectedCompetition) return false;
@@ -153,13 +168,37 @@ export function Scores() {
 
     return (
         <div className="h-full flex flex-col">
-            <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
+            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
                 <div className="flex items-center gap-4">
                     <h1 className="text-2xl font-bold text-slate-900">Scores</h1>
                     <SeasonPicker
                         selectedSeasonId={selectedSeasonId}
                         onSeasonChange={handleSeasonChange}
                     />
+                </div>
+                <div className="flex bg-slate-100 rounded-lg p-1 w-fit">
+                    <button
+                        onClick={() => setViewMode('by-meet')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            viewMode === 'by-meet'
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                        <Trophy className="w-4 h-4" />
+                        By Meet
+                    </button>
+                    <button
+                        onClick={() => setViewMode('metrics')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                            viewMode === 'metrics'
+                                ? 'bg-white text-slate-900 shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                    >
+                        <TrendingUp className="w-4 h-4" />
+                        Metrics
+                    </button>
                 </div>
             </header>
 
@@ -170,7 +209,55 @@ export function Scores() {
             )}
 
             <main className="flex-1 overflow-y-auto p-6">
-                {loading ? (
+                {viewMode === 'metrics' ? (
+                    <div className="space-y-6">
+                        {/* Gender Tabs */}
+                        <div className="flex rounded-lg bg-slate-100 p-1 w-fit">
+                            <button
+                                onClick={() => setActiveGender('Female')}
+                                className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeGender === 'Female'
+                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                            >
+                                Women's
+                            </button>
+                            <button
+                                onClick={() => setActiveGender('Male')}
+                                className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+                                    activeGender === 'Male'
+                                        ? 'bg-white text-slate-900 shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-900'
+                                }`}
+                            >
+                                Men's
+                            </button>
+                        </div>
+
+                        {hub && selectedSeasonId ? (
+                            <ScoreMetrics
+                                hubId={hub.id}
+                                seasonId={selectedSeasonId}
+                                gender={activeGender}
+                                isParent={isParent}
+                                linkedGymnasts={linkedGymnasts}
+                                levels={getLevels()}
+                                genderGymnastIds={genderGymnastIds}
+                            />
+                        ) : (
+                            <div className="flex flex-col items-center justify-center text-center py-16">
+                                <div className="rounded-full bg-slate-100 p-4">
+                                    <TrendingUp className="h-8 w-8 text-slate-400" />
+                                </div>
+                                <h3 className="mt-4 text-lg font-semibold text-slate-900">Select a Season</h3>
+                                <p className="mt-2 text-sm text-slate-500">
+                                    Choose a season above to view score metrics.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                ) : loading ? (
                     <div className="flex h-full items-center justify-center">
                         <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
                     </div>
