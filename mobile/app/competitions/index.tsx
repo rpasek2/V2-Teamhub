@@ -129,7 +129,7 @@ export default function CompetitionsScreen() {
           <View style={styles.detailRow}>
             <Calendar size={16} color={colors.slate[400]} />
             <Text style={styles.detailText}>
-              {format(startDate, 'MMM d, yyyy')}
+              {format(parseISO(item.start_date), 'MMM d, yyyy')}
               {item.end_date !== item.start_date && ` - ${format(parseISO(item.end_date), 'MMM d, yyyy')}`}
             </Text>
           </View>
