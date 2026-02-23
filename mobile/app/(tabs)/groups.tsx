@@ -241,6 +241,10 @@ export default function GroupsScreen() {
           <GroupCard group={item} onPress={() => handleGroupPress(item)} />
         )}
         contentContainerStyle={styles.listContent}
+        windowSize={10}
+        maxToRenderPerBatch={10}
+        initialNumToRender={15}
+        removeClippedSubviews={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }

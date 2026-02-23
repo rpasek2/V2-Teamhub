@@ -102,7 +102,7 @@ export const useActivityFeedStore = create<ActivityFeedState>((set, get) => ({
 
             let query = supabase
                 .from('notifications')
-                .select('*, actor_profile:profiles!notifications_actor_id_fkey(full_name, avatar_url)')
+                .select('id, user_id, hub_id, type, title, body, actor_id, reference_id, reference_type, is_read, created_at, actor_profile:profiles!notifications_actor_id_fkey(full_name, avatar_url)')
                 .eq('user_id', userId)
                 .eq('hub_id', hubId)
                 .order('created_at', { ascending: false })
@@ -125,9 +125,10 @@ export const useActivityFeedStore = create<ActivityFeedState>((set, get) => ({
             })) as ActivityNotification[];
 
             if (reset) {
-                set({ notifications: items, hasMore: items.length === PAGE_SIZE });
+                set({ notifications: items.slice(0, 100), hasMore: items.length === PAGE_SIZE });
             } else {
-                set({ notifications: [...state.notifications, ...items], hasMore: items.length === PAGE_SIZE });
+                const merged = [...state.notifications, ...items];
+                set({ notifications: merged.slice(0, 100), hasMore: items.length === PAGE_SIZE && merged.length < 100 });
             }
         } catch (err) {
             console.error('Error in fetchNotifications:', err);

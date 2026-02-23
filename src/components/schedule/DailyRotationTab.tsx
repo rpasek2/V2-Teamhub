@@ -169,7 +169,8 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                 .from('rotation_events')
                 .select('*')
                 .eq('hub_id', hubId)
-                .order('display_order'),
+                .order('display_order')
+                .limit(100),
             // Fetch staff members who are coaches (owner, director, admin, coach roles)
             supabase
                 .from('hub_members')
@@ -348,7 +349,8 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
             .from('rotation_events')
             .select('*')
             .eq('hub_id', hubId)
-            .order('display_order');
+            .order('display_order')
+            .limit(100);
 
         if (data) {
             setRotationEvents(data);

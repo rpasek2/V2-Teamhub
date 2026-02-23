@@ -79,8 +79,7 @@ export default function ChatScreen() {
         duration: Platform.OS === 'ios' ? e.duration : 150,
         useNativeDriver: false,
       }).start();
-      // Scroll to bottom when keyboard opens
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      // No manual scroll needed — inverted FlatList handles this
     });
 
     const keyboardHideListener = Keyboard.addListener(hideEvent, (e) => {
@@ -124,7 +123,7 @@ export default function ChatScreen() {
               .single();
 
             if (data) {
-              setMessages((prev) => [...prev, data]);
+              setMessages((prev) => [data, ...prev]);
               // Mark as read since user is viewing
               markChannelAsRead();
             }
@@ -196,7 +195,7 @@ export default function ChatScreen() {
       .from('messages')
       .select('*, profiles(full_name, email)')
       .eq('channel_id', channelId)
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching messages:', error);
@@ -353,11 +352,14 @@ export default function ChatScreen() {
         data={messages}
         keyExtractor={(item) => item.id}
         renderItem={renderMessage}
+        inverted={true}
         contentContainerStyle={styles.messagesList}
+        windowSize={10}
+        maxToRenderPerBatch={10}
+        initialNumToRender={20}
+        removeClippedSubviews={true}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
-        onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             {channel?.dm_participant_ids ? (

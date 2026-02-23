@@ -65,31 +65,31 @@ export function AttendanceMetricsTab() {
         const [schedulesResult, gymnastsResult, attendanceResult] = await Promise.all([
             supabase
                 .from('practice_schedules')
-                .select('*')
+                .select('id, level, schedule_group, day_of_week, start_time, end_time')
                 .eq('hub_id', hubId),
             supabase
                 .from('gymnast_profiles')
-                .select('*')
+                .select('id, first_name, last_name, level, schedule_group')
                 .eq('hub_id', hubId)
                 .order('last_name'),
             supabase
                 .from('attendance_records')
-                .select('*')
+                .select('id, gymnast_profile_id, status, attendance_date')
                 .eq('hub_id', hubId)
                 .gte('attendance_date', startDate)
                 .lte('attendance_date', endDate)
         ]);
 
         if (schedulesResult.data) {
-            setPracticeSchedules(schedulesResult.data);
+            setPracticeSchedules(schedulesResult.data as PracticeSchedule[]);
         }
 
         if (gymnastsResult.data) {
-            setGymnasts(gymnastsResult.data);
+            setGymnasts(gymnastsResult.data as GymnastProfile[]);
         }
 
         if (attendanceResult.data) {
-            setAttendanceRecords(attendanceResult.data);
+            setAttendanceRecords(attendanceResult.data as AttendanceRecord[]);
         }
 
         setLoading(false);

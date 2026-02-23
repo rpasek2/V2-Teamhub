@@ -309,7 +309,7 @@ export default function StaffScreen() {
                 <View style={styles.cardHeader}>
                   {/* Avatar */}
                   {member.profile?.avatar_url ? (
-                    <Image source={{ uri: member.profile.avatar_url }} style={styles.avatar} />
+                    <Image source={{ uri: member.profile.avatar_url, cache: 'force-cache' }} style={styles.avatar} />
                   ) : (
                     <View style={styles.avatarPlaceholder}>
                       <Text style={styles.avatarText}>

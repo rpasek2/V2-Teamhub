@@ -75,7 +75,7 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
 
         const { data, error } = await supabase
             .from('hub_event_skills')
-            .select('*')
+            .select('id, hub_id, event, level, skill_name, skill_order')
             .eq('hub_id', hub.id)
             .eq('level', gymnastLevel)
             .eq('event', selectedEvent)
@@ -85,7 +85,7 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
             console.error('Error fetching skills:', error);
             setSkills([]);
         } else {
-            setSkills(data || []);
+            setSkills((data || []) as HubEventSkill[]);
         }
         setLoading(false);
     };
@@ -97,14 +97,14 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
 
         const { data, error } = await supabase
             .from('gymnast_skills')
-            .select('*')
+            .select('id, gymnast_profile_id, hub_event_skill_id, status, achieved_date')
             .eq('gymnast_profile_id', gymnastId)
             .in('hub_event_skill_id', skillIds);
 
         if (error) {
             console.error('Error fetching gymnast skills:', error);
         } else {
-            setGymnastSkills(data || []);
+            setGymnastSkills((data || []) as GymnastSkill[]);
         }
     };
 

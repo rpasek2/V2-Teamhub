@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2, UserPlus, Lock } from 'lucide-react';
@@ -75,6 +75,11 @@ export default function Messages() {
     // New DM modal state
     const [showNewDmModal, setShowNewDmModal] = useState(false);
     const [hubMembers, setHubMembers] = useState<HubMemberOption[]>([]);
+    const hubMemberMap = useMemo(() => {
+        const map = new Map<string, HubMemberOption>();
+        for (const m of hubMembers) map.set(m.user_id, m);
+        return map;
+    }, [hubMembers]);
     const [dmSearchTerm, setDmSearchTerm] = useState('');
     const [loadingMembers, setLoadingMembers] = useState(false);
 
@@ -639,7 +644,7 @@ export default function Messages() {
             const otherIds = participants.filter((id: string) => id !== user.id);
             const otherProfiles: DmUserInfo[] = otherIds
                 .map((id: string) => {
-                    const member = hubMembers.find(m => m.user_id === id);
+                    const member = hubMemberMap.get(id);
                     return member ? { id: member.user_id, full_name: member.full_name, email: member.email } : null;
                 })
                 .filter((p: DmUserInfo | null): p is DmUserInfo => p !== null);
@@ -1250,7 +1255,7 @@ export default function Messages() {
                                 {selectedMemberIds.size > 0 && (
                                     <div className="flex flex-wrap gap-1.5 mb-2">
                                         {Array.from(selectedMemberIds).map(id => {
-                                            const member = hubMembers.find(m => m.user_id === id);
+                                            const member = hubMemberMap.get(id);
                                             if (!member) return null;
                                             return (
                                                 <span

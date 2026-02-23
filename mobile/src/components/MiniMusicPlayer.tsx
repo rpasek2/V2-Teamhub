@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Music, Play, Pause, X } from 'lucide-react-native';
 import { colors } from '../constants/colors';
 import { useMusicPlayerStore } from '../stores/musicPlayerStore';
@@ -12,6 +13,7 @@ function formatTime(ms: number): string {
 }
 
 export function MiniMusicPlayer() {
+  const insets = useSafeAreaInsets();
   const track = useMusicPlayerStore((s) => s.track);
   const isPlaying = useMusicPlayerStore((s) => s.isPlaying);
   const positionMs = useMusicPlayerStore((s) => s.positionMs);
@@ -33,7 +35,7 @@ export function MiniMusicPlayer() {
   const progress = durationMs > 0 ? positionMs / durationMs : 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingBottom: Math.max(insets.bottom, 0) }]}>
       {/* Progress bar */}
       <View style={styles.progressBarBg}>
         <View style={[styles.progressBarFill, { width: `${progress * 100}%` }]} />

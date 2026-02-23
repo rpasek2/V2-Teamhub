@@ -283,7 +283,7 @@ export default function MarketplaceItemDetailScreen() {
           <View style={styles.sellerCard}>
             {profileData?.avatar_url ? (
               <Image
-                source={{ uri: profileData.avatar_url }}
+                source={{ uri: profileData.avatar_url, cache: 'force-cache' }}
                 style={styles.sellerAvatar}
               />
             ) : (

@@ -290,7 +290,7 @@ export default function UserSettingsScreen() {
             disabled={uploadingAvatar}
           >
             {profile?.avatar_url ? (
-              <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+              <Image source={{ uri: profile.avatar_url, cache: 'force-cache' }} style={styles.avatar} />
             ) : (
               <View style={styles.avatarPlaceholder}>
                 <User size={40} color={colors.slate[400]} />

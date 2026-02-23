@@ -17,6 +17,8 @@ interface NotificationState {
   clearCounts: () => void;
 }
 
+let lastFetchTime = 0;
+
 export const useNotificationStore = create<NotificationState>((set) => ({
   unreadMessages: 0,
   unreadGroups: 0,
@@ -25,83 +27,32 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   loading: false,
 
   fetchNotificationCounts: async (hubId: string, userId: string) => {
+    // Debounce: skip if fetched within last 5 seconds
+    const now = Date.now();
+    if (now - lastFetchTime < 5000) return;
+    lastFetchTime = now;
+
     set({ loading: true });
     try {
-      // Calculate today's date range for events query
-      const today = new Date();
-      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      const todayEnd = new Date(todayStart);
-      todayEnd.setDate(todayEnd.getDate() + 1);
+      const { data, error } = await supabase.rpc('get_mobile_unread_counts', {
+        p_user_id: userId,
+        p_hub_id: hubId,
+      });
 
-      // Fetch all data in parallel
-      const [memberChannelsResult, groupMembershipsResult, eventsResult] = await Promise.all([
-        // Get channels the user is a member of
-        supabase
-          .from('channel_members')
-          .select('channel_id, last_read_at, channels!inner(hub_id)')
-          .eq('user_id', userId)
-          .eq('channels.hub_id', hubId),
-
-        // Get groups the user is a member of
-        supabase
-          .from('group_members')
-          .select('group_id, last_viewed_at, groups!inner(hub_id)')
-          .eq('user_id', userId)
-          .eq('groups.hub_id', hubId),
-
-        // Get today's events count
-        supabase
-          .from('events')
-          .select('id', { count: 'exact' })
-          .eq('hub_id', hubId)
-          .gte('start_time', todayStart.toISOString())
-          .lt('start_time', todayEnd.toISOString()),
-      ]);
-
-      const memberChannels = memberChannelsResult.data || [];
-      const groupMemberships = groupMembershipsResult.data || [];
-      const upcomingEvents = eventsResult.count || 0;
-
-      // Count unread messages - batch all channel queries in parallel
-      let unreadMessages = 0;
-      if (memberChannels.length > 0) {
-        const messageCountPromises = memberChannels.map((membership) => {
-          const lastRead = membership.last_read_at || '1970-01-01';
-          return supabase
-            .from('messages')
-            .select('id', { count: 'exact' })
-            .eq('channel_id', membership.channel_id)
-            .gt('created_at', lastRead)
-            .neq('user_id', userId);
-        });
-
-        const messageCounts = await Promise.all(messageCountPromises);
-        unreadMessages = messageCounts.reduce((total, result) => total + (result.count || 0), 0);
+      if (error) {
+        console.error('Error fetching notification counts:', error);
+        set({ loading: false });
+        return;
       }
 
-      // Count unread posts - batch all group queries in parallel
-      let unreadGroups = 0;
-      if (groupMemberships.length > 0) {
-        const postCountPromises = groupMemberships.map((membership) => {
-          const lastViewed = membership.last_viewed_at || '1970-01-01';
-          return supabase
-            .from('posts')
-            .select('id', { count: 'exact' })
-            .eq('group_id', membership.group_id)
-            .gt('created_at', lastViewed)
-            .neq('user_id', userId); // Exclude user's own posts
-        });
-
-        const postCounts = await Promise.all(postCountPromises);
-        unreadGroups = postCounts.reduce((total, result) => total + (result.count || 0), 0);
-      }
+      const counts = data || { unread_messages: 0, unread_groups: 0, upcoming_events: 0 };
 
       // Apply preference filters
       const prefs = useActivityFeedStore.getState().preferences;
       set({
-        unreadMessages: prefs && !prefs.messages_enabled ? 0 : unreadMessages,
-        unreadGroups: prefs && !prefs.groups_enabled ? 0 : unreadGroups,
-        upcomingEvents: prefs && !prefs.calendar_enabled ? 0 : upcomingEvents,
+        unreadMessages: prefs && !prefs.messages_enabled ? 0 : counts.unread_messages,
+        unreadGroups: prefs && !prefs.groups_enabled ? 0 : counts.unread_groups,
+        upcomingEvents: prefs && !prefs.calendar_enabled ? 0 : counts.upcoming_events,
         hasMoreNotifications: false,
         loading: false,
       });
@@ -112,6 +63,7 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   },
 
   clearCounts: () => {
+    lastFetchTime = 0;
     set({
       unreadMessages: 0,
       unreadGroups: 0,

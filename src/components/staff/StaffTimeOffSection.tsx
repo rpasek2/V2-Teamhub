@@ -52,7 +52,8 @@ export function StaffTimeOffSection({ staffUserId, isOwner, isSelf }: StaffTimeO
             .select('*')
             .eq('hub_id', hubId)
             .eq('staff_user_id', staffUserId)
-            .order('start_date', { ascending: false });
+            .order('start_date', { ascending: false })
+            .limit(50);
 
         if (error) {
             console.error('Error fetching time off:', error);

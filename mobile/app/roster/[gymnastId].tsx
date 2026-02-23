@@ -434,7 +434,8 @@ export default function GymnastProfileScreen() {
           .from('gymnast_assignments')
           .select('id, date, vault, bars, beam, floor, strength, flexibility, conditioning, completed_items')
           .eq('gymnast_profile_id', gymnastId)
-          .order('date', { ascending: false }) : Promise.resolve({ data: null }),
+          .order('date', { ascending: false })
+          .limit(50) : Promise.resolve({ data: null }),
 
         // Goals with subgoals
         supabase
@@ -2838,7 +2839,7 @@ export default function GymnastProfileScreen() {
 
               <Text style={styles.inputLabel}>Event (optional)</Text>
               <View style={styles.eventPicker}>
-                {(gymnast?.gender === 'Female' ? WAG_EVENTS : MAG_EVENTS).map((event) => (
+                {(gymnast?.gender === 'Female' ? DEFAULT_WAG_EVENTS : DEFAULT_MAG_EVENTS).map((event) => (
                   <TouchableOpacity
                     key={event}
                     style={[

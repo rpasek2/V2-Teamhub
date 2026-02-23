@@ -57,7 +57,7 @@ export default function FloorMusicScreen() {
   const levels = currentHub?.settings?.levels || [];
 
   const offlineStore = useOfflineMusicStore();
-  const { activeDownloads, bulkDownloading, downloads } = offlineStore;
+  const { activeDownloads, bulkDownloading, downloads, cachedGymnasts } = offlineStore;
   const playerStore = useMusicPlayerStore();
   const playingId = playerStore.track?.gymnastId ?? null;
 
@@ -72,7 +72,12 @@ export default function FloorMusicScreen() {
     if (currentHub?.id) offlineStore.initialize(currentHub.id);
   }, [currentHub?.id]);
 
+  // Load cached gymnasts immediately, then fetch fresh data
   useEffect(() => {
+    if (cachedGymnasts.length > 0 && gymnasts.length === 0) {
+      setGymnasts(cachedGymnasts as FloorMusicGymnast[]);
+      setLoading(false);
+    }
     fetchFloorMusic();
   }, [currentHub?.id]);
 
@@ -89,9 +94,16 @@ export default function FloorMusicScreen() {
         .order('last_name');
 
       if (error) throw error;
-      setGymnasts((data || []) as FloorMusicGymnast[]);
+      const list = (data || []) as FloorMusicGymnast[];
+      setGymnasts(list);
+      // Cache the list for offline use
+      offlineStore.cacheGymnastList(currentHub.id, list);
     } catch (err) {
       console.error('Error fetching floor music:', err);
+      // Offline fallback: use cached data if we have no gymnasts loaded
+      if (gymnasts.length === 0 && cachedGymnasts.length > 0) {
+        setGymnasts(cachedGymnasts as FloorMusicGymnast[]);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);

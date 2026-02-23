@@ -175,7 +175,7 @@ export function GroupMembers({ groupId, isAdmin, currentUserId, onMemberCountCha
         {/* Avatar */}
         <View style={styles.avatar}>
           {member.profiles?.avatar_url ? (
-            <Image source={{ uri: member.profiles.avatar_url }} style={styles.avatarImage} />
+            <Image source={{ uri: member.profiles.avatar_url, cache: 'force-cache' }} style={styles.avatarImage} />
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>

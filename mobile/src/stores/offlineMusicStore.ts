@@ -3,6 +3,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY_PREFIX = 'floor-music-offline:';
+const LIST_CACHE_KEY_PREFIX = 'floor-music-list:';
 
 interface DownloadedFile {
   localPath: string;
@@ -16,6 +17,15 @@ interface DownloadProgress {
   progress: number; // 0–1
 }
 
+export interface CachedFloorMusicGymnast {
+  id: string;
+  first_name: string;
+  last_name: string;
+  level: string;
+  floor_music_url: string;
+  floor_music_name: string | null;
+}
+
 interface OfflineMusicState {
   downloads: Record<string, DownloadedFile>;
   activeDownloads: Record<string, DownloadProgress>;
@@ -23,6 +33,7 @@ interface OfflineMusicState {
   initialized: boolean;
   currentHubId: string | null;
   _cancelBulk: boolean;
+  cachedGymnasts: CachedFloorMusicGymnast[];
 
   isDownloaded: (gymnastId: string, currentRemoteUrl: string) => boolean;
   getLocalUri: (gymnastId: string, currentRemoteUrl: string) => string | null;
@@ -30,6 +41,7 @@ interface OfflineMusicState {
   getTotalSize: () => number;
 
   initialize: (hubId: string) => Promise<void>;
+  cacheGymnastList: (hubId: string, gymnasts: CachedFloorMusicGymnast[]) => Promise<void>;
   downloadFile: (gymnastId: string, remoteUrl: string, fileName: string) => Promise<boolean>;
   removeFile: (gymnastId: string) => Promise<void>;
   removeAllFiles: () => Promise<void>;
@@ -63,6 +75,7 @@ export const useOfflineMusicStore = create<OfflineMusicState>((set, get) => ({
   initialized: false,
   currentHubId: null,
   _cancelBulk: false,
+  cachedGymnasts: [],
 
   isDownloaded: (gymnastId, currentRemoteUrl) => {
     const entry = get().downloads[gymnastId];
@@ -84,6 +97,13 @@ export const useOfflineMusicStore = create<OfflineMusicState>((set, get) => ({
     const state = get();
     if (state.initialized && state.currentHubId === hubId) return;
 
+    // Load cached gymnast list
+    const cachedListRaw = await AsyncStorage.getItem(LIST_CACHE_KEY_PREFIX + hubId);
+    let cachedGymnasts: CachedFloorMusicGymnast[] = [];
+    if (cachedListRaw) {
+      try { cachedGymnasts = JSON.parse(cachedListRaw); } catch { /* ignore */ }
+    }
+
     const stored = await load(hubId);
     const verified: Record<string, DownloadedFile> = {};
     let changed = false;
@@ -101,7 +121,12 @@ export const useOfflineMusicStore = create<OfflineMusicState>((set, get) => ({
       await persist(hubId, verified);
     }
 
-    set({ downloads: verified, initialized: true, currentHubId: hubId });
+    set({ downloads: verified, initialized: true, currentHubId: hubId, cachedGymnasts });
+  },
+
+  cacheGymnastList: async (hubId, gymnasts) => {
+    await AsyncStorage.setItem(LIST_CACHE_KEY_PREFIX + hubId, JSON.stringify(gymnasts));
+    set({ cachedGymnasts: gymnasts });
   },
 
   downloadFile: async (gymnastId, remoteUrl, fileName) => {

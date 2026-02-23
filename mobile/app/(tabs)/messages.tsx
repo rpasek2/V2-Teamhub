@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -129,7 +130,22 @@ export default function MessagesScreen() {
   const anonymousReportsEnabled = currentHub?.settings?.anonymous_reports_enabled !== false;
 
   // Track channels that were recently opened so re-fetch doesn't resurrect their badges
+  // Persisted to AsyncStorage so it survives app restarts
   const recentlyReadChannelIds = useRef<Set<string>>(new Set());
+  const recentlyReadStorageKey = currentHub ? `recently-read-channels:${currentHub.id}` : null;
+
+  // Load persisted recently-read IDs on mount
+  useEffect(() => {
+    if (!recentlyReadStorageKey) return;
+    AsyncStorage.getItem(recentlyReadStorageKey).then(stored => {
+      if (stored) {
+        try {
+          const ids = JSON.parse(stored) as string[];
+          recentlyReadChannelIds.current = new Set(ids);
+        } catch { /* ignore parse errors */ }
+      }
+    });
+  }, [recentlyReadStorageKey]);
 
   const fetchChannels = async () => {
     if (!currentHub || !user) {
@@ -238,6 +254,9 @@ export default function MessagesScreen() {
           // If DB confirms 0, remove from recently-read set (no longer needed)
           if (wasRecentlyRead && dbUnread === 0) {
             recentlyReadChannelIds.current.delete(ch.id);
+            if (recentlyReadStorageKey) {
+              AsyncStorage.setItem(recentlyReadStorageKey, JSON.stringify([...recentlyReadChannelIds.current]));
+            }
           }
 
           return {
@@ -364,6 +383,9 @@ export default function MessagesScreen() {
   const handleChannelPress = (channel: Channel) => {
     // Track this channel as recently read so re-fetch doesn't resurrect the badge
     recentlyReadChannelIds.current.add(channel.id);
+    if (recentlyReadStorageKey) {
+      AsyncStorage.setItem(recentlyReadStorageKey, JSON.stringify([...recentlyReadChannelIds.current]));
+    }
 
     // Optimistically clear badge and mark as read in DB
     if (channel.unreadCount > 0) {
@@ -493,6 +515,10 @@ export default function MessagesScreen() {
           <ChannelItem channel={item} onPress={() => handleChannelPress(item)} />
         )}
         contentContainerStyle={styles.listContent}
+        windowSize={10}
+        maxToRenderPerBatch={10}
+        initialNumToRender={15}
+        removeClippedSubviews={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }

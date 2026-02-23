@@ -60,21 +60,21 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
         const [schedulesResult, gymnastsResult] = await Promise.all([
             supabase
                 .from('practice_schedules')
-                .select('*')
+                .select('id, level, schedule_group, day_of_week, start_time, end_time')
                 .eq('hub_id', hubId),
             supabase
                 .from('gymnast_profiles')
-                .select('*')
+                .select('id, first_name, last_name, level, schedule_group')
                 .eq('hub_id', hubId)
                 .order('last_name')
         ]);
 
         if (schedulesResult.data) {
-            setPracticeSchedules(schedulesResult.data);
+            setPracticeSchedules(schedulesResult.data as PracticeSchedule[]);
         }
 
         if (gymnastsResult.data) {
-            setGymnasts(gymnastsResult.data);
+            setGymnasts(gymnastsResult.data as GymnastProfile[]);
             // Expand all levels by default
             const levels = new Set(gymnastsResult.data.map(g => g.level).filter(Boolean));
             setExpandedLevels(levels as Set<string>);
@@ -89,12 +89,12 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
 
         const { data } = await supabase
             .from('attendance_records')
-            .select('*')
+            .select('id, gymnast_profile_id, attendance_date, status, notes, check_in_time, check_out_time')
             .eq('hub_id', hubId)
             .eq('attendance_date', selectedDate);
 
         if (data) {
-            setAttendanceRecords(data);
+            setAttendanceRecords(data as AttendanceRecord[]);
         }
     };
 

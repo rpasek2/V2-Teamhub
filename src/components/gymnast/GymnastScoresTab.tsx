@@ -45,52 +45,30 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
         if (!hub || !selectedSeasonId || !gymnastId) return;
         setLoading(true);
 
-        // First get competitions this gymnast participated in for this season
-        const { data: competitionGymnasts, error: cgError } = await supabase
-            .from('competition_gymnasts')
+        // Single query: start from competitions (parent), join both children via their FKs
+        const { data, error } = await supabase
+            .from('competitions')
             .select(`
-                competition_id,
-                competitions(*)
+                id, name, start_date, end_date, location, season_id, hub_id, championship_type,
+                competition_gymnasts!inner(gymnast_profile_id),
+                competition_scores(id, competition_id, gymnast_profile_id, event, score, placement)
             `)
-            .eq('gymnast_profile_id', gymnastId);
+            .eq('hub_id', hub.id)
+            .eq('season_id', selectedSeasonId)
+            .eq('competition_gymnasts.gymnast_profile_id', gymnastId)
+            .eq('competition_scores.gymnast_profile_id', gymnastId);
 
-        if (cgError) {
-            console.error('Error fetching competition gymnasts:', cgError);
+        if (error) {
+            console.error('Error fetching competitions with scores:', error);
             setLoading(false);
             return;
         }
 
-        // Filter to only competitions in the selected season
-        // Note: competitions is returned as an object (not array) for single joins
-        const seasonCompetitions: Competition[] = (competitionGymnasts || [])
-            .map(cg => cg.competitions as unknown as Competition)
-            .filter((comp): comp is Competition =>
-                comp !== null && comp.season_id === selectedSeasonId
-            );
-
-        if (seasonCompetitions.length === 0) {
-            setCompetitions([]);
-            setLoading(false);
-            return;
-        }
-
-        // Get scores for this gymnast in these competitions
-        const competitionIds = seasonCompetitions.map(c => c.id);
-        const { data: scores, error: scoresError } = await supabase
-            .from('competition_scores')
-            .select('*')
-            .eq('gymnast_profile_id', gymnastId)
-            .in('competition_id', competitionIds);
-
-        if (scoresError) {
-            console.error('Error fetching scores:', scoresError);
-        }
-
-        // Combine competitions with their scores
-        const competitionsWithScores: CompetitionWithScores[] = seasonCompetitions
+        // Build competitions with scores from the joined result
+        const competitionsWithScores: CompetitionWithScores[] = (data || [])
             .map(comp => ({
-                ...comp,
-                scores: (scores || []).filter(s => s.competition_id === comp.id)
+                ...comp as unknown as Competition,
+                scores: (comp.competition_scores || []) as unknown as CompetitionScore[],
             }))
             .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
 

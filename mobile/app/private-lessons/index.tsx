@@ -257,7 +257,7 @@ export default function PrivateLessonsScreen() {
                   <View style={styles.coachHeader}>
                     {profileData?.avatar_url ? (
                       <Image
-                        source={{ uri: profileData.avatar_url }}
+                        source={{ uri: profileData.avatar_url, cache: 'force-cache' }}
                         style={styles.coachAvatar}
                       />
                     ) : (

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Copy, Filter } from 'lucide-react';
+import { Copy, Filter, Plus, Trash2, Loader2, Check, X } from 'lucide-react';
 import type { StaffWithData } from '../../hooks/useStaffBulk';
 import { CopyScheduleModal } from './CopyScheduleModal';
+import { supabase } from '../../lib/supabase';
 
 interface TeamScheduleViewProps {
     hubId: string;
@@ -22,9 +23,19 @@ const DAY_COLORS = [
 
 type RoleFilter = 'all' | 'owner' | 'director' | 'admin' | 'coach';
 
+interface EditingCell {
+    staffUserId: string;
+    dayIndex: number;
+}
+
 export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamScheduleViewProps) {
     const [roleFilter, setRoleFilter] = useState<RoleFilter>('all');
     const [showCopyModal, setShowCopyModal] = useState(false);
+    const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
+    const [addStartTime, setAddStartTime] = useState('09:00');
+    const [addEndTime, setAddEndTime] = useState('17:00');
+    const [addRoleLabel, setAddRoleLabel] = useState('');
+    const [saving, setSaving] = useState(false);
 
     const filteredStaff = staffData.filter(staff =>
         roleFilter === 'all' || staff.role === roleFilter
@@ -42,7 +53,6 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
         return staff.schedules.filter(s => s.day_of_week === dayIndex);
     };
 
-    // Get role badge color
     const getRoleBadgeColor = (role: string) => {
         switch (role) {
             case 'owner': return 'bg-amber-100 text-amber-700';
@@ -52,6 +62,59 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
             default: return 'bg-slate-100 text-slate-600';
         }
     };
+
+    const handleStartEditing = (staffUserId: string, dayIndex: number) => {
+        setEditingCell({ staffUserId, dayIndex });
+        setAddStartTime('09:00');
+        setAddEndTime('17:00');
+        setAddRoleLabel('');
+    };
+
+    const handleCancelEditing = () => {
+        setEditingCell(null);
+        setAddRoleLabel('');
+    };
+
+    const handleAddSchedule = async () => {
+        if (!editingCell || !addRoleLabel.trim()) return;
+        setSaving(true);
+
+        const { error } = await supabase
+            .from('staff_schedules')
+            .insert({
+                hub_id: hubId,
+                staff_user_id: editingCell.staffUserId,
+                day_of_week: editingCell.dayIndex,
+                start_time: addStartTime,
+                end_time: addEndTime,
+                role_label: addRoleLabel.trim(),
+            });
+
+        if (error) {
+            console.error('Error adding schedule:', error);
+        } else {
+            setEditingCell(null);
+            setAddRoleLabel('');
+            onDataChanged();
+        }
+        setSaving(false);
+    };
+
+    const handleDeleteSchedule = async (id: string) => {
+        const { error } = await supabase
+            .from('staff_schedules')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error('Error deleting schedule:', error);
+        } else {
+            onDataChanged();
+        }
+    };
+
+    const isEditing = (staffUserId: string, dayIndex: number) =>
+        editingCell?.staffUserId === staffUserId && editingCell?.dayIndex === dayIndex;
 
     return (
         <div className="space-y-4">
@@ -142,30 +205,93 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
                                         {/* Day Columns */}
                                         {DAYS.map((day, dayIndex) => {
                                             const daySchedules = getStaffSchedulesForDay(staff, dayIndex);
+                                            const cellEditing = isEditing(staff.user_id, dayIndex);
+
                                             return (
                                                 <td
                                                     key={day}
-                                                    className={`p-2 text-center align-top ${DAY_COLORS[dayIndex]}`}
+                                                    className={`p-2 align-top ${DAY_COLORS[dayIndex]}`}
                                                 >
-                                                    {daySchedules.length === 0 ? (
-                                                        <span className="text-xs text-slate-400">-</span>
-                                                    ) : (
-                                                        <div className="space-y-1">
-                                                            {daySchedules.map(schedule => (
-                                                                <div
-                                                                    key={schedule.id}
-                                                                    className="bg-white rounded px-2 py-1 text-xs border border-slate-200 shadow-sm"
+                                                    <div className="space-y-1">
+                                                        {daySchedules.map(schedule => (
+                                                            <div
+                                                                key={schedule.id}
+                                                                className="group bg-white rounded px-2 py-1 text-xs border border-slate-200 shadow-sm relative"
+                                                            >
+                                                                <p className="font-medium text-slate-700">
+                                                                    {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
+                                                                </p>
+                                                                <p className="text-slate-500 truncate pr-5" title={schedule.role_label}>
+                                                                    {schedule.role_label}
+                                                                </p>
+                                                                <button
+                                                                    onClick={() => handleDeleteSchedule(schedule.id)}
+                                                                    className="absolute top-1 right-1 p-0.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    title="Delete"
                                                                 >
-                                                                    <p className="font-medium text-slate-700">
-                                                                        {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
-                                                                    </p>
-                                                                    <p className="text-slate-500 truncate" title={schedule.role_label}>
-                                                                        {schedule.role_label}
-                                                                    </p>
+                                                                    <Trash2 className="w-3 h-3" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
+
+                                                        {/* Inline Add Form */}
+                                                        {cellEditing ? (
+                                                            <div className="bg-white rounded p-2 border border-brand-300 shadow-sm space-y-1.5">
+                                                                <div className="flex gap-1">
+                                                                    <input
+                                                                        type="time"
+                                                                        value={addStartTime}
+                                                                        onChange={(e) => setAddStartTime(e.target.value)}
+                                                                        className="w-full px-1 py-0.5 text-xs border border-slate-300 rounded focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                                    />
+                                                                    <input
+                                                                        type="time"
+                                                                        value={addEndTime}
+                                                                        onChange={(e) => setAddEndTime(e.target.value)}
+                                                                        className="w-full px-1 py-0.5 text-xs border border-slate-300 rounded focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                                    />
                                                                 </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
+                                                                <input
+                                                                    type="text"
+                                                                    value={addRoleLabel}
+                                                                    onChange={(e) => setAddRoleLabel(e.target.value)}
+                                                                    placeholder="Role/Activity"
+                                                                    className="w-full px-1.5 py-0.5 text-xs border border-slate-300 rounded focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                                    autoFocus
+                                                                    onKeyDown={(e) => {
+                                                                        if (e.key === 'Enter' && addRoleLabel.trim()) handleAddSchedule();
+                                                                        if (e.key === 'Escape') handleCancelEditing();
+                                                                    }}
+                                                                />
+                                                                <div className="flex justify-end gap-1">
+                                                                    <button
+                                                                        onClick={handleCancelEditing}
+                                                                        className="p-1 text-slate-400 hover:text-slate-600"
+                                                                    >
+                                                                        <X className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={handleAddSchedule}
+                                                                        disabled={saving || !addRoleLabel.trim()}
+                                                                        className="p-1 text-brand-500 hover:text-brand-700 disabled:opacity-50"
+                                                                    >
+                                                                        {saving ? (
+                                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                                        ) : (
+                                                                            <Check className="w-3.5 h-3.5" />
+                                                                        )}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={() => handleStartEditing(staff.user_id, dayIndex)}
+                                                                className="w-full flex items-center justify-center gap-1 py-1 text-xs text-slate-400 hover:text-brand-600 hover:bg-white/60 rounded transition-colors"
+                                                            >
+                                                                <Plus className="w-3 h-3" />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             );
                                         })}
@@ -181,7 +307,7 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
             <div className="flex items-center gap-4 text-xs text-slate-500">
                 <span>Total staff: {filteredStaff.length}</span>
                 <span className="text-slate-300">|</span>
-                <span>Click "Copy Schedule" to apply one staff member's schedule to others</span>
+                <span>Click + to add a time block, hover to delete</span>
             </div>
 
             {/* Copy Schedule Modal */}

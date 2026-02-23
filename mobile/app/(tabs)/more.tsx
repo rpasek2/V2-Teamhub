@@ -305,7 +305,7 @@ export default function MoreScreen() {
         onPress={() => router.push('/settings')}
       >
         {userProfile?.avatar_url ? (
-          <Image source={{ uri: userProfile.avatar_url }} style={styles.avatarImage} />
+          <Image source={{ uri: userProfile.avatar_url, cache: 'force-cache' }} style={styles.avatarImage} />
         ) : (
           <View style={styles.avatar}>
             <User size={32} color={colors.white} />

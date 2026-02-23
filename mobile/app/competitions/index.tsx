@@ -94,15 +94,15 @@ export default function CompetitionsScreen() {
   };
 
   const filteredCompetitions = competitions.filter(comp => {
-    const compDate = parseISO(comp.start_date);
-    if (activeFilter === 'upcoming') return isFuture(compDate) || format(compDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-    if (activeFilter === 'past') return isPast(compDate) && format(compDate, 'yyyy-MM-dd') !== format(new Date(), 'yyyy-MM-dd');
+    const endDate = parseISO(comp.end_date);
+    if (activeFilter === 'upcoming') return isFuture(endDate) || format(endDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+    if (activeFilter === 'past') return isPast(endDate) && format(endDate, 'yyyy-MM-dd') !== format(new Date(), 'yyyy-MM-dd');
     return true;
   });
 
   const renderCompetition = ({ item }: { item: Competition }) => {
-    const startDate = parseISO(item.start_date);
-    const isUpcoming = isFuture(startDate) || format(startDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+    const endDate = parseISO(item.end_date);
+    const isUpcoming = isFuture(endDate) || format(endDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
     return (
       <TouchableOpacity
@@ -203,6 +203,10 @@ export default function CompetitionsScreen() {
         keyExtractor={(item) => item.id}
         renderItem={renderCompetition}
         contentContainerStyle={styles.listContent}
+        windowSize={10}
+        maxToRenderPerBatch={10}
+        initialNumToRender={15}
+        removeClippedSubviews={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }

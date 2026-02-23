@@ -531,7 +531,7 @@ export default function StaffDetailScreen() {
         <View style={styles.headerCard}>
           {/* Avatar */}
           {staffMember.profile?.avatar_url ? (
-            <Image source={{ uri: staffMember.profile.avatar_url }} style={styles.avatar} />
+            <Image source={{ uri: staffMember.profile.avatar_url, cache: 'force-cache' }} style={styles.avatar} />
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>

@@ -293,7 +293,7 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
       <View style={styles.header}>
         <View style={styles.avatar}>
           {post.profiles?.[0]?.avatar_url ? (
-            <Image source={{ uri: post.profiles[0].avatar_url }} style={styles.avatarImage} />
+            <Image source={{ uri: post.profiles[0].avatar_url, cache: 'force-cache' }} style={styles.avatarImage} />
           ) : (
             <User size={20} color={colors.slate[400]} />
           )}

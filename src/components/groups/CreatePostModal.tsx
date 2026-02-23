@@ -121,58 +121,60 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
         try {
             const finalAttachments: PostAttachment[] = [...attachments];
 
-            // Upload images
+            // Upload images in parallel
             if (selectedImages.length > 0) {
-                const imageUrls: string[] = [];
-                for (const image of selectedImages) {
-                    const fileName = generateSecureFileName(image.name);
-                    const filePath = `posts/${groupId}/${fileName}`;
+                const imageUrls = await Promise.all(
+                    selectedImages.map(async (image) => {
+                        const fileName = generateSecureFileName(image.name);
+                        const filePath = `posts/${groupId}/${fileName}`;
 
-                    const { error: uploadError } = await supabase.storage
-                        .from('post-attachments')
-                        .upload(filePath, image, {
-                            cacheControl: '3600',
-                            upsert: false
-                        });
+                        const { error: uploadError } = await supabase.storage
+                            .from('post-attachments')
+                            .upload(filePath, image, {
+                                cacheControl: '3600',
+                                upsert: false
+                            });
 
-                    if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`);
+                        if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`);
 
-                    const { data: { publicUrl } } = supabase.storage
-                        .from('post-attachments')
-                        .getPublicUrl(filePath);
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('post-attachments')
+                            .getPublicUrl(filePath);
 
-                    imageUrls.push(publicUrl);
-                }
+                        return publicUrl;
+                    })
+                );
                 finalAttachments.push({ type: 'images', urls: imageUrls });
             }
 
-            // Upload files
+            // Upload files in parallel
             if (selectedFiles.length > 0) {
-                const fileAttachments: FileAttachment[] = [];
-                for (const file of selectedFiles) {
-                    const fileName = generateSecureFileName(file.name);
-                    const filePath = `posts/${groupId}/files/${fileName}`;
+                const fileAttachments: FileAttachment[] = await Promise.all(
+                    selectedFiles.map(async (file) => {
+                        const fileName = generateSecureFileName(file.name);
+                        const filePath = `posts/${groupId}/files/${fileName}`;
 
-                    const { error: uploadError } = await supabase.storage
-                        .from('post-attachments')
-                        .upload(filePath, file, {
-                            cacheControl: '3600',
-                            upsert: false
-                        });
+                        const { error: uploadError } = await supabase.storage
+                            .from('post-attachments')
+                            .upload(filePath, file, {
+                                cacheControl: '3600',
+                                upsert: false
+                            });
 
-                    if (uploadError) throw new Error(`File upload failed: ${uploadError.message}`);
+                        if (uploadError) throw new Error(`File upload failed: ${uploadError.message}`);
 
-                    const { data: { publicUrl } } = supabase.storage
-                        .from('post-attachments')
-                        .getPublicUrl(filePath);
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('post-attachments')
+                            .getPublicUrl(filePath);
 
-                    fileAttachments.push({
-                        url: publicUrl,
-                        name: file.name,
-                        size: file.size,
-                        mimeType: file.type
-                    });
-                }
+                        return {
+                            url: publicUrl,
+                            name: file.name,
+                            size: file.size,
+                            mimeType: file.type
+                        };
+                    })
+                );
                 finalAttachments.push({ type: 'files', files: fileAttachments });
             }
 
