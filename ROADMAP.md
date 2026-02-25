@@ -2,11 +2,11 @@
 
 ## Mobile
 
-### Consolidate Message Notifications
-Multiple messages from the same channel each create a separate notification row, flooding the activity feed/bell with duplicates. Should consolidate so a burst of messages in one channel results in a single notification (e.g. "Joe Mauk sent 5 messages in #general") rather than 5 individual entries.
-
 ### Schedule - Rotations Display
 The schedule tab has a rotations section. On web this is shown as a grid, but on mobile it's just a list sorted by level showing the day's rotations. Makes it hard to determine multiple groups' events quickly. Needs a reworked display.
+
+### iOS Compatibility Check
+Audit the mobile app for iOS compatibility in preparation for App Store deployment. Verify all native modules, permissions, platform-specific code paths, and UI rendering work correctly on iOS devices and simulators.
 
 ## WEB
 
@@ -18,15 +18,24 @@ Dashboard has basic info, need to look at what i want shown here and what is int
 
 ## General
 
+### ~~Member Announcements & Questionnaires~~
+*Moved to Completed*
+
 ### Progress Reports for Parents
 Generate progress reports to send to parents. Should support both on-demand sending and scheduled automatic reports on a specific date and time interval. Coaches should be able to pick which stats are included and which tabs (skills, scores, attendance, assessments, etc.) the reports pull data from.
-
-### Score Metrics
-Add score metrics/analytics to the main Scores tab and to the Scores section within individual gymnast profiles. Should show trends, averages, highs/lows, and other useful statistical breakdowns of competition scores.
 
 ---
 
 ## Completed
+
+### ~~Consolidate Message Notifications~~
+Database trigger `notify_new_message()` now consolidates burst messages per channel into a single notification row. On each new message, checks for an existing unread notification for the same user+channel — if found, UPDATEs the count/title/body (no additional push). If not found, INSERTs a new row (triggers push). Titles display as "N new messages in #general" (channels) or "N new messages" (DMs) when count > 1. Bell badge and activity feed show consolidated entries instead of per-message duplicates.
+
+### ~~Member Announcements & Questionnaires~~
+Staff can broadcast announcements or questionnaires to targeted members (by role, level, or individual selection). A blocking overlay forces acknowledgement/completion on next login (web + mobile). Supports two types: simple announcements (acknowledge) and questionnaires (multiple choice + free text questions). Both types support link attachments. Staff dashboard card shows active announcements with completion progress bars, expandable spreadsheet-style response table for questionnaires, and CSV export. Management includes closing announcements and expiration dates. Database uses SECURITY DEFINER RPC for atomic recipient population based on targeting criteria.
+
+### ~~Score Metrics~~
+Score metrics/analytics added to the main Scores tab and gymnast profile Scores section. Line charts (recharts) show score trends across the season per event with toggleable event pills. Parent view shows individual gymnast graphs with selector. Coach view shows team score trends (top 3 per event per level). Summary stats include season high, average, latest score, and trend indicators.
 
 ### ~~Push Notifications (Device Alerts)~~
 Device push notifications implemented via expo-notifications + FCM (Android). Database trigger on `notifications` INSERT calls `send_push_notification()` which looks up active tokens in `user_push_tokens`, checks user preferences, and sends via Expo Push API through `pg_net`. Mobile app registers token on login, deregisters on sign out. Notification taps deep link to the relevant screen. Preferences respected per notification type.

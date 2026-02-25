@@ -2,7 +2,7 @@
   "expo": {
     "name": "Gym TeamHub",
     "slug": "teamhub",
-    "version": "1.0.0-beta.9",
+    "version": "1.0.0-beta.10",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
@@ -14,7 +14,14 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "bundleIdentifier": "com.teamhub.mobile",
+      "buildNumber": "1",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "TeamHub needs access to your photo library to upload images for posts, profiles, and marketplace listings.",
+        "NSCameraUsageDescription": "TeamHub needs camera access to take photos for posts, profiles, and marketplace listings.",
+        "NSMicrophoneUsageDescription": "TeamHub needs microphone access for audio features."
+      }
     },
     "android": {
       "package": "com.teamhub.mobile",
