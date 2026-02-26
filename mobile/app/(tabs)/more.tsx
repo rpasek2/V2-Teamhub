@@ -8,6 +8,7 @@ import {
   Switch,
   Image,
   Alert,
+  Linking,
 } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -31,6 +32,7 @@ import {
   Moon,
   Palette,
   Building2,
+  Mail,
 } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -380,6 +382,19 @@ export default function MoreScreen() {
             <ChevronRight size={20} color={colors.slate[400]} />
           </View>
         </TouchableOpacity>
+      </MenuSection>
+
+      {/* Support */}
+      <MenuSection title="Support">
+        <MenuItem
+          item={{
+            id: 'contact-support',
+            label: 'Contact Support',
+            icon: Mail,
+            color: colors.brand[600],
+          }}
+          onPress={() => Linking.openURL('mailto:support@twotreesapps.com')}
+        />
       </MenuSection>
 
       {/* Sign Out */}

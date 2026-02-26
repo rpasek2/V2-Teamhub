@@ -117,7 +117,7 @@ export default function HubSelectionScreen() {
             </View>
             <Text style={styles.emptyTitle}>No teams yet</Text>
             <Text style={styles.emptyText}>
-              Join a team using an invite code or create your own
+              Join a team using an invite code
             </Text>
           </View>
         }

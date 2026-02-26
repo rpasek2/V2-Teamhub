@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
+  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
@@ -16,6 +17,7 @@ import {
   Circle,
   Calendar,
   Target,
+  LayoutGrid,
 } from 'lucide-react-native';
 import { format, addDays, subDays, parseISO, isToday } from 'date-fns';
 import { colors, theme } from '../../src/constants/colors';
@@ -64,6 +66,31 @@ interface Assignment {
   completed_items: Record<string, number[]>;
   notes: string | null;
 }
+
+interface SideStation {
+  id: string;
+  content: string;
+}
+
+interface MainStation {
+  id: string;
+  content: string;
+  side_stations: SideStation[];
+}
+
+interface StationAssignment {
+  id: string;
+  hub_id: string;
+  date: string;
+  level: string;
+  event: AssignmentEventType;
+  stations: MainStation[];
+}
+
+const LEVEL_ORDER = [
+  'Pre-Team', 'Level 1', 'Level 2', 'Level 3', 'Level 4', 'Level 5',
+  'Level 6', 'Level 7', 'Level 8', 'Level 9', 'Level 10',
+];
 
 interface ProgressStats {
   totalExercises: number;
@@ -230,6 +257,60 @@ function EventCard({
   );
 }
 
+// Station Card Component — displays stations for a level+event
+function StationEventCard({ station }: { station: StationAssignment }) {
+  const eventColor = EVENT_COLORS[station.event];
+
+  return (
+    <View style={stationStyles.eventSection}>
+      <View style={[stationStyles.eventBadge, { backgroundColor: eventColor.bg }]}>
+        <Text style={[stationStyles.eventBadgeText, { color: eventColor.text }]}>
+          {EVENT_LABELS[station.event]}
+        </Text>
+        <Text style={[stationStyles.stationCount, { color: eventColor.text }]}>
+          {station.stations.length} station{station.stations.length !== 1 ? 's' : ''}
+        </Text>
+      </View>
+      {station.stations.map((main, idx) => (
+        <View key={main.id} style={stationStyles.mainStation}>
+          <View style={stationStyles.stationHeader}>
+            <View style={stationStyles.stationNumber}>
+              <Text style={stationStyles.stationNumberText}>{idx + 1}</Text>
+            </View>
+            <Text style={stationStyles.stationLabel}>Station {idx + 1}</Text>
+          </View>
+          <Text style={stationStyles.stationContent}>{main.content}</Text>
+          {main.side_stations && main.side_stations.length > 0 && (
+            <View style={stationStyles.sideStationsContainer}>
+              {main.side_stations.map((side, sIdx) => (
+                <View key={side.id} style={stationStyles.sideStation}>
+                  <Text style={stationStyles.sideStationLabel}>Side {sIdx + 1}</Text>
+                  <Text style={stationStyles.sideStationContent}>{side.content}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// Station Card for a full level — groups all events for that level
+function LevelStationCard({ level, stations }: { level: string; stations: StationAssignment[] }) {
+  return (
+    <View style={stationStyles.card}>
+      <View style={stationStyles.cardHeader}>
+        <LayoutGrid size={18} color={colors.amber[600]} />
+        <Text style={stationStyles.cardTitle}>Stations — {level}</Text>
+      </View>
+      {stations.map((s) => (
+        <StationEventCard key={s.id} station={s} />
+      ))}
+    </View>
+  );
+}
+
 // Assignment Card Component
 function AssignmentCard({
   assignment,
@@ -314,6 +395,7 @@ function AssignmentCard({
 
 export default function AssignmentsScreen() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [stations, setStations] = useState<StationAssignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -337,49 +419,66 @@ export default function AssignmentsScreen() {
   const fetchAssignments = useCallback(async () => {
     if (!currentHub) {
       setAssignments([]);
+      setStations([]);
       setLoading(false);
       return;
     }
 
     try {
-      let query = supabase
-        .from('gymnast_assignments')
-        .select(`
-          id,
-          gymnast_profile_id,
-          date,
-          vault,
-          bars,
-          beam,
-          floor,
-          strength,
-          flexibility,
-          conditioning,
-          completed_items,
-          notes,
-          gymnast_profiles!inner(
-            first_name,
-            last_name,
-            level,
-            hub_id
-          )
-        `)
-        .eq('date', dateString)
-        .eq('gymnast_profiles.hub_id', currentHub.id);
+      // Fetch gymnast assignments and stations in parallel
+      const [assignmentRes, stationRes] = await Promise.all([
+        supabase
+          .from('gymnast_assignments')
+          .select(`
+            id,
+            gymnast_profile_id,
+            date,
+            vault,
+            bars,
+            beam,
+            floor,
+            strength,
+            flexibility,
+            conditioning,
+            completed_items,
+            notes,
+            gymnast_profiles!inner(
+              first_name,
+              last_name,
+              level,
+              hub_id
+            )
+          `)
+          .eq('date', dateString)
+          .eq('gymnast_profiles.hub_id', currentHub.id)
+          .then(res => {
+            // Apply parent filter
+            if (isParent() && linkedGymnasts.length > 0) {
+              // Re-query with filter — can't chain after .then
+              return res;
+            }
+            return res;
+          }),
+        supabase
+          .from('station_assignments')
+          .select('*')
+          .eq('hub_id', currentHub.id)
+          .eq('date', dateString)
+          .order('created_at', { ascending: true }),
+      ]);
 
-      // Parents only see their linked gymnasts
-      if (isParent() && linkedGymnasts.length > 0) {
-        const linkedIds = linkedGymnasts.map((g) => g.id);
-        query = query.in('gymnast_profile_id', linkedIds);
-      }
-
-      const { data, error } = await query.order('gymnast_profiles(last_name)', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching assignments:', error);
+      // Handle assignments
+      if (assignmentRes.error) {
+        console.error('Error fetching assignments:', assignmentRes.error);
         setAssignments([]);
       } else {
-        const mapped: Assignment[] = (data || []).map((a: any) => ({
+        let data = assignmentRes.data || [];
+        // Parent filter
+        if (isParent() && linkedGymnasts.length > 0) {
+          const linkedIds = new Set(linkedGymnasts.map((g) => g.id));
+          data = data.filter((a: any) => linkedIds.has(a.gymnast_profile_id));
+        }
+        const mapped: Assignment[] = data.map((a: any) => ({
           id: a.id,
           gymnast_profile_id: a.gymnast_profile_id,
           gymnast_name: `${a.gymnast_profiles.first_name} ${a.gymnast_profiles.last_name}`,
@@ -395,11 +494,21 @@ export default function AssignmentsScreen() {
           completed_items: a.completed_items || {},
           notes: a.notes,
         }));
+        mapped.sort((a, b) => a.gymnast_name.localeCompare(b.gymnast_name));
         setAssignments(mapped);
+      }
+
+      // Handle stations
+      if (stationRes.error) {
+        console.error('Error fetching stations:', stationRes.error);
+        setStations([]);
+      } else {
+        setStations((stationRes.data || []) as StationAssignment[]);
       }
     } catch (err) {
       console.error('Error:', err);
       setAssignments([]);
+      setStations([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -414,6 +523,16 @@ export default function AssignmentsScreen() {
     setRefreshing(true);
     fetchAssignments();
   };
+
+  // Group stations by level
+  const stationsByLevel = useMemo(() => {
+    const groups: Record<string, StationAssignment[]> = {};
+    stations.forEach((s) => {
+      if (!groups[s.level]) groups[s.level] = [];
+      groups[s.level].push(s);
+    });
+    return groups;
+  }, [stations]);
 
   const goToPrevDay = () => {
     setCurrentDate(subDays(currentDate, 1));
@@ -473,6 +592,34 @@ export default function AssignmentsScreen() {
 
   const overallStats = calculateOverallStats(assignments);
 
+  // Build grouped list: levels that have stations or assignments
+  const groupedByLevel = useMemo(() => {
+    const groups: Record<string, Assignment[]> = {};
+    assignments.forEach((a) => {
+      const level = a.gymnast_level || 'Unknown';
+      if (!groups[level]) groups[level] = [];
+      groups[level].push(a);
+    });
+    return groups;
+  }, [assignments]);
+
+  const sortedLevels = useMemo(() => {
+    const allLevels = new Set([
+      ...Object.keys(groupedByLevel),
+      ...Object.keys(stationsByLevel),
+    ]);
+    return Array.from(allLevels).sort((a, b) => {
+      const aIdx = LEVEL_ORDER.indexOf(a);
+      const bIdx = LEVEL_ORDER.indexOf(b);
+      if (aIdx === -1 && bIdx === -1) return a.localeCompare(b);
+      if (aIdx === -1) return 1;
+      if (bIdx === -1) return -1;
+      return aIdx - bIdx;
+    });
+  }, [groupedByLevel, stationsByLevel]);
+
+  const hasContent = assignments.length > 0 || stations.length > 0;
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -504,23 +651,14 @@ export default function AssignmentsScreen() {
         <StatsDashboard stats={overallStats} assignmentCount={assignments.length} />
       )}
 
-      {/* Assignments List */}
-      <FlatList
-        data={assignments}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <AssignmentCard
-            assignment={item}
-            canToggle={canToggle}
-            onToggleExercise={handleToggleExercise}
-            togglingState={togglingState}
-          />
-        )}
+      {/* Content */}
+      <ScrollView
         contentContainerStyle={styles.listContent}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
-        ListEmptyComponent={
+      >
+        {!hasContent ? (
           <View style={styles.emptyContainer}>
             <View style={styles.emptyIcon}>
               <ClipboardList size={48} color={colors.slate[300]} />
@@ -530,8 +668,44 @@ export default function AssignmentsScreen() {
               No assignments for {format(currentDate, 'MMMM d, yyyy')}
             </Text>
           </View>
-        }
-      />
+        ) : (
+          sortedLevels.map((level) => {
+            const levelStations = stationsByLevel[level] || [];
+            const levelAssignments = groupedByLevel[level] || [];
+
+            return (
+              <View key={level} style={styles.levelSection}>
+                {/* Level Header */}
+                <View style={styles.levelHeader}>
+                  <Text style={styles.levelTitle}>{level}</Text>
+                  <View style={styles.levelDivider} />
+                  {levelAssignments.length > 0 && (
+                    <Text style={styles.levelCount}>
+                      {levelAssignments.length} gymnast{levelAssignments.length !== 1 ? 's' : ''}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Stations for this level */}
+                {levelStations.length > 0 && (
+                  <LevelStationCard level={level} stations={levelStations} />
+                )}
+
+                {/* Gymnast assignment cards */}
+                {levelAssignments.map((assignment) => (
+                  <AssignmentCard
+                    key={assignment.id}
+                    assignment={assignment}
+                    canToggle={canToggle}
+                    onToggleExercise={handleToggleExercise}
+                    togglingState={togglingState}
+                  />
+                ))}
+              </View>
+            );
+          })
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -791,5 +965,132 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  levelSection: {
+    marginBottom: 24,
+  },
+  levelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  levelTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.slate[900],
+  },
+  levelDivider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.slate[200],
+  },
+  levelCount: {
+    fontSize: 13,
+    color: colors.slate[500],
+  },
+});
+
+const stationStyles = StyleSheet.create({
+  card: {
+    backgroundColor: colors.amber[50],
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.amber[200],
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.slate[900],
+  },
+  eventSection: {
+    marginBottom: 10,
+  },
+  eventBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    marginBottom: 8,
+  },
+  eventBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  stationCount: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  mainStation: {
+    backgroundColor: colors.white,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: colors.slate[200],
+  },
+  stationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  stationNumber: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: colors.slate[600],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stationNumberText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  stationLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.slate[500],
+  },
+  stationContent: {
+    fontSize: 14,
+    color: colors.slate[700],
+    lineHeight: 20,
+  },
+  sideStationsContainer: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: colors.slate[200],
+    gap: 6,
+  },
+  sideStation: {
+    backgroundColor: colors.amber[50],
+    borderRadius: 6,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: colors.amber[200],
+  },
+  sideStationLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.amber[700],
+    marginBottom: 2,
+  },
+  sideStationContent: {
+    fontSize: 13,
+    color: colors.slate[600],
+    lineHeight: 18,
   },
 });

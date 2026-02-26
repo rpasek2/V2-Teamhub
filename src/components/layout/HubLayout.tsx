@@ -4,6 +4,7 @@ import { Sidebar } from './Sidebar';
 import { HubProvider } from '../../context/HubContext';
 import { NotificationProvider } from '../../context/NotificationContext';
 import { PageLoader } from '../ui/PageLoader';
+import { AnnouncementOverlay } from '../announcements/AnnouncementOverlay';
 
 export function HubLayout() {
     return (
@@ -17,6 +18,7 @@ export function HubLayout() {
                         </Suspense>
                     </main>
                 </div>
+                <AnnouncementOverlay />
             </NotificationProvider>
         </HubProvider>
     );

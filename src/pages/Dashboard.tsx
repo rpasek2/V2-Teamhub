@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Loader2, FileText } from 'lucide-react';
+import { Loader2, FileText, Megaphone } from 'lucide-react';
 import { useHub } from '../context/HubContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { supabase } from '../lib/supabase';
@@ -12,6 +12,8 @@ import { ParentDashboardSections } from '../components/dashboard/ParentDashboard
 import { RecentActivityCard } from '../components/dashboard/RecentActivityCard';
 import { UpcomingScheduleCard } from '../components/dashboard/UpcomingScheduleCard';
 import { NotificationBell } from '../components/notifications/NotificationBell';
+import { ActiveAnnouncementsCard } from '../components/dashboard/ActiveAnnouncementsCard';
+import { CreateAnnouncementModal } from '../components/announcements/CreateAnnouncementModal';
 import type { GymnastProfile, SkillStatus } from '../types';
 
 interface DashboardStats {
@@ -119,6 +121,8 @@ export function Dashboard() {
     const [loadingStats, setLoadingStats] = useState(true);
     const [userName, setUserName] = useState<string>('');
     const [linkedGymnastInfo, setLinkedGymnastInfo] = useState<LinkedGymnastInfo[]>([]);
+    const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
+    const [announcementKey, setAnnouncementKey] = useState(0);
 
     // Parent-specific data
     const [recentScores, setRecentScores] = useState<RecentScore[]>([]);
@@ -779,11 +783,25 @@ export function Dashboard() {
                         Welcome to {hub.name} • {format(new Date(), 'EEEE, MMMM d')}
                     </p>
                 </div>
-                <NotificationBell />
+                <div className="flex items-center gap-2">
+                    {isStaff && (
+                        <button
+                            onClick={() => setShowCreateAnnouncement(true)}
+                            className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                            title="Create Announcement"
+                        >
+                            <Megaphone className="w-5 h-5 text-slate-600" />
+                        </button>
+                    )}
+                    <NotificationBell />
+                </div>
             </div>
 
             {/* Parent: Linked Gymnast Cards */}
             {isParent && <ParentGymnastCards linkedGymnastInfo={linkedGymnastInfo} />}
+
+            {/* Staff: Active Announcements */}
+            {isStaff && <ActiveAnnouncementsCard key={announcementKey} />}
 
             {/* Stat Cards - only for staff, parents see gymnast card + schedule below */}
             {!isParent && (
@@ -824,6 +842,13 @@ export function Dashboard() {
                 <RecentActivityCard recentActivity={recentActivity} loadingStats={loadingStats} />
                 <UpcomingScheduleCard upcomingEvents={upcomingEvents} loadingStats={loadingStats} />
             </div>
+
+            {/* Create Announcement Modal */}
+            <CreateAnnouncementModal
+                isOpen={showCreateAnnouncement}
+                onClose={() => setShowCreateAnnouncement(false)}
+                onCreated={() => setAnnouncementKey(prev => prev + 1)}
+            />
         </div>
     );
 }

@@ -215,8 +215,13 @@ export function NotificationBell() {
                                                         !notification.is_read ? 'bg-brand-50/30' : ''
                                                     }`}
                                                 >
-                                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
+                                                    <div className={`relative w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
                                                         <Icon className="w-4 h-4" />
+                                                        {notification.count > 1 && (
+                                                            <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-brand-500 text-white text-[10px] font-bold">
+                                                                {notification.count > 99 ? '99+' : notification.count}
+                                                            </span>
+                                                        )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
                                                         <p className={`text-sm ${!notification.is_read ? 'font-medium text-slate-900' : 'text-slate-700'} line-clamp-1`}>

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Loader2, Camera, User, Save, Check, Building2, Bell, Moon, Sun, Lock, Trash2, AlertTriangle } from 'lucide-react';
+import { Loader2, Camera, User, Save, Check, Building2, Bell, Moon, Sun, Lock, Trash2, AlertTriangle, Mail } from 'lucide-react';
 
 export function UserSettings() {
     const { user, signOut } = useAuth();
@@ -519,6 +519,29 @@ export function UserSettings() {
                             {user?.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
                         </span>
                     </div>
+                </div>
+            </div>
+
+            {/* Support */}
+            <div className="bg-white shadow rounded-lg p-6">
+                <h2 className="text-lg font-medium text-slate-900 mb-4">Support</h2>
+
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-lg bg-brand-50">
+                            <Mail className="h-5 w-5 text-brand-600" />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-slate-900">Contact Support</p>
+                            <p className="text-xs text-slate-500">Get help with your account or report an issue</p>
+                        </div>
+                    </div>
+                    <a
+                        href="mailto:support@twotreesapps.com"
+                        className="text-sm font-medium text-brand-600 hover:text-brand-500"
+                    >
+                        Email Us
+                    </a>
                 </div>
             </div>
 

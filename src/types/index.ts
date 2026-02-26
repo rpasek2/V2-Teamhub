@@ -937,6 +937,7 @@ export interface ActivityNotification {
     reference_id: string | null;
     reference_type: string | null;
     is_read: boolean;
+    count: number;
     created_at: string;
     actor_profile?: { full_name: string; avatar_url: string | null };
 }
@@ -1211,4 +1212,54 @@ export interface LessonBooking {
     gymnast_profile?: GymnastProfile;
     booked_by?: Profile;
     lesson_slot?: LessonSlot;
+}
+
+// Announcement types
+export interface AnnouncementQuestion {
+    id: string;
+    type: 'multiple_choice' | 'free_text';
+    question: string;
+    options?: string[];
+    required: boolean;
+}
+
+export interface AnnouncementLink {
+    url: string;
+    label: string;
+}
+
+export interface QuestionResponse {
+    question_id: string;
+    answer: string;
+}
+
+export interface Announcement {
+    id: string;
+    hub_id: string;
+    created_by: string;
+    title: string;
+    body: string | null;
+    type: 'announcement' | 'questionnaire';
+    target_roles: string[] | null;
+    target_levels: string[] | null;
+    target_member_ids: string[] | null;
+    questions: AnnouncementQuestion[] | null;
+    links: AnnouncementLink[] | null;
+    is_active: boolean;
+    expires_at: string | null;
+    created_at: string;
+}
+
+export interface AnnouncementRecipient {
+    id: string;
+    announcement_id: string;
+    user_id: string;
+    status: 'pending' | 'acknowledged' | 'completed';
+    responses: QuestionResponse[] | null;
+    completed_at: string | null;
+    created_at: string;
+}
+
+export interface PendingAnnouncement extends Announcement {
+    recipient_id: string;
 }

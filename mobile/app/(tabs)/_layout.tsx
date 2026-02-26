@@ -23,6 +23,7 @@ import { useAuthStore } from '../../src/stores/authStore';
 import { useTabPreferencesStore, TabId } from '../../src/stores/tabPreferencesStore';
 import { isTabEnabled } from '../../src/lib/permissions';
 import { supabase } from '../../src/services/supabase';
+import { AnnouncementOverlay } from '../../src/components/announcements/AnnouncementOverlay';
 
 // Map of all available tab icons
 const TAB_ICONS: Record<string, React.ComponentType<{ size: number; color: string }>> = {
@@ -158,6 +159,8 @@ export default function TabLayout() {
   };
 
   return (
+    <>
+    <AnnouncementOverlay />
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: theme.light.primary,
@@ -324,6 +327,7 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
+    </>
   );
 }
 

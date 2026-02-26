@@ -23,6 +23,7 @@ import {
   CalendarDays,
   UserPlus,
   FileText,
+  Megaphone,
 } from 'lucide-react-native';
 import { colors, theme } from '../../src/constants/colors';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -32,6 +33,8 @@ import { isTabEnabled } from '../../src/lib/permissions';
 import { supabase } from '../../src/services/supabase';
 import { NotificationBell } from '../../src/components/notifications/NotificationBell';
 import { MyTasksSection } from '../../src/components/dashboard/MyTasksSection';
+import { ActiveAnnouncementsCard } from '../../src/components/dashboard/ActiveAnnouncementsCard';
+import { CreateAnnouncementModal } from '../../src/components/announcements/CreateAnnouncementModal';
 import { format, parseISO, subWeeks, subDays } from 'date-fns';
 
 // Interfaces
@@ -131,6 +134,8 @@ export default function DashboardScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
+  const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
+  const [announcementKey, setAnnouncementKey] = useState(0);
 
   // Staff data
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -497,6 +502,7 @@ export default function DashboardScreen() {
   }
 
   return (
+  <>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -519,7 +525,14 @@ export default function DashboardScreen() {
               Welcome to {currentHub?.name} • {format(new Date(), 'EEEE, MMMM d')}
             </Text>
           </View>
-          <NotificationBell />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {isStaff() && (
+              <TouchableOpacity onPress={() => setShowCreateAnnouncement(true)} style={{ padding: 6 }}>
+                <Megaphone size={20} color={colors.slate[600]} />
+              </TouchableOpacity>
+            )}
+            <NotificationBell />
+          </View>
         </View>
       </View>
 
@@ -592,6 +605,9 @@ export default function DashboardScreen() {
           ))}
         </View>
       )}
+
+      {/* Staff: Active Announcements */}
+      {isStaff() && <ActiveAnnouncementsCard key={announcementKey} />}
 
       {/* Staff: Stat Cards */}
       {isStaff() && stats && (
@@ -802,6 +818,14 @@ export default function DashboardScreen() {
         </View>
       </View>
     </ScrollView>
+
+    {/* Create Announcement Modal */}
+    <CreateAnnouncementModal
+      visible={showCreateAnnouncement}
+      onClose={() => setShowCreateAnnouncement(false)}
+      onCreated={() => setAnnouncementKey(prev => prev + 1)}
+    />
+  </>
   );
 }
 

@@ -26,6 +26,7 @@ export interface ActivityNotification {
     reference_id: string | null;
     reference_type: string | null;
     is_read: boolean;
+    count: number;
     created_at: string;
     actor_profile?: { full_name: string; avatar_url: string | null } | null;
 }
