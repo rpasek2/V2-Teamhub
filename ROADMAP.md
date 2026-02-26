@@ -21,12 +21,15 @@ Dashboard has basic info, need to look at what i want shown here and what is int
 ### ~~Member Announcements & Questionnaires~~
 *Moved to Completed*
 
-### Progress Reports for Parents
-Generate progress reports to send to parents. Should support both on-demand sending and scheduled automatic reports on a specific date and time interval. Coaches should be able to pick which stats are included and which tabs (skills, scores, attendance, assessments, etc.) the reports pull data from.
+### Progress Reports Enhancements
+V1 of progress reports is complete (create on web, view on web + mobile). Future enhancements: scheduled automatic reports on a configurable interval, bulk generation for an entire level at once, PDF export/download, and per-section toggle during creation (currently auto-includes all enabled tabs).
 
 ---
 
 ## Completed
+
+### ~~Progress Reports for Parents (V1)~~
+Staff can generate progress reports for individual gymnasts on web with date range presets (last 30/90 days, last month, this season, custom). Reports snapshot skills progress (count per status per event with coach comments), attendance stats, assignment completion rates, and competition scores. Data stored as JSONB for point-in-time accuracy. Draft/published workflow lets coaches review before sharing. Parents view published reports on web and mobile (More tab → Reports). Sections auto-include based on hub's enabled tabs.
 
 ### ~~Consolidate Message Notifications~~
 Database trigger `notify_new_message()` now consolidates burst messages per channel into a single notification row. On each new message, checks for an existing unread notification for the same user+channel — if found, UPDATEs the count/title/body (no additional push). If not found, INSERTs a new row (triggers push). Titles display as "N new messages in #general" (channels) or "N new messages" (DMs) when count > 1. Bell badge and activity feed show consolidated entries instead of per-message duplicates.

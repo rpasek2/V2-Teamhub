@@ -50,22 +50,30 @@ interface LessonPackage {
   name: string;
   description: string | null;
   duration_minutes: number;
-  cost: number;
+  price: number;
   is_active: boolean;
 }
 
-interface LessonBooking {
+interface LessonSlot {
   id: string;
+  slot_date: string;
   start_time: string;
   end_time: string;
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
   notes: string | null;
-  coach_profiles?: {
+  coach_profile?: {
     id: string;
     full_name: string;
     avatar_url: string | null;
   };
-  lesson_packages?: LessonPackage;
+  package?: LessonPackage;
+}
+
+interface LessonBooking {
+  id: string;
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed';
+  cost: number | null;
+  event: string | null;
+  lesson_slot?: LessonSlot;
 }
 
 type Tab = 'coaches' | 'my-bookings';
@@ -113,7 +121,7 @@ export default function PrivateLessonsScreen() {
           .order('created_at', { ascending: true }),
         supabase
           .from('lesson_packages')
-          .select('id, coach_user_id, name, description, duration_minutes, cost, is_active')
+          .select('id, coach_user_id, name, description, duration_minutes, price, is_active')
           .eq('hub_id', currentHub.id)
           .eq('is_active', true)
           .order('sort_order', { ascending: true }),
@@ -149,13 +157,16 @@ export default function PrivateLessonsScreen() {
       const { data, error } = await supabase
         .from('lesson_bookings')
         .select(`
-          id, start_time, end_time, status, notes,
-          coach_profiles:coach_user_id (id, full_name, avatar_url),
-          lesson_packages:package_id (id, name, cost, duration_minutes)
+          id, status, cost, event,
+          lesson_slot:lesson_slots!lesson_slot_id(
+            id, slot_date, start_time, end_time, notes,
+            coach_profile:profiles!coach_user_id(id, full_name, avatar_url),
+            package:lesson_packages!package_id(id, name, price, duration_minutes)
+          )
         `)
         .eq('hub_id', currentHub.id)
-        .eq('booked_by', user.id)
-        .order('start_time', { ascending: true });
+        .eq('booked_by_user_id', user.id)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching bookings:', error);
@@ -168,12 +179,18 @@ export default function PrivateLessonsScreen() {
     }
   };
 
+  const getSlotStart = (b: LessonBooking) => {
+    const slot = Array.isArray(b.lesson_slot) ? b.lesson_slot[0] : b.lesson_slot;
+    if (!slot) return new Date(0);
+    return parseISO(`${slot.slot_date}T${slot.start_time}`);
+  };
+
   // Split bookings into upcoming and past
   const upcomingBookings = bookings.filter(
-    (b) => !isPast(parseISO(b.start_time)) && b.status !== 'cancelled'
+    (b) => !isPast(getSlotStart(b)) && b.status !== 'cancelled'
   );
   const pastBookings = bookings.filter(
-    (b) => isPast(parseISO(b.start_time)) || b.status === 'cancelled'
+    (b) => isPast(getSlotStart(b)) || b.status === 'cancelled'
   );
 
   const getStatusBadge = (status: string) => {
@@ -344,7 +361,7 @@ export default function PrivateLessonsScreen() {
                               {pkg.duration_minutes} minutes
                             </Text>
                           </View>
-                          <Text style={styles.packagePrice}>${pkg.cost}</Text>
+                          <Text style={styles.packagePrice}>${pkg.price}</Text>
                         </View>
                       ))}
                     </View>
@@ -386,35 +403,35 @@ export default function PrivateLessonsScreen() {
                   <Text style={styles.sectionTitle}>Upcoming</Text>
                   {upcomingBookings.map((booking) => {
                     const status = getStatusBadge(booking.status);
-                    const coachData = Array.isArray(booking.coach_profiles)
-                      ? booking.coach_profiles[0]
-                      : booking.coach_profiles;
-                    const packageData = Array.isArray(booking.lesson_packages)
-                      ? booking.lesson_packages[0]
-                      : booking.lesson_packages;
+                    const slot = Array.isArray(booking.lesson_slot) ? booking.lesson_slot[0] : booking.lesson_slot;
+                    if (!slot) return null;
+                    const startDt = parseISO(`${slot.slot_date}T${slot.start_time}`);
+                    const endDt = parseISO(`${slot.slot_date}T${slot.end_time}`);
+                    const coachData = Array.isArray(slot.coach_profile) ? slot.coach_profile[0] : slot.coach_profile;
+                    const packageData = Array.isArray(slot.package) ? slot.package[0] : slot.package;
 
                     return (
                       <View key={booking.id} style={styles.bookingCard}>
                         <View style={styles.bookingHeader}>
                           <View style={styles.bookingDateBadge}>
                             <Text style={styles.bookingMonth}>
-                              {format(parseISO(booking.start_time), 'MMM')}
+                              {format(startDt, 'MMM')}
                             </Text>
                             <Text style={styles.bookingDay}>
-                              {format(parseISO(booking.start_time), 'd')}
+                              {format(startDt, 'd')}
                             </Text>
                           </View>
                           <View style={styles.bookingInfo}>
                             <Text style={styles.bookingTime}>
-                              {format(parseISO(booking.start_time), 'h:mm a')} -{' '}
-                              {format(parseISO(booking.end_time), 'h:mm a')}
+                              {format(startDt, 'h:mm a')} -{' '}
+                              {format(endDt, 'h:mm a')}
                             </Text>
                             <Text style={styles.bookingCoach}>
                               with {coachData?.full_name || 'Coach'}
                             </Text>
                             {packageData && (
                               <Text style={styles.bookingPackage}>
-                                {packageData.name} • ${packageData.cost}
+                                {packageData.name} • ${packageData.price}
                               </Text>
                             )}
                           </View>
@@ -426,9 +443,9 @@ export default function PrivateLessonsScreen() {
                             </Text>
                           </View>
                         </View>
-                        {booking.notes && (
+                        {slot.notes && (
                           <Text style={styles.bookingNotes} numberOfLines={2}>
-                            {booking.notes}
+                            {slot.notes}
                           </Text>
                         )}
                       </View>
@@ -443,9 +460,10 @@ export default function PrivateLessonsScreen() {
                   <Text style={styles.sectionTitle}>Past Lessons</Text>
                   {pastBookings.slice(0, 10).map((booking) => {
                     const status = getStatusBadge(booking.status);
-                    const coachData = Array.isArray(booking.coach_profiles)
-                      ? booking.coach_profiles[0]
-                      : booking.coach_profiles;
+                    const slot = Array.isArray(booking.lesson_slot) ? booking.lesson_slot[0] : booking.lesson_slot;
+                    if (!slot) return null;
+                    const startDt = parseISO(`${slot.slot_date}T${slot.start_time}`);
+                    const coachData = Array.isArray(slot.coach_profile) ? slot.coach_profile[0] : slot.coach_profile;
 
                     return (
                       <View
@@ -457,15 +475,15 @@ export default function PrivateLessonsScreen() {
                             style={[styles.bookingDateBadge, styles.bookingDateBadgePast]}
                           >
                             <Text style={[styles.bookingMonth, styles.bookingMonthPast]}>
-                              {format(parseISO(booking.start_time), 'MMM')}
+                              {format(startDt, 'MMM')}
                             </Text>
                             <Text style={[styles.bookingDay, styles.bookingDayPast]}>
-                              {format(parseISO(booking.start_time), 'd')}
+                              {format(startDt, 'd')}
                             </Text>
                           </View>
                           <View style={styles.bookingInfo}>
                             <Text style={[styles.bookingTime, styles.bookingTimePast]}>
-                              {format(parseISO(booking.start_time), 'h:mm a')}
+                              {format(startDt, 'h:mm a')}
                             </Text>
                             <Text style={styles.bookingCoach}>
                               with {coachData?.full_name || 'Coach'}

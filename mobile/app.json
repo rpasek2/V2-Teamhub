@@ -14,13 +14,14 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "bundleIdentifier": "com.teamhub.mobile",
+      "bundleIdentifier": "com.twotrees.gymteamhub",
       "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "TeamHub needs access to your photo library to upload images for posts, profiles, and marketplace listings.",
         "NSCameraUsageDescription": "TeamHub needs camera access to take photos for posts, profiles, and marketplace listings.",
-        "NSMicrophoneUsageDescription": "TeamHub needs microphone access for audio features."
+        "NSMicrophoneUsageDescription": "TeamHub needs microphone access for audio features.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {

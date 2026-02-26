@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, GraduationCap } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, GraduationCap, FileText } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
@@ -99,6 +99,7 @@ export function GymnasticsSidebar() {
         { name: 'Attendance', href: `/hub/${hubId}/attendance`, icon: UserCheck, permission: 'attendance', tabId: 'attendance' as HubFeatureTab },
         { name: 'Private Lessons', href: `/hub/${hubId}/private-lessons`, icon: GraduationCap, permission: 'private_lessons', tabId: 'private_lessons' as HubFeatureTab },
         { name: 'Staff', href: `/hub/${hubId}/staff`, icon: UserCog, permission: 'staff', tabId: 'staff' as HubFeatureTab },
+        { name: 'Progress Reports', href: `/hub/${hubId}/progress-reports`, icon: FileText, permission: 'progress_reports', tabId: null },
         { name: 'Settings', href: `/hub/${hubId}/settings`, icon: Settings2, permission: 'settings', tabId: null },
     ];
 
@@ -123,6 +124,9 @@ export function GymnasticsSidebar() {
             // Show to coaches, parents, and staff
             const canSee = ['owner', 'director', 'admin', 'coach', 'parent'].includes(currentRole || '');
             return canSee && isTabEnabled(item.tabId);
+        }
+        if (item.name === 'Progress Reports') {
+            return ['owner', 'director', 'admin', 'coach', 'parent'].includes(currentRole || '');
         }
         if (!isTabEnabled(item.tabId)) return false;
         return hasPermission(item.permission);

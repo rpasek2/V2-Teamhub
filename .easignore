@@ -1,0 +1,30 @@
+# Web app (not needed for mobile build)
+node_modules/
+dist/
+src/
+public/
+index.html
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+tsconfig*.json
+
+# Supabase local files
+supabase/
+
+# Documentation
+docs/
+.reports/
+
+# Tests
+tests/
+playwright/
+playwright.config.ts
+
+# Git
+.git/
+
+# IDE / tooling
+.vscode/
+.idea/
+.claude/

@@ -28,6 +28,7 @@ const Resources = lazy(() => import('./pages/Resources').then(m => ({ default: m
 const Schedule = lazy(() => import('./pages/Schedule').then(m => ({ default: m.Schedule })));
 const Attendance = lazy(() => import('./pages/Attendance').then(m => ({ default: m.Attendance })));
 const PrivateLessons = lazy(() => import('./pages/PrivateLessons'));
+const ProgressReports = lazy(() => import('./pages/ProgressReports').then(m => ({ default: m.ProgressReports })));
 const GymnastDetails = lazy(() => import('./pages/GymnastDetails').then(m => ({ default: m.GymnastDetails })));
 const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./pages/auth/Register').then(m => ({ default: m.Register })));
@@ -74,6 +75,7 @@ function App() {
                 <Route path="private-lessons" element={<TabGuard tabId="private_lessons"><PrivateLessons /></TabGuard>} />
                 <Route path="staff" element={<TabGuard tabId="staff"><Staff /></TabGuard>} />
                 <Route path="staff/:staffUserId" element={<TabGuard tabId="staff"><StaffDetails /></TabGuard>} />
+                <Route path="progress-reports" element={<ProgressReports />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>

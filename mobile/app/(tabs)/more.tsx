@@ -334,6 +334,22 @@ export default function MoreScreen() {
         ))}
       </MenuSection>
 
+      {/* Progress Reports - visible to staff and parents */}
+      {['owner', 'director', 'admin', 'coach', 'parent'].includes(currentRole || '') && (
+        <MenuSection title="Reports">
+          <MenuItem
+            item={{
+              id: 'progress-reports',
+              label: 'Progress Reports',
+              icon: FileText,
+              route: '/progress-reports',
+              color: colors.brand[600],
+            }}
+            onPress={() => router.push('/progress-reports' as any)}
+          />
+        </MenuSection>
+      )}
+
       {/* Quick Settings */}
       <MenuSection title="Quick Settings">
         <SettingToggle
