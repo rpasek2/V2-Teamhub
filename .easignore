@@ -1,7 +1,7 @@
 # Web app (not needed for mobile build)
 node_modules/
 dist/
-src/
+/src/
 public/
 index.html
 vite.config.ts

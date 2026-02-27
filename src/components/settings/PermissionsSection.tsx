@@ -5,7 +5,10 @@ import { useHub } from '../../context/HubContext';
 import { CollapsibleSection } from '../ui/CollapsibleSection';
 import type { HubPermissions, RolePermissions, PermissionScope } from '../../types';
 
-const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'marketplace', 'groups', 'mentorship'] as const;
+const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'assignments', 'attendance', 'schedule', 'staff', 'resources', 'marketplace', 'mentorship', 'privateLessons'] as const;
+const FEATURE_LABELS: Record<string, string> = {
+    privateLessons: 'Private Lessons',
+};
 const ROLES = ['director', 'admin', 'coach', 'parent', 'athlete'] as const;
 const VALID_PERMISSION_SCOPES: PermissionScope[] = ['all', 'own', 'none'];
 
@@ -149,7 +152,7 @@ export function PermissionsSection({ permissions, setPermissions }: PermissionsS
                         {FEATURES.map(feature => (
                             <tr key={feature}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">
-                                    {feature}
+                                    {FEATURE_LABELS[feature] || feature}
                                 </td>
                                 {ROLES.map(role => (
                                     <td key={role} className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
