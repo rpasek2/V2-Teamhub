@@ -137,14 +137,17 @@ export function AttendanceMetricsTab() {
 
         for (const day of sortedDays) {
             const record = gymnastRecords.find(r => r.attendance_date === day);
-            if (record?.status === 'absent') {
+            if (!record) {
+                // No record for this day — skip it, don't count for or against
+                continue;
+            }
+            if (record.status === 'absent') {
                 consecutiveCount++;
                 if (!lastAbsenceDate) lastAbsenceDate = day;
-            } else if (record?.status === 'present' || record?.status === 'late') {
-                // Break the streak on present/late
+            } else {
+                // Break the streak on any other recorded status
                 break;
             }
-            // Continue counting if no record or left_early
         }
 
         return { count: consecutiveCount, lastDate: lastAbsenceDate };
@@ -161,10 +164,11 @@ export function AttendanceMetricsTab() {
             const absent = gymnastRecords.filter(r => r.status === 'absent').length;
             const leftEarly = gymnastRecords.filter(r => r.status === 'left_early').length;
 
-            // Calculate percentage (present + late + left_early counts as attended)
+            // Only count days where attendance was actually recorded for this gymnast
+            const totalRecorded = gymnastRecords.length;
             const totalScheduled = scheduledDays.length;
             const attended = present + late + leftEarly;
-            const percentage = totalScheduled > 0 ? Math.round((attended / totalScheduled) * 100) : 0;
+            const percentage = totalRecorded > 0 ? Math.round((attended / totalRecorded) * 100) : 0;
 
             const { count: consecutiveAbsences, lastDate } = getConsecutiveAbsences(gymnast.id, scheduledDays);
 

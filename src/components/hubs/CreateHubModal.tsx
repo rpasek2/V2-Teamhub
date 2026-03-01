@@ -71,6 +71,17 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
         }
         if (!user || !name.trim()) return;
 
+        // Check subscription tier — only paid users can create hubs
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('subscription_tier')
+            .eq('id', user.id)
+            .single();
+        if (!profile || profile.subscription_tier === 'free') {
+            setError('Hub creation is available on paid plans.');
+            return;
+        }
+
         setLoading(true);
         setError(null);
 

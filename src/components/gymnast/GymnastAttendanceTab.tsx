@@ -121,8 +121,9 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
             const leftEarly = monthRecords.filter(r => r.status === 'left_early').length;
 
             const totalScheduled = scheduledDays.length;
+            const totalRecorded = monthRecords.length;
             const attended = present + late + leftEarly;
-            const percentage = totalScheduled > 0 ? Math.round((attended / totalScheduled) * 100) : 0;
+            const percentage = totalRecorded > 0 ? Math.round((attended / totalRecorded) * 100) : 0;
 
             stats.push({
                 month: format(monthDate, 'MMMM'),
@@ -146,10 +147,11 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
         const totalAbsent = attendanceRecords.filter(r => r.status === 'absent').length;
         const totalLeftEarly = attendanceRecords.filter(r => r.status === 'left_early').length;
 
-        // Calculate total scheduled days across all 6 months
+        // Only count days where attendance was actually recorded
+        const totalRecorded = attendanceRecords.length;
         const totalScheduled = monthlyStats.reduce((sum, month) => sum + month.totalScheduled, 0);
         const attended = totalPresent + totalLate + totalLeftEarly;
-        const percentage = totalScheduled > 0 ? Math.round((attended / totalScheduled) * 100) : 0;
+        const percentage = totalRecorded > 0 ? Math.round((attended / totalRecorded) * 100) : 0;
 
         // Calculate consecutive absences from most recent scheduled days
         let consecutiveAbsences = 0;

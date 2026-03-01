@@ -43,3 +43,10 @@ When building a new iOS release, **always**:
 2. Update `version` in `mobile/app.json` to match the release version
 3. Build with `eas build --platform ios --profile production`
 4. Submit with `eas submit --platform ios`
+
+## App Store Test Account
+
+Shared test account for Apple and Google review teams:
+
+- **Email:** appstorecredentials@apptest.com
+- **Password:** Testaccount2526

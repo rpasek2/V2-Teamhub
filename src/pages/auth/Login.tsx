@@ -49,7 +49,16 @@ export function Login() {
             if (error) throw error;
             navigate('/');
         } catch (err: unknown) {
-            setError(err instanceof Error ? err.message : 'An error occurred');
+            const message = err instanceof Error ? err.message : '';
+            if (message.toLowerCase().includes('invalid login credentials')) {
+                setError('Incorrect email or password. Please try again.');
+            } else if (message.toLowerCase().includes('email not confirmed')) {
+                setError('Your email address has not been confirmed. Please check your inbox for a confirmation link.');
+            } else if (message.toLowerCase().includes('too many requests')) {
+                setError('Too many login attempts. Please wait a moment and try again.');
+            } else {
+                setError(message || 'An unexpected error occurred. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -138,7 +147,9 @@ export function Login() {
                                 <label htmlFor="password" className="block text-sm font-medium text-slate-700">
                                     Password
                                 </label>
-                                <span></span>
+                                <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-500">
+                                    Forgot password?
+                                </Link>
                             </div>
                             <input
                                 id="password"

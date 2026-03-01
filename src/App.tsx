@@ -32,6 +32,8 @@ const ProgressReports = lazy(() => import('./pages/ProgressReports').then(m => (
 const GymnastDetails = lazy(() => import('./pages/GymnastDetails').then(m => ({ default: m.GymnastDetails })));
 const Login = lazy(() => import('./pages/auth/Login').then(m => ({ default: m.Login })));
 const Register = lazy(() => import('./pages/auth/Register').then(m => ({ default: m.Register })));
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword').then(m => ({ default: m.ForgotPassword })));
+const ResetPassword = lazy(() => import('./pages/auth/ResetPassword').then(m => ({ default: m.ResetPassword })));
 const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
 const UserSettings = lazy(() => import('./pages/UserSettings').then(m => ({ default: m.UserSettings })));
 
@@ -44,6 +46,8 @@ function App() {
             {/* Public Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>

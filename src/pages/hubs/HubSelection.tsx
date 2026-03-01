@@ -28,7 +28,8 @@ interface Hub {
 }
 
 export function HubSelection() {
-    const { user } = useAuth();
+    const { user, subscriptionTier } = useAuth();
+    const canCreateHub = subscriptionTier !== 'free';
     const [hubs, setHubs] = useState<Hub[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -231,13 +232,15 @@ export function HubSelection() {
                         <Ticket className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
                         Join Hub
                     </button>
-                    <button
-                        onClick={() => setIsCreateModalOpen(true)}
-                        className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
-                    >
-                        <Plus className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
-                        Create Hub
-                    </button>
+                    {canCreateHub && (
+                        <button
+                            onClick={() => setIsCreateModalOpen(true)}
+                            className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                        >
+                            <Plus className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
+                            Create Hub
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -270,7 +273,9 @@ export function HubSelection() {
                     </div>
                     <h3 className="text-lg font-semibold text-slate-900 mb-2">No hubs yet</h3>
                     <p className="text-slate-500 max-w-sm mx-auto">
-                        Create a new hub or join an existing one to get started. Your hubs will appear here.
+                        {canCreateHub
+                            ? 'Create a new hub or join an existing one to get started. Your hubs will appear here.'
+                            : 'Join a hub using an invite code to get started. Your hubs will appear here.'}
                     </p>
                 </div>
             ) : (

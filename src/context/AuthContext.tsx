@@ -6,6 +6,7 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     loading: boolean;
+    subscriptionTier: string;
     signOut: () => Promise<void>;
 }
 
@@ -15,12 +16,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [loading, setLoading] = useState(true);
+    const [subscriptionTier, setSubscriptionTier] = useState('free');
+
+    const fetchSubscriptionTier = useCallback(async (userId: string) => {
+        const { data } = await supabase
+            .from('profiles')
+            .select('subscription_tier')
+            .eq('id', userId)
+            .single();
+        if (data?.subscription_tier) {
+            setSubscriptionTier(data.subscription_tier);
+        }
+    }, []);
 
     useEffect(() => {
         // Check active sessions and sets the user
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setUser(session?.user ?? null);
+            if (session?.user) fetchSubscriptionTier(session.user.id);
             setLoading(false);
         });
 
@@ -28,11 +42,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
             setUser(session?.user ?? null);
+            if (session?.user) {
+                fetchSubscriptionTier(session.user.id);
+            } else {
+                setSubscriptionTier('free');
+            }
             setLoading(false);
         });
 
         return () => subscription.unsubscribe();
-    }, []);
+    }, [fetchSubscriptionTier]);
 
     // Memoize signOut function
     const signOut = useCallback(async () => {
@@ -44,8 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         loading,
+        subscriptionTier,
         signOut
-    }), [user, session, loading, signOut]);
+    }), [user, session, loading, subscriptionTier, signOut]);
 
     return (
         <AuthContext.Provider value={contextValue}>
