@@ -2,73 +2,54 @@
 
 ## Mobile
 
-### Schedule - Rotations Display
-The schedule tab has a rotations section. On web this is shown as a grid, but on mobile it's just a list sorted by level showing the day's rotations. Makes it hard to determine multiple groups' events quickly. Needs a reworked display.
+- **Schedule - Rotations Display** — Rotations section is a grid on web but just a flat list on mobile. Needs a reworked display for quickly scanning multiple groups' events.
 
-### iOS Compatibility Check
-Audit the mobile app for iOS compatibility in preparation for App Store deployment. Verify all native modules, permissions, platform-specific code paths, and UI rendering work correctly on iOS devices and simulators.
+## Web
 
-## WEB
+- **Rotation Builder UX Overhaul** — Rotation creation/editing needs drag-and-drop reordering and a streamlined flow.
+- **Dashboard Adjustments** — Review what's shown and what should be interactable.
+- **Swap Regional and National Qualifying Badges** — They're in the wrong order.
 
-### Rotation Builder UX Overhaul
-The rotation creation/editing UI on the Schedule tab needs to be simpler and more intuitive. Rotation blocks should be drag-and-drop moveable so coaches can easily reorder them. The overall flow for building a day's rotations should be streamlined.
+## Major: New Season Wizard
 
-### Dashboard Adjustments
-Dashboard has basic info, need to look at what i want shown here and what is interactable
+Guided walkthrough triggered when the season rolls over (or manually from settings). Walks coaches through everything that changes between seasons:
 
-## General
+1. **Level Changes** — Modal showing all gymnasts with their current level. Coaches move gymnasts up/down levels. Bulk actions for common promotions (e.g. "move all Level 3 → Level 4").
+2. **Channel / Group Membership Sync** — After level changes, auto-move parents into correct level-based channels and groups. Archive old group posts from previous season (keep history but clear the feed).
+3. **Schedule Updates** — Modal to adjust practice hours and group assignments for each level. Pre-populate from last season's schedule as a starting point.
+4. **Skill Lists** — Create new skill checklists per level for the new season. Option to copy from previous season's lists and modify, or start fresh. Previous season's gymnast skill progress is archived (snapshot) before reset.
+5. **Mentorship Pairings** — Review and update mentorship pairings. Option to keep, shuffle, or clear.
+6. **Review & Confirm** — Summary of all changes before applying.
 
-### ~~Member Announcements & Questionnaires~~
-*Moved to Completed*
+Currently season-aware: competitions, scores. This feature would make level-based channels, groups, skills, schedules, and mentorship season-aware too.
 
-### Progress Reports Enhancements
-V1 of progress reports is complete (create on web, view on web + mobile). Future enhancements: scheduled automatic reports on a configurable interval, bulk generation for an entire level at once, PDF export/download, and per-section toggle during creation (currently auto-includes all enabled tabs).
+## Features
+
+- **Add Comments to In-Progress Tasks** — Allow staff to add notes on tasks that are in progress.
+- **Stale Assignments / Skills Indicator** — Surface assignments or skills that haven't been practiced in a while.
+- **Progress Reports Enhancements** — Scheduled auto-reports, bulk generation per level, PDF export, per-section toggle during creation.
 
 ---
 
 ## Completed
 
-### ~~Progress Reports for Parents (V1)~~
-Staff can generate progress reports for individual gymnasts on web with date range presets (last 30/90 days, last month, this season, custom). Reports snapshot skills progress (count per status per event with coach comments), attendance stats, assignment completion rates, and competition scores. Data stored as JSONB for point-in-time accuracy. Draft/published workflow lets coaches review before sharing. Parents view published reports on web and mobile (More tab → Reports). Sections auto-include based on hub's enabled tabs.
-
-### ~~Consolidate Message Notifications~~
-Database trigger `notify_new_message()` now consolidates burst messages per channel into a single notification row. On each new message, checks for an existing unread notification for the same user+channel — if found, UPDATEs the count/title/body (no additional push). If not found, INSERTs a new row (triggers push). Titles display as "N new messages in #general" (channels) or "N new messages" (DMs) when count > 1. Bell badge and activity feed show consolidated entries instead of per-message duplicates.
-
-### ~~Member Announcements & Questionnaires~~
-Staff can broadcast announcements or questionnaires to targeted members (by role, level, or individual selection). A blocking overlay forces acknowledgement/completion on next login (web + mobile). Supports two types: simple announcements (acknowledge) and questionnaires (multiple choice + free text questions). Both types support link attachments. Staff dashboard card shows active announcements with completion progress bars, expandable spreadsheet-style response table for questionnaires, and CSV export. Management includes closing announcements and expiration dates. Database uses SECURITY DEFINER RPC for atomic recipient population based on targeting criteria.
-
-### ~~Score Metrics~~
-Score metrics/analytics added to the main Scores tab and gymnast profile Scores section. Line charts (recharts) show score trends across the season per event with toggleable event pills. Parent view shows individual gymnast graphs with selector. Coach view shows team score trends (top 3 per event per level). Summary stats include season high, average, latest score, and trend indicators.
-
-### ~~Push Notifications (Device Alerts)~~
-Device push notifications implemented via expo-notifications + FCM (Android). Database trigger on `notifications` INSERT calls `send_push_notification()` which looks up active tokens in `user_push_tokens`, checks user preferences, and sends via Expo Push API through `pg_net`. Mobile app registers token on login, deregisters on sign out. Notification taps deep link to the relevant screen. Preferences respected per notification type.
-
-### ~~Message Badge Reappearing After Reopen~~
-Fixed by persisting the `recentlyReadChannelIds` set to AsyncStorage so it survives app restarts. IDs auto-clean when the DB confirms unread count is 0.
-
-### ~~Messages Should Scroll to Bottom~~
-Fixed by using `inverted={true}` on the FlatList with descending message order — the standard React Native chat pattern that automatically shows newest messages at the bottom.
-
-### ~~Parent Auto-Inclusion in Athlete Messages~~
-Auto-inclusion implemented. When someone DMs an athlete, the primary guardian (guardian_1) is automatically added as a 3rd participant. When an athlete is added to a private channel, their guardian is auto-added via database trigger. Both web and mobile display multi-participant DMs correctly.
-
-### ~~Channels RLS Infinite Recursion~~
-Messages tab was broken with "infinite recursion detected in policy for relation channels" error. Caused by circular RLS dependency between channels and channel_members tables. Fixed by creating SECURITY DEFINER helper functions to bypass RLS for inner lookups, and added creator visibility for private channels.
-
-### ~~Coach Task Notifications & Dashboard~~
-Tasks assigned to coaches now trigger in-app notifications (bell dropdown + sidebar badge on Staff tab). Coaches see a "My Tasks" widget on both web and mobile dashboards with inline status toggling (pending → in progress → completed). Notification preferences toggle available in settings. Bulk task assignment also sends notifications to each assignee.
-
-### ~~Edit Staff Schedules in Team View~~
-Added inline add/delete controls to the TeamScheduleView grid. Each cell has a "+" button to add time blocks with start/end time and role label. Existing blocks show a delete icon on hover. Only visible to managers (owner/director/admin).
-
-### ~~Floor Music Offline Availability~~
-Offline download system implemented for mobile. Coaches can download individual or all floor music files from both the floor music list and gymnast profiles. Files persist in device storage (documentDirectory) with AsyncStorage metadata. Playback prefers local files, falls back to streaming. Staleness detection re-prompts download when music is re-uploaded. Bulk download with progress tracking and cancel support.
-
-### ~~Floor Music Offline - Roster/List Not Cached~~
-Gymnast list now cached in AsyncStorage via offlineMusicStore. On mount, cached data renders instantly while fresh data loads in background. On fetch failure (offline), falls back to cached list so downloaded music is still accessible.
-
-### ~~Music Player Safe Area~~
-Added `useSafeAreaInsets` to MiniMusicPlayer with bottom padding matching the tab bar pattern. Player no longer overlaps system navigation bar.
-
-### ~~Competitions Past/Upcoming Cutoff~~
-Mobile competitions filter now uses `end_date` instead of `start_date` to determine past/upcoming status. Multi-day meets stay in "Upcoming" until after the last day. Web already used `end_date` correctly.
+- ~~Progress Reports for Parents (V1)~~ — Create on web, view on web + mobile. JSONB snapshots, draft/published workflow, date range presets.
+- ~~Consolidate Message Notifications~~ — Burst messages consolidated per channel into single notification row.
+- ~~Member Announcements & Questionnaires~~ — Broadcast announcements/questionnaires with blocking overlay, targeting, CSV export.
+- ~~Score Metrics~~ — Line charts per event, team scores (top 3), summary stats with trend indicators.
+- ~~Push Notifications~~ — expo-notifications + FCM, DB trigger via pg_net, deep linking, preferences.
+- ~~Message Badge Reappearing~~ — Persisted recentlyReadChannelIds to AsyncStorage.
+- ~~Messages Scroll to Bottom~~ — inverted FlatList with descending order.
+- ~~Parent Auto-Inclusion in Athlete Messages~~ — Guardian auto-added to DMs and private channels.
+- ~~Channels RLS Infinite Recursion~~ — SECURITY DEFINER helpers to break circular RLS dependency.
+- ~~Coach Task Notifications & Dashboard~~ — In-app notifications, "My Tasks" widget, inline status toggling.
+- ~~Edit Staff Schedules in Team View~~ — Inline add/delete time blocks in grid cells.
+- ~~Floor Music Offline~~ — Download, cache, staleness detection, bulk download with progress.
+- ~~Floor Music Offline - Roster/List Not Cached~~ — AsyncStorage cache for gymnast list.
+- ~~Music Player Safe Area~~ — Safe area insets for mini player.
+- ~~iOS Compatibility & App Store Deployment~~ — Native modules, permissions, and UI verified on iOS. Successfully built and submitted to App Store.
+- ~~Competitions Past/Upcoming Cutoff~~ — Use end_date instead of start_date for multi-day meets.
+- ~~Lock Sidebar~~ — Pin button in sidebar header to lock it open, persisted in localStorage.
+- ~~Feedback Reports~~ — Bug report / feature request form in web and mobile settings, saved to `feedback_reports` table.
+- ~~Function Search Path Security~~ — Set `search_path = 'public'` on all 25 SECURITY DEFINER functions.
+- ~~Injury Report Updates & Timestamps~~ — Timestamped update notes on injury reports, status changes with audit trail, and fixed mobile medical_info overwrite bug.

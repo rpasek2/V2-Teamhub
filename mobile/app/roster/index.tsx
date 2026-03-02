@@ -321,17 +321,9 @@ export default function RosterScreen() {
     );
   }, [isStaff, linkedGymnasts, handleMemberPress]);
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      {/* Search Bar */}
+      {/* Search Bar - always visible so floor music button is accessible offline */}
       <View style={styles.searchContainer}>
         <View style={styles.searchRow}>
           <View style={[styles.searchBar, { flex: 1 }]}>
@@ -400,30 +392,36 @@ export default function RosterScreen() {
       )}
 
       {/* Member List */}
-      <FlatList
-        data={filteredMembers}
-        keyExtractor={(item) => `${item.type}-${item.id}`}
-        renderItem={renderMember}
-        contentContainerStyle={styles.listContent}
-        initialNumToRender={15}
-        maxToRenderPerBatch={10}
-        windowSize={5}
-        removeClippedSubviews={true}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
-        }
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <User size={48} color={colors.slate[300]} />
-            <Text style={styles.emptyTitle}>No members found</Text>
-            <Text style={styles.emptyText}>
-              {searchQuery || selectedLevel
-                ? 'Try adjusting your filters'
-                : 'No members in this category'}
-            </Text>
-          </View>
-        }
-      />
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.light.primary} />
+        </View>
+      ) : (
+        <FlatList
+          data={filteredMembers}
+          keyExtractor={(item) => `${item.type}-${item.id}`}
+          renderItem={renderMember}
+          contentContainerStyle={styles.listContent}
+          initialNumToRender={15}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <User size={48} color={colors.slate[300]} />
+              <Text style={styles.emptyTitle}>No members found</Text>
+              <Text style={styles.emptyText}>
+                {searchQuery || selectedLevel
+                  ? 'Try adjusting your filters'
+                  : 'No members in this category'}
+              </Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }

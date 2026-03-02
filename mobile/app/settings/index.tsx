@@ -25,6 +25,7 @@ import {
   X,
   Bell,
   ChevronRight,
+  Bug,
 } from 'lucide-react-native';
 import { format } from 'date-fns';
 import { colors, theme } from '../../src/constants/colors';
@@ -275,6 +276,22 @@ export default function UserSettingsScreen() {
         <View style={styles.notificationLinkText}>
           <Text style={styles.notificationLinkTitle}>Notification Preferences</Text>
           <Text style={styles.notificationLinkDescription}>Choose which features show notifications</Text>
+        </View>
+        <ChevronRight size={18} color={colors.slate[400]} />
+      </TouchableOpacity>
+
+      {/* Feedback & Bug Reports */}
+      <TouchableOpacity
+        style={styles.notificationLink}
+        onPress={() => router.push('/settings/feedback')}
+        activeOpacity={0.7}
+      >
+        <View style={[styles.notificationLinkIcon, { backgroundColor: colors.error[50] }]}>
+          <Bug size={18} color={colors.error[600]} />
+        </View>
+        <View style={styles.notificationLinkText}>
+          <Text style={styles.notificationLinkTitle}>Report Bug / Feature Request</Text>
+          <Text style={styles.notificationLinkDescription}>Help us improve the app</Text>
         </View>
         <ChevronRight size={18} color={colors.slate[400]} />
       </TouchableOpacity>

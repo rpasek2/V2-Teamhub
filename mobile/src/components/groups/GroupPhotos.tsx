@@ -56,7 +56,7 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
           postId: post.id,
           postContent: post.content,
           createdAt: post.created_at,
-          authorName: post.profiles?.[0]?.full_name || 'Unknown',
+          authorName: post.profiles?.full_name || 'Unknown',
         });
       }
 
@@ -70,7 +70,7 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
               postId: post.id,
               postContent: post.content,
               createdAt: post.created_at,
-              authorName: post.profiles?.[0]?.full_name || 'Unknown',
+              authorName: post.profiles?.full_name || 'Unknown',
             });
           });
         }

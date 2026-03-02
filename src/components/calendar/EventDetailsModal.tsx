@@ -1,9 +1,11 @@
 import { Fragment, useEffect, useState } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
-import { X, MapPin, Clock, Calendar as CalendarIcon, Users, Pencil, Trash2, Loader2, AlignLeft, Star, Trophy, HeartHandshake } from 'lucide-react';
+import { X, MapPin, Clock, Calendar as CalendarIcon, Users, Pencil, Trash2, Loader2, AlignLeft, Star, Trophy, HeartHandshake, ExternalLink } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import { useHub } from '../../context/HubContext';
 import type { Event } from '../../types';
 
 const EVENT_TYPES = [
@@ -46,11 +48,14 @@ interface Attendee {
 
 export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canEdit = false }: EventDetailsModalProps) {
     const { user } = useAuth();
+    const { hub } = useHub();
+    const navigate = useNavigate();
     const [rsvpStatus, setRsvpStatus] = useState<'going' | 'maybe' | 'not_going' | null>(null);
     const [attendees, setAttendees] = useState<Attendee[]>([]);
     const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [linkedCompetitionId, setLinkedCompetitionId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState({
         title: '',
         description: '',
@@ -69,6 +74,19 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
             fetchRsvpStatus();
             fetchAttendees();
             setIsEditing(false);
+            setLinkedCompetitionId(null);
+            if (event.type === 'competition' && hub?.id) {
+                supabase
+                    .from('competitions')
+                    .select('id')
+                    .eq('hub_id', hub.id)
+                    .eq('name', event.title)
+                    .limit(1)
+                    .single()
+                    .then(({ data }) => {
+                        if (data) setLinkedCompetitionId(data.id);
+                    });
+            }
             // Initialize edit form
             setEditForm({
                 title: event.title,
@@ -92,7 +110,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
             .select('status')
             .eq('event_id', event.id)
             .eq('user_id', user.id)
-            .single();
+            .maybeSingle();
 
         if (data) setRsvpStatus(data.status as 'going' | 'maybe' | 'not_going');
         else setRsvpStatus(null);
@@ -584,6 +602,20 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                 <div className="mt-4 p-4 bg-slate-50 rounded-xl">
                                                     <p className="text-sm text-slate-600">{event.description}</p>
                                                 </div>
+                                            )}
+
+                                            {linkedCompetitionId && (
+                                                <button
+                                                    onClick={() => {
+                                                        onClose();
+                                                        navigate(`../competitions/${linkedCompetitionId}`);
+                                                    }}
+                                                    className="mt-4 w-full flex items-center justify-center gap-2 rounded-lg bg-purple-50 border border-purple-200 px-4 py-2.5 text-sm font-medium text-purple-700 hover:bg-purple-100 transition-colors"
+                                                >
+                                                    <Trophy className="h-4 w-4" />
+                                                    View Competition Details
+                                                    <ExternalLink className="h-3.5 w-3.5" />
+                                                </button>
                                             )}
 
                                             {event.rsvp_enabled && (

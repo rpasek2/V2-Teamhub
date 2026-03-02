@@ -202,7 +202,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                     end_time: endDateTime.toISOString(),
                     location: formData.location || null,
                     type: 'competition',
-                    rsvp_enabled: true,
+                    rsvp_enabled: false,
                     is_all_day: true,
                     created_by: user.id
                 });

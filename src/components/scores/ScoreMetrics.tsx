@@ -88,20 +88,34 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
     const fetchScores = async () => {
         setLoading(true);
 
-        const { data, error } = await supabase
-            .from('competition_scores')
-            .select(`
-                id, event, score, gymnast_profile_id, gymnast_level,
-                competitions!inner(id, name, start_date)
-            `)
-            .eq('competitions.hub_id', hubId)
-            .eq('competitions.season_id', seasonId);
+        // Paginate to avoid Supabase's default 1000 row limit
+        const pageSize = 1000;
+        let allData: RawScore[] = [];
+        let from = 0;
+        let hasMore = true;
 
-        if (error) {
-            console.error('Error fetching score metrics:', error);
-        } else {
-            setRawScores((data || []) as unknown as RawScore[]);
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from('competition_scores')
+                .select(`
+                    id, event, score, gymnast_profile_id, gymnast_level,
+                    competitions!inner(id, name, start_date)
+                `)
+                .eq('competitions.hub_id', hubId)
+                .eq('competitions.season_id', seasonId)
+                .range(from, from + pageSize - 1);
+
+            if (error) {
+                console.error('Error fetching score metrics:', error);
+                hasMore = false;
+            } else {
+                allData = allData.concat((data || []) as unknown as RawScore[]);
+                hasMore = (data?.length || 0) === pageSize;
+                from += pageSize;
+            }
         }
+
+        setRawScores(allData);
         setLoading(false);
     };
 
@@ -137,13 +151,14 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                 let aaCount = 0;
                 events.forEach(event => {
                     const score = comp.scores.find(s => s.event === event);
-                    point[event] = score?.score ?? null;
-                    if (score?.score != null) {
-                        aaTotal += score.score;
+                    const val = score?.score != null ? Number(score.score) : null;
+                    point[event] = val && val > 0 ? val : null;
+                    if (val && val > 0) {
+                        aaTotal += val;
                         aaCount++;
                     }
                 });
-                point['all_around'] = aaCount === events.length ? aaTotal : null;
+                point['all_around'] = aaCount === events.length ? Number(aaTotal.toFixed(3)) : null;
                 return point;
             });
     }, [isParent, selectedGymnastId, rawScores, events]);
@@ -180,8 +195,8 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                 let teamAA = 0;
                 events.forEach(event => {
                     const eventScores = comp.scores
-                        .filter(s => s.event === event && s.score != null)
-                        .map(s => s.score)
+                        .filter(s => s.event === event && s.score != null && Number(s.score) > 0)
+                        .map(s => Number(s.score))
                         .sort((a, b) => b - a);
 
                     const top3 = eventScores.slice(0, 3);

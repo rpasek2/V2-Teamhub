@@ -966,6 +966,7 @@ export default function GymnastProfileScreen() {
 
     try {
       const medicalInfo = {
+        ...gymnast?.medical_info,
         allergies: medicalForm.allergies.trim() || null,
         medications: medicalForm.medications.trim() || null,
         conditions: medicalForm.conditions.trim() || null,

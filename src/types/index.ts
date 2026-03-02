@@ -350,6 +350,13 @@ export interface InjuryReport {
     reported_by: string; // User ID who reported
     reported_at: string; // Timestamp when reported
     status: 'active' | 'recovering' | 'resolved';
+    updates?: {
+        id: string;
+        note: string;
+        updated_by: string;
+        updated_at: string;
+        status_change?: { from: string; to: string };
+    }[];
 }
 
 export interface MedicalInfo {

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { Loader2, Camera, User, Save, Check, Building2, Bell, Moon, Sun, Lock, Trash2, AlertTriangle, Mail } from 'lucide-react';
+import { Loader2, Camera, User, Save, Check, Building2, Bell, Moon, Sun, Lock, Trash2, AlertTriangle, Bug, MessageSquarePlus, Send } from 'lucide-react';
 
 export function UserSettings() {
     const { user, signOut } = useAuth();
@@ -25,6 +25,12 @@ export function UserSettings() {
     const [newPassword, setNewPassword] = useState('');
     const [confirmNewPassword, setConfirmNewPassword] = useState('');
     const [changingPassword, setChangingPassword] = useState(false);
+
+    // Feedback form state
+    const [feedbackType, setFeedbackType] = useState<'bug' | 'feature_request'>('bug');
+    const [feedbackTitle, setFeedbackTitle] = useState('');
+    const [feedbackDescription, setFeedbackDescription] = useState('');
+    const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
     // Delete account state
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -121,6 +127,36 @@ export function UserSettings() {
             const errorMessage = error instanceof Error ? error.message : 'Failed to delete account.';
             setMessage({ type: 'error', text: errorMessage });
             setDeleting(false);
+        }
+    };
+
+    const handleSubmitFeedback = async () => {
+        if (!user || !feedbackTitle.trim() || !feedbackDescription.trim()) return;
+        setSubmittingFeedback(true);
+        setMessage(null);
+
+        try {
+            const { error } = await supabase
+                .from('feedback_reports')
+                .insert({
+                    user_id: user.id,
+                    type: feedbackType,
+                    title: feedbackTitle.trim(),
+                    description: feedbackDescription.trim(),
+                });
+
+            if (error) throw error;
+
+            setMessage({ type: 'success', text: 'Thank you! Your feedback has been submitted.' });
+            setFeedbackTitle('');
+            setFeedbackDescription('');
+            setFeedbackType('bug');
+        } catch (error: unknown) {
+            console.error('Error submitting feedback:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Failed to submit feedback.';
+            setMessage({ type: 'error', text: errorMessage });
+        } finally {
+            setSubmittingFeedback(false);
         }
     };
 
@@ -522,26 +558,84 @@ export function UserSettings() {
                 </div>
             </div>
 
-            {/* Support */}
+            {/* Feedback & Support */}
             <div className="bg-white shadow rounded-lg p-6">
-                <h2 className="text-lg font-medium text-slate-900 mb-4">Support</h2>
+                <h2 className="text-lg font-medium text-slate-900 mb-4">Feedback & Support</h2>
 
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-brand-50">
-                            <Mail className="h-5 w-5 text-brand-600" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-slate-900">Contact Support</p>
-                            <p className="text-xs text-slate-500">Get help with your account or report an issue</p>
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-2">Type</label>
+                        <div className="flex gap-2">
+                            <button
+                                type="button"
+                                onClick={() => setFeedbackType('bug')}
+                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
+                                    feedbackType === 'bug'
+                                        ? 'bg-red-50 border-red-300 text-red-700'
+                                        : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                <Bug className="h-4 w-4" />
+                                Bug Report
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setFeedbackType('feature_request')}
+                                className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border transition-colors ${
+                                    feedbackType === 'feature_request'
+                                        ? 'bg-brand-50 border-brand-300 text-brand-700'
+                                        : 'bg-white border-slate-300 text-slate-600 hover:bg-slate-50'
+                                }`}
+                            >
+                                <MessageSquarePlus className="h-4 w-4" />
+                                Feature Request
+                            </button>
                         </div>
                     </div>
-                    <a
-                        href="mailto:support@twotreesapps.com"
-                        className="text-sm font-medium text-brand-600 hover:text-brand-500"
-                    >
-                        Email Us
-                    </a>
+
+                    <div>
+                        <label htmlFor="feedbackTitle" className="block text-sm font-medium text-slate-700">
+                            Title
+                        </label>
+                        <input
+                            type="text"
+                            id="feedbackTitle"
+                            value={feedbackTitle}
+                            onChange={(e) => setFeedbackTitle(e.target.value)}
+                            className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                            placeholder={feedbackType === 'bug' ? 'Brief description of the bug' : 'Your feature idea'}
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="feedbackDescription" className="block text-sm font-medium text-slate-700">
+                            Description
+                        </label>
+                        <textarea
+                            id="feedbackDescription"
+                            rows={4}
+                            value={feedbackDescription}
+                            onChange={(e) => setFeedbackDescription(e.target.value)}
+                            className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                            placeholder={feedbackType === 'bug' ? 'What happened? What did you expect to happen?' : 'Describe the feature and how it would help you'}
+                        />
+                    </div>
+
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={handleSubmitFeedback}
+                            disabled={submittingFeedback || !feedbackTitle.trim() || !feedbackDescription.trim()}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {submittingFeedback ? (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <Send className="h-4 w-4 mr-2" />
+                            )}
+                            Submit Feedback
+                        </button>
+                    </div>
                 </div>
             </div>
 

@@ -72,7 +72,7 @@ export function GroupFiles({ posts }: GroupFilesProps) {
               ...file,
               postId: post.id,
               createdAt: post.created_at,
-              authorName: post.profiles?.[0]?.full_name || 'Unknown',
+              authorName: post.profiles?.full_name || 'Unknown',
             });
           });
         }

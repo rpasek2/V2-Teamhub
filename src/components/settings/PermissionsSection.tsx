@@ -5,9 +5,12 @@ import { useHub } from '../../context/HubContext';
 import { CollapsibleSection } from '../ui/CollapsibleSection';
 import type { HubPermissions, RolePermissions, PermissionScope } from '../../types';
 
-const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'assignments', 'attendance', 'schedule', 'staff', 'resources', 'marketplace', 'mentorship', 'privateLessons'] as const;
+const FEATURES = ['roster', 'calendar', 'messages', 'groups', 'competitions', 'scores', 'skills', 'assignments', 'attendance', 'schedule', 'staff', 'resources', 'marketplace', 'mentorship', 'privateLessons'] as const;
 const FEATURE_LABELS: Record<string, string> = {
     privateLessons: 'Private Lessons',
+};
+const FEATURE_TO_TAB: Record<string, string> = {
+    privateLessons: 'private_lessons',
 };
 const ROLES = ['director', 'admin', 'coach', 'parent', 'athlete'] as const;
 const VALID_PERMISSION_SCOPES: PermissionScope[] = ['all', 'own', 'none'];
@@ -21,6 +24,13 @@ export function PermissionsSection({ permissions, setPermissions }: PermissionsS
     const { hub, refreshHub } = useHub();
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const enabledTabs = hub?.settings?.enabledTabs as string[] | undefined;
+
+    const isFeatureEnabled = (feature: string) => {
+        if (!enabledTabs) return true;
+        const tabId = FEATURE_TO_TAB[feature] || feature;
+        return enabledTabs.includes(tabId);
+    };
 
     const handlePermissionChange = (feature: string, role: string, value: PermissionScope) => {
         // Validate inputs to prevent injection of invalid permission data
@@ -149,28 +159,33 @@ export function PermissionsSection({ permissions, setPermissions }: PermissionsS
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-slate-200">
-                        {FEATURES.map(feature => (
-                            <tr key={feature}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">
-                                    {FEATURE_LABELS[feature] || feature}
-                                </td>
-                                {ROLES.map(role => (
-                                    <td key={role} className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
-                                        <select
-                                            value={permissions[feature]?.[role as keyof RolePermissions] || 'none'}
-                                            onChange={(e) => handlePermissionChange(feature, role, e.target.value as PermissionScope)}
-                                            className="input"
-                                        >
-                                            <option value="none">No Access</option>
-                                            <option value="all">View All</option>
-                                            {role === 'parent' && (
-                                                <option value="own">View Own</option>
-                                            )}
-                                        </select>
+                        {FEATURES.map(feature => {
+                            const enabled = isFeatureEnabled(feature);
+                            return (
+                                <tr key={feature} className={enabled ? '' : 'opacity-40'}>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">
+                                        {FEATURE_LABELS[feature] || feature}
+                                        {!enabled && <span className="ml-2 text-xs text-slate-400 normal-case">(disabled)</span>}
                                     </td>
-                                ))}
-                            </tr>
-                        ))}
+                                    {ROLES.map(role => (
+                                        <td key={role} className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                                            <select
+                                                value={permissions[feature]?.[role as keyof RolePermissions] || 'none'}
+                                                onChange={(e) => handlePermissionChange(feature, role, e.target.value as PermissionScope)}
+                                                disabled={!enabled}
+                                                className="input disabled:cursor-not-allowed"
+                                            >
+                                                <option value="none">No Access</option>
+                                                <option value="all">View All</option>
+                                                {role === 'parent' && (
+                                                    <option value="own">View Own</option>
+                                                )}
+                                            </select>
+                                        </td>
+                                    ))}
+                                </tr>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>

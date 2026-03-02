@@ -5,8 +5,9 @@ import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useGymnastEditForm, type EditSection } from '../../hooks/useGymnastEditForm';
 import { ReportInjuryModal } from './ReportInjuryModal';
+import { UpdateInjuryModal } from './UpdateInjuryModal';
 import { validateFile, generateSecureFileName } from '../../utils/fileValidation';
-import type { GymnastProfile } from '../../types';
+import type { GymnastProfile, InjuryReport } from '../../types';
 
 interface GymnastProfileTabProps {
     gymnast: GymnastProfile;
@@ -30,6 +31,7 @@ export function GymnastProfileTab({
     const [saving, setSaving] = useState(false);
     const [isReportInjuryOpen, setIsReportInjuryOpen] = useState(false);
     const [showInjuryHistory, setShowInjuryHistory] = useState(false);
+    const [selectedInjuryForUpdate, setSelectedInjuryForUpdate] = useState<InjuryReport | null>(null);
 
     // Floor music state
     const [uploadingMusic, setUploadingMusic] = useState(false);
@@ -681,7 +683,38 @@ export function GymnastProfileTab({
                                                     <div className="mt-2 text-xs text-slate-500"><span className="font-medium">Response:</span> {injury.response}</div>
                                                     {injury.follow_up && (<div className="mt-1 text-xs text-slate-500"><span className="font-medium">Follow-up:</span> {injury.follow_up}</div>)}
                                                 </div>
+                                                {canReportInjury && (
+                                                    <button
+                                                        onClick={() => setSelectedInjuryForUpdate(injury)}
+                                                        className="ml-2 flex-shrink-0 rounded-md p-1.5 text-slate-400 hover:bg-white/60 hover:text-slate-600 transition-colors"
+                                                        title="Add update"
+                                                    >
+                                                        <Pencil className="h-3.5 w-3.5" />
+                                                    </button>
+                                                )}
                                             </div>
+                                            {/* Updates Timeline */}
+                                            {injury.updates && injury.updates.length > 0 && (
+                                                <div className="mt-3 pt-3 border-t border-slate-200/60 space-y-2">
+                                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Updates</p>
+                                                    {[...injury.updates].reverse().map((update) => (
+                                                        <div key={update.id} className="flex gap-2 text-xs">
+                                                            <div className="flex-shrink-0 w-1 rounded-full bg-slate-300 mt-1" style={{ minHeight: '16px' }} />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-1.5 text-slate-400">
+                                                                    <span>{format(parseISO(update.updated_at), 'MMM d, yyyy h:mm a')}</span>
+                                                                    {update.status_change && (
+                                                                        <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">
+                                                                            {update.status_change.from} → {update.status_change.to}
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                <p className="mt-0.5 text-slate-600">{update.note}</p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     ))}
                                 </div>
@@ -703,6 +736,22 @@ export function GymnastProfileTab({
                     onGymnastUpdated();
                 }}
             />
+
+            {/* Update Injury Modal */}
+            {selectedInjuryForUpdate && (
+                <UpdateInjuryModal
+                    isOpen={!!selectedInjuryForUpdate}
+                    onClose={() => setSelectedInjuryForUpdate(null)}
+                    injury={selectedInjuryForUpdate}
+                    gymnastProfileId={gymnast.id}
+                    gymnastName={`${gymnast.first_name} ${gymnast.last_name}`}
+                    currentMedicalInfo={gymnast.medical_info}
+                    onUpdated={() => {
+                        setSelectedInjuryForUpdate(null);
+                        onGymnastUpdated();
+                    }}
+                />
+            )}
         </>
     );
 }

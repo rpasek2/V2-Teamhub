@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, GraduationCap, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, MessageCircle, Trophy, Settings2, LogOut, ArrowLeft, ClipboardList, Medal, Sparkles, ShoppingBag, HeartHandshake, User, UserCog, ClipboardCheck, FolderOpen, CalendarClock, UserCheck, GraduationCap, FileText, Pin, PinOff } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { clsx } from 'clsx';
 import { useAuth } from '../../../context/AuthContext';
@@ -38,7 +38,16 @@ export function GymnasticsSidebar() {
     const { hasPermission, currentRole, hub, sportConfig } = useHub();
     const notifications = useNotificationsSafe();
     const [isExpanded, setIsExpanded] = useState(false);
+    const [isLocked, setIsLocked] = useState(() => localStorage.getItem('sidebar-locked') === 'true');
     const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+    const showExpanded = isLocked || isExpanded;
+
+    const toggleLock = () => {
+        const next = !isLocked;
+        setIsLocked(next);
+        localStorage.setItem('sidebar-locked', String(next));
+    };
 
     // Get badge value for a nav item
     // Coaches/owners/directors/admins only see badges for: messages, groups, marketplace
@@ -137,17 +146,17 @@ export function GymnasticsSidebar() {
             className={clsx(
                 "flex h-full flex-col transition-all duration-200 ease-out overflow-x-hidden",
                 "bg-white border-r border-slate-200",
-                isExpanded ? "w-64" : "w-16"
+                showExpanded ? "w-64" : "w-16"
             )}
-            onMouseEnter={() => setIsExpanded(true)}
-            onMouseLeave={() => setIsExpanded(false)}
+            onMouseEnter={() => !isLocked && setIsExpanded(true)}
+            onMouseLeave={() => !isLocked && setIsExpanded(false)}
         >
             {/* Header - Back to Overview */}
-            <div className="flex h-14 items-center border-b border-slate-200 px-3">
+            <div className="flex h-14 items-center justify-between border-b border-slate-200 px-3">
                 <Link
                     to="/"
                     className="group flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
-                    title={!isExpanded ? "Back to Overview" : undefined}
+                    title={!showExpanded ? "Back to Overview" : undefined}
                 >
                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-slate-200 transition-colors flex-shrink-0">
                         <ArrowLeft className="h-5 w-5" />
@@ -155,8 +164,8 @@ export function GymnasticsSidebar() {
                     <div
                         className="flex flex-col ml-3 overflow-hidden whitespace-nowrap"
                         style={{
-                            opacity: isExpanded ? 1 : 0,
-                            maxWidth: isExpanded ? '200px' : '0px',
+                            opacity: showExpanded ? 1 : 0,
+                            maxWidth: showExpanded ? '200px' : '0px',
                             transition: 'opacity 150ms ease-out, max-width 200ms ease-out'
                         }}
                     >
@@ -164,19 +173,33 @@ export function GymnasticsSidebar() {
                         <span className="font-medium text-slate-600 group-hover:text-slate-900 text-sm">Overview</span>
                     </div>
                 </Link>
+                {showExpanded && (
+                    <button
+                        onClick={toggleLock}
+                        title={isLocked ? "Unlock sidebar" : "Lock sidebar open"}
+                        className={clsx(
+                            "flex h-7 w-7 items-center justify-center rounded-md transition-colors flex-shrink-0",
+                            isLocked
+                                ? "text-brand-600 bg-brand-50 hover:bg-brand-100"
+                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                        )}
+                    >
+                        {isLocked ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
+                    </button>
+                )}
             </div>
 
             {/* Hub Name */}
             <div className="border-b border-slate-200 px-3 py-3">
-                <div className="flex items-center" title={!isExpanded ? hub?.name : undefined}>
+                <div className="flex items-center" title={!showExpanded ? hub?.name : undefined}>
                     <div className="flex h-10 w-10 items-center justify-center flex-shrink-0 rounded-lg overflow-hidden">
                         <img src={appIcon} alt="TeamHub" className="h-10 w-10 object-contain" />
                     </div>
                     <div
                         className="flex flex-col ml-3 overflow-hidden whitespace-nowrap"
                         style={{
-                            opacity: isExpanded ? 1 : 0,
-                            maxWidth: isExpanded ? '200px' : '0px',
+                            opacity: showExpanded ? 1 : 0,
+                            maxWidth: showExpanded ? '200px' : '0px',
                             transition: 'opacity 150ms ease-out, max-width 200ms ease-out'
                         }}
                     >
@@ -189,7 +212,7 @@ export function GymnasticsSidebar() {
             {/* Navigation */}
             <div className={clsx(
                 "flex-1 overflow-y-auto overflow-x-hidden py-3 px-2",
-                isExpanded ? "sidebar-scrollbar" : "scrollbar-hidden"
+                showExpanded ? "sidebar-scrollbar" : "scrollbar-hidden"
             )}>
                 <nav className="space-y-1">
                     {filteredNavigation.map((item) => {
@@ -202,7 +225,7 @@ export function GymnasticsSidebar() {
                             <Link
                                 key={item.name}
                                 to={item.href}
-                                title={!isExpanded ? item.name : undefined}
+                                title={!showExpanded ? item.name : undefined}
                                 className={clsx(
                                     "group flex items-center rounded-lg text-sm font-medium py-2.5 mx-1",
                                     isActive
@@ -227,7 +250,7 @@ export function GymnasticsSidebar() {
                                         aria-hidden="true"
                                     />
                                     {/* Badge when collapsed */}
-                                    {!isExpanded && hasBadge && (
+                                    {!showExpanded && hasBadge && (
                                         <NotificationBadge
                                             type={badgeType}
                                             value={badgeValue}
@@ -238,15 +261,15 @@ export function GymnasticsSidebar() {
                                 <span
                                     className="whitespace-nowrap overflow-hidden ml-2 text-sm"
                                     style={{
-                                        opacity: isExpanded ? 1 : 0,
-                                        maxWidth: isExpanded ? '150px' : '0px',
+                                        opacity: showExpanded ? 1 : 0,
+                                        maxWidth: showExpanded ? '150px' : '0px',
                                         transition: 'opacity 150ms ease-out, max-width 200ms ease-out'
                                     }}
                                 >
                                     {item.name}
                                 </span>
                                 {/* Badge when expanded */}
-                                {isExpanded && hasBadge && (
+                                {showExpanded && hasBadge && (
                                     <NotificationBadge
                                         type={badgeType}
                                         value={badgeValue}
@@ -264,7 +287,7 @@ export function GymnasticsSidebar() {
                 {/* User Profile */}
                 <Link
                     to="/settings"
-                    title={!isExpanded ? userProfile?.full_name || 'Profile' : undefined}
+                    title={!showExpanded ? userProfile?.full_name || 'Profile' : undefined}
                     className="group flex items-center rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 py-2.5 mx-1"
                 >
                     <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 ml-1.5">
@@ -283,8 +306,8 @@ export function GymnasticsSidebar() {
                     <span
                         className="whitespace-nowrap overflow-hidden ml-2 truncate text-sm"
                         style={{
-                            opacity: isExpanded ? 1 : 0,
-                            maxWidth: isExpanded ? '150px' : '0px',
+                            opacity: showExpanded ? 1 : 0,
+                            maxWidth: showExpanded ? '150px' : '0px',
                             transition: 'opacity 150ms ease-out, max-width 200ms ease-out'
                         }}
                     >
@@ -295,7 +318,7 @@ export function GymnasticsSidebar() {
                 {/* Sign Out */}
                 <button
                     onClick={() => signOut()}
-                    title={!isExpanded ? "Sign out" : undefined}
+                    title={!showExpanded ? "Sign out" : undefined}
                     className="group flex w-full items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-error-100 hover:text-error-600 py-2.5 mx-1"
                 >
                     <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 ml-1.5">
@@ -307,8 +330,8 @@ export function GymnasticsSidebar() {
                     <span
                         className="whitespace-nowrap overflow-hidden ml-2 text-sm"
                         style={{
-                            opacity: isExpanded ? 1 : 0,
-                            maxWidth: isExpanded ? '150px' : '0px',
+                            opacity: showExpanded ? 1 : 0,
+                            maxWidth: showExpanded ? '150px' : '0px',
                             transition: 'opacity 150ms ease-out, max-width 200ms ease-out'
                         }}
                     >
