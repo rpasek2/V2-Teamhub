@@ -10,7 +10,8 @@ import {
 } from 'react-native';
 import { X, Check } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../../src/constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { AllGymnast } from './types';
 
 interface ManageRosterModalProps {
@@ -40,6 +41,8 @@ export function ManageRosterModal({
   saving,
   hubLevels,
 }: ManageRosterModalProps) {
+  const { t, isDark } = useTheme();
+
   // Group gymnasts by level
   const sections = useMemo(() => {
     const grouped: Record<string, AllGymnast[]> = {};
@@ -97,13 +100,13 @@ export function ManageRosterModal({
 
     return (
       <TouchableOpacity
-        style={styles.sectionHeader}
+        style={[styles.sectionHeader, { backgroundColor: t.surfaceSecondary }]}
         onPress={() => toggleLevel(section.data)}
       >
         <View style={styles.sectionHeaderLeft}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
-          <View style={styles.sectionCount}>
-            <Text style={styles.sectionCountText}>
+          <Text style={[styles.sectionTitle, { color: t.text }]}>{section.title}</Text>
+          <View style={[styles.sectionCount, { backgroundColor: isDark ? colors.slate[600] : colors.slate[200] }]}>
+            <Text style={[styles.sectionCountText, { color: t.textSecondary }]}>
               {section.selectedCount}/{section.data.length}
             </Text>
           </View>
@@ -111,13 +114,14 @@ export function ManageRosterModal({
         <View
           style={[
             styles.sectionCheckbox,
-            allSelected && styles.sectionCheckboxSelected,
-            someSelected && !allSelected && styles.sectionCheckboxPartial,
+            { borderColor: isDark ? colors.slate[500] : colors.slate[300], backgroundColor: isDark ? colors.slate[700] : colors.white },
+            allSelected && { backgroundColor: t.primary, borderColor: t.primary },
+            someSelected && !allSelected && { borderColor: t.primary },
           ]}
         >
           {allSelected && <Check size={14} color={colors.white} />}
           {someSelected && !allSelected && (
-            <View style={styles.partialIndicator} />
+            <View style={[styles.partialIndicator, { backgroundColor: t.primary }]} />
           )}
         </View>
       </TouchableOpacity>
@@ -130,7 +134,8 @@ export function ManageRosterModal({
       <TouchableOpacity
         style={[
           styles.modalGymnastRow,
-          isSelected && styles.modalGymnastRowSelected,
+          { backgroundColor: t.surface, borderColor: t.border },
+          isSelected && { borderColor: t.primary, backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] },
         ]}
         onPress={() => onToggleSelection(item.id)}
       >
@@ -138,13 +143,15 @@ export function ManageRosterModal({
           <View
             style={[
               styles.modalGymnastAvatar,
-              isSelected && styles.modalGymnastAvatarSelected,
+              { backgroundColor: isDark ? colors.slate[600] : colors.slate[100] },
+              isSelected && { backgroundColor: `${t.primary}20` },
             ]}
           >
             <Text
               style={[
                 styles.modalGymnastAvatarText,
-                isSelected && styles.modalGymnastAvatarTextSelected,
+                { color: t.textMuted },
+                isSelected && { color: t.primary },
               ]}
             >
               {item.first_name?.[0] || ''}
@@ -152,10 +159,10 @@ export function ManageRosterModal({
             </Text>
           </View>
           <View>
-            <Text style={styles.modalGymnastName}>
+            <Text style={[styles.modalGymnastName, { color: t.text }]}>
               {item.first_name} {item.last_name}
             </Text>
-            <Text style={styles.modalGymnastGender}>
+            <Text style={[styles.modalGymnastGender, { color: t.textMuted }]}>
               {item.gender || 'Unknown'}
             </Text>
           </View>
@@ -163,7 +170,8 @@ export function ManageRosterModal({
         <View
           style={[
             styles.modalCheckbox,
-            isSelected && styles.modalCheckboxSelected,
+            { borderColor: isDark ? colors.slate[500] : colors.slate[300] },
+            isSelected && { backgroundColor: t.primary, borderColor: t.primary },
           ]}
         >
           {isSelected && <Check size={16} color={colors.white} />}
@@ -179,18 +187,19 @@ export function ManageRosterModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.modalContainer} edges={['top']}>
-        <View style={styles.modalHeader}>
+      <SafeAreaView style={[styles.modalContainer, { backgroundColor: t.surface }]} edges={['top']}>
+        <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
           <TouchableOpacity
             style={styles.modalCloseButton}
             onPress={onClose}
           >
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.modalTitle}>Manage Roster</Text>
+          <Text style={[styles.modalTitle, { color: t.text }]}>Manage Roster</Text>
           <TouchableOpacity
             style={[
               styles.modalSaveButton,
+              { backgroundColor: t.primary },
               saving && styles.modalSaveButtonDisabled,
             ]}
             onPress={onSave}
@@ -204,11 +213,11 @@ export function ManageRosterModal({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.modalSubtitleContainer}>
-          <Text style={styles.modalSubtitle}>
+        <View style={[styles.modalSubtitleContainer, { backgroundColor: t.background, borderBottomColor: t.border }]}>
+          <Text style={[styles.modalSubtitle, { color: t.textMuted }]}>
             Select gymnasts to include in this competition
           </Text>
-          <Text style={styles.selectedCountText}>
+          <Text style={[styles.selectedCountText, { color: t.primary }]}>
             {selectedIds.size} selected
           </Text>
         </View>
@@ -226,7 +235,7 @@ export function ManageRosterModal({
           removeClippedSubviews={true}
           ListEmptyComponent={
             <View style={styles.modalEmpty}>
-              <Text style={styles.modalEmptyText}>No gymnasts in this hub</Text>
+              <Text style={[styles.modalEmptyText, { color: t.textMuted }]}>No gymnasts in this hub</Text>
             </View>
           }
         />
@@ -258,7 +267,7 @@ const styles = StyleSheet.create({
     color: colors.slate[900],
   },
   modalSaveButton: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
@@ -290,7 +299,7 @@ const styles = StyleSheet.create({
   selectedCountText: {
     fontSize: 13,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   modalList: {
     padding: 12,
@@ -340,16 +349,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   sectionCheckboxSelected: {
-    backgroundColor: theme.light.primary,
-    borderColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
+    borderColor: colors.brand[600],
   },
   sectionCheckboxPartial: {
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
   },
   partialIndicator: {
     width: 10,
     height: 3,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     borderRadius: 2,
   },
 
@@ -367,7 +376,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   modalGymnastRowSelected: {
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     backgroundColor: colors.brand[50],
   },
   modalGymnastInfo: {
@@ -415,8 +424,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modalCheckboxSelected: {
-    backgroundColor: theme.light.primary,
-    borderColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
+    borderColor: colors.brand[600],
   },
   modalEmpty: {
     padding: 40,

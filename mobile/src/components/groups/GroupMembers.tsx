@@ -11,7 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import { Users, Shield, Search, Crown, User, UserMinus } from 'lucide-react-native';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
@@ -34,6 +35,7 @@ interface GroupMembersProps {
 }
 
 export function GroupMembers({ groupId, isAdmin, currentUserId, onMemberCountChange }: GroupMembersProps) {
+  const { t, isDark } = useTheme();
   const [members, setMembers] = useState<GroupMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -161,7 +163,7 @@ export function GroupMembers({ groupId, isAdmin, currentUserId, onMemberCountCha
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
@@ -171,7 +173,7 @@ export function GroupMembers({ groupId, isAdmin, currentUserId, onMemberCountCha
     const isLoading = actionLoading === member.user_id;
 
     return (
-      <View key={member.user_id} style={styles.memberRow}>
+      <View key={member.user_id} style={[styles.memberRow, { borderBottomColor: t.background }]}>
         {/* Avatar */}
         <View style={styles.avatar}>
           {member.profiles?.avatar_url ? (
@@ -188,7 +190,7 @@ export function GroupMembers({ groupId, isAdmin, currentUserId, onMemberCountCha
         {/* Info */}
         <View style={styles.memberInfo}>
           <View style={styles.memberNameRow}>
-            <Text style={styles.memberName} numberOfLines={1}>
+            <Text style={[styles.memberName, { color: t.text }]} numberOfLines={1}>
               {member.profiles?.full_name || 'Unknown User'}
             </Text>
             {isCurrentUser && (
@@ -203,10 +205,10 @@ export function GroupMembers({ groupId, isAdmin, currentUserId, onMemberCountCha
               </View>
             )}
           </View>
-          <Text style={styles.memberEmail} numberOfLines={1}>
+          <Text style={[styles.memberEmail, { color: t.textMuted }]} numberOfLines={1}>
             {member.profiles?.email}
           </Text>
-          <Text style={styles.memberJoined}>Joined {formatTime(member.joined_at)}</Text>
+          <Text style={[styles.memberJoined, { color: t.textFaint }]}>Joined {formatTime(member.joined_at)}</Text>
         </View>
 
         {/* Actions for admins */}
@@ -248,27 +250,27 @@ export function GroupMembers({ groupId, isAdmin, currentUserId, onMemberCountCha
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.surface, borderColor: t.border }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: t.background, borderBottomColor: t.borderSubtle }]}>
         <View style={styles.headerIcon}>
           <Users size={20} color={colors.white} />
         </View>
         <View>
-          <Text style={styles.headerTitle}>Group Members</Text>
-          <Text style={styles.headerCount}>
+          <Text style={[styles.headerTitle, { color: t.text }]}>Group Members</Text>
+          <Text style={[styles.headerCount, { color: t.textMuted }]}>
             {members.length} member{members.length !== 1 ? 's' : ''}
           </Text>
         </View>
       </View>
 
       {/* Search */}
-      <View style={styles.searchContainer}>
-        <Search size={18} color={colors.slate[400]} />
+      <View style={[styles.searchContainer, { borderBottomColor: t.borderSubtle }]}>
+        <Search size={18} color={t.textFaint} />
         <TextInput
-          style={styles.searchInput}
+          style={[styles.searchInput, { color: t.text }]}
           placeholder="Search members..."
-          placeholderTextColor={colors.slate[400]}
+          placeholderTextColor={t.textFaint}
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
@@ -305,7 +307,7 @@ export function GroupMembers({ groupId, isAdmin, currentUserId, onMemberCountCha
       {/* Empty state */}
       {filteredMembers.length === 0 && (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No members found</Text>
+          <Text style={[styles.emptyText, { color: t.textMuted }]}>No members found</Text>
         </View>
       )}
     </View>
@@ -430,7 +432,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
   },

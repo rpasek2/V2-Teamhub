@@ -10,7 +10,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { MessageSquare, Pin, PinOff, MoreHorizontal, Trash2, Send, User, ThumbsUp, Heart, PartyPopper } from 'lucide-react-native';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { PollDisplay } from './PollDisplay';
@@ -53,6 +54,7 @@ interface PostCardProps {
 }
 
 export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCommentAdded, onPinToggle }: PostCardProps) {
+  const { t, isDark } = useTheme();
   const [showComments, setShowComments] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -280,7 +282,7 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
   const rsvpAttachment = post.attachments?.find((a: any) => a.type === 'rsvp');
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.surface, borderColor: t.border }]}>
       {/* Pinned indicator */}
       {isPinned && (
         <View style={styles.pinnedBanner}>
@@ -291,32 +293,32 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
 
       {/* Post Header */}
       <View style={styles.header}>
-        <View style={styles.avatar}>
+        <View style={[styles.avatar, { backgroundColor: t.surfaceSecondary }]}>
           {post.profiles?.avatar_url ? (
             <Image source={{ uri: post.profiles.avatar_url, cache: 'force-cache' }} style={styles.avatarImage} />
           ) : (
-            <User size={20} color={colors.slate[400]} />
+            <User size={20} color={t.textFaint} />
           )}
         </View>
         <View style={styles.headerContent}>
-          <Text style={styles.authorName}>
+          <Text style={[styles.authorName, { color: t.text }]}>
             {post.profiles?.full_name || 'Unknown'}
           </Text>
-          <Text style={styles.timestamp}>{formatTime(post.created_at)}</Text>
+          <Text style={[styles.timestamp, { color: t.textFaint }]}>{formatTime(post.created_at)}</Text>
         </View>
         {(canDelete || canPin) && (
           <TouchableOpacity
             style={styles.menuButton}
             onPress={() => setShowMenu(!showMenu)}
           >
-            <MoreHorizontal size={20} color={colors.slate[400]} />
+            <MoreHorizontal size={20} color={t.textFaint} />
           </TouchableOpacity>
         )}
       </View>
 
       {/* Menu dropdown */}
       {showMenu && (
-        <View style={styles.menu}>
+        <View style={[styles.menu, { backgroundColor: t.surface }]}>
           {canPin && (
             <TouchableOpacity
               style={styles.menuItem}
@@ -338,13 +340,13 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
             >
               {isPinned ? (
                 <>
-                  <PinOff size={16} color={colors.slate[500]} />
-                  <Text style={styles.menuItemText}>Unpin Post</Text>
+                  <PinOff size={16} color={t.textMuted} />
+                  <Text style={[styles.menuItemText, { color: t.textSecondary }]}>Unpin Post</Text>
                 </>
               ) : (
                 <>
                   <Pin size={16} color={colors.amber[500]} />
-                  <Text style={styles.menuItemText}>Pin Post</Text>
+                  <Text style={[styles.menuItemText, { color: t.textSecondary }]}>Pin Post</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -359,7 +361,7 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
       )}
 
       {/* Post Content */}
-      <Text style={styles.content}>{post.content}</Text>
+      <Text style={[styles.content, { color: t.textSecondary }]}>{post.content}</Text>
 
       {/* Images */}
       {images.length > 0 && (
@@ -415,31 +417,31 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
       )}
 
       {/* Actions */}
-      <View style={styles.actions}>
+      <View style={[styles.actions, { borderTopColor: t.borderSubtle }]}>
         {/* Reactions */}
         <View style={styles.reactionsContainer}>
           <TouchableOpacity
-            style={[styles.reactionButton, userReaction === 'like' && styles.reactionButtonActive]}
+            style={[styles.reactionButton, { backgroundColor: t.background }, userReaction === 'like' && styles.reactionButtonActive]}
             onPress={() => handleReaction('like')}
           >
             <ThumbsUp
               size={16}
-              color={userReaction === 'like' ? theme.light.primary : colors.slate[400]}
+              color={userReaction === 'like' ? t.primary : t.textFaint}
             />
             {reactions.like > 0 && (
-              <Text style={[styles.reactionCount, userReaction === 'like' && styles.reactionCountActive]}>
+              <Text style={[styles.reactionCount, { color: t.textMuted }, userReaction === 'like' && styles.reactionCountActive]}>
                 {reactions.like}
               </Text>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.reactionButton, userReaction === 'heart' && styles.reactionButtonActive]}
+            style={[styles.reactionButton, { backgroundColor: t.background }, userReaction === 'heart' && styles.reactionButtonActive]}
             onPress={() => handleReaction('heart')}
           >
             <Heart
               size={16}
-              color={userReaction === 'heart' ? colors.error[500] : colors.slate[400]}
+              color={userReaction === 'heart' ? colors.error[500] : t.textFaint}
               fill={userReaction === 'heart' ? colors.error[500] : 'transparent'}
             />
             {reactions.heart > 0 && (
@@ -450,12 +452,12 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.reactionButton, userReaction === 'celebrate' && styles.reactionButtonActive]}
+            style={[styles.reactionButton, { backgroundColor: t.background }, userReaction === 'celebrate' && styles.reactionButtonActive]}
             onPress={() => handleReaction('celebrate')}
           >
             <PartyPopper
               size={16}
-              color={userReaction === 'celebrate' ? colors.amber[500] : colors.slate[400]}
+              color={userReaction === 'celebrate' ? colors.amber[500] : t.textFaint}
             />
             {reactions.celebrate > 0 && (
               <Text style={[styles.reactionCount, userReaction === 'celebrate' && styles.reactionCountCelebrate]}>
@@ -476,12 +478,13 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
             <>
               <MessageSquare
                 size={18}
-                color={showComments ? theme.light.primary : colors.slate[400]}
+                color={showComments ? t.primary : t.textFaint}
               />
               <Text
                 style={[
                   styles.actionText,
-                  showComments && styles.actionTextActive,
+                  { color: t.textMuted },
+                  showComments && [styles.actionTextActive, { color: t.primary }],
                 ]}
               >
                 {localCommentCount > 0 ? localCommentCount : ''} Comment
@@ -494,22 +497,22 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
 
       {/* Comments Section */}
       {showComments && (
-        <View style={styles.commentsSection}>
+        <View style={[styles.commentsSection, { backgroundColor: t.background, borderTopColor: t.borderSubtle }]}>
           {comments.map((comment) => (
-            <View key={comment.id} style={styles.comment}>
-              <View style={styles.commentAvatar}>
-                <User size={14} color={colors.slate[400]} />
+            <View key={comment.id} style={[styles.comment, { borderBottomColor: t.borderSubtle }]}>
+              <View style={[styles.commentAvatar, { backgroundColor: t.border }]}>
+                <User size={14} color={t.textFaint} />
               </View>
               <View style={styles.commentContent}>
                 <View style={styles.commentHeader}>
-                  <Text style={styles.commentAuthor}>
+                  <Text style={[styles.commentAuthor, { color: t.text }]}>
                     {comment.profiles?.full_name || 'Unknown'}
                   </Text>
-                  <Text style={styles.commentTime}>
+                  <Text style={[styles.commentTime, { color: t.textFaint }]}>
                     {formatTime(comment.created_at)}
                   </Text>
                 </View>
-                <Text style={styles.commentText}>{comment.content}</Text>
+                <Text style={[styles.commentText, { color: t.textSecondary }]}>{comment.content}</Text>
               </View>
             </View>
           ))}
@@ -517,9 +520,9 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
           {/* Add Comment Input */}
           <View style={styles.addCommentContainer}>
             <TextInput
-              style={styles.commentInput}
+              style={[styles.commentInput, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
               placeholder="Write a comment..."
-              placeholderTextColor={colors.slate[400]}
+              placeholderTextColor={t.textFaint}
               value={newComment}
               onChangeText={setNewComment}
               multiline
@@ -691,7 +694,7 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
   },
   reactionCountActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   reactionCountHeart: {
     color: colors.error[500],
@@ -709,7 +712,7 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
   },
   actionTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   commentsSection: {
     backgroundColor: colors.slate[50],
@@ -779,7 +782,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
   },

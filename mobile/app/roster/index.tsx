@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Search, User, ChevronRight, Phone, Mail, Users, Shield, Dumbbell, Music } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -61,6 +62,7 @@ type TabType = 'All' | 'Coaches' | 'Gymnasts' | 'Parents';
 const TABS: TabType[] = ['All', 'Coaches', 'Gymnasts', 'Parents'];
 
 export default function RosterScreen() {
+  const { t, isDark } = useTheme();
   const [members, setMembers] = useState<DisplayMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -106,7 +108,7 @@ export default function RosterScreen() {
       // Process hub members (coaches, parents, admins)
       if (hubMembersResult.data) {
         (hubMembersResult.data as HubMember[]).forEach((m) => {
-          const profile = m.profiles?.[0];
+          const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles;
           allMembers.push({
             id: m.user_id,
             name: profile?.full_name || 'Unknown',
@@ -240,6 +242,13 @@ export default function RosterScreen() {
   };
 
   const getRoleColor = (role: string, gender?: 'Male' | 'Female' | null) => {
+    if (isDark) {
+      if (role === 'athlete') return gender === 'Female' ? colors.pink[700] + '30' : colors.blue[700] + '30';
+      if (['owner', 'director', 'admin'].includes(role)) return colors.amber[700] + '30';
+      if (role === 'coach') return colors.blue[700] + '30';
+      if (role === 'parent') return colors.purple[700] + '30';
+      return colors.slate[700];
+    }
     if (role === 'athlete') {
       return gender === 'Female' ? colors.pink[100] : colors.blue[100];
     }
@@ -250,6 +259,13 @@ export default function RosterScreen() {
   };
 
   const getRoleTextColor = (role: string, gender?: 'Male' | 'Female' | null) => {
+    if (isDark) {
+      if (role === 'athlete') return gender === 'Female' ? colors.pink[400] : colors.blue[400];
+      if (['owner', 'director', 'admin'].includes(role)) return colors.amber[500];
+      if (role === 'coach') return colors.blue[400];
+      if (role === 'parent') return colors.purple[400];
+      return colors.slate[400];
+    }
     if (role === 'athlete') {
       return gender === 'Female' ? colors.pink[600] : colors.blue[600];
     }
@@ -265,7 +281,7 @@ export default function RosterScreen() {
 
     return (
       <TouchableOpacity
-        style={styles.memberCard}
+        style={[styles.memberCard, { backgroundColor: t.surface, borderColor: t.border }]}
         onPress={() => handleMemberPress(item)}
         activeOpacity={canNavigate ? 0.7 : 1}
         disabled={!canNavigate}
@@ -277,7 +293,7 @@ export default function RosterScreen() {
         </View>
         <View style={styles.memberInfo}>
           <View style={styles.nameRow}>
-            <Text style={styles.memberName} numberOfLines={1}>
+            <Text style={[styles.memberName, { color: t.text }]} numberOfLines={1}>
               {item.name}
             </Text>
             {getRoleIcon(item.role)}
@@ -297,11 +313,11 @@ export default function RosterScreen() {
           {/* Show guardian info for gymnasts (staff only) */}
           {item.type === 'gymnast_profile' && isStaff() && item.guardian_name && (
             <View style={styles.guardianRow}>
-              <Text style={styles.guardianName}>{item.guardian_name}</Text>
+              <Text style={[styles.guardianName, { color: t.textSecondary }]}>{item.guardian_name}</Text>
               {item.guardian_phone && (
                 <View style={styles.contactItem}>
-                  <Phone size={12} color={colors.slate[400]} />
-                  <Text style={styles.contactText}>{item.guardian_phone}</Text>
+                  <Phone size={12} color={t.textFaint} />
+                  <Text style={[styles.contactText, { color: t.textMuted }]}>{item.guardian_phone}</Text>
                 </View>
               )}
             </View>
@@ -309,54 +325,54 @@ export default function RosterScreen() {
           {/* Show email for non-gymnasts */}
           {item.type === 'hub_member' && item.email && (
             <View style={styles.contactItem}>
-              <Mail size={12} color={colors.slate[400]} />
-              <Text style={styles.contactText} numberOfLines={1}>{item.email}</Text>
+              <Mail size={12} color={t.textFaint} />
+              <Text style={[styles.contactText, { color: t.textMuted }]} numberOfLines={1}>{item.email}</Text>
             </View>
           )}
         </View>
         {canNavigate && (
-          <ChevronRight size={20} color={colors.slate[400]} />
+          <ChevronRight size={20} color={t.textFaint} />
         )}
       </TouchableOpacity>
     );
-  }, [isStaff, linkedGymnasts, handleMemberPress]);
+  }, [isStaff, linkedGymnasts, handleMemberPress, t]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar - always visible so floor music button is accessible offline */}
-      <View style={styles.searchContainer}>
+      <View style={[styles.searchContainer, { backgroundColor: t.surface }]}>
         <View style={styles.searchRow}>
-          <View style={[styles.searchBar, { flex: 1 }]}>
-            <Search size={20} color={colors.slate[400]} />
+          <View style={[styles.searchBar, { flex: 1, backgroundColor: t.surfaceSecondary }]}>
+            <Search size={20} color={t.textFaint} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: t.text }]}
               placeholder="Search members..."
-              placeholderTextColor={colors.slate[400]}
+              placeholderTextColor={t.textFaint}
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
           </View>
           {isStaff() && (
             <TouchableOpacity
-              style={styles.floorMusicBtn}
+              style={[styles.floorMusicBtn, { backgroundColor: isDark ? colors.purple[900] + '40' : colors.purple[50] }]}
               onPress={() => router.push('/roster/floor-music')}
             >
-              <Music size={18} color={colors.purple[600]} />
+              <Music size={18} color={isDark ? colors.purple[400] : colors.purple[600]} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
       {/* Member Type Tabs */}
-      <View style={styles.tabsContainer}>
+      <View style={[styles.tabsContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabsContent}>
           {TABS.map((tab) => (
             <TouchableOpacity
               key={tab}
-              style={[styles.tab, activeTab === tab && styles.tabActive]}
+              style={[styles.tab, activeTab === tab && { borderBottomColor: t.primary }]}
               onPress={() => setActiveTab(tab)}
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
+              <Text style={[styles.tabText, { color: t.textMuted }, activeTab === tab && { color: t.primary, fontWeight: '600' }]}>
                 {tab}
               </Text>
             </TouchableOpacity>
@@ -366,23 +382,23 @@ export default function RosterScreen() {
 
       {/* Level Filter (only for gymnasts tab) */}
       {levels.length > 0 && activeTab === 'Gymnasts' && isStaff() && (
-        <View style={styles.filterContainer}>
+        <View style={[styles.filterContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList}>
             <TouchableOpacity
-              style={[styles.filterChip, selectedLevel === null && styles.filterChipActive]}
+              style={[styles.filterChip, { backgroundColor: t.surfaceSecondary }, selectedLevel === null && { backgroundColor: t.primary }]}
               onPress={() => setSelectedLevel(null)}
             >
-              <Text style={[styles.filterChipText, selectedLevel === null && styles.filterChipTextActive]}>
+              <Text style={[styles.filterChipText, { color: t.textSecondary }, selectedLevel === null && styles.filterChipTextActive]}>
                 All Levels
               </Text>
             </TouchableOpacity>
             {levels.map((level) => (
               <TouchableOpacity
                 key={level}
-                style={[styles.filterChip, selectedLevel === level && styles.filterChipActive]}
+                style={[styles.filterChip, { backgroundColor: t.surfaceSecondary }, selectedLevel === level && { backgroundColor: t.primary }]}
                 onPress={() => setSelectedLevel(level)}
               >
-                <Text style={[styles.filterChipText, selectedLevel === level && styles.filterChipTextActive]}>
+                <Text style={[styles.filterChipText, { color: t.textSecondary }, selectedLevel === level && styles.filterChipTextActive]}>
                   {level}
                 </Text>
               </TouchableOpacity>
@@ -393,8 +409,8 @@ export default function RosterScreen() {
 
       {/* Member List */}
       {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.light.primary} />
+        <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+          <ActivityIndicator size="large" color={t.primary} />
         </View>
       ) : (
         <FlatList
@@ -412,8 +428,8 @@ export default function RosterScreen() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <User size={48} color={colors.slate[300]} />
-              <Text style={styles.emptyTitle}>No members found</Text>
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyTitle, { color: t.text }]}>No members found</Text>
+              <Text style={[styles.emptyText, { color: t.textMuted }]}>
                 {searchQuery || selectedLevel
                   ? 'Try adjusting your filters'
                   : 'No members in this category'}
@@ -484,7 +500,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: theme.light.primary,
+    borderBottomColor: colors.brand[600],
   },
   tabText: {
     fontSize: 14,
@@ -492,7 +508,7 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
   },
   tabTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontWeight: '600',
   },
   filterContainer: {
@@ -513,7 +529,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterChipActive: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   filterChipText: {
     fontSize: 13,

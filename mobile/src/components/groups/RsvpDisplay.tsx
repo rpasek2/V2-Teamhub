@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { CalendarCheck, MapPin, Clock, Check, X, HelpCircle, User, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 import { format, parseISO } from 'date-fns';
 
@@ -41,6 +42,7 @@ export function RsvpDisplay({
   location,
   currentUserId,
 }: RsvpDisplayProps) {
+  const { t, isDark } = useTheme();
   const [responses, setResponses] = useState<RsvpResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [responding, setResponding] = useState(false);
@@ -151,7 +153,7 @@ export function RsvpDisplay({
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
+        <Text style={[styles.title, { color: t.text }]}>{title}</Text>
 
         {/* Event Details */}
         {(date || time || location) && (
@@ -159,33 +161,33 @@ export function RsvpDisplay({
             {date && (
               <View style={styles.detailRow}>
                 <CalendarCheck size={14} color={colors.blue[500]} />
-                <Text style={styles.detailText}>{formatDate(date)}</Text>
+                <Text style={[styles.detailText, { color: t.textSecondary }]}>{formatDate(date)}</Text>
               </View>
             )}
             {time && (
               <View style={styles.detailRow}>
                 <Clock size={14} color={colors.blue[500]} />
-                <Text style={styles.detailText}>{formatTime(time)}</Text>
+                <Text style={[styles.detailText, { color: t.textSecondary }]}>{formatTime(time)}</Text>
               </View>
             )}
             {location && (
               <View style={styles.detailRow}>
                 <MapPin size={14} color={colors.blue[500]} />
-                <Text style={styles.detailText}>{location}</Text>
+                <Text style={[styles.detailText, { color: t.textSecondary }]}>{location}</Text>
               </View>
             )}
           </View>
         )}
 
         {/* Response Buttons */}
-        <View style={styles.buttonsContainer}>
+        <View style={[styles.buttonsContainer]}>
           <TouchableOpacity
-            style={[styles.rsvpButton, userStatus === 'going' && styles.rsvpButtonGoing]}
+            style={[styles.rsvpButton, { backgroundColor: t.surface, borderColor: t.border }, userStatus === 'going' && styles.rsvpButtonGoing]}
             onPress={() => handleRsvp('going')}
             disabled={responding}
           >
             <Check size={16} color={userStatus === 'going' ? colors.white : colors.emerald[600]} />
-            <Text style={[styles.rsvpButtonText, userStatus === 'going' && styles.rsvpButtonTextActive]}>
+            <Text style={[styles.rsvpButtonText, { color: t.textSecondary }, userStatus === 'going' && styles.rsvpButtonTextActive]}>
               Going
             </Text>
             <Text style={[styles.rsvpCount, userStatus === 'going' && styles.rsvpCountActive]}>
@@ -194,12 +196,12 @@ export function RsvpDisplay({
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.rsvpButton, userStatus === 'maybe' && styles.rsvpButtonMaybe]}
+            style={[styles.rsvpButton, { backgroundColor: t.surface, borderColor: t.border }, userStatus === 'maybe' && styles.rsvpButtonMaybe]}
             onPress={() => handleRsvp('maybe')}
             disabled={responding}
           >
             <HelpCircle size={16} color={userStatus === 'maybe' ? colors.white : colors.amber[600]} />
-            <Text style={[styles.rsvpButtonText, userStatus === 'maybe' && styles.rsvpButtonTextActive]}>
+            <Text style={[styles.rsvpButtonText, { color: t.textSecondary }, userStatus === 'maybe' && styles.rsvpButtonTextActive]}>
               Maybe
             </Text>
             <Text style={[styles.rsvpCount, userStatus === 'maybe' && styles.rsvpCountActive]}>
@@ -208,12 +210,12 @@ export function RsvpDisplay({
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.rsvpButton, userStatus === 'not_going' && styles.rsvpButtonNotGoing]}
+            style={[styles.rsvpButton, { backgroundColor: t.surface, borderColor: t.border }, userStatus === 'not_going' && styles.rsvpButtonNotGoing]}
             onPress={() => handleRsvp('not_going')}
             disabled={responding}
           >
             <X size={16} color={userStatus === 'not_going' ? colors.white : colors.error[600]} />
-            <Text style={[styles.rsvpButtonText, userStatus === 'not_going' && styles.rsvpButtonTextActive]}>
+            <Text style={[styles.rsvpButtonText, { color: t.textSecondary }, userStatus === 'not_going' && styles.rsvpButtonTextActive]}>
               Can't Go
             </Text>
             <Text style={[styles.rsvpCount, userStatus === 'not_going' && styles.rsvpCountActive]}>

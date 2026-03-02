@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { X, Plus, ClipboardList, Users } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 
 interface SignupSlot {
   name: string;
@@ -31,6 +32,7 @@ interface SignupCreatorProps {
 }
 
 export function SignupCreator({ onSave, onCancel }: SignupCreatorProps) {
+  const { t, isDark } = useTheme();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [slots, setSlots] = useState<{ name: string; maxSignups: string }[]>([
@@ -94,13 +96,13 @@ export function SignupCreator({ onSave, onCancel }: SignupCreatorProps) {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Title */}
         <View style={styles.section}>
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>
             Title <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
             placeholder="e.g., Snack Sign-Up for Saturday Meet"
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={title}
             onChangeText={setTitle}
           />
@@ -108,13 +110,13 @@ export function SignupCreator({ onSave, onCancel }: SignupCreatorProps) {
 
         {/* Description */}
         <View style={styles.section}>
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>
             Description <Text style={styles.hint}>(optional)</Text>
           </Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
             placeholder="Add any additional details..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={description}
             onChangeText={setDescription}
             multiline
@@ -124,27 +126,27 @@ export function SignupCreator({ onSave, onCancel }: SignupCreatorProps) {
 
         {/* Slots */}
         <View style={styles.section}>
-          <Text style={styles.label}>Sign-Up Slots</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Sign-Up Slots</Text>
           {slots.map((slot, index) => (
             <View key={index} style={styles.slotRow}>
               <TextInput
-                style={styles.slotNameInput}
+                style={[styles.slotNameInput, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
                 placeholder={`Slot ${index + 1} (e.g., Fruit)`}
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={slot.name}
                 onChangeText={(value) => updateSlot(index, 'name', value)}
               />
               <TextInput
-                style={styles.slotMaxInput}
+                style={[styles.slotMaxInput, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
                 placeholder="Max"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={slot.maxSignups}
                 onChangeText={(value) => updateSlot(index, 'maxSignups', value.replace(/[^0-9]/g, ''))}
                 keyboardType="number-pad"
               />
               {slots.length > 1 && (
                 <TouchableOpacity onPress={() => removeSlot(index)} style={styles.removeSlotButton}>
-                  <X size={16} color={colors.slate[400]} />
+                  <X size={16} color={t.textFaint} />
                 </TouchableOpacity>
               )}
             </View>
@@ -159,20 +161,20 @@ export function SignupCreator({ onSave, onCancel }: SignupCreatorProps) {
         </View>
 
         {/* Allow User Slots */}
-        <View style={styles.optionCard}>
+        <View style={[styles.optionCard, { borderColor: t.border, backgroundColor: t.surface }]}>
           <View style={styles.optionContent}>
             <View style={styles.optionHeader}>
               <Users size={16} color={colors.emerald[600]} />
-              <Text style={styles.optionTitle}>Allow members to add items</Text>
+              <Text style={[styles.optionTitle, { color: t.text }]}>Allow members to add items</Text>
             </View>
-            <Text style={styles.optionDescription}>
+            <Text style={[styles.optionDescription, { color: t.textMuted }]}>
               Perfect for potlucks! Members can add their own items.
             </Text>
           </View>
           <Switch
             value={allowUserSlots}
             onValueChange={setAllowUserSlots}
-            trackColor={{ false: colors.slate[200], true: colors.emerald[200] }}
+            trackColor={{ false: t.border, true: colors.emerald[200] }}
             thumbColor={allowUserSlots ? colors.emerald[500] : colors.slate[400]}
           />
         </View>
@@ -181,7 +183,7 @@ export function SignupCreator({ onSave, onCancel }: SignupCreatorProps) {
       {/* Actions */}
       <View style={styles.actions}>
         <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleSave}

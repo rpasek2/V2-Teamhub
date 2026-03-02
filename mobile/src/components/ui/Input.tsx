@@ -8,7 +8,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { Eye, EyeOff } from 'lucide-react-native';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -28,6 +29,7 @@ export function Input({
   style,
   ...props
 }: InputProps) {
+  const { t } = useTheme();
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -35,20 +37,21 @@ export function Input({
 
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Text style={[styles.label, { color: t.textSecondary }]}>{label}</Text>}
 
       <View
         style={[
           styles.inputContainer,
-          isFocused && styles.inputFocused,
+          { backgroundColor: t.inputBg, borderColor: t.border },
+          isFocused && [styles.inputFocused, { borderColor: t.borderFocus }],
           error && styles.inputError,
         ]}
       >
         {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
 
         <TextInput
-          style={[styles.input, leftIcon ? styles.inputWithLeftIcon : undefined, style]}
-          placeholderTextColor={colors.slate[400]}
+          style={[styles.input, { color: t.text }, leftIcon ? styles.inputWithLeftIcon : undefined, style]}
+          placeholderTextColor={t.textFaint}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           secureTextEntry={isPassword && !showPassword}
@@ -61,9 +64,9 @@ export function Input({
             onPress={() => setShowPassword(!showPassword)}
           >
             {showPassword ? (
-              <EyeOff size={20} color={colors.slate[400]} />
+              <EyeOff size={20} color={t.textFaint} />
             ) : (
-              <Eye size={20} color={colors.slate[400]} />
+              <Eye size={20} color={t.textFaint} />
             )}
           </TouchableOpacity>
         ) : (
@@ -72,7 +75,7 @@ export function Input({
       </View>
 
       {error && <Text style={styles.error}>{error}</Text>}
-      {hint && !error && <Text style={styles.hint}>{hint}</Text>}
+      {hint && !error && <Text style={[styles.hint, { color: t.textMuted }]}>{hint}</Text>}
     </View>
   );
 }
@@ -97,7 +100,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   inputFocused: {
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     borderWidth: 2,
   },
   inputError: {

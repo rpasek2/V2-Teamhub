@@ -15,7 +15,8 @@ import {
 import { useLocalSearchParams, router } from 'expo-router';
 import { X, Send, ImagePlus, Trash2, BarChart3, ClipboardList, CalendarCheck } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
 import { PollCreator } from '../../src/components/groups/PollCreator';
@@ -63,6 +64,7 @@ function decode(base64: string): Uint8Array {
 }
 
 export default function CreatePostScreen() {
+  const { t, isDark } = useTheme();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const user = useAuthStore((state) => state.user);
   const [content, setContent] = useState('');
@@ -236,17 +238,17 @@ export default function CreatePostScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: t.surface }]}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { borderBottomColor: t.border }]}>
         <TouchableOpacity style={styles.closeButton} onPress={handleClose}>
-          <X size={24} color={colors.slate[600]} />
+          <X size={24} color={t.textSecondary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Create Post</Text>
+        <Text style={[styles.headerTitle, { color: t.text }]}>Create Post</Text>
         <TouchableOpacity
-          style={[styles.postButton, !hasContent && styles.postButtonDisabled]}
+          style={[styles.postButton, { backgroundColor: t.primary }, !hasContent && styles.postButtonDisabled]}
           onPress={handleSubmit}
           disabled={!hasContent || submitting}
         >
@@ -264,9 +266,9 @@ export default function CreatePostScreen() {
       {/* Content */}
       <ScrollView style={styles.content} keyboardShouldPersistTaps="handled">
         <TextInput
-          style={styles.textInput}
+          style={[styles.textInput, { color: t.text }]}
           placeholder="What's on your mind?"
-          placeholderTextColor={colors.slate[400]}
+          placeholderTextColor={t.textFaint}
           value={content}
           onChangeText={setContent}
           multiline
@@ -377,12 +379,12 @@ export default function CreatePostScreen() {
       </ScrollView>
 
       {/* Footer with actions */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: t.borderSubtle }]}>
         <View style={styles.footerActions}>
           {images.length < 4 && (
-            <TouchableOpacity style={styles.addImageButton} onPress={pickImages}>
-              <ImagePlus size={20} color={colors.slate[600]} />
-              <Text style={styles.addImageText}>Photos</Text>
+            <TouchableOpacity style={[styles.addImageButton, { backgroundColor: t.surfaceSecondary }]} onPress={pickImages}>
+              <ImagePlus size={20} color={t.textSecondary} />
+              <Text style={[styles.addImageText, { color: t.textSecondary }]}>Photos</Text>
             </TouchableOpacity>
           )}
           {!poll && !showPollCreator && (
@@ -406,13 +408,13 @@ export default function CreatePostScreen() {
         </View>
         <View style={styles.footerInfo}>
           {uploadProgress ? (
-            <Text style={styles.uploadProgress}>{uploadProgress}</Text>
+            <Text style={[styles.uploadProgress, { color: t.primary }]}>{uploadProgress}</Text>
           ) : (
             <>
               {images.length > 0 && (
-                <Text style={styles.imageCount}>{images.length}/4 photos</Text>
+                <Text style={[styles.imageCount, { color: t.textMuted }]}>{images.length}/4 photos</Text>
               )}
-              <Text style={styles.charCount}>{content.length} characters</Text>
+              <Text style={[styles.charCount, { color: t.textFaint }]}>{content.length} characters</Text>
             </>
           )}
         </View>
@@ -447,7 +449,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
@@ -667,7 +669,7 @@ const styles = StyleSheet.create({
   },
   uploadProgress: {
     fontSize: 12,
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontWeight: '500',
   },
 });

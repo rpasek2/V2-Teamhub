@@ -12,10 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react-native';
 import { Button, Input } from '../../src/components/ui';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useAuthStore } from '../../src/stores/authStore';
 
 export default function ForgotPasswordScreen() {
+  const { t, isDark, colors } = useTheme();
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -45,13 +47,13 @@ export default function ForgotPasswordScreen() {
 
   if (success) {
     return (
-      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top', 'bottom']}>
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
             <CheckCircle size={48} color={colors.success[600]} />
           </View>
-          <Text style={styles.successTitle}>Check your email</Text>
-          <Text style={styles.successText}>
+          <Text style={[styles.successTitle, { color: t.text }]}>Check your email</Text>
+          <Text style={[styles.successText, { color: t.textMuted }]}>
             We've sent a password reset link to {email}
           </Text>
           <Button
@@ -67,7 +69,7 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -80,12 +82,12 @@ export default function ForgotPasswordScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <ArrowLeft size={24} color={colors.slate[700]} />
+          <ArrowLeft size={24} color={t.textSecondary} />
         </TouchableOpacity>
 
         <View style={styles.header}>
-          <Text style={styles.title}>Reset password</Text>
-          <Text style={styles.subtitle}>
+          <Text style={[styles.title, { color: t.text }]}>Reset password</Text>
+          <Text style={[styles.subtitle, { color: t.textMuted }]}>
             Enter your email and we'll send you a link to reset your password
           </Text>
         </View>
@@ -105,7 +107,7 @@ export default function ForgotPasswordScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
-            leftIcon={<Mail size={20} color={colors.slate[400]} />}
+            leftIcon={<Mail size={20} color={t.textFaint} />}
           />
 
           <Button
@@ -118,10 +120,10 @@ export default function ForgotPasswordScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Remember your password? </Text>
+          <Text style={[styles.footerText, { color: t.textSecondary }]}>Remember your password? </Text>
           <Link href="/(auth)/login" asChild>
             <TouchableOpacity>
-              <Text style={styles.footerLink}>Sign in</Text>
+              <Text style={[styles.footerLink, { color: t.primary }]}>Sign in</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -191,7 +193,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   footerLink: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontSize: 14,
     fontWeight: '600',
   },

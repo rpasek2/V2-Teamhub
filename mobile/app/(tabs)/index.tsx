@@ -25,7 +25,8 @@ import {
   FileText,
   Megaphone,
 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useActivityFeedStore } from '../../src/stores/activityFeedStore';
@@ -124,6 +125,7 @@ const SKILL_STATUS_CONFIG: Record<string, { label: string; color: string; bgColo
 };
 
 export default function DashboardScreen() {
+  const { t, isDark, colors } = useTheme();
   const currentHub = useHubStore((state) => state.currentHub);
   const currentMember = useHubStore((state) => state.currentMember);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
@@ -486,7 +488,7 @@ export default function DashboardScreen() {
   const getActivityIcon = (type: string) => {
     switch (type) {
       case 'event': return <Calendar size={16} color={colors.indigo[600]} />;
-      case 'post': return <MessageSquare size={16} color={colors.brand[600]} />;
+      case 'post': return <MessageSquare size={16} color={t.primary} />;
       case 'competition': return <Trophy size={16} color={colors.amber[600]} />;
       case 'member': return <UserPlus size={16} color={colors.emerald[600]} />;
       default: return <FileText size={16} color={colors.slate[500]} />;
@@ -495,8 +497,8 @@ export default function DashboardScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
@@ -504,13 +506,13 @@ export default function DashboardScreen() {
   return (
   <>
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: t.background }]}
       contentContainerStyle={styles.content}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
           onRefresh={handleRefresh}
-          tintColor={theme.light.primary}
+          tintColor={t.primary}
         />
       }
     >
@@ -518,17 +520,17 @@ export default function DashboardScreen() {
       <View style={styles.headerSection}>
         <View style={styles.headerRow}>
           <View style={styles.headerTextContainer}>
-            <Text style={styles.greeting}>
+            <Text style={[styles.greeting, { color: t.text }]}>
               {getGreeting()}{userName ? `, ${userName}` : ''}
             </Text>
-            <Text style={styles.subGreeting}>
+            <Text style={[styles.subGreeting, { color: t.textMuted }]}>
               Welcome to {currentHub?.name} • {format(new Date(), 'EEEE, MMMM d')}
             </Text>
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {isStaff() && (
               <TouchableOpacity onPress={() => setShowCreateAnnouncement(true)} style={{ padding: 6 }}>
-                <Megaphone size={20} color={colors.slate[600]} />
+                <Megaphone size={20} color={t.textSecondary} />
               </TouchableOpacity>
             )}
             <NotificationBell />
@@ -539,34 +541,34 @@ export default function DashboardScreen() {
       {/* Parent: Linked Gymnast Cards */}
       {isParentRole && linkedGymnastInfo.length > 0 && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>
+          <Text style={[styles.sectionTitle, { color: t.text }]}>
             {linkedGymnastInfo.length === 1 ? 'Your Gymnast' : 'Your Gymnasts'}
           </Text>
           {linkedGymnastInfo.map((gymnast) => (
             <TouchableOpacity
               key={gymnast.id}
-              style={styles.gymnastCard}
+              style={[styles.gymnastCard, { backgroundColor: t.surface, borderColor: t.border }]}
               activeOpacity={0.7}
               onPress={() => {/* Navigate to gymnast profile */}}
             >
               <View style={styles.gymnastHeader}>
                 <View>
-                  <Text style={styles.gymnastName}>
+                  <Text style={[styles.gymnastName, { color: t.text }]}>
                     {gymnast.first_name} {gymnast.last_name}
                   </Text>
                   {gymnast.level && (
-                    <Text style={styles.gymnastLevel}>{gymnast.level}</Text>
+                    <Text style={[styles.gymnastLevel, { color: t.textSecondary }]}>{gymnast.level}</Text>
                   )}
                 </View>
-                <View style={styles.gymnastAvatar}>
-                  <User size={20} color={colors.brand[600]} />
+                <View style={[styles.gymnastAvatar, { backgroundColor: `${t.primary}15` }]}>
+                  <User size={20} color={t.primary} />
                 </View>
               </View>
 
               {gymnast.date_of_birth && (
                 <View style={styles.gymnastInfoRow}>
                   <Cake size={16} color={colors.purple[500]} />
-                  <Text style={styles.gymnastInfoText}>
+                  <Text style={[styles.gymnastInfoText, { color: t.textSecondary }]}>
                     Birthday: {format(parseISO(gymnast.date_of_birth), 'MMMM d')}
                   </Text>
                 </View>
@@ -575,8 +577,8 @@ export default function DashboardScreen() {
               {gymnast.nextCompetition && (
                 <View style={styles.gymnastInfoRow}>
                   <Trophy size={16} color={colors.amber[500]} />
-                  <Text style={styles.gymnastInfoText}>
-                    <Text style={styles.gymnastInfoBold}>{gymnast.nextCompetition.name}</Text>
+                  <Text style={[styles.gymnastInfoText, { color: t.textSecondary }]}>
+                    <Text style={[styles.gymnastInfoBold, { color: t.textSecondary }]}>{gymnast.nextCompetition.name}</Text>
                     {' · '}{format(parseISO(gymnast.nextCompetition.start_date), 'MMM d')}
                   </Text>
                 </View>
@@ -587,15 +589,15 @@ export default function DashboardScreen() {
                   {gymnast.mentorshipPairing.role === 'big' ? (
                     <>
                       <Star size={16} color={colors.purple[500]} />
-                      <Text style={styles.gymnastInfoText}>
-                        Big to <Text style={styles.gymnastInfoBold}>{gymnast.mentorshipPairing.little_name}</Text>
+                      <Text style={[styles.gymnastInfoText, { color: t.textSecondary }]}>
+                        Big to <Text style={[styles.gymnastInfoBold, { color: t.textSecondary }]}>{gymnast.mentorshipPairing.little_name}</Text>
                       </Text>
                     </>
                   ) : (
                     <>
                       <Heart size={16} color={colors.pink[500]} />
-                      <Text style={styles.gymnastInfoText}>
-                        Little to <Text style={styles.gymnastInfoBold}>{gymnast.mentorshipPairing.big_name}</Text>
+                      <Text style={[styles.gymnastInfoText, { color: t.textSecondary }]}>
+                        Little to <Text style={[styles.gymnastInfoBold, { color: t.textSecondary }]}>{gymnast.mentorshipPairing.big_name}</Text>
                       </Text>
                     </>
                   )}
@@ -613,34 +615,34 @@ export default function DashboardScreen() {
       {isStaff() && stats && (
         <View style={styles.section}>
           <View style={styles.statCardsRow}>
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: t.surface, borderColor: t.border }]}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>Members</Text>
-                <Users size={18} color={colors.slate[500]} />
+                <Text style={[styles.statCardLabel, { color: t.textMuted }]}>Members</Text>
+                <Users size={18} color={t.textMuted} />
               </View>
-              <Text style={styles.statCardValue}>{stats.totalMembers}</Text>
-              <Text style={styles.statCardSubtitle}>{stats.totalGymnasts} athletes</Text>
+              <Text style={[styles.statCardValue, { color: t.primary }]}>{stats.totalMembers}</Text>
+              <Text style={[styles.statCardSubtitle, { color: t.textMuted }]}>{stats.totalGymnasts} athletes</Text>
             </View>
 
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: t.surface, borderColor: t.border }]}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>Events</Text>
-                <CalendarDays size={18} color={colors.slate[500]} />
+                <Text style={[styles.statCardLabel, { color: t.textMuted }]}>Events</Text>
+                <CalendarDays size={18} color={t.textMuted} />
               </View>
-              <Text style={styles.statCardValue}>{stats.upcomingEvents}</Text>
-              <Text style={styles.statCardSubtitle} numberOfLines={1}>
+              <Text style={[styles.statCardValue, { color: t.primary }]}>{stats.upcomingEvents}</Text>
+              <Text style={[styles.statCardSubtitle, { color: t.textMuted }]} numberOfLines={1}>
                 {stats.nextEventDate ? format(parseISO(stats.nextEventDate), 'EEE h:mma') : 'None'}
               </Text>
             </View>
 
             {isTabEnabled('competitions', currentHub?.settings?.enabledTabs) && (
-            <View style={styles.statCard}>
+            <View style={[styles.statCard, { backgroundColor: t.surface, borderColor: t.border }]}>
               <View style={styles.statCardHeader}>
-                <Text style={styles.statCardLabel}>Meets</Text>
-                <Trophy size={18} color={colors.slate[500]} />
+                <Text style={[styles.statCardLabel, { color: t.textMuted }]}>Meets</Text>
+                <Trophy size={18} color={t.textMuted} />
               </View>
-              <Text style={styles.statCardValue}>{stats.activeCompetitions}</Text>
-              <Text style={styles.statCardSubtitle} numberOfLines={1}>
+              <Text style={[styles.statCardValue, { color: t.primary }]}>{stats.activeCompetitions}</Text>
+              <Text style={[styles.statCardSubtitle, { color: t.textMuted }]} numberOfLines={1}>
                 {stats.nextCompetitionName || 'None'}
               </Text>
             </View>
@@ -658,33 +660,33 @@ export default function DashboardScreen() {
       {isParentRole && recentScores.length > 0 && isTabEnabled('scores', currentHub?.settings?.enabledTabs) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recent Scores</Text>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Recent Scores</Text>
             <TouchableOpacity onPress={() => {/* Navigate to scores */}}>
-              <Text style={styles.seeAllLink}>View All</Text>
+              <Text style={[styles.seeAllLink, { color: t.primary }]}>View All</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
             {recentScores.map((score, index) => (
               <View
                 key={score.id}
-                style={[styles.listItem, index === recentScores.length - 1 && styles.lastListItem]}
+                style={[styles.listItem, { borderBottomColor: t.borderSubtle }, index === recentScores.length - 1 && styles.lastListItem]}
               >
                 <View style={[styles.listItemIcon, { backgroundColor: colors.amber[50] }]}>
                   <Trophy size={16} color={colors.amber[600]} />
                 </View>
                 <View style={styles.listItemContent}>
-                  <Text style={styles.listItemTitle}>
+                  <Text style={[styles.listItemTitle, { color: t.textSecondary }]}>
                     {getEventLabel(score.event)} - {score.competitionName}
                   </Text>
-                  <Text style={styles.listItemSubtitle}>
+                  <Text style={[styles.listItemSubtitle, { color: t.textMuted }]}>
                     {linkedGymnastInfo.length > 1 ? `${score.gymnastName} · ` : ''}
                     {format(parseISO(score.date), 'MMM d')}
                   </Text>
                 </View>
                 <View style={styles.scoreContainer}>
-                  <Text style={styles.scoreValue}>{score.score}</Text>
+                  <Text style={[styles.scoreValue, { color: t.text }]}>{score.score}</Text>
                   {score.placement && (
-                    <Text style={styles.scorePlacement}>#{score.placement}</Text>
+                    <Text style={[styles.scorePlacement, { color: t.textMuted }]}>#{score.placement}</Text>
                   )}
                 </View>
               </View>
@@ -697,25 +699,25 @@ export default function DashboardScreen() {
       {isParentRole && recentSkillChanges.length > 0 && isTabEnabled('skills', currentHub?.settings?.enabledTabs) && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Skill Updates</Text>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Skill Updates</Text>
             <TouchableOpacity onPress={() => {/* Navigate to skills */}}>
-              <Text style={styles.seeAllLink}>View All</Text>
+              <Text style={[styles.seeAllLink, { color: t.primary }]}>View All</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
             {recentSkillChanges.map((skill, index) => {
               const statusConfig = SKILL_STATUS_CONFIG[skill.status] || SKILL_STATUS_CONFIG.not_started;
               return (
                 <View
                   key={skill.id}
-                  style={[styles.listItem, index === recentSkillChanges.length - 1 && styles.lastListItem]}
+                  style={[styles.listItem, { borderBottomColor: t.borderSubtle }, index === recentSkillChanges.length - 1 && styles.lastListItem]}
                 >
                   <View style={[styles.listItemIcon, { backgroundColor: colors.purple[50] }]}>
                     <Sparkles size={16} color={colors.purple[600]} />
                   </View>
                   <View style={styles.listItemContent}>
-                    <Text style={styles.listItemTitle}>{skill.skillName}</Text>
-                    <Text style={styles.listItemSubtitle}>
+                    <Text style={[styles.listItemTitle, { color: t.textSecondary }]}>{skill.skillName}</Text>
+                    <Text style={[styles.listItemSubtitle, { color: t.textMuted }]}>
                       {linkedGymnastInfo.length > 1 ? `${skill.gymnastName} · ` : ''}
                       {getEventLabel(skill.event)} · {format(parseISO(skill.updatedAt), 'MMM d')}
                     </Text>
@@ -734,29 +736,29 @@ export default function DashboardScreen() {
 
       {/* Recent Activity */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: t.text }]}>Recent Activity</Text>
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           {recentActivity.length === 0 ? (
             <View style={styles.emptyState}>
-              <MessageSquare size={32} color={colors.slate[300]} />
-              <Text style={styles.emptyStateText}>No recent activity</Text>
+              <MessageSquare size={32} color={t.textFaint} />
+              <Text style={[styles.emptyStateText, { color: t.textFaint }]}>No recent activity</Text>
             </View>
           ) : (
             recentActivity.map((activity, index) => (
               <View
                 key={activity.id}
-                style={[styles.activityItem, index === recentActivity.length - 1 && styles.lastListItem]}
+                style={[styles.activityItem, { borderBottomColor: t.borderSubtle }, index === recentActivity.length - 1 && styles.lastListItem]}
               >
-                <View style={styles.activityIcon}>
+                <View style={[styles.activityIcon, { backgroundColor: t.surfaceSecondary }]}>
                   {getActivityIcon(activity.type)}
                 </View>
                 <View style={styles.activityContent}>
-                  <Text style={styles.activityDescription}>{activity.description}</Text>
+                  <Text style={[styles.activityDescription, { color: t.textSecondary }]}>{activity.description}</Text>
                   {activity.content && (
-                    <Text style={styles.activityPreview} numberOfLines={1}>{activity.content}</Text>
+                    <Text style={[styles.activityPreview, { color: t.textMuted }]} numberOfLines={1}>{activity.content}</Text>
                   )}
                 </View>
-                <Text style={styles.activityTime}>
+                <Text style={[styles.activityTime, { color: t.textMuted }]}>
                   {format(parseISO(activity.timestamp), 'MMM d')}
                 </Text>
               </View>
@@ -768,50 +770,50 @@ export default function DashboardScreen() {
       {/* Upcoming Schedule */}
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Upcoming Schedule</Text>
+          <Text style={[styles.sectionTitle, { color: t.text }]}>Upcoming Schedule</Text>
           <TouchableOpacity onPress={() => router.push('/(tabs)/calendar')}>
-            <Text style={styles.seeAllLink}>View Calendar</Text>
+            <Text style={[styles.seeAllLink, { color: t.primary }]}>View Calendar</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           {upcomingEvents.length === 0 ? (
             <View style={styles.emptyState}>
-              <CalendarDays size={32} color={colors.slate[300]} />
-              <Text style={styles.emptyStateText}>No upcoming events</Text>
+              <CalendarDays size={32} color={t.textFaint} />
+              <Text style={[styles.emptyStateText, { color: t.textFaint }]}>No upcoming events</Text>
             </View>
           ) : (
             upcomingEvents.map((event, index) => (
               <TouchableOpacity
                 key={event.id}
-                style={[styles.eventItem, index === upcomingEvents.length - 1 && styles.lastListItem]}
+                style={[styles.eventItem, { borderBottomColor: t.borderSubtle }, index === upcomingEvents.length - 1 && styles.lastListItem]}
                 activeOpacity={0.7}
                 onPress={() => router.push('/(tabs)/calendar')}
               >
                 <View style={styles.eventDateBox}>
-                  <Text style={styles.eventDay}>
+                  <Text style={[styles.eventDay, { color: t.textMuted }]}>
                     {format(parseISO(event.start_time), 'EEE')}
                   </Text>
-                  <Text style={styles.eventDate}>
+                  <Text style={[styles.eventDate, { color: t.text }]}>
                     {format(parseISO(event.start_time), 'd')}
                   </Text>
                 </View>
                 <View style={styles.eventContent}>
-                  <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
-                  <View style={styles.eventTypeBadge}>
-                    <Text style={styles.eventTypeText}>
+                  <Text style={[styles.eventTitle, { color: t.textSecondary }]} numberOfLines={1}>{event.title}</Text>
+                  <View style={[styles.eventTypeBadge, { backgroundColor: `${t.primary}15` }]}>
+                    <Text style={[styles.eventTypeText, { color: t.primary }]}>
                       {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.eventTimeContainer}>
-                  <Text style={styles.eventTimeDay}>
+                  <Text style={[styles.eventTimeDay, { color: t.textSecondary }]}>
                     {format(parseISO(event.start_time), 'MMM d')}
                   </Text>
-                  <Text style={styles.eventTime}>
+                  <Text style={[styles.eventTime, { color: t.textMuted }]}>
                     {format(parseISO(event.start_time), 'h:mm a')}
                   </Text>
                 </View>
-                <ChevronRight size={18} color={colors.slate[400]} />
+                <ChevronRight size={18} color={t.textFaint} />
               </TouchableOpacity>
             ))
           )}
@@ -883,7 +885,7 @@ const styles = StyleSheet.create({
   seeAllLink: {
     fontSize: 14,
     fontWeight: '500',
-    color: theme.light.primary,
+    color: colors.brand[600],
     marginBottom: 12,
   },
   card: {

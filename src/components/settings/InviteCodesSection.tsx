@@ -6,6 +6,7 @@ import type { HubRole } from '../../types';
 
 interface InviteCodesSectionProps {
     hubId: string | undefined;
+    bare?: boolean;
 }
 
 const getRoleColor = (role: HubRole): string => {
@@ -27,7 +28,7 @@ const getRoleColor = (role: HubRole): string => {
     }
 };
 
-export function InviteCodesSection({ hubId }: InviteCodesSectionProps) {
+export function InviteCodesSection({ hubId, bare }: InviteCodesSectionProps) {
     const {
         invites,
         loadingInvites,
@@ -51,12 +52,8 @@ export function InviteCodesSection({ hubId }: InviteCodesSectionProps) {
         }
     }, [hubId, fetchInvites]);
 
-    return (
-        <CollapsibleSection
-            title="Invite Codes"
-            icon={UserPlus}
-            description="Create invite codes to allow new members to join your hub"
-        >
+    const content = (
+        <>
             {message && (
                 <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {message.text}
@@ -171,6 +168,18 @@ export function InviteCodesSection({ hubId }: InviteCodesSectionProps) {
                     ))}
                 </div>
             )}
+        </>
+    );
+
+    if (bare) return content;
+
+    return (
+        <CollapsibleSection
+            title="Invite Codes"
+            icon={UserPlus}
+            description="Create invite codes to allow new members to join your hub"
+        >
+            {content}
         </CollapsibleSection>
     );
 }

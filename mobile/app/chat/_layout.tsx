@@ -1,19 +1,20 @@
 import { Stack } from 'expo-router';
-import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 
 export default function ChatLayout() {
+  const { t } = useTheme();
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.white,
+          backgroundColor: t.surface,
         },
         headerTitleStyle: {
           fontSize: 18,
           fontWeight: '600',
-          color: colors.slate[900],
+          color: t.text,
         },
-        headerTintColor: colors.slate[900],
+        headerTintColor: t.text,
         headerShadowVisible: false,
         headerBackTitle: 'Back',
       }}

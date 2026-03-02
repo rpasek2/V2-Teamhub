@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { ClipboardList, Check, User, Plus, X } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 
 interface SignupSlot {
@@ -47,8 +48,10 @@ export function SignupDisplay({
   description,
   slots: initialSlots,
   settings,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   currentUserId,
 }: SignupDisplayProps) {
+  const { t, isDark } = useTheme();
   const [slots, setSlots] = useState<SignupSlot[]>(initialSlots);
   const [responses, setResponses] = useState<SignupResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -232,8 +235,8 @@ export function SignupDisplay({
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={styles.title}>{title}</Text>
-        {description && <Text style={styles.description}>{description}</Text>}
+        <Text style={[styles.title, { color: t.text }]}>{title}</Text>
+        {description && <Text style={[styles.description, { color: t.textSecondary }]}>{description}</Text>}
 
         {/* Slots */}
         <View style={styles.slotsContainer}>
@@ -244,10 +247,10 @@ export function SignupDisplay({
             const canSignUp = !isFull || isSignedUp;
 
             return (
-              <View key={index} style={styles.slotCard}>
-                <View style={styles.slotHeader}>
+              <View key={index} style={[styles.slotCard, { borderColor: t.border, backgroundColor: t.surface }]}>
+                <View style={[styles.slotHeader, { borderBottomColor: t.borderSubtle }]}>
                   <View style={styles.slotInfo}>
-                    <Text style={styles.slotName} numberOfLines={1}>
+                    <Text style={[styles.slotName, { color: t.text }]} numberOfLines={1}>
                       {slot.name}
                     </Text>
                     {slot.addedBy && (
@@ -255,7 +258,7 @@ export function SignupDisplay({
                         <Text style={styles.addedText}>added</Text>
                       </View>
                     )}
-                    <Text style={styles.slotCount}>
+                    <Text style={[styles.slotCount, { color: t.textMuted }]}>
                       {slotResponses.length}
                       {slot.maxSignups ? `/${slot.maxSignups}` : ''} signed up
                     </Text>
@@ -289,11 +292,11 @@ export function SignupDisplay({
 
                 {/* Show who signed up */}
                 {slotResponses.length > 0 && (
-                  <View style={styles.responsesList}>
+                  <View style={[styles.responsesList, { backgroundColor: t.background }]}>
                     {slotResponses.map((response) => (
-                      <View key={response.id} style={styles.responseChip}>
-                        <User size={12} color={colors.slate[400]} />
-                        <Text style={styles.responseName}>
+                      <View key={response.id} style={[styles.responseChip, { backgroundColor: t.surface, borderColor: t.border }]}>
+                        <User size={12} color={t.textFaint} />
+                        <Text style={[styles.responseName, { color: t.textSecondary }]}>
                           {response.profiles?.full_name || 'Unknown'}
                         </Text>
                         {response.user_id === currentUserId && (
@@ -313,9 +316,9 @@ export function SignupDisplay({
               {showAddSlot ? (
                 <View style={styles.addSlotForm}>
                   <TextInput
-                    style={styles.addSlotInput}
+                    style={[styles.addSlotInput, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
                     placeholder="What will you bring?"
-                    placeholderTextColor={colors.slate[400]}
+                    placeholderTextColor={t.textFaint}
                     value={newSlotName}
                     onChangeText={setNewSlotName}
                     autoFocus
@@ -341,7 +344,7 @@ export function SignupDisplay({
                     }}
                     style={styles.cancelAddButton}
                   >
-                    <X size={18} color={colors.slate[400]} />
+                    <X size={18} color={t.textFaint} />
                   </TouchableOpacity>
                 </View>
               ) : (
@@ -355,7 +358,7 @@ export function SignupDisplay({
 
           {/* Empty state */}
           {slots.length === 0 && allowUserSlots && (
-            <Text style={styles.emptyText}>No items yet. Be the first to add something!</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>No items yet. Be the first to add something!</Text>
           )}
         </View>
       </View>

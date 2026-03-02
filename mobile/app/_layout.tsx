@@ -10,8 +10,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import 'react-native-reanimated';
 import { useAuthStore } from '../src/stores/authStore';
 import { usePushNotificationStore } from '../src/stores/pushNotificationStore';
+import { useThemeStore } from '../src/stores/themeStore';
+import { useTheme } from '../src/hooks/useTheme';
 import { MiniMusicPlayer } from '../src/components/MiniMusicPlayer';
-import { colors } from '../src/constants/colors';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -39,17 +40,20 @@ function RootLayoutNav() {
   const initialize = useAuthStore((state) => state.initialize);
   const registerForPushNotifications = usePushNotificationStore((s) => s.registerForPushNotifications);
   const setupNotificationListeners = usePushNotificationStore((s) => s.setupNotificationListeners);
+  const syncThemeFromDB = useThemeStore((s) => s.syncFromDB);
+  const { isDark, t } = useTheme();
   const cleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     initialize();
   }, []);
 
-  // Register push notifications when user is authenticated
+  // Register push notifications and sync theme when user is authenticated
   useEffect(() => {
     if (user) {
       registerForPushNotifications(user.id);
       cleanupRef.current = setupNotificationListeners();
+      syncThemeFromDB(user.id);
     }
 
     return () => {
@@ -70,13 +74,13 @@ function RootLayoutNav() {
 
   return (
     <View style={layoutStyles.root}>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={layoutStyles.stackContainer}>
         <Stack
           screenOptions={{
             headerShown: false,
-            headerStyle: { backgroundColor: colors.white },
-            headerTintColor: colors.slate[900],
+            headerStyle: { backgroundColor: t.surface },
+            headerTintColor: t.text,
             headerTitleStyle: { fontWeight: '600' },
             headerShadowVisible: false,
             headerBackTitle: 'Back',

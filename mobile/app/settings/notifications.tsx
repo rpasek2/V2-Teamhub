@@ -12,7 +12,8 @@ import {
     MessageCircle, Users, CalendarDays, Trophy, Medal,
     Sparkles, ClipboardCheck, ShoppingBag, FolderOpen,
 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useActivityFeedStore, type UserNotificationPreferences } from '../../src/stores/activityFeedStore';
@@ -32,6 +33,7 @@ const FEATURES: { key: PrefKey; label: string; description: string; icon: typeof
 ];
 
 export default function NotificationSettingsScreen() {
+    const { t, isDark } = useTheme();
     const currentHub = useHubStore((s) => s.currentHub);
     const user = useAuthStore((s) => s.user);
     const { preferences, fetchPreferences, updatePreferences } = useActivityFeedStore();
@@ -55,32 +57,32 @@ export default function NotificationSettingsScreen() {
     return (
         <>
             <Stack.Screen options={{ headerShown: false }} />
-            <SafeAreaView style={styles.container} edges={['top']}>
-                <View style={styles.header}>
-                    <Text style={styles.headerTitle}>Notification Preferences</Text>
+            <SafeAreaView style={[styles.container, { backgroundColor: t.surface }]} edges={['top']}>
+                <View style={[styles.header, { borderBottomColor: t.border }]}>
+                    <Text style={[styles.headerTitle, { color: t.text }]}>Notification Preferences</Text>
                     {currentHub && (
-                        <Text style={styles.headerSubtitle}>{currentHub.name}</Text>
+                        <Text style={[styles.headerSubtitle, { color: t.textMuted }]}>{currentHub.name}</Text>
                     )}
                 </View>
 
                 <ScrollView style={styles.content}>
-                    <Text style={styles.sectionDescription}>
+                    <Text style={[styles.sectionDescription, { color: t.textMuted }]}>
                         Choose which features show badges and appear in your notification feed.
                     </Text>
 
                     {FEATURES.map(({ key, label, description, icon: Icon }) => (
-                        <View key={key} style={styles.featureRow}>
-                            <View style={styles.iconWrapper}>
-                                <Icon size={18} color={colors.slate[600]} />
+                        <View key={key} style={[styles.featureRow, { borderBottomColor: t.borderSubtle }]}>
+                            <View style={[styles.iconWrapper, { backgroundColor: t.surfaceSecondary }]}>
+                                <Icon size={18} color={t.textSecondary} />
                             </View>
                             <View style={styles.featureText}>
-                                <Text style={styles.featureLabel}>{label}</Text>
-                                <Text style={styles.featureDescription}>{description}</Text>
+                                <Text style={[styles.featureLabel, { color: t.text }]}>{label}</Text>
+                                <Text style={[styles.featureDescription, { color: t.textMuted }]}>{description}</Text>
                             </View>
                             <Switch
                                 value={isEnabled(key)}
                                 onValueChange={() => toggleFeature(key)}
-                                trackColor={{ false: colors.slate[200], true: theme.light.primary }}
+                                trackColor={{ false: t.border, true: t.primary }}
                                 thumbColor={colors.white}
                             />
                         </View>

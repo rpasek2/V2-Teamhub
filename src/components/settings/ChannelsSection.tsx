@@ -5,9 +5,10 @@ import { useChannels } from '../../hooks/useChannels';
 
 interface ChannelsSectionProps {
     hubId: string | undefined;
+    bare?: boolean;
 }
 
-export function ChannelsSection({ hubId }: ChannelsSectionProps) {
+export function ChannelsSection({ hubId, bare }: ChannelsSectionProps) {
     const {
         channels,
         loadingChannels,
@@ -26,12 +27,8 @@ export function ChannelsSection({ hubId }: ChannelsSectionProps) {
         }
     }, [hubId, fetchChannels]);
 
-    return (
-        <CollapsibleSection
-            title="Hub Channels"
-            icon={MessageSquare}
-            description="Manage hub-wide channels that all members can access"
-        >
+    const content = (
+        <>
             {message && (
                 <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {message.text}
@@ -104,6 +101,18 @@ export function ChannelsSection({ hubId }: ChannelsSectionProps) {
                     ))}
                 </ul>
             )}
+        </>
+    );
+
+    if (bare) return content;
+
+    return (
+        <CollapsibleSection
+            title="Hub Channels"
+            icon={MessageSquare}
+            description="Manage hub-wide channels that all members can access"
+        >
+            {content}
         </CollapsibleSection>
     );
 }

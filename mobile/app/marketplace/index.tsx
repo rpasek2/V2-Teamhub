@@ -29,7 +29,8 @@ import {
   DollarSign,
 } from 'lucide-react-native';
 import { useAuthStore } from '../../src/stores/authStore';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -91,6 +92,7 @@ const CARD_WIDTH = (SCREEN_WIDTH - 48) / 2; // 2 columns with padding
 
 export default function MarketplaceScreen() {
   const router = useRouter();
+  const { t, isDark } = useTheme();
   const user = useAuthStore((state) => state.user);
   const [items, setItems] = useState<MarketplaceItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -362,41 +364,41 @@ export default function MarketplaceScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
-          <Search size={18} color={colors.slate[400]} />
+      <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <View style={[styles.searchInputWrapper, { backgroundColor: t.surfaceSecondary }]}>
+          <Search size={18} color={t.textFaint} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: t.text }]}
             placeholder="Search items..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <X size={18} color={colors.slate[400]} />
+              <X size={18} color={t.textFaint} />
             </TouchableOpacity>
           )}
         </View>
         <TouchableOpacity
-          style={[styles.filterButton, showFilters && styles.filterButtonActive]}
+          style={[styles.filterButton, { backgroundColor: t.surfaceSecondary }, showFilters && { backgroundColor: t.primary }]}
           onPress={() => setShowFilters(!showFilters)}
         >
-          <Filter size={18} color={showFilters ? colors.white : colors.slate[600]} />
+          <Filter size={18} color={showFilters ? colors.white : t.textSecondary} />
         </TouchableOpacity>
       </View>
 
       {/* Category Filter */}
-      <View style={styles.categoryContainer}>
+      <View style={[styles.categoryContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -407,14 +409,16 @@ export default function MarketplaceScreen() {
               key={cat.key}
               style={[
                 styles.categoryChip,
-                selectedCategory === cat.key && styles.categoryChipActive,
+                { backgroundColor: t.surfaceSecondary },
+                selectedCategory === cat.key && { backgroundColor: t.primary },
               ]}
               onPress={() => setSelectedCategory(cat.key)}
             >
               <Text
                 style={[
                   styles.categoryChipText,
-                  selectedCategory === cat.key && styles.categoryChipTextActive,
+                  { color: t.textSecondary },
+                  selectedCategory === cat.key && { color: colors.white },
                 ]}
               >
                 {cat.label}
@@ -426,8 +430,8 @@ export default function MarketplaceScreen() {
 
       {/* Sort Options (when filters shown) */}
       {showFilters && (
-        <View style={styles.sortContainer}>
-          <Text style={styles.sortLabel}>Sort by:</Text>
+        <View style={[styles.sortContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+          <Text style={[styles.sortLabel, { color: t.textMuted }]}>Sort by:</Text>
           <View style={styles.sortOptions}>
             {[
               { key: 'newest', label: 'Newest' },
@@ -438,14 +442,16 @@ export default function MarketplaceScreen() {
                 key={option.key}
                 style={[
                   styles.sortChip,
-                  sortBy === option.key && styles.sortChipActive,
+                  { backgroundColor: t.surfaceSecondary },
+                  sortBy === option.key && { backgroundColor: isDark ? colors.orange[700] + '30' : colors.orange[100] },
                 ]}
                 onPress={() => setSortBy(option.key as SortOption)}
               >
                 <Text
                   style={[
                     styles.sortChipText,
-                    sortBy === option.key && styles.sortChipTextActive,
+                    { color: t.textSecondary },
+                    sortBy === option.key && { color: isDark ? colors.orange[500] : colors.orange[700] },
                   ]}
                 >
                   {option.label}
@@ -457,8 +463,8 @@ export default function MarketplaceScreen() {
       )}
 
       {/* Results count */}
-      <View style={styles.resultsHeader}>
-        <Text style={styles.resultsCount}>
+      <View style={[styles.resultsHeader, { backgroundColor: t.background }]}>
+        <Text style={[styles.resultsCount, { color: t.textMuted }]}>
           {filteredAndSortedItems.length} item{filteredAndSortedItems.length !== 1 ? 's' : ''}
         </Text>
       </View>
@@ -467,13 +473,13 @@ export default function MarketplaceScreen() {
       <ScrollView
         style={styles.listContainer}
         contentContainerStyle={styles.gridContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
       >
         {filteredAndSortedItems.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <ShoppingBag size={48} color={colors.slate[300]} />
-            <Text style={styles.emptyTitle}>No items found</Text>
-            <Text style={styles.emptyText}>
+            <ShoppingBag size={48} color={t.textFaint} />
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No items found</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               {searchQuery || selectedCategory !== 'all'
                 ? 'Try adjusting your search or filters'
                 : 'Be the first to list an item!'}
@@ -491,12 +497,12 @@ export default function MarketplaceScreen() {
               return (
                 <TouchableOpacity
                   key={item.id}
-                  style={styles.itemCard}
+                  style={[styles.itemCard, { backgroundColor: t.surface, borderColor: t.border }]}
                   onPress={() => handleItemPress(item.id)}
                   activeOpacity={0.7}
                 >
                   {/* Image */}
-                  <View style={styles.imageContainer}>
+                  <View style={[styles.imageContainer, { backgroundColor: t.surfaceSecondary }]}>
                     {item.images && item.images.length > 0 ? (
                       <Image
                         source={{ uri: item.images[0] }}
@@ -505,7 +511,7 @@ export default function MarketplaceScreen() {
                       />
                     ) : (
                       <View style={styles.noImage}>
-                        <ShoppingBag size={32} color={colors.slate[300]} />
+                        <ShoppingBag size={32} color={t.textFaint} />
                       </View>
                     )}
                     {item.price === 0 && (
@@ -524,18 +530,18 @@ export default function MarketplaceScreen() {
 
                   {/* Info */}
                   <View style={styles.itemInfo}>
-                    <Text style={styles.itemTitle} numberOfLines={2}>
+                    <Text style={[styles.itemTitle, { color: t.text }]} numberOfLines={2}>
                       {item.title}
                     </Text>
-                    <Text style={styles.itemPrice}>{formatPrice(item.price)}</Text>
+                    <Text style={[styles.itemPrice, { color: t.primary }]}>{formatPrice(item.price)}</Text>
                     <View style={styles.itemMeta}>
-                      <View style={styles.conditionBadge}>
-                        <Text style={styles.conditionText}>
+                      <View style={[styles.conditionBadge, { backgroundColor: t.surfaceSecondary }]}>
+                        <Text style={[styles.conditionText, { color: t.textSecondary }]}>
                           {CONDITION_LABELS[item.condition] || item.condition}
                         </Text>
                       </View>
                       {item.size && (
-                        <Text style={styles.sizeText}>Size: {item.size}</Text>
+                        <Text style={[styles.sizeText, { color: t.textMuted }]}>Size: {item.size}</Text>
                       )}
                     </View>
                   </View>
@@ -548,7 +554,7 @@ export default function MarketplaceScreen() {
 
       {/* Floating Action Button */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: t.primary }]}
         onPress={() => setShowCreateModal(true)}
         activeOpacity={0.8}
       >
@@ -564,19 +570,19 @@ export default function MarketplaceScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { backgroundColor: t.overlay }]}
         >
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>List an Item</Text>
+          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.modalTitle, { color: t.text }]}>List an Item</Text>
               <TouchableOpacity onPress={handleCloseCreateModal}>
-                <X size={24} color={colors.slate[500]} />
+                <X size={24} color={t.textMuted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               {/* Images */}
-              <Text style={[styles.inputLabel, { marginTop: 0 }]}>
+              <Text style={[styles.inputLabel, { marginTop: 0, color: t.textSecondary }]}>
                 Photos <Text style={styles.required}>*</Text>
               </Text>
               <View style={styles.imagesRow}>
@@ -590,7 +596,7 @@ export default function MarketplaceScreen() {
                       <Trash2 size={14} color={colors.white} />
                     </TouchableOpacity>
                     {index === 0 && (
-                      <View style={styles.mainImageBadge}>
+                      <View style={[styles.mainImageBadge, { backgroundColor: t.primary }]}>
                         <Text style={styles.mainImageBadgeText}>Main</Text>
                       </View>
                     )}
@@ -598,44 +604,44 @@ export default function MarketplaceScreen() {
                 ))}
                 {formData.images.length < 5 && (
                   <TouchableOpacity
-                    style={styles.addImageButton}
+                    style={[styles.addImageButton, { borderColor: t.border }]}
                     onPress={pickImage}
                     disabled={uploadingImage}
                   >
                     {uploadingImage ? (
-                      <ActivityIndicator size="small" color={colors.slate[400]} />
+                      <ActivityIndicator size="small" color={t.textFaint} />
                     ) : (
                       <>
-                        <ImagePlus size={24} color={colors.slate[400]} />
-                        <Text style={styles.addImageText}>Add</Text>
+                        <ImagePlus size={24} color={t.textFaint} />
+                        <Text style={[styles.addImageText, { color: t.textFaint }]}>Add</Text>
                       </>
                     )}
                   </TouchableOpacity>
                 )}
               </View>
-              <Text style={styles.inputHint}>Add up to 5 photos. First photo is the main image.</Text>
+              <Text style={[styles.inputHint, { color: t.textFaint }]}>Add up to 5 photos. First photo is the main image.</Text>
 
               {/* Title */}
-              <Text style={styles.inputLabel}>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>
                 Title <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { color: t.text, borderColor: t.border, backgroundColor: t.surface }]}
                 placeholder="e.g., GK Elite Pink Competition Leo"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={formData.title}
                 onChangeText={(text) => setFormData({ ...formData, title: text })}
                 maxLength={100}
               />
 
               {/* Description */}
-              <Text style={styles.inputLabel}>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>
                 Description <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={[styles.textInput, styles.textAreaInput]}
+                style={[styles.textInput, styles.textAreaInput, { color: t.text, borderColor: t.border, backgroundColor: t.surface }]}
                 placeholder="Describe your item, include details about condition, sizing, etc."
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={formData.description}
                 onChangeText={(text) => setFormData({ ...formData, description: text })}
                 multiline
@@ -643,16 +649,16 @@ export default function MarketplaceScreen() {
               />
 
               {/* Price */}
-              <Text style={styles.inputLabel}>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>
                 Price <Text style={styles.required}>*</Text>
               </Text>
               <View style={styles.priceRow}>
-                <View style={styles.priceInputWrapper}>
-                  <DollarSign size={16} color={colors.slate[400]} />
+                <View style={[styles.priceInputWrapper, { borderColor: t.border }]}>
+                  <DollarSign size={16} color={t.textFaint} />
                   <TextInput
-                    style={styles.priceInput}
+                    style={[styles.priceInput, { color: t.text }]}
                     placeholder="0.00"
-                    placeholderTextColor={colors.slate[400]}
+                    placeholderTextColor={t.textFaint}
                     value={formData.price}
                     onChangeText={(text) => setFormData({ ...formData, price: text })}
                     keyboardType="decimal-pad"
@@ -660,20 +666,20 @@ export default function MarketplaceScreen() {
                   />
                 </View>
                 <View style={styles.freeToggle}>
-                  <Text style={styles.freeToggleText}>Free</Text>
+                  <Text style={[styles.freeToggleText, { color: t.textSecondary }]}>Free</Text>
                   <Switch
                     value={formData.isFree}
                     onValueChange={(value) =>
                       setFormData({ ...formData, isFree: value, price: value ? '' : formData.price })
                     }
-                    trackColor={{ false: colors.slate[200], true: colors.brand[400] }}
-                    thumbColor={formData.isFree ? colors.brand[600] : colors.slate[50]}
+                    trackColor={{ false: isDark ? colors.slate[600] : colors.slate[200], true: `${t.primary}60` }}
+                    thumbColor={formData.isFree ? t.primary : isDark ? colors.slate[500] : colors.slate[50]}
                   />
                 </View>
               </View>
 
               {/* Category */}
-              <Text style={styles.inputLabel}>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>
                 Category <Text style={styles.required}>*</Text>
               </Text>
               <ScrollView
@@ -686,14 +692,16 @@ export default function MarketplaceScreen() {
                     key={cat.key}
                     style={[
                       styles.optionChip,
-                      formData.category === cat.key && styles.optionChipActive,
+                      { backgroundColor: t.surface, borderColor: t.border },
+                      formData.category === cat.key && { borderColor: t.primary, backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] },
                     ]}
                     onPress={() => setFormData({ ...formData, category: cat.key as CategoryFilter })}
                   >
                     <Text
                       style={[
                         styles.optionChipText,
-                        formData.category === cat.key && styles.optionChipTextActive,
+                        { color: t.textSecondary },
+                        formData.category === cat.key && { color: t.primary },
                       ]}
                     >
                       {cat.label}
@@ -703,7 +711,7 @@ export default function MarketplaceScreen() {
               </ScrollView>
 
               {/* Condition */}
-              <Text style={styles.inputLabel}>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>
                 Condition <Text style={styles.required}>*</Text>
               </Text>
               <ScrollView
@@ -716,14 +724,16 @@ export default function MarketplaceScreen() {
                     key={cond.key}
                     style={[
                       styles.optionChip,
-                      formData.condition === cond.key && styles.optionChipActive,
+                      { backgroundColor: t.surface, borderColor: t.border },
+                      formData.condition === cond.key && { borderColor: t.primary, backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] },
                     ]}
                     onPress={() => setFormData({ ...formData, condition: cond.key })}
                   >
                     <Text
                       style={[
                         styles.optionChipText,
-                        formData.condition === cond.key && styles.optionChipTextActive,
+                        { color: t.textSecondary },
+                        formData.condition === cond.key && { color: t.primary },
                       ]}
                     >
                       {cond.label}
@@ -735,21 +745,21 @@ export default function MarketplaceScreen() {
               {/* Size & Brand */}
               <View style={styles.rowInputs}>
                 <View style={styles.halfInput}>
-                  <Text style={styles.inputLabel}>Size</Text>
+                  <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Size</Text>
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, { color: t.text, borderColor: t.border, backgroundColor: t.surface }]}
                     placeholder="e.g., CM, AS, 4-6"
-                    placeholderTextColor={colors.slate[400]}
+                    placeholderTextColor={t.textFaint}
                     value={formData.size}
                     onChangeText={(text) => setFormData({ ...formData, size: text })}
                   />
                 </View>
                 <View style={styles.halfInput}>
-                  <Text style={styles.inputLabel}>Brand</Text>
+                  <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Brand</Text>
                   <TextInput
-                    style={styles.textInput}
+                    style={[styles.textInput, { color: t.text, borderColor: t.border, backgroundColor: t.surface }]}
                     placeholder="e.g., GK Elite"
-                    placeholderTextColor={colors.slate[400]}
+                    placeholderTextColor={t.textFaint}
                     value={formData.brand}
                     onChangeText={(text) => setFormData({ ...formData, brand: text })}
                   />
@@ -757,33 +767,33 @@ export default function MarketplaceScreen() {
               </View>
 
               {/* Phone */}
-              <Text style={styles.inputLabel}>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>
                 Phone Number <Text style={styles.required}>*</Text>
               </Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { color: t.text, borderColor: t.border, backgroundColor: t.surface }]}
                 placeholder="(555) 123-4567"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={formData.phone}
                 onChangeText={(text) => setFormData({ ...formData, phone: text })}
                 keyboardType="phone-pad"
               />
-              <Text style={styles.inputHint}>Buyers will contact you at this number.</Text>
+              <Text style={[styles.inputHint, { color: t.textFaint }]}>Buyers will contact you at this number.</Text>
 
               {/* Error */}
               {formError && (
-                <View style={styles.errorBox}>
-                  <Text style={styles.errorText}>{formError}</Text>
+                <View style={[styles.errorBox, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]}>
+                  <Text style={[styles.errorText, { color: isDark ? colors.error[400] : colors.error[600] }]}>{formError}</Text>
                 </View>
               )}
             </ScrollView>
 
-            <View style={styles.modalFooter}>
-              <TouchableOpacity style={styles.cancelButton} onPress={handleCloseCreateModal}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+            <View style={[styles.modalFooter, { borderTopColor: t.border }]}>
+              <TouchableOpacity style={[styles.cancelButton, { backgroundColor: t.surfaceSecondary }]} onPress={handleCloseCreateModal}>
+                <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveButton, saving && styles.saveButtonDisabled]}
+                style={[styles.saveButton, { backgroundColor: t.primary }, saving && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
                 onPress={handleCreateItem}
                 disabled={saving}
               >
@@ -845,7 +855,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filterButtonActive: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
 
   // Categories
@@ -866,7 +876,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.slate[100],
   },
   categoryChipActive: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   categoryChipText: {
     fontSize: 13,
@@ -1025,7 +1035,7 @@ const styles = StyleSheet.create({
   itemPrice: {
     fontSize: 16,
     fontWeight: '700',
-    color: theme.light.primary,
+    color: colors.brand[600],
     marginBottom: 6,
   },
   itemMeta: {
@@ -1057,7 +1067,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
@@ -1166,7 +1176,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 4,
     left: 4,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingVertical: 2,
     paddingHorizontal: 6,
     borderRadius: 4,
@@ -1238,7 +1248,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   optionChipActive: {
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     backgroundColor: colors.brand[50],
   },
   optionChipText: {
@@ -1247,7 +1257,7 @@ const styles = StyleSheet.create({
     color: colors.slate[600],
   },
   optionChipTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
 
   // Row Inputs
@@ -1291,7 +1301,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 10,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   saveButtonDisabled: {
     backgroundColor: colors.slate[300],

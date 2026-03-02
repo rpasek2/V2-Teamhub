@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { X, ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -41,6 +42,7 @@ interface GroupPhotosProps {
 }
 
 export function GroupPhotos({ posts }: GroupPhotosProps) {
+  const { t, isDark } = useTheme();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [imageLoading, setImageLoading] = useState(true);
 
@@ -111,8 +113,8 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
         <View style={styles.emptyIcon}>
           <ImageIcon size={32} color={colors.purple[400]} />
         </View>
-        <Text style={styles.emptyTitle}>No photos yet</Text>
-        <Text style={styles.emptyText}>Photos from posts will appear here</Text>
+        <Text style={[styles.emptyTitle, { color: t.text }]}>No photos yet</Text>
+        <Text style={[styles.emptyText, { color: t.textMuted }]}>Photos from posts will appear here</Text>
       </View>
     );
   }

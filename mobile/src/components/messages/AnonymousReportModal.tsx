@@ -13,7 +13,8 @@ import {
 } from 'react-native';
 import { X, ShieldAlert, Check, AlertTriangle } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 
 interface AnonymousReportModalProps {
@@ -29,6 +30,7 @@ export function AnonymousReportModal({
   hubId,
   ownerName,
 }: AnonymousReportModalProps) {
+  const { t, isDark } = useTheme();
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -87,21 +89,21 @@ export function AnonymousReportModal({
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top']}>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
           <View style={styles.headerTitle}>
             <View style={styles.headerIcon}>
               <ShieldAlert size={20} color={colors.purple[600]} />
             </View>
-            <Text style={styles.title}>Anonymous Report</Text>
+            <Text style={[styles.title, { color: t.text }]}>Anonymous Report</Text>
           </View>
           <View style={styles.placeholder} />
         </View>
@@ -116,8 +118,8 @@ export function AnonymousReportModal({
               <View style={styles.successIcon}>
                 <Check size={32} color={colors.success[600]} />
               </View>
-              <Text style={styles.successTitle}>Report Submitted</Text>
-              <Text style={styles.successText}>
+              <Text style={[styles.successTitle, { color: t.text }]}>Report Submitted</Text>
+              <Text style={[styles.successText, { color: t.textSecondary }]}>
                 Your anonymous report has been sent to {ownerName}. Since this is
                 anonymous, you won't receive a direct response.
               </Text>
@@ -157,11 +159,11 @@ export function AnonymousReportModal({
 
               {/* Message Input */}
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Your Message</Text>
+                <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Your Message</Text>
                 <TextInput
-                  style={styles.textInput}
+                  style={[styles.textInput, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
                   placeholder="Describe your concern or feedback..."
-                  placeholderTextColor={colors.slate[400]}
+                  placeholderTextColor={t.textFaint}
                   value={message}
                   onChangeText={setMessage}
                   multiline
@@ -181,11 +183,11 @@ export function AnonymousReportModal({
               {/* Actions */}
               <View style={styles.actions}>
                 <TouchableOpacity
-                  style={styles.cancelButton}
+                  style={[styles.cancelButton, { backgroundColor: t.surface, borderColor: t.border }]}
                   onPress={handleClose}
                   activeOpacity={0.7}
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
@@ -284,7 +286,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   closeButtonPrimary: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 32,
     paddingVertical: 12,
     borderRadius: 10,

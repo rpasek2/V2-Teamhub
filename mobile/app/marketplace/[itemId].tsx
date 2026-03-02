@@ -26,7 +26,8 @@ import {
   ChevronRight,
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -75,6 +76,7 @@ const CONDITION_LABELS: Record<string, string> = {
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export default function MarketplaceItemDetailScreen() {
+  const { t, isDark } = useTheme();
   const { itemId } = useLocalSearchParams<{ itemId: string }>();
   const [item, setItem] = useState<MarketplaceItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -148,17 +150,17 @@ export default function MarketplaceItemDetailScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   if (!item) {
     return (
-      <View style={styles.errorContainer}>
-        <ShoppingBag size={48} color={colors.slate[300]} />
-        <Text style={styles.errorText}>Item not found</Text>
+      <View style={[styles.errorContainer, { backgroundColor: t.background }]}>
+        <ShoppingBag size={48} color={t.textFaint} />
+        <Text style={[styles.errorText, { color: t.textMuted }]}>Item not found</Text>
       </View>
     );
   }
@@ -176,9 +178,9 @@ export default function MarketplaceItemDetailScreen() {
         }}
       />
 
-      <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ScrollView style={[styles.container, { backgroundColor: t.background }]} contentContainerStyle={styles.content}>
         {/* Image Gallery */}
-        <View style={styles.imageSection}>
+        <View style={[styles.imageSection, { backgroundColor: t.surface }]}>
           {item.images && item.images.length > 0 ? (
             <>
               <Image
@@ -215,9 +217,9 @@ export default function MarketplaceItemDetailScreen() {
               )}
             </>
           ) : (
-            <View style={styles.noImage}>
-              <ShoppingBag size={64} color={colors.slate[300]} />
-              <Text style={styles.noImageText}>No image available</Text>
+            <View style={[styles.noImage, { backgroundColor: t.surfaceSecondary }]}>
+              <ShoppingBag size={64} color={t.textFaint} />
+              <Text style={[styles.noImageText, { color: t.textFaint }]}>No image available</Text>
             </View>
           )}
           {item.price === 0 && (
@@ -228,74 +230,74 @@ export default function MarketplaceItemDetailScreen() {
         </View>
 
         {/* Price & Title */}
-        <View style={styles.headerSection}>
-          <Text style={styles.price}>{formatPrice(item.price)}</Text>
-          <Text style={styles.title}>{item.title}</Text>
+        <View style={[styles.headerSection, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+          <Text style={[styles.price, { color: t.primary }]}>{formatPrice(item.price)}</Text>
+          <Text style={[styles.title, { color: t.text }]}>{item.title}</Text>
           {isFromOtherHub && hubData && (
-            <View style={styles.hubTag}>
-              <Building2 size={12} color={colors.blue[600]} />
-              <Text style={styles.hubTagText}>From {hubData.name}</Text>
+            <View style={[styles.hubTag, { backgroundColor: isDark ? colors.blue[700] + '30' : colors.blue[50] }]}>
+              <Building2 size={12} color={isDark ? colors.blue[400] : colors.blue[600]} />
+              <Text style={[styles.hubTagText, { color: isDark ? colors.blue[400] : colors.blue[600] }]}>From {hubData.name}</Text>
             </View>
           )}
         </View>
 
         {/* Quick Details */}
-        <View style={styles.detailsGrid}>
-          <View style={styles.detailItem}>
-            <Tag size={16} color={colors.slate[400]} />
-            <Text style={styles.detailLabel}>Category</Text>
-            <Text style={styles.detailValue}>
+        <View style={[styles.detailsGrid, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+          <View style={[styles.detailItem, { backgroundColor: t.background }]}>
+            <Tag size={16} color={t.textFaint} />
+            <Text style={[styles.detailLabel, { color: t.textMuted }]}>Category</Text>
+            <Text style={[styles.detailValue, { color: t.text }]}>
               {CATEGORY_LABELS[item.category] || item.category}
             </Text>
           </View>
-          <View style={styles.detailItem}>
-            <Package size={16} color={colors.slate[400]} />
-            <Text style={styles.detailLabel}>Condition</Text>
-            <Text style={styles.detailValue}>
+          <View style={[styles.detailItem, { backgroundColor: t.background }]}>
+            <Package size={16} color={t.textFaint} />
+            <Text style={[styles.detailLabel, { color: t.textMuted }]}>Condition</Text>
+            <Text style={[styles.detailValue, { color: t.text }]}>
               {CONDITION_LABELS[item.condition] || item.condition}
             </Text>
           </View>
           {item.size && (
-            <View style={styles.detailItem}>
-              <Ruler size={16} color={colors.slate[400]} />
-              <Text style={styles.detailLabel}>Size</Text>
-              <Text style={styles.detailValue}>{item.size}</Text>
+            <View style={[styles.detailItem, { backgroundColor: t.background }]}>
+              <Ruler size={16} color={t.textFaint} />
+              <Text style={[styles.detailLabel, { color: t.textMuted }]}>Size</Text>
+              <Text style={[styles.detailValue, { color: t.text }]}>{item.size}</Text>
             </View>
           )}
           {item.brand && (
-            <View style={styles.detailItem}>
-              <Tag size={16} color={colors.slate[400]} />
-              <Text style={styles.detailLabel}>Brand</Text>
-              <Text style={styles.detailValue}>{item.brand}</Text>
+            <View style={[styles.detailItem, { backgroundColor: t.background }]}>
+              <Tag size={16} color={t.textFaint} />
+              <Text style={[styles.detailLabel, { color: t.textMuted }]}>Brand</Text>
+              <Text style={[styles.detailValue, { color: t.text }]}>{item.brand}</Text>
             </View>
           )}
         </View>
 
         {/* Description */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Description</Text>
-          <Text style={styles.description}>{item.description}</Text>
+        <View style={[styles.section, { backgroundColor: t.surface }]}>
+          <Text style={[styles.sectionTitle, { color: t.text }]}>Description</Text>
+          <Text style={[styles.description, { color: t.textSecondary }]}>{item.description}</Text>
         </View>
 
         {/* Seller Info */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Seller</Text>
-          <View style={styles.sellerCard}>
+        <View style={[styles.section, { backgroundColor: t.surface }]}>
+          <Text style={[styles.sectionTitle, { color: t.text }]}>Seller</Text>
+          <View style={[styles.sellerCard, { backgroundColor: t.background }]}>
             {profileData?.avatar_url ? (
               <Image
                 source={{ uri: profileData.avatar_url, cache: 'force-cache' }}
                 style={styles.sellerAvatar}
               />
             ) : (
-              <View style={styles.sellerAvatarPlaceholder}>
-                <User size={20} color={colors.brand[600]} />
+              <View style={[styles.sellerAvatarPlaceholder, { backgroundColor: isDark ? `${t.primary}20` : colors.brand[100] }]}>
+                <User size={20} color={t.primary} />
               </View>
             )}
             <View style={styles.sellerInfo}>
-              <Text style={styles.sellerName}>
+              <Text style={[styles.sellerName, { color: t.text }]}>
                 {profileData?.full_name || 'Unknown Seller'}
               </Text>
-              <Text style={styles.listedDate}>
+              <Text style={[styles.listedDate, { color: t.textMuted }]}>
                 Listed {format(parseISO(item.created_at), 'MMM d, yyyy')}
               </Text>
             </View>
@@ -303,14 +305,14 @@ export default function MarketplaceItemDetailScreen() {
         </View>
 
         {/* Contact Actions */}
-        <View style={styles.contactSection}>
-          <TouchableOpacity style={styles.callButton} onPress={handleCall}>
+        <View style={[styles.contactSection, { backgroundColor: t.surface }]}>
+          <TouchableOpacity style={[styles.callButton, { backgroundColor: t.primary }]} onPress={handleCall}>
             <Phone size={20} color={colors.white} />
             <Text style={styles.callButtonText}>Call Seller</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.textButton} onPress={handleText}>
-            <MessageCircle size={20} color={theme.light.primary} />
-            <Text style={styles.textButtonText}>Send Text</Text>
+          <TouchableOpacity style={[styles.textButton, { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]} onPress={handleText}>
+            <MessageCircle size={20} color={t.primary} />
+            <Text style={[styles.textButtonText, { color: t.primary }]}>Send Text</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -428,7 +430,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 28,
     fontWeight: '700',
-    color: theme.light.primary,
+    color: colors.brand[600],
     marginBottom: 4,
   },
   title: {
@@ -551,7 +553,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingVertical: 14,
     borderRadius: 12,
   },
@@ -573,6 +575,6 @@ const styles = StyleSheet.create({
   textButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
 });

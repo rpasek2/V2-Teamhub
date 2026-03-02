@@ -14,10 +14,12 @@ import {
 import { Stack } from 'expo-router';
 import { Bug, Lightbulb, Send } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
 
 export default function FeedbackScreen() {
+  const { t, isDark } = useTheme();
   const user = useAuthStore((state) => state.user);
 
   const [type, setType] = useState<'bug' | 'feature_request'>('bug');
@@ -61,53 +63,53 @@ export default function FeedbackScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <Stack.Screen options={{ title: 'Report Bug / Feature Request' }} />
-      <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView style={[styles.container, { backgroundColor: t.background }]} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         {/* Type Toggle */}
-        <Text style={styles.label}>Type</Text>
+        <Text style={[styles.label, { color: t.textSecondary }]}>Type</Text>
         <View style={styles.toggleRow}>
           <TouchableOpacity
-            style={[styles.toggleButton, type === 'bug' && styles.toggleButtonActiveBug]}
+            style={[styles.toggleButton, { backgroundColor: t.surface, borderColor: t.border }, type === 'bug' && { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50], borderColor: isDark ? colors.error[700] : colors.error[300] }]}
             onPress={() => setType('bug')}
             activeOpacity={0.7}
           >
-            <Bug size={16} color={type === 'bug' ? colors.error[700] : colors.slate[500]} />
-            <Text style={[styles.toggleText, type === 'bug' && styles.toggleTextActiveBug]}>
+            <Bug size={16} color={type === 'bug' ? (isDark ? colors.error[400] : colors.error[700]) : t.textMuted} />
+            <Text style={[styles.toggleText, { color: t.textMuted }, type === 'bug' && { color: isDark ? colors.error[400] : colors.error[700] }]}>
               Bug Report
             </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.toggleButton, type === 'feature_request' && styles.toggleButtonActiveFeature]}
+            style={[styles.toggleButton, { backgroundColor: t.surface, borderColor: t.border }, type === 'feature_request' && { backgroundColor: isDark ? `${t.primary}20` : colors.brand[50], borderColor: isDark ? t.primary : colors.brand[300] }]}
             onPress={() => setType('feature_request')}
             activeOpacity={0.7}
           >
-            <Lightbulb size={16} color={type === 'feature_request' ? colors.brand[700] : colors.slate[500]} />
-            <Text style={[styles.toggleText, type === 'feature_request' && styles.toggleTextActiveFeature]}>
+            <Lightbulb size={16} color={type === 'feature_request' ? t.primary : t.textMuted} />
+            <Text style={[styles.toggleText, { color: t.textMuted }, type === 'feature_request' && { color: t.primary }]}>
               Feature Request
             </Text>
           </TouchableOpacity>
         </View>
 
         {/* Title */}
-        <Text style={styles.label}>Title</Text>
+        <Text style={[styles.label, { color: t.textSecondary }]}>Title</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: t.text, backgroundColor: t.surface, borderColor: t.border }]}
           placeholder={type === 'bug' ? 'Brief description of the bug' : 'Your feature idea'}
-          placeholderTextColor={colors.slate[400]}
+          placeholderTextColor={t.textFaint}
           value={title}
           onChangeText={setTitle}
         />
 
         {/* Description */}
-        <Text style={styles.label}>Description</Text>
+        <Text style={[styles.label, { color: t.textSecondary }]}>Description</Text>
         <TextInput
-          style={[styles.input, styles.textArea]}
+          style={[styles.input, styles.textArea, { color: t.text, backgroundColor: t.surface, borderColor: t.border }]}
           placeholder={
             type === 'bug'
               ? 'What happened? What did you expect to happen?'
               : 'Describe the feature and how it would help you'
           }
-          placeholderTextColor={colors.slate[400]}
+          placeholderTextColor={t.textFaint}
           value={description}
           onChangeText={setDescription}
           multiline
@@ -116,7 +118,7 @@ export default function FeedbackScreen() {
 
         {/* Submit */}
         <TouchableOpacity
-          style={[styles.submitButton, !canSubmit && styles.submitButtonDisabled]}
+          style={[styles.submitButton, { backgroundColor: t.primary }, !canSubmit && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
           onPress={handleSubmit}
           disabled={!canSubmit}
           activeOpacity={0.7}

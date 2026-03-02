@@ -20,7 +20,8 @@ import {
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
 import * as Linking from 'expo-linking';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -32,16 +33,17 @@ import {
   AllGymnast,
   RawRosterItem,
   GymEvent,
-} from './components/types';
-import { RosterTab } from './components/RosterTab';
-import { SessionsTab } from './components/SessionsTab';
-import { ManageRosterModal } from './components/ManageRosterModal';
-import { CreateSessionModal } from './components/CreateSessionModal';
-import { AssignSessionGymnastsModal } from './components/AssignSessionGymnastsModal';
+} from '../../src/components/competitions/types';
+import { RosterTab } from '../../src/components/competitions/RosterTab';
+import { SessionsTab } from '../../src/components/competitions/SessionsTab';
+import { ManageRosterModal } from '../../src/components/competitions/ManageRosterModal';
+import { CreateSessionModal } from '../../src/components/competitions/CreateSessionModal';
+import { AssignSessionGymnastsModal } from '../../src/components/competitions/AssignSessionGymnastsModal';
 
 type TabType = 'roster' | 'sessions';
 
 export default function CompetitionDetailsScreen() {
+  const { t, isDark } = useTheme();
   const { competitionId } = useLocalSearchParams<{ competitionId: string }>();
   const currentHub = useHubStore((state) => state.currentHub);
   const isStaff = useHubStore((state) => state.isStaff);
@@ -309,34 +311,34 @@ export default function CompetitionDetailsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   if (!competition) {
     return (
-      <View style={styles.emptyContainer}>
-        <Trophy size={48} color={colors.slate[300]} />
-        <Text style={styles.emptyTitle}>Competition not found</Text>
+      <View style={[styles.emptyContainer, { backgroundColor: t.background }]}>
+        <Trophy size={48} color={t.textFaint} />
+        <Text style={[styles.emptyTitle, { color: t.text }]}>Competition not found</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerIcon}>
-          <Trophy size={24} color={colors.amber[600]} />
+      <View style={[styles.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <View style={[styles.headerIcon, { backgroundColor: isDark ? colors.amber[700] + '20' : colors.amber[50] }]}>
+          <Trophy size={24} color={isDark ? colors.amber[500] : colors.amber[600]} />
         </View>
         <View style={styles.headerInfo}>
-          <Text style={styles.competitionName}>{competition.name}</Text>
+          <Text style={[styles.competitionName, { color: t.text }]}>{competition.name}</Text>
           <View style={styles.headerDetails}>
             <View style={styles.detailRow}>
-              <Calendar size={14} color={colors.slate[400]} />
-              <Text style={styles.detailText}>
+              <Calendar size={14} color={t.textFaint} />
+              <Text style={[styles.detailText, { color: t.textSecondary }]}>
                 {format(parseISO(competition.start_date), 'MMM d')}
                 {competition.end_date !== competition.start_date &&
                   ` - ${format(parseISO(competition.end_date), 'MMM d')}`}
@@ -348,11 +350,11 @@ export default function CompetitionDetailsScreen() {
                 style={styles.detailRow}
                 onPress={() => openMaps(competition.location!)}
               >
-                <MapPin size={14} color={colors.slate[400]} />
-                <Text style={[styles.detailText, styles.linkText]} numberOfLines={1}>
+                <MapPin size={14} color={t.textFaint} />
+                <Text style={[styles.detailText, styles.linkText, { color: t.primary }]} numberOfLines={1}>
                   {competition.location}
                 </Text>
-                <ExternalLink size={12} color={theme.light.primary} />
+                <ExternalLink size={12} color={t.primary} />
               </TouchableOpacity>
             )}
           </View>
@@ -360,30 +362,30 @@ export default function CompetitionDetailsScreen() {
       </View>
 
       {/* Tabs */}
-      <View style={styles.tabContainer}>
+      <View style={[styles.tabContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'roster' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'roster' && styles.tabActive, activeTab === 'roster' && { borderBottomColor: t.primary }]}
           onPress={() => setActiveTab('roster')}
         >
-          <Users size={16} color={activeTab === 'roster' ? theme.light.primary : colors.slate[500]} />
-          <Text style={[styles.tabText, activeTab === 'roster' && styles.tabTextActive]}>
+          <Users size={16} color={activeTab === 'roster' ? t.primary : t.textMuted} />
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'roster' && { color: t.primary }]}>
             Roster
           </Text>
-          <View style={styles.tabBadge}>
-            <Text style={styles.tabBadgeText}>{roster.length}</Text>
+          <View style={[styles.tabBadge, { backgroundColor: t.surfaceSecondary }]}>
+            <Text style={[styles.tabBadgeText, { color: t.textSecondary }]}>{roster.length}</Text>
           </View>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'sessions' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'sessions' && styles.tabActive, activeTab === 'sessions' && { borderBottomColor: t.primary }]}
           onPress={() => setActiveTab('sessions')}
         >
-          <Clock size={16} color={activeTab === 'sessions' ? theme.light.primary : colors.slate[500]} />
-          <Text style={[styles.tabText, activeTab === 'sessions' && styles.tabTextActive]}>
+          <Clock size={16} color={activeTab === 'sessions' ? t.primary : t.textMuted} />
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'sessions' && { color: t.primary }]}>
             Sessions
           </Text>
           {sessions.length > 0 && (
-            <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>{sessions.length}</Text>
+            <View style={[styles.tabBadge, { backgroundColor: t.surfaceSecondary }]}>
+              <Text style={[styles.tabBadgeText, { color: t.textSecondary }]}>{sessions.length}</Text>
             </View>
           )}
         </TouchableOpacity>
@@ -393,7 +395,7 @@ export default function CompetitionDetailsScreen() {
       <ScrollView
         style={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />
         }
       >
         {activeTab === 'roster' && (
@@ -523,7 +525,7 @@ const styles = StyleSheet.create({
     color: colors.slate[600],
   },
   linkText: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     flex: 1,
   },
 
@@ -545,7 +547,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: theme.light.primary,
+    borderBottomColor: colors.brand[600],
   },
   tabText: {
     fontSize: 14,
@@ -553,7 +555,7 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
   },
   tabTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   tabBadge: {
     backgroundColor: colors.slate[100],

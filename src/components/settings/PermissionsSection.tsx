@@ -18,9 +18,10 @@ const VALID_PERMISSION_SCOPES: PermissionScope[] = ['all', 'own', 'none'];
 interface PermissionsSectionProps {
     permissions: HubPermissions;
     setPermissions: React.Dispatch<React.SetStateAction<HubPermissions>>;
+    bare?: boolean;
 }
 
-export function PermissionsSection({ permissions, setPermissions }: PermissionsSectionProps) {
+export function PermissionsSection({ permissions, setPermissions, bare }: PermissionsSectionProps) {
     const { hub, refreshHub } = useHub();
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -113,31 +114,28 @@ export function PermissionsSection({ permissions, setPermissions }: PermissionsS
         }
     };
 
-    return (
-        <CollapsibleSection
-            title="Permissions"
-            icon={Shield}
-            description="Control what each role can access"
-            actions={
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="btn-primary disabled:opacity-50"
-                >
-                    {saving ? (
-                        <>
-                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                            Saving...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="-ml-1 mr-2 h-4 w-4" />
-                            Save Changes
-                        </>
-                    )}
-                </button>
-            }
+    const saveButton = (
+        <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-primary disabled:opacity-50"
         >
+            {saving ? (
+                <>
+                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                    Saving...
+                </>
+            ) : (
+                <>
+                    <Save className="-ml-1 mr-2 h-4 w-4" />
+                    Save Changes
+                </>
+            )}
+        </button>
+    );
+
+    const content = (
+        <>
             {message && (
                 <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {message.text}
@@ -189,6 +187,26 @@ export function PermissionsSection({ permissions, setPermissions }: PermissionsS
                     </tbody>
                 </table>
             </div>
+        </>
+    );
+
+    if (bare) {
+        return (
+            <>
+                <div className="flex justify-end mb-4">{saveButton}</div>
+                {content}
+            </>
+        );
+    }
+
+    return (
+        <CollapsibleSection
+            title="Permissions"
+            icon={Shield}
+            description="Control what each role can access"
+            actions={saveButton}
+        >
+            {content}
         </CollapsibleSection>
     );
 }

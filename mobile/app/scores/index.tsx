@@ -17,7 +17,8 @@ import {
 import { BarChart3, Trophy, ChevronDown, ChevronRight, X } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore, type ChampionshipType } from '../../src/stores/hubStore';
@@ -99,6 +100,7 @@ interface EditingScore {
 }
 
 export default function ScoresScreen() {
+  const { t, isDark } = useTheme();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [selectedCompetition, setSelectedCompetition] = useState<Competition | null>(null);
   const [gymnasts, setGymnasts] = useState<GymnastProfile[]>([]);
@@ -441,8 +443,8 @@ export default function ScoresScreen() {
   const qualifyingScores = currentHub?.settings?.qualifyingScores;
 
   const renderGymnastRow = useCallback(({ item }: { item: GymnastWithScores }) => (
-    <View style={styles.gymnastRow}>
-      <Text style={styles.gymnastName} numberOfLines={1}>
+    <View style={[styles.gymnastRow, { backgroundColor: t.surface, borderBottomColor: t.borderSubtle }]}>
+      <Text style={[styles.gymnastName, { color: t.text }]} numberOfLines={1}>
         {item.gymnast.first_name} {item.gymnast.last_name}
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.scoresScroll}>
@@ -469,21 +471,21 @@ export default function ScoresScreen() {
                 disabled={!canEdit}
                 activeOpacity={canEdit ? 0.6 : 1}
               >
-                <Text style={styles.eventLabel}>{EVENT_LABELS[event]}</Text>
+                <Text style={[styles.eventLabel, { color: t.textFaint }]}>{EVENT_LABELS[event]}</Text>
                 <View style={styles.scoreWithBadge}>
-                  <Text style={styles.scoreValue}>{formatScore(scoreData?.score)}</Text>
+                  <Text style={[styles.scoreValue, { color: t.text }]}>{formatScore(scoreData?.score)}</Text>
                   <QualifyingBadges levels={eventQualifyingLevels} size="sm" />
                 </View>
                 {scoreData?.placement ? (
-                  <Text style={styles.placementBadge}>{formatPlacement(scoreData.placement)}</Text>
+                  <Text style={[styles.placementBadge, { color: isDark ? colors.amber[500] : colors.amber[600] }]}>{formatPlacement(scoreData.placement)}</Text>
                 ) : null}
               </TouchableOpacity>
             );
           })}
-          <View style={[styles.scoreCell, styles.allAroundCell]}>
-            <Text style={styles.eventLabel}>AA</Text>
+          <View style={[styles.scoreCell, styles.allAroundCell, { borderLeftColor: t.border }]}>
+            <Text style={[styles.eventLabel, { color: t.textFaint }]}>AA</Text>
             <View style={styles.scoreWithBadge}>
-              <Text style={[styles.scoreValue, styles.allAroundValue]}>
+              <Text style={[styles.scoreValue, styles.allAroundValue, { color: t.text }]}>
                 {formatScore(item.allAround)}
               </Text>
               {item.allAround != null && (
@@ -513,26 +515,26 @@ export default function ScoresScreen() {
       <View>
         {/* Level Header */}
         <TouchableOpacity
-          style={styles.levelHeader}
+          style={[styles.levelHeader, { backgroundColor: t.surfaceSecondary, borderTopColor: t.border }]}
           onPress={() => toggleLevel(section.title)}
           activeOpacity={0.7}
         >
           <View style={styles.levelHeaderLeft}>
             {isExpanded ? (
-              <ChevronDown size={20} color={colors.slate[600]} />
+              <ChevronDown size={20} color={t.textSecondary} />
             ) : (
-              <ChevronRight size={20} color={colors.slate[600]} />
+              <ChevronRight size={20} color={t.textSecondary} />
             )}
-            <Text style={styles.levelTitle}>{section.title}</Text>
+            <Text style={[styles.levelTitle, { color: t.text }]}>{section.title}</Text>
             <Badge label={`${section.data.length}`} variant="neutral" size="sm" />
           </View>
-          <Text style={styles.levelTotal}>Team: {formatScore(section.teamTotal)}</Text>
+          <Text style={[styles.levelTotal, { color: t.primary }]}>Team: {formatScore(section.teamTotal)}</Text>
         </TouchableOpacity>
 
         {/* Team Scores Row */}
         {isExpanded && (
-          <View style={styles.teamScoresRow}>
-            <Text style={styles.teamLabel}>TEAM</Text>
+          <View style={[styles.teamScoresRow, { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50], borderBottomColor: isDark ? t.border : colors.brand[100] }]}>
+            <Text style={[styles.teamLabel, { color: t.primary }]}>TEAM</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -541,15 +543,15 @@ export default function ScoresScreen() {
               <View style={styles.scoresRow}>
                 {events.map((event) => (
                   <View key={event} style={styles.teamScoreCell}>
-                    <Text style={styles.eventLabel}>{EVENT_LABELS[event]}</Text>
-                    <Text style={styles.teamScoreValue}>
+                    <Text style={[styles.eventLabel, { color: t.textFaint }]}>{EVENT_LABELS[event]}</Text>
+                    <Text style={[styles.teamScoreValue, { color: t.primary }]}>
                       {formatScore(section.teamScores[event])}
                     </Text>
                   </View>
                 ))}
-                <View style={[styles.teamScoreCell, styles.allAroundCell]}>
-                  <Text style={styles.eventLabel}>AA</Text>
-                  <Text style={[styles.teamScoreValue, styles.teamAllAroundValue]}>
+                <View style={[styles.teamScoreCell, styles.allAroundCell, { borderLeftColor: t.border }]}>
+                  <Text style={[styles.eventLabel, { color: t.textFaint }]}>AA</Text>
+                  <Text style={[styles.teamScoreValue, styles.teamAllAroundValue, { color: t.primary }]}>
                     {formatScore(section.teamTotal)}
                   </Text>
                 </View>
@@ -570,33 +572,34 @@ export default function ScoresScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Competition Picker */}
-      <TouchableOpacity style={styles.pickerButton} onPress={() => setShowPicker(!showPicker)}>
+      <TouchableOpacity style={[styles.pickerButton, { backgroundColor: t.surface, borderBottomColor: t.border }]} onPress={() => setShowPicker(!showPicker)}>
         <View style={styles.pickerContent}>
-          <Trophy size={20} color={colors.amber[600]} />
-          <Text style={styles.pickerText} numberOfLines={1}>
+          <Trophy size={20} color={isDark ? colors.amber[500] : colors.amber[600]} />
+          <Text style={[styles.pickerText, { color: t.text }]} numberOfLines={1}>
             {selectedCompetition?.name || 'Select Competition'}
           </Text>
         </View>
-        <ChevronDown size={20} color={colors.slate[400]} />
+        <ChevronDown size={20} color={t.textFaint} />
       </TouchableOpacity>
 
       {showPicker && (
-        <View style={styles.pickerDropdown}>
+        <View style={[styles.pickerDropdown, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           {competitions.map((comp) => (
             <TouchableOpacity
               key={comp.id}
               style={[
                 styles.pickerOption,
-                selectedCompetition?.id === comp.id && styles.pickerOptionActive,
+                { borderBottomColor: t.borderSubtle },
+                selectedCompetition?.id === comp.id && { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] },
               ]}
               onPress={() => {
                 setSelectedCompetition(comp);
@@ -606,12 +609,13 @@ export default function ScoresScreen() {
               <Text
                 style={[
                   styles.pickerOptionText,
-                  selectedCompetition?.id === comp.id && styles.pickerOptionTextActive,
+                  { color: t.textSecondary },
+                  selectedCompetition?.id === comp.id && { color: t.primary, fontWeight: '600' },
                 ]}
               >
                 {comp.name}
               </Text>
-              <Text style={styles.pickerOptionDate}>
+              <Text style={[styles.pickerOptionDate, { color: t.textMuted }]}>
                 {format(parseISO(comp.start_date), 'MMM d, yyyy')}
               </Text>
             </TouchableOpacity>
@@ -620,11 +624,11 @@ export default function ScoresScreen() {
       )}
 
       {/* Gender Toggle */}
-      <View style={styles.genderToggle}>
+      <View style={[styles.genderToggle, { backgroundColor: t.surfaceSecondary }]}>
         <TouchableOpacity
           style={[
             styles.genderButton,
-            activeGender === 'Female' && styles.genderButtonActive,
+            activeGender === 'Female' && [styles.genderButtonActive, { backgroundColor: t.surface }],
             !hasGender('Female') && styles.genderButtonDisabled,
           ]}
           onPress={() => setActiveGender('Female')}
@@ -633,7 +637,8 @@ export default function ScoresScreen() {
           <Text
             style={[
               styles.genderButtonText,
-              activeGender === 'Female' && styles.genderButtonTextActive,
+              { color: t.textMuted },
+              activeGender === 'Female' && { color: t.text },
             ]}
           >
             Women's
@@ -642,7 +647,7 @@ export default function ScoresScreen() {
         <TouchableOpacity
           style={[
             styles.genderButton,
-            activeGender === 'Male' && styles.genderButtonActive,
+            activeGender === 'Male' && [styles.genderButtonActive, { backgroundColor: t.surface }],
             !hasGender('Male') && styles.genderButtonDisabled,
           ]}
           onPress={() => setActiveGender('Male')}
@@ -651,7 +656,8 @@ export default function ScoresScreen() {
           <Text
             style={[
               styles.genderButtonText,
-              activeGender === 'Male' && styles.genderButtonTextActive,
+              { color: t.textMuted },
+              activeGender === 'Male' && { color: t.text },
             ]}
           >
             Men's
@@ -661,8 +667,8 @@ export default function ScoresScreen() {
 
       {/* Scores List */}
       {scoresLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.light.primary} />
+        <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+          <ActivityIndicator size="large" color={t.primary} />
         </View>
       ) : (
         <SectionList
@@ -679,12 +685,12 @@ export default function ScoresScreen() {
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={true}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <BarChart3 size={48} color={colors.slate[300]} />
-              <Text style={styles.emptyTitle}>No scores</Text>
-              <Text style={styles.emptyText}>
+              <BarChart3 size={48} color={t.textFaint} />
+              <Text style={[styles.emptyTitle, { color: t.text }]}>No scores</Text>
+              <Text style={[styles.emptyText, { color: t.textMuted }]}>
                 {selectedCompetition
                   ? 'No gymnasts assigned to this competition yet'
                   : 'Select a competition to view scores'}
@@ -696,8 +702,8 @@ export default function ScoresScreen() {
 
       {/* Legend */}
       {sections.length > 0 && (
-        <View style={styles.legend}>
-          <Text style={styles.legendText}>
+        <View style={[styles.legend, { backgroundColor: t.surface, borderTopColor: t.border }]}>
+          <Text style={[styles.legendText, { color: t.textMuted }]}>
             {canEdit ? 'Tap a score to edit • ' : ''}Team scores show top 3 per event
           </Text>
         </View>
@@ -710,21 +716,21 @@ export default function ScoresScreen() {
         presentationStyle="pageSheet"
         onRequestClose={() => setEditingScore(null)}
       >
-        <SafeAreaView style={{ flex: 1, backgroundColor: colors.white }} edges={['top', 'bottom']}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: t.surface }} edges={['top', 'bottom']}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalContainer}
+          style={[styles.modalContainer, { backgroundColor: t.background }]}
         >
           {/* Modal Header */}
-          <View style={styles.modalHeader}>
+          <View style={[styles.modalHeader, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
             <TouchableOpacity onPress={() => setEditingScore(null)} style={styles.modalCloseButton}>
-              <X size={24} color={colors.slate[600]} />
+              <X size={24} color={t.textSecondary} />
             </TouchableOpacity>
-            <Text style={styles.modalTitle}>Edit Score</Text>
+            <Text style={[styles.modalTitle, { color: t.text }]}>Edit Score</Text>
             <TouchableOpacity
               onPress={handleSaveScore}
               disabled={saving}
-              style={[styles.modalSaveButton, saving && styles.modalSaveButtonDisabled]}
+              style={[styles.modalSaveButton, { backgroundColor: t.primary }, saving && styles.modalSaveButtonDisabled]}
             >
               {saving ? (
                 <ActivityIndicator size="small" color={colors.white} />
@@ -737,40 +743,40 @@ export default function ScoresScreen() {
           {/* Modal Content */}
           <View style={styles.modalContent}>
             {/* Gymnast Info */}
-            <View style={styles.modalGymnastInfo}>
-              <Text style={styles.modalGymnastName}>{editingScore?.gymnastName}</Text>
-              <Text style={styles.modalEventName}>
+            <View style={[styles.modalGymnastInfo, { backgroundColor: t.surface, borderColor: t.border }]}>
+              <Text style={[styles.modalGymnastName, { color: t.text }]}>{editingScore?.gymnastName}</Text>
+              <Text style={[styles.modalEventName, { color: t.textMuted }]}>
                 {editingScore?.event ? EVENT_FULL_NAMES[editingScore.event] : ''}
               </Text>
             </View>
 
             {/* Score Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Score</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Score</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 value={scoreInput}
                 onChangeText={setScoreInput}
                 placeholder="0.000"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 keyboardType="decimal-pad"
                 autoFocus
               />
-              <Text style={styles.inputHint}>Max: {maxScore.toFixed(3)}</Text>
+              <Text style={[styles.inputHint, { color: t.textMuted }]}>Max: {maxScore.toFixed(3)}</Text>
             </View>
 
             {/* Placement Input */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Placement (Optional)</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Placement (Optional)</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 value={placementInput}
                 onChangeText={setPlacementInput}
                 placeholder="e.g., 1"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 keyboardType="number-pad"
               />
-              <Text style={styles.inputHint}>Leave blank if unknown</Text>
+              <Text style={[styles.inputHint, { color: t.textMuted }]}>Leave blank if unknown</Text>
             </View>
 
             {/* Clear Button */}
@@ -782,7 +788,7 @@ export default function ScoresScreen() {
                   setPlacementInput('');
                 }}
               >
-                <Text style={styles.clearButtonText}>Clear Score</Text>
+                <Text style={[styles.clearButtonText, { color: isDark ? colors.error[400] : colors.error[600] }]}>Clear Score</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -847,7 +853,7 @@ const styles = StyleSheet.create({
     color: colors.slate[700],
   },
   pickerOptionTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontWeight: '600',
   },
   pickerOptionDate: {
@@ -914,7 +920,7 @@ const styles = StyleSheet.create({
   levelTotal: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   teamScoresRow: {
     flexDirection: 'row',
@@ -1061,7 +1067,7 @@ const styles = StyleSheet.create({
     color: colors.slate[900],
   },
   modalSaveButton: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

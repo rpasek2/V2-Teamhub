@@ -1,20 +1,21 @@
 import { Stack } from 'expo-router';
-import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 
 export default function HubSettingsLayout() {
+  const { t } = useTheme();
   return (
     <Stack
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.white,
+          backgroundColor: t.surface,
         },
-        headerTintColor: colors.slate[900],
+        headerTintColor: t.text,
         headerTitleStyle: {
           fontWeight: '600',
         },
         headerShadowVisible: false,
         contentStyle: {
-          backgroundColor: colors.slate[50],
+          backgroundColor: t.background,
         },
       }}
     >

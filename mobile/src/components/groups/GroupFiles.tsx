@@ -9,7 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { FileText, Download, File, User, Calendar } from 'lucide-react-native';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
 interface FileAttachment {
@@ -59,6 +60,7 @@ const getFileColor = (mimeType: string) => {
 };
 
 export function GroupFiles({ posts }: GroupFilesProps) {
+  const { t, isDark } = useTheme();
   // Extract all files from posts
   const files = useMemo(() => {
     const allFiles: FileItem[] = [];
@@ -113,8 +115,8 @@ export function GroupFiles({ posts }: GroupFilesProps) {
         <View style={styles.emptyIcon}>
           <FileText size={32} color={colors.blue[400]} />
         </View>
-        <Text style={styles.emptyTitle}>No files yet</Text>
-        <Text style={styles.emptyText}>Files from posts will appear here</Text>
+        <Text style={[styles.emptyTitle, { color: t.text }]}>No files yet</Text>
+        <Text style={[styles.emptyText, { color: t.textMuted }]}>Files from posts will appear here</Text>
       </View>
     );
   }
@@ -125,7 +127,7 @@ export function GroupFiles({ posts }: GroupFilesProps) {
         <File size={20} color={getFileColor(item.mimeType)} />
       </View>
       <View style={styles.fileInfo}>
-        <Text style={styles.fileName} numberOfLines={1}>
+        <Text style={[styles.fileName, { color: t.text }]} numberOfLines={1}>
           {item.name}
         </Text>
         <View style={styles.fileMeta}>
@@ -136,12 +138,12 @@ export function GroupFiles({ posts }: GroupFilesProps) {
         </View>
         <View style={styles.fileDetails}>
           <View style={styles.detailItem}>
-            <User size={12} color={colors.slate[400]} />
-            <Text style={styles.detailText}>{item.authorName}</Text>
+            <User size={12} color={t.textFaint} />
+            <Text style={[styles.detailText, { color: t.textFaint }]}>{item.authorName}</Text>
           </View>
           <View style={styles.detailItem}>
-            <Calendar size={12} color={colors.slate[400]} />
-            <Text style={styles.detailText}>{formatTime(item.createdAt)}</Text>
+            <Calendar size={12} color={t.textFaint} />
+            <Text style={[styles.detailText, { color: t.textFaint }]}>{formatTime(item.createdAt)}</Text>
           </View>
         </View>
       </View>
@@ -149,21 +151,21 @@ export function GroupFiles({ posts }: GroupFilesProps) {
         style={styles.downloadButton}
         onPress={() => handleDownload(item)}
       >
-        <Download size={20} color={theme.light.primary} />
+        <Download size={20} color={t.primary} />
       </TouchableOpacity>
     </View>
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.surface, borderColor: t.border }]}>
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: t.background, borderBottomColor: t.borderSubtle }]}>
         <View style={styles.headerIcon}>
           <FileText size={20} color={colors.white} />
         </View>
         <View>
-          <Text style={styles.headerTitle}>Shared Files</Text>
-          <Text style={styles.headerCount}>
+          <Text style={[styles.headerTitle, { color: t.text }]}>Shared Files</Text>
+          <Text style={[styles.headerCount, { color: t.textMuted }]}>
             {files.length} file{files.length !== 1 ? 's' : ''}
           </Text>
         </View>

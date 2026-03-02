@@ -28,7 +28,8 @@ import {
   ChevronUp,
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -67,6 +68,7 @@ interface MentorshipEvent {
 type MobileTab = 'pairings' | 'events';
 
 export default function MentorshipScreen() {
+  const { t, isDark } = useTheme();
   const [pairings, setPairings] = useState<GroupedPairing[]>([]);
   const [events, setEvents] = useState<MentorshipEvent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -277,22 +279,22 @@ export default function MentorshipScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={colors.pink[500]} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
+      <View style={[styles.tabContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'pairings' && styles.tabActive]}
           onPress={() => setActiveTab('pairings')}
         >
-          <Users size={18} color={activeTab === 'pairings' ? colors.pink[600] : colors.slate[500]} />
-          <Text style={[styles.tabText, activeTab === 'pairings' && styles.tabTextActive]}>
+          <Users size={18} color={activeTab === 'pairings' ? (isDark ? colors.pink[400] : colors.pink[600]) : t.textMuted} />
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'pairings' && { color: isDark ? colors.pink[400] : colors.pink[600] }]}>
             Pairings
           </Text>
         </TouchableOpacity>
@@ -300,8 +302,8 @@ export default function MentorshipScreen() {
           style={[styles.tab, activeTab === 'events' && styles.tabActive]}
           onPress={() => setActiveTab('events')}
         >
-          <Calendar size={18} color={activeTab === 'events' ? colors.pink[600] : colors.slate[500]} />
-          <Text style={[styles.tabText, activeTab === 'events' && styles.tabTextActive]}>
+          <Calendar size={18} color={activeTab === 'events' ? (isDark ? colors.pink[400] : colors.pink[600]) : t.textMuted} />
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'events' && { color: isDark ? colors.pink[400] : colors.pink[600] }]}>
             Events
           </Text>
         </TouchableOpacity>
@@ -311,19 +313,19 @@ export default function MentorshipScreen() {
       {activeTab === 'pairings' && (
         <>
           {/* Search Bar */}
-          <View style={styles.searchContainer}>
-            <View style={styles.searchInputWrapper}>
-              <Search size={18} color={colors.slate[400]} />
+          <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+            <View style={[styles.searchInputWrapper, { backgroundColor: t.surfaceSecondary }]}>
+              <Search size={18} color={t.textFaint} />
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, { color: t.text }]}
                 placeholder="Search by name..."
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={searchQuery}
                 onChangeText={setSearchQuery}
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <X size={18} color={colors.slate[400]} />
+                  <X size={18} color={t.textFaint} />
                 </TouchableOpacity>
               )}
             </View>
@@ -332,13 +334,13 @@ export default function MentorshipScreen() {
           <ScrollView
             style={styles.listContainer}
             contentContainerStyle={styles.listContent}
-            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
           >
             {filteredPairings.length === 0 ? (
               <View style={styles.emptyContainer}>
-                <Heart size={48} color={colors.slate[300]} />
-                <Text style={styles.emptyTitle}>No pairings found</Text>
-                <Text style={styles.emptyText}>
+                <Heart size={48} color={t.textFaint} />
+                <Text style={[styles.emptyTitle, { color: t.text }]}>No pairings found</Text>
+                <Text style={[styles.emptyText, { color: t.textMuted }]}>
                   {visiblePairings.length === 0
                     ? 'No Big/Little pairings have been created yet.'
                     : 'No pairings match your search.'}
@@ -362,13 +364,13 @@ export default function MentorshipScreen() {
         <ScrollView
           style={styles.listContainer}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
         >
           {upcomingEvents.length === 0 && pastEvents.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Calendar size={48} color={colors.slate[300]} />
-              <Text style={styles.emptyTitle}>No events</Text>
-              <Text style={styles.emptyText}>
+              <Calendar size={48} color={t.textFaint} />
+              <Text style={[styles.emptyTitle, { color: t.text }]}>No events</Text>
+              <Text style={[styles.emptyText, { color: t.textMuted }]}>
                 No mentorship events have been scheduled yet.
               </Text>
             </View>
@@ -377,7 +379,7 @@ export default function MentorshipScreen() {
               {/* Upcoming Events */}
               {upcomingEvents.length > 0 && (
                 <View style={styles.eventsSection}>
-                  <Text style={styles.eventsSectionTitle}>Upcoming Events</Text>
+                  <Text style={[styles.eventsSectionTitle, { color: t.textSecondary }]}>Upcoming Events</Text>
                   {upcomingEvents.map((event) => (
                     <EventCard key={event.id} event={event} />
                   ))}
@@ -385,8 +387,8 @@ export default function MentorshipScreen() {
               )}
 
               {upcomingEvents.length === 0 && (
-                <View style={styles.noUpcomingContainer}>
-                  <Text style={styles.noUpcomingText}>No upcoming events</Text>
+                <View style={[styles.noUpcomingContainer, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  <Text style={[styles.noUpcomingText, { color: t.textFaint }]}>No upcoming events</Text>
                 </View>
               )}
 
@@ -397,16 +399,16 @@ export default function MentorshipScreen() {
                     style={styles.pastEventsToggle}
                     onPress={() => setShowPastEvents(!showPastEvents)}
                   >
-                    <View style={styles.toggleLine} />
-                    <Text style={styles.pastEventsToggleText}>
+                    <View style={[styles.toggleLine, { backgroundColor: t.borderSubtle }]} />
+                    <Text style={[styles.pastEventsToggleText, { color: t.textMuted }]}>
                       {showPastEvents ? 'Hide' : 'Show'} Past Events ({pastEvents.length})
                     </Text>
                     {showPastEvents ? (
-                      <ChevronUp size={16} color={colors.slate[400]} />
+                      <ChevronUp size={16} color={t.textFaint} />
                     ) : (
-                      <ChevronDown size={16} color={colors.slate[400]} />
+                      <ChevronDown size={16} color={t.textFaint} />
                     )}
-                    <View style={styles.toggleLine} />
+                    <View style={[styles.toggleLine, { backgroundColor: t.borderSubtle }]} />
                   </TouchableOpacity>
 
                   {showPastEvents && (
@@ -434,6 +436,7 @@ function PairingCard({
   groupedPairing: GroupedPairing;
   onDeleteLittle?: (pairingId: string, gymnastName: string) => void;
 }) {
+  const { t, isDark } = useTheme();
   const { big_gymnast, big_next_competition, littles, notes } = groupedPairing;
 
   const formatBirthday = (dob: string | null) => {
@@ -447,7 +450,7 @@ function PairingCard({
   };
 
   return (
-    <View style={styles.pairingCard}>
+    <View style={[styles.pairingCard, { backgroundColor: t.surface, borderColor: t.border }]}>
       {/* Two Column Layout */}
       <View style={styles.columnsContainer}>
         {/* Big Section (Left) */}
@@ -460,31 +463,31 @@ function PairingCard({
           </View>
           <View style={styles.personCentered}>
             <View style={styles.personRow}>
-              <View style={styles.bigAvatar}>
-                <Text style={styles.bigInitials}>
+              <View style={[styles.bigAvatar, { backgroundColor: isDark ? colors.purple[700] + '30' : colors.purple[100] }]}>
+                <Text style={[styles.bigInitials, { color: isDark ? colors.purple[400] : colors.purple[600] }]}>
                   {big_gymnast?.first_name?.[0]}{big_gymnast?.last_name?.[0]}
                 </Text>
               </View>
               <View style={styles.personInfo}>
-                <Text style={styles.personName} numberOfLines={1}>
+                <Text style={[styles.personName, { color: t.text }]} numberOfLines={1}>
                   {big_gymnast?.first_name} {big_gymnast?.last_name}
                 </Text>
                 {big_gymnast?.level && (
-                  <Text style={styles.levelText}>{big_gymnast.level}</Text>
+                  <Text style={[styles.levelText, { color: t.textSecondary }]}>{big_gymnast.level}</Text>
                 )}
                 <View style={styles.metaRow}>
                   {big_gymnast?.date_of_birth && (
                     <View style={styles.metaItem}>
-                      <Cake size={11} color={colors.purple[500]} />
-                      <Text style={[styles.metaText, { color: colors.purple[600] }]}>
+                      <Cake size={11} color={isDark ? colors.purple[400] : colors.purple[500]} />
+                      <Text style={[styles.metaText, { color: isDark ? colors.purple[400] : colors.purple[600] }]}>
                         {formatBirthday(big_gymnast.date_of_birth)}
                       </Text>
                     </View>
                   )}
                   {big_next_competition && (
                     <View style={styles.metaItem}>
-                      <Trophy size={11} color={colors.purple[500]} />
-                      <Text style={[styles.metaText, { color: colors.purple[600] }]}>
+                      <Trophy size={11} color={isDark ? colors.purple[400] : colors.purple[500]} />
+                      <Text style={[styles.metaText, { color: isDark ? colors.purple[400] : colors.purple[600] }]}>
                         {formatCompDate(big_next_competition.start_date)}
                       </Text>
                     </View>
@@ -497,11 +500,11 @@ function PairingCard({
 
         {/* Vertical Divider */}
         <View style={styles.verticalDivider}>
-          <View style={styles.verticalLine} />
+          <View style={[styles.verticalLine, { backgroundColor: isDark ? colors.pink[700] + '40' : colors.pink[200] }]} />
           <View style={styles.dividerCircle}>
             <Heart size={12} color={colors.white} />
           </View>
-          <View style={styles.verticalLine} />
+          <View style={[styles.verticalLine, { backgroundColor: isDark ? colors.pink[700] + '40' : colors.pink[200] }]} />
         </View>
 
         {/* Littles Section (Right) */}
@@ -515,7 +518,7 @@ function PairingCard({
           {littles.map((little, index) => (
             <TouchableOpacity
               key={little.id}
-              style={[styles.personRowRight, index < littles.length - 1 && styles.littleRowMargin]}
+              style={[styles.personRowRight, index < littles.length - 1 && [styles.littleRowMargin, { borderTopColor: t.borderSubtle }]]}
               activeOpacity={onDeleteLittle ? 0.7 : 1}
               onLongPress={() =>
                 onDeleteLittle &&
@@ -526,33 +529,33 @@ function PairingCard({
               }
             >
               <View style={styles.personInfoRight}>
-                <Text style={styles.personNameRight} numberOfLines={1}>
+                <Text style={[styles.personNameRight, { color: t.text }]} numberOfLines={1}>
                   {little.gymnast?.first_name} {little.gymnast?.last_name}
                 </Text>
                 {little.gymnast?.level && (
-                  <Text style={styles.levelTextRight}>{little.gymnast.level}</Text>
+                  <Text style={[styles.levelTextRight, { color: t.textSecondary }]}>{little.gymnast.level}</Text>
                 )}
                 <View style={styles.metaRowRight}>
                   {little.gymnast?.date_of_birth && (
                     <View style={styles.metaItem}>
-                      <Cake size={11} color={colors.pink[500]} />
-                      <Text style={[styles.metaText, { color: colors.pink[600] }]}>
+                      <Cake size={11} color={isDark ? colors.pink[400] : colors.pink[500]} />
+                      <Text style={[styles.metaText, { color: isDark ? colors.pink[400] : colors.pink[600] }]}>
                         {formatBirthday(little.gymnast.date_of_birth)}
                       </Text>
                     </View>
                   )}
                   {little.next_competition && (
                     <View style={styles.metaItem}>
-                      <Trophy size={11} color={colors.pink[500]} />
-                      <Text style={[styles.metaText, { color: colors.pink[600] }]}>
+                      <Trophy size={11} color={isDark ? colors.pink[400] : colors.pink[500]} />
+                      <Text style={[styles.metaText, { color: isDark ? colors.pink[400] : colors.pink[600] }]}>
                         {formatCompDate(little.next_competition.start_date)}
                       </Text>
                     </View>
                   )}
                 </View>
               </View>
-              <View style={styles.littleAvatar}>
-                <Text style={styles.littleInitials}>
+              <View style={[styles.littleAvatar, { backgroundColor: isDark ? colors.pink[700] + '30' : colors.pink[100] }]}>
+                <Text style={[styles.littleInitials, { color: isDark ? colors.pink[400] : colors.pink[600] }]}>
                   {little.gymnast?.first_name?.[0]}{little.gymnast?.last_name?.[0]}
                 </Text>
               </View>
@@ -562,8 +565,8 @@ function PairingCard({
       </View>
 
       {notes && (
-        <View style={styles.notesContainer}>
-          <Text style={styles.notesText} numberOfLines={2}>
+        <View style={[styles.notesContainer, { borderTopColor: t.borderSubtle, backgroundColor: t.background }]}>
+          <Text style={[styles.notesText, { color: t.textMuted }]} numberOfLines={2}>
             {notes}
           </Text>
         </View>
@@ -574,35 +577,36 @@ function PairingCard({
 
 // Event Card Component
 function EventCard({ event, isPast }: { event: MentorshipEvent; isPast?: boolean }) {
+  const { t } = useTheme();
   const startDate = parseISO(event.start_time);
   const endDate = parseISO(event.end_time);
   const isSameDay = format(startDate, 'yyyy-MM-dd') === format(endDate, 'yyyy-MM-dd');
 
   return (
-    <View style={[styles.eventCard, isPast && styles.eventCardPast]}>
+    <View style={[styles.eventCard, { backgroundColor: t.surface, borderColor: t.border }, isPast && styles.eventCardPast]}>
       <View style={styles.eventDateBadge}>
         <Text style={styles.eventMonth}>{format(startDate, 'MMM')}</Text>
         <Text style={styles.eventDay}>{format(startDate, 'd')}</Text>
       </View>
       <View style={styles.eventContent}>
-        <Text style={[styles.eventTitle, isPast && styles.eventTitlePast]}>{event.title}</Text>
+        <Text style={[styles.eventTitle, { color: t.text }, isPast && styles.eventTitlePast]}>{event.title}</Text>
         <View style={styles.eventMeta}>
-          <Clock size={12} color={colors.slate[400]} />
-          <Text style={styles.eventMetaText}>
+          <Clock size={12} color={t.textFaint} />
+          <Text style={[styles.eventMetaText, { color: t.textMuted }]}>
             {format(startDate, 'h:mm a')}
             {isSameDay ? ` - ${format(endDate, 'h:mm a')}` : ''}
           </Text>
         </View>
         {event.location && (
           <View style={styles.eventMeta}>
-            <MapPin size={12} color={colors.slate[400]} />
-            <Text style={styles.eventMetaText} numberOfLines={1}>
+            <MapPin size={12} color={t.textFaint} />
+            <Text style={[styles.eventMetaText, { color: t.textMuted }]} numberOfLines={1}>
               {event.location}
             </Text>
           </View>
         )}
         {event.description && (
-          <Text style={styles.eventDescription} numberOfLines={2}>
+          <Text style={[styles.eventDescription, { color: t.textMuted }]} numberOfLines={2}>
             {event.description}
           </Text>
         )}

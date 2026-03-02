@@ -22,7 +22,8 @@ import {
   File,
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -49,6 +50,7 @@ interface ResourceCategory {
 }
 
 export default function ResourcesScreen() {
+  const { t, isDark } = useTheme();
   const [resources, setResources] = useState<HubResource[]>([]);
   const [categories, setCategories] = useState<ResourceCategory[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,20 +155,20 @@ export default function ResourcesScreen() {
 
   const getIconForResource = (resource: HubResource) => {
     if (resource.type === 'link') {
-      return { Icon: ExternalLink, bgColor: colors.blue[100], iconColor: colors.blue[600] };
+      return { Icon: ExternalLink, bgColor: isDark ? colors.blue[700] + '30' : colors.blue[100], iconColor: isDark ? colors.blue[400] : colors.blue[600] };
     }
 
     const fileType = resource.file_type?.toLowerCase();
     if (fileType === 'pdf') {
-      return { Icon: FileText, bgColor: colors.red[100], iconColor: colors.red[600] };
+      return { Icon: FileText, bgColor: isDark ? colors.red[700] + '30' : colors.red[100], iconColor: isDark ? colors.red[400] : colors.red[600] };
     }
     if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(fileType || '')) {
-      return { Icon: ImageIcon, bgColor: colors.purple[100], iconColor: colors.purple[600] };
+      return { Icon: ImageIcon, bgColor: isDark ? colors.purple[700] + '30' : colors.purple[100], iconColor: isDark ? colors.purple[400] : colors.purple[600] };
     }
     if (['mp4', 'mov', 'webm', 'avi'].includes(fileType || '')) {
-      return { Icon: Video, bgColor: colors.pink[100], iconColor: colors.pink[600] };
+      return { Icon: Video, bgColor: isDark ? colors.pink[700] + '30' : colors.pink[100], iconColor: isDark ? colors.pink[400] : colors.pink[600] };
     }
-    return { Icon: File, bgColor: colors.slate[100], iconColor: colors.slate[600] };
+    return { Icon: File, bgColor: isDark ? colors.slate[700] + '30' : colors.slate[100], iconColor: isDark ? colors.slate[400] : colors.slate[600] };
   };
 
   const formatFileSize = (bytes: number | null): string => {
@@ -178,28 +180,28 @@ export default function ResourcesScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
-          <Search size={18} color={colors.slate[400]} />
+      <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <View style={[styles.searchInputWrapper, { backgroundColor: t.surfaceSecondary }]}>
+          <Search size={18} color={t.textFaint} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: t.text }]}
             placeholder="Search resources..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <X size={18} color={colors.slate[400]} />
+              <X size={18} color={t.textFaint} />
             </TouchableOpacity>
           )}
         </View>
@@ -207,7 +209,7 @@ export default function ResourcesScreen() {
 
       {/* Category Filter */}
       {categories.length > 0 && (
-        <View style={styles.categoryContainer}>
+        <View style={[styles.categoryContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -215,15 +217,15 @@ export default function ResourcesScreen() {
           >
             <TouchableOpacity
               style={[
-                styles.categoryChip,
-                selectedCategory === null && styles.categoryChipActive,
+                styles.categoryChip, { backgroundColor: t.surfaceSecondary },
+                selectedCategory === null && { backgroundColor: t.primary },
               ]}
               onPress={() => setSelectedCategory(null)}
             >
               <Text
                 style={[
-                  styles.categoryChipText,
-                  selectedCategory === null && styles.categoryChipTextActive,
+                  styles.categoryChipText, { color: t.textSecondary },
+                  selectedCategory === null && { color: colors.white },
                 ]}
               >
                 All
@@ -233,15 +235,15 @@ export default function ResourcesScreen() {
               <TouchableOpacity
                 key={cat.id}
                 style={[
-                  styles.categoryChip,
-                  selectedCategory === cat.name && styles.categoryChipActive,
+                  styles.categoryChip, { backgroundColor: t.surfaceSecondary },
+                  selectedCategory === cat.name && { backgroundColor: t.primary },
                 ]}
                 onPress={() => setSelectedCategory(cat.name)}
               >
                 <Text
                   style={[
-                    styles.categoryChipText,
-                    selectedCategory === cat.name && styles.categoryChipTextActive,
+                    styles.categoryChipText, { color: t.textSecondary },
+                    selectedCategory === cat.name && { color: colors.white },
                   ]}
                 >
                   {cat.name}
@@ -256,28 +258,28 @@ export default function ResourcesScreen() {
       <ScrollView
         style={styles.listContainer}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
       >
         {filteredResources.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <FolderOpen size={48} color={colors.slate[300]} />
-            <Text style={styles.emptyTitle}>
+            <FolderOpen size={48} color={t.textFaint} />
+            <Text style={[styles.emptyTitle, { color: t.text }]}>
               {searchQuery || selectedCategory ? 'No resources found' : 'No resources yet'}
             </Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               {searchQuery || selectedCategory
                 ? 'Try adjusting your search or filter'
                 : 'Resources will appear here once they are added.'}
             </Text>
             {(searchQuery || selectedCategory) && (
               <TouchableOpacity
-                style={styles.clearButton}
+                style={[styles.clearButton, { backgroundColor: t.surfaceSecondary }]}
                 onPress={() => {
                   setSearchQuery('');
                   setSelectedCategory(null);
                 }}
               >
-                <Text style={styles.clearButtonText}>Clear filters</Text>
+                <Text style={[styles.clearButtonText, { color: t.textSecondary }]}>Clear filters</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -291,7 +293,7 @@ export default function ResourcesScreen() {
             return (
               <TouchableOpacity
                 key={resource.id}
-                style={styles.resourceCard}
+                style={[styles.resourceCard, { backgroundColor: t.surface, borderColor: t.border }]}
                 onPress={() => handleResourcePress(resource)}
                 activeOpacity={0.7}
               >
@@ -300,40 +302,40 @@ export default function ResourcesScreen() {
                     <Icon size={22} color={iconColor} />
                   </View>
                   <View style={styles.resourceInfo}>
-                    <Text style={styles.resourceName} numberOfLines={2}>
+                    <Text style={[styles.resourceName, { color: t.text }]} numberOfLines={2}>
                       {resource.name}
                     </Text>
                     {resource.type === 'file' && resource.file_type && (
-                      <Text style={styles.resourceMeta}>
+                      <Text style={[styles.resourceMeta, { color: t.textFaint }]}>
                         {resource.file_type.toUpperCase()}
                         {resource.file_size ? ` • ${formatFileSize(resource.file_size)}` : ''}
                       </Text>
                     )}
                     {resource.type === 'link' && (
-                      <Text style={styles.resourceMeta}>External link</Text>
+                      <Text style={[styles.resourceMeta, { color: t.textFaint }]}>External link</Text>
                     )}
                   </View>
                 </View>
 
                 {resource.description && (
-                  <Text style={styles.resourceDescription} numberOfLines={2}>
+                  <Text style={[styles.resourceDescription, { color: t.textSecondary }]} numberOfLines={2}>
                     {resource.description}
                   </Text>
                 )}
 
-                <View style={styles.resourceFooter}>
+                <View style={[styles.resourceFooter, { borderTopColor: t.borderSubtle }]}>
                   {resource.category && (
-                    <View style={styles.categoryBadge}>
-                      <Text style={styles.categoryBadgeText}>{resource.category}</Text>
+                    <View style={[styles.categoryBadge, { backgroundColor: t.surfaceSecondary }]}>
+                      <Text style={[styles.categoryBadgeText, { color: t.textSecondary }]}>{resource.category}</Text>
                     </View>
                   )}
                   <View style={styles.resourceCreatedInfo}>
                     {profileData?.full_name && (
-                      <Text style={styles.createdByText}>
+                      <Text style={[styles.createdByText, { color: t.textFaint }]}>
                         Added by {profileData.full_name}
                       </Text>
                     )}
-                    <Text style={styles.createdDateText}>
+                    <Text style={[styles.createdDateText, { color: t.textFaint }]}>
                       {format(parseISO(resource.created_at), 'MMM d, yyyy')}
                     </Text>
                   </View>
@@ -400,7 +402,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.slate[100],
   },
   categoryChipActive: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   categoryChipText: {
     fontSize: 13,

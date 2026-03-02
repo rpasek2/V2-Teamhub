@@ -12,7 +12,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, router } from 'expo-router';
 import { ShieldAlert, Trash2, ArrowLeft } from 'lucide-react-native';
-import { colors, theme } from '../src/constants/colors';
+import { colors } from '../src/constants/colors';
+import { useTheme } from '../src/hooks/useTheme';
 import { supabase } from '../src/services/supabase';
 import { useHubStore } from '../src/stores/hubStore';
 import { format, parseISO } from 'date-fns';
@@ -25,6 +26,7 @@ interface AnonymousReport {
 }
 
 export default function AnonymousReportsScreen() {
+  const { t, isDark } = useTheme();
   const [reports, setReports] = useState<AnonymousReport[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -142,7 +144,7 @@ export default function AnonymousReportsScreen() {
   const renderReport = ({ item }: { item: AnonymousReport }) => (
     <TouchableOpacity
       style={[
-        styles.reportItem,
+        styles.reportItem, { backgroundColor: t.surface, borderBottomColor: t.borderSubtle },
         !item.read_at && styles.unreadReport,
         selectedReport?.id === item.id && styles.selectedReport,
       ]}
@@ -151,9 +153,9 @@ export default function AnonymousReportsScreen() {
     >
       <View style={styles.reportHeader}>
         {!item.read_at && <View style={styles.unreadDot} />}
-        <Text style={styles.reportDate}>{formatDate(item.created_at)}</Text>
+        <Text style={[styles.reportDate, { color: t.textMuted }]}>{formatDate(item.created_at)}</Text>
       </View>
-      <Text style={styles.reportPreview} numberOfLines={2}>
+      <Text style={[styles.reportPreview, { color: t.textSecondary }]} numberOfLines={2}>
         {item.message}
       </Text>
     </TouchableOpacity>
@@ -161,32 +163,32 @@ export default function AnonymousReportsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container} edges={['bottom']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['bottom']}>
         <Stack.Screen
           options={{
             title: 'Anonymous Reports',
             headerLeft: () => (
               <TouchableOpacity onPress={() => router.back()}>
-                <ArrowLeft size={24} color={colors.slate[700]} />
+                <ArrowLeft size={24} color={t.textSecondary} />
               </TouchableOpacity>
             ),
           }}
         />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.light.primary} />
+          <ActivityIndicator size="large" color={t.primary} />
         </View>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['bottom']}>
       <Stack.Screen
         options={{
           title: 'Anonymous Reports',
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <ArrowLeft size={24} color={colors.slate[700]} />
+              <ArrowLeft size={24} color={t.textSecondary} />
             </TouchableOpacity>
           ),
         }}
@@ -194,8 +196,8 @@ export default function AnonymousReportsScreen() {
 
       {selectedReport ? (
         // Report Detail View
-        <View style={styles.detailContainer}>
-          <View style={styles.detailHeader}>
+        <View style={[styles.detailContainer, { backgroundColor: t.surface }]}>
+          <View style={[styles.detailHeader, { borderBottomColor: t.border }]}>
             <TouchableOpacity
               onPress={() => setSelectedReport(null)}
               style={styles.backToList}
@@ -212,13 +214,13 @@ export default function AnonymousReportsScreen() {
           </View>
 
           <View style={styles.detailContent}>
-            <View style={styles.detailMeta}>
+            <View style={[styles.detailMeta, { borderBottomColor: t.border }]}>
               <ShieldAlert size={20} color={colors.purple[600]} />
-              <Text style={styles.detailDate}>
+              <Text style={[styles.detailDate, { color: t.textSecondary }]}>
                 {formatDate(selectedReport.created_at)}
               </Text>
             </View>
-            <Text style={styles.detailMessage}>{selectedReport.message}</Text>
+            <Text style={[styles.detailMessage, { color: t.text }]}>{selectedReport.message}</Text>
           </View>
         </View>
       ) : (
@@ -236,16 +238,16 @@ export default function AnonymousReportsScreen() {
               <View style={styles.emptyIcon}>
                 <ShieldAlert size={48} color={colors.purple[400]} />
               </View>
-              <Text style={styles.emptyTitle}>No anonymous reports</Text>
-              <Text style={styles.emptyText}>
+              <Text style={[styles.emptyTitle, { color: t.text }]}>No anonymous reports</Text>
+              <Text style={[styles.emptyText, { color: t.textMuted }]}>
                 When members submit anonymous reports, they'll appear here.
               </Text>
             </View>
           }
           ListHeaderComponent={
             reports.length > 0 ? (
-              <View style={styles.listHeader}>
-                <Text style={styles.listHeaderText}>
+              <View style={[styles.listHeader, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+                <Text style={[styles.listHeaderText, { color: t.textMuted }]}>
                   {reports.length} report{reports.length !== 1 ? 's' : ''}
                 </Text>
               </View>

@@ -14,7 +14,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import { Send, Hash, User } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useNotificationStore } from '../../src/stores/notificationStore';
@@ -44,6 +45,7 @@ interface Channel {
 }
 
 export default function ChatScreen() {
+  const { t, isDark } = useTheme();
   const { channelId } = useLocalSearchParams<{ channelId: string }>();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -301,15 +303,15 @@ export default function ChatScreen() {
       <View>
         {showDateHeader && (
           <View style={styles.dateHeaderContainer}>
-            <View style={styles.dateHeaderLine} />
-            <Text style={styles.dateHeaderText}>{formatDateHeader(item.created_at)}</Text>
-            <View style={styles.dateHeaderLine} />
+            <View style={[styles.dateHeaderLine, { backgroundColor: t.border }]} />
+            <Text style={[styles.dateHeaderText, { color: t.textMuted }]}>{formatDateHeader(item.created_at)}</Text>
+            <View style={[styles.dateHeaderLine, { backgroundColor: t.border }]} />
           </View>
         )}
         <View style={[styles.messageRow, isMe && styles.messageRowMe]}>
           {!isMe && showHeader && (
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
+            <View style={[styles.avatar, { backgroundColor: t.border }]}>
+              <Text style={[styles.avatarText, { color: t.textSecondary }]}>
                 {item.profiles?.full_name?.[0] || '?'}
               </Text>
             </View>
@@ -319,14 +321,14 @@ export default function ChatScreen() {
           <View style={[styles.messageContent, isMe && styles.messageContentMe]}>
             {showHeader && (
               <View style={[styles.messageHeader, isMe && styles.messageHeaderMe]}>
-                <Text style={styles.senderName}>
+                <Text style={[styles.senderName, { color: t.text }]}>
                   {isMe ? 'You' : item.profiles?.full_name || 'Unknown'}
                 </Text>
-                <Text style={styles.messageTime}>{formatMessageTime(item.created_at)}</Text>
+                <Text style={[styles.messageTime, { color: t.textFaint }]}>{formatMessageTime(item.created_at)}</Text>
               </View>
             )}
-            <View style={[styles.messageBubble, isMe ? styles.messageBubbleMe : styles.messageBubbleOther]}>
-              <Text style={[styles.messageText, isMe && styles.messageTextMe]}>
+            <View style={[styles.messageBubble, isMe ? [styles.messageBubbleMe, { backgroundColor: t.primary }] : [styles.messageBubbleOther, { backgroundColor: t.surface, borderColor: t.border }]]}>
+              <Text style={[styles.messageText, { color: t.textSecondary }, isMe && styles.messageTextMe]}>
                 {item.content}
               </Text>
             </View>
@@ -338,14 +340,14 @@ export default function ChatScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Messages List */}
       <FlatList
         ref={flatListRef}
@@ -363,16 +365,16 @@ export default function ChatScreen() {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             {channel?.dm_participant_ids ? (
-              <User size={48} color={colors.slate[300]} />
+              <User size={48} color={t.border} />
             ) : (
-              <Hash size={48} color={colors.slate[300]} />
+              <Hash size={48} color={t.border} />
             )}
-            <Text style={styles.emptyTitle}>
+            <Text style={[styles.emptyTitle, { color: t.text }]}>
               {channel?.dm_participant_ids
                 ? `Start a conversation with ${channel.dm_other_user?.full_name || 'this user'}`
                 : 'No messages yet'}
             </Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               Be the first to send a message!
             </Text>
           </View>
@@ -386,11 +388,13 @@ export default function ChatScreen() {
           {
             paddingBottom: Math.max(insets.bottom, 12),
             marginBottom: keyboardHeight,
+            backgroundColor: t.surface,
+            borderTopColor: t.border,
           },
         ]}
       >
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: t.text, backgroundColor: t.surfaceSecondary }]}
           value={newMessage}
           onChangeText={setNewMessage}
           placeholder={
@@ -398,12 +402,12 @@ export default function ChatScreen() {
               ? `Message ${channel.dm_other_user?.full_name || 'user'}`
               : `Message #${channel?.name || 'channel'}`
           }
-          placeholderTextColor={colors.slate[400]}
+          placeholderTextColor={t.textFaint}
           multiline
           maxLength={2000}
         />
         <TouchableOpacity
-          style={[styles.sendButton, (!newMessage.trim() || sending) && styles.sendButtonDisabled]}
+          style={[styles.sendButton, { backgroundColor: t.primary }, (!newMessage.trim() || sending) && styles.sendButtonDisabled]}
           onPress={sendMessage}
           disabled={!newMessage.trim() || sending}
         >
@@ -503,7 +507,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
   },
   messageBubbleMe: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     borderBottomRightRadius: 4,
   },
   messageBubbleOther: {
@@ -564,7 +568,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
   },

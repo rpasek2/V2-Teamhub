@@ -20,8 +20,13 @@ import {
   Cake,
   Building2,
   Trash2,
+  Palette,
+  Check,
+  Loader2,
 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
+import { ACCENT_PRESETS, ACCENT_LABELS, ACCENT_PRESET_NAMES } from '../../src/constants/accentColors';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -32,13 +37,16 @@ interface HubSettings {
 }
 
 export default function HubSettingsScreen() {
+  const { t, isDark, accent } = useTheme();
   const router = useRouter();
   const currentHub = useHubStore((state) => state.currentHub);
   const currentRole = useHubStore((state) => state.currentRole);
+  const refreshHub = useHubStore((state) => state.refreshHub);
 
   const [settings, setSettings] = useState<HubSettings>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingAccent, setSavingAccent] = useState(false);
 
   const isOwner = currentRole === 'owner';
   const isAdmin = ['owner', 'director', 'admin'].includes(currentRole || '');
@@ -89,6 +97,27 @@ export default function HubSettingsScreen() {
     }
   };
 
+  const handleAccentColorChange = async (preset: string) => {
+    if (!currentHub || savingAccent) return;
+    setSavingAccent(true);
+
+    try {
+      const updatedSettings = { ...currentHub.settings, accentColor: preset };
+      const { error } = await supabase
+        .from('hubs')
+        .update({ settings: updatedSettings })
+        .eq('id', currentHub.id);
+
+      if (error) throw error;
+      await refreshHub();
+    } catch (err) {
+      console.error('Error saving accent color:', err);
+      Alert.alert('Error', 'Failed to save accent color');
+    } finally {
+      setSavingAccent(false);
+    }
+  };
+
   const handleDeleteHub = () => {
     Alert.alert(
       'Delete Hub',
@@ -119,39 +148,92 @@ export default function HubSettingsScreen() {
 
   if (!currentHub) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>No hub selected</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <Text style={[styles.errorText, { color: t.textMuted }]}>No hub selected</Text>
       </View>
     );
   }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: t.background }]} contentContainerStyle={styles.content}>
       {/* Hub Info */}
       <View style={styles.section}>
-        <View style={styles.hubInfoCard}>
-          <View style={styles.hubIcon}>
-            <Building2 size={28} color={colors.brand[600]} />
+        <View style={[styles.hubInfoCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <View style={[styles.hubIcon, { backgroundColor: `${t.primary}18` }]}>
+            <Building2 size={28} color={t.primary} />
           </View>
-          <Text style={styles.hubName}>{currentHub.name}</Text>
-          <Text style={styles.hubRole}>
+          <Text style={[styles.hubName, { color: t.text }]}>{currentHub.name}</Text>
+          <Text style={[styles.hubRole, { color: t.textMuted }]}>
             {currentRole?.charAt(0).toUpperCase()}{currentRole?.slice(1)}
           </Text>
         </View>
       </View>
 
+      {/* Accent Color Picker - Admin only */}
+      {isAdmin && (
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: t.textMuted }]}>Appearance</Text>
+          <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+            <View style={styles.accentSection}>
+              <View style={styles.accentHeader}>
+                <Palette size={16} color={t.textMuted} />
+                <Text style={[styles.accentLabel, { color: t.text }]}>Accent Color</Text>
+                {savingAccent && <ActivityIndicator size="small" color={t.primary} />}
+              </View>
+              <Text style={[styles.accentDescription, { color: t.textMuted }]}>
+                Choose your team's accent color for buttons, badges, and highlights.
+              </Text>
+              <View style={styles.accentGrid}>
+                {ACCENT_PRESET_NAMES.map((name) => {
+                  const shades = ACCENT_PRESETS[name];
+                  const isSelected = (currentHub?.settings?.accentColor || 'mint') === name;
+                  return (
+                    <TouchableOpacity
+                      key={name}
+                      style={styles.accentOption}
+                      onPress={() => handleAccentColorChange(name)}
+                      disabled={savingAccent}
+                      activeOpacity={0.7}
+                    >
+                      <View
+                        style={[
+                          styles.accentSwatch,
+                          { backgroundColor: shades['500'] },
+                          isSelected && [styles.accentSwatchSelected, { borderColor: t.text }],
+                        ]}
+                      >
+                        {isSelected && <Check size={14} color="#fff" />}
+                      </View>
+                      <Text
+                        style={[
+                          styles.accentName,
+                          { color: isSelected ? t.text : t.textFaint },
+                          isSelected && { fontWeight: '600' },
+                        ]}
+                      >
+                        {ACCENT_LABELS[name]}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* Navigation Items */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Settings</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: t.textMuted }]}>Settings</Text>
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           {/* Permissions - Owner only */}
           {isOwner && (
             <TouchableOpacity
@@ -162,10 +244,10 @@ export default function HubSettingsScreen() {
                 <Shield size={20} color={colors.brand[600]} />
               </View>
               <View style={styles.navContent}>
-                <Text style={styles.navLabel}>Permissions</Text>
-                <Text style={styles.navDescription}>Manage role permissions</Text>
+                <Text style={[styles.navLabel, { color: t.text }]}>Permissions</Text>
+                <Text style={[styles.navDescription, { color: t.textMuted }]}>Manage role permissions</Text>
               </View>
-              <ChevronRight size={20} color={colors.slate[400]} />
+              <ChevronRight size={20} color={t.textFaint} />
             </TouchableOpacity>
           )}
 
@@ -179,12 +261,12 @@ export default function HubSettingsScreen() {
                 <Layers size={20} color={colors.amber[600]} />
               </View>
               <View style={styles.navContent}>
-                <Text style={styles.navLabel}>Competition Levels</Text>
-                <Text style={styles.navDescription}>
+                <Text style={[styles.navLabel, { color: t.text }]}>Competition Levels</Text>
+                <Text style={[styles.navDescription, { color: t.textMuted }]}>
                   {(settings.levels || []).length} levels configured
                 </Text>
               </View>
-              <ChevronRight size={20} color={colors.slate[400]} />
+              <ChevronRight size={20} color={t.textFaint} />
             </TouchableOpacity>
           )}
 
@@ -198,10 +280,10 @@ export default function HubSettingsScreen() {
                 <Link2 size={20} color={colors.indigo[600]} />
               </View>
               <View style={styles.navContent}>
-                <Text style={styles.navLabel}>Invite Codes</Text>
-                <Text style={styles.navDescription}>Manage invite links</Text>
+                <Text style={[styles.navLabel, { color: t.text }]}>Invite Codes</Text>
+                <Text style={[styles.navDescription, { color: t.textMuted }]}>Manage invite links</Text>
               </View>
-              <ChevronRight size={20} color={colors.slate[400]} />
+              <ChevronRight size={20} color={t.textFaint} />
             </TouchableOpacity>
           )}
         </View>
@@ -210,21 +292,21 @@ export default function HubSettingsScreen() {
       {/* Quick Toggles */}
       {isAdmin && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Settings</Text>
-          <View style={styles.card}>
+          <Text style={[styles.sectionTitle, { color: t.textMuted }]}>Quick Settings</Text>
+          <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
             <View style={styles.toggleItem}>
               <View style={[styles.navIcon, { backgroundColor: colors.pink[50] }]}>
                 <Cake size={20} color={colors.pink[600]} />
               </View>
               <View style={styles.toggleContent}>
-                <Text style={styles.toggleLabel}>Show Birthdays</Text>
-                <Text style={styles.toggleDescription}>Display upcoming birthdays</Text>
+                <Text style={[styles.toggleLabel, { color: t.text }]}>Show Birthdays</Text>
+                <Text style={[styles.toggleDescription, { color: t.textMuted }]}>Display upcoming birthdays</Text>
               </View>
               <Switch
                 value={settings.showBirthdays ?? true}
                 onValueChange={(value) => updateSetting('showBirthdays', value)}
-                trackColor={{ false: colors.slate[200], true: colors.brand[200] }}
-                thumbColor={settings.showBirthdays ? colors.brand[600] : colors.slate[400]}
+                trackColor={{ false: isDark ? colors.slate[600] : colors.slate[200], true: `${t.primary}60` }}
+                thumbColor={settings.showBirthdays ? t.primary : t.textFaint}
                 disabled={saving}
               />
             </View>
@@ -234,14 +316,14 @@ export default function HubSettingsScreen() {
                 <AlertCircle size={20} color={colors.purple[600]} />
               </View>
               <View style={styles.toggleContent}>
-                <Text style={styles.toggleLabel}>Anonymous Reports</Text>
-                <Text style={styles.toggleDescription}>Allow anonymous reporting</Text>
+                <Text style={[styles.toggleLabel, { color: t.text }]}>Anonymous Reports</Text>
+                <Text style={[styles.toggleDescription, { color: t.textMuted }]}>Allow anonymous reporting</Text>
               </View>
               <Switch
                 value={settings.allowAnonymousReports ?? false}
                 onValueChange={(value) => updateSetting('allowAnonymousReports', value)}
-                trackColor={{ false: colors.slate[200], true: colors.brand[200] }}
-                thumbColor={settings.allowAnonymousReports ? colors.brand[600] : colors.slate[400]}
+                trackColor={{ false: isDark ? colors.slate[600] : colors.slate[200], true: `${t.primary}60` }}
+                thumbColor={settings.allowAnonymousReports ? t.primary : t.textFaint}
                 disabled={saving}
               />
             </View>
@@ -380,6 +462,51 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.slate[500],
     marginTop: 2,
+  },
+  accentSection: {
+    padding: 16,
+  },
+  accentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  accentLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    flex: 1,
+  },
+  accentDescription: {
+    fontSize: 13,
+    marginBottom: 14,
+  },
+  accentGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  accentOption: {
+    alignItems: 'center',
+    gap: 4,
+    width: 56,
+  },
+  accentSwatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  accentSwatchSelected: {
+    borderWidth: 3,
+    transform: [{ scale: 1.1 }],
+  },
+  accentName: {
+    fontSize: 10,
+    fontWeight: '500',
   },
   dangerCard: {
     borderColor: colors.error[200],

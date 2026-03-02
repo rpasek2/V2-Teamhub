@@ -10,9 +10,10 @@ import { HUB_FEATURE_TABS } from '../../types';
 interface FeatureTabsSectionProps {
     enabledTabs: Set<HubFeatureTab>;
     setEnabledTabs: React.Dispatch<React.SetStateAction<Set<HubFeatureTab>>>;
+    bare?: boolean;
 }
 
-export function FeatureTabsSection({ enabledTabs, setEnabledTabs }: FeatureTabsSectionProps) {
+export function FeatureTabsSection({ enabledTabs, setEnabledTabs, bare }: FeatureTabsSectionProps) {
     const { hub, refreshHub } = useHub();
     const [savingTabs, setSavingTabs] = useState(false);
     const [tabsMessage, setTabsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -67,31 +68,28 @@ export function FeatureTabsSection({ enabledTabs, setEnabledTabs }: FeatureTabsS
         }
     };
 
-    return (
-        <CollapsibleSection
-            title="Feature Tabs"
-            icon={LayoutGrid}
-            description="Choose which features are available in your hub"
-            actions={
-                <button
-                    onClick={handleSaveTabs}
-                    disabled={savingTabs}
-                    className="btn-primary disabled:opacity-50"
-                >
-                    {savingTabs ? (
-                        <>
-                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                            Saving...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="-ml-1 mr-2 h-4 w-4" />
-                            Save Tabs
-                        </>
-                    )}
-                </button>
-            }
+    const saveButton = (
+        <button
+            onClick={handleSaveTabs}
+            disabled={savingTabs}
+            className="btn-primary disabled:opacity-50"
         >
+            {savingTabs ? (
+                <>
+                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                    Saving...
+                </>
+            ) : (
+                <>
+                    <Save className="-ml-1 mr-2 h-4 w-4" />
+                    Save Tabs
+                </>
+            )}
+        </button>
+    );
+
+    const content = (
+        <>
             {tabsMessage && (
                 <div className={`mb-4 p-4 rounded-md ${tabsMessage.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {tabsMessage.text}
@@ -142,6 +140,26 @@ export function FeatureTabsSection({ enabledTabs, setEnabledTabs }: FeatureTabsS
                     );
                 })}
             </div>
+        </>
+    );
+
+    if (bare) {
+        return (
+            <>
+                <div className="flex justify-end mb-4">{saveButton}</div>
+                {content}
+            </>
+        );
+    }
+
+    return (
+        <CollapsibleSection
+            title="Feature Tabs"
+            icon={LayoutGrid}
+            description="Choose which features are available in your hub"
+            actions={saveButton}
+        >
+            {content}
         </CollapsibleSection>
     );
 }

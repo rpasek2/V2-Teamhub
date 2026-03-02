@@ -33,8 +33,10 @@ import {
   Palette,
   Building2,
   Mail,
+  Bug,
 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useHubStore } from '../../src/stores/hubStore';
 import { isTabEnabled } from '../../src/lib/permissions';
@@ -157,10 +159,11 @@ function MenuSection({
   title?: string;
   children: React.ReactNode;
 }) {
+  const { t } = useTheme();
   return (
     <View style={styles.section}>
-      {title && <Text style={styles.sectionTitle}>{title}</Text>}
-      <View style={styles.sectionContent}>{children}</View>
+      {title && <Text style={[styles.sectionTitle, { color: t.textMuted }]}>{title}</Text>}
+      <View style={[styles.sectionContent, { backgroundColor: t.surface, borderColor: t.border }]}>{children}</View>
     </View>
   );
 }
@@ -172,21 +175,22 @@ function MenuItem({
   item: MenuItem;
   onPress: () => void;
 }) {
+  const { t } = useTheme();
   const Icon = item.icon;
 
   return (
-    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.menuItem, { borderBottomColor: t.borderSubtle }]} onPress={onPress} activeOpacity={0.7}>
       <View style={[styles.menuIcon, { backgroundColor: `${item.color}15` }]}>
-        <Icon size={20} color={item.color || theme.light.primary} />
+        <Icon size={20} color={item.color || colors.brand[600]} />
       </View>
-      <Text style={styles.menuLabel}>{item.label}</Text>
+      <Text style={[styles.menuLabel, { color: t.text }]}>{item.label}</Text>
       <View style={styles.menuRight}>
         {item.badge && item.badge > 0 && (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{item.badge}</Text>
           </View>
         )}
-        <ChevronRight size={20} color={colors.slate[400]} />
+        <ChevronRight size={20} color={t.textFaint} />
       </View>
     </TouchableOpacity>
   );
@@ -205,17 +209,18 @@ function SettingToggle({
   onValueChange: (value: boolean) => void;
   iconColor?: string;
 }) {
+  const { t, isDark } = useTheme();
   return (
-    <View style={styles.settingRow}>
+    <View style={[styles.settingRow, { borderBottomColor: t.borderSubtle }]}>
       <View style={[styles.menuIcon, { backgroundColor: `${iconColor || colors.slate[600]}15` }]}>
         <Icon size={20} color={iconColor || colors.slate[600]} />
       </View>
-      <Text style={styles.menuLabel}>{label}</Text>
+      <Text style={[styles.menuLabel, { color: t.text }]}>{label}</Text>
       <Switch
         value={value}
         onValueChange={onValueChange}
-        trackColor={{ false: colors.slate[200], true: colors.brand[400] }}
-        thumbColor={value ? colors.brand[600] : colors.slate[50]}
+        trackColor={{ false: isDark ? colors.slate[600] : colors.slate[200], true: `${t.primary}60` }}
+        thumbColor={value ? t.primary : isDark ? colors.slate[500] : colors.slate[50]}
       />
     </View>
   );
@@ -228,8 +233,8 @@ export default function MoreScreen() {
   const currentMember = useHubStore((state) => state.currentMember);
   const clearHub = useHubStore((state) => state.clearHub);
   const hasPermission = useHubStore((state) => state.hasPermission);
+  const { isDark, toggle: toggleDark, t } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
-  const [darkMode, setDarkMode] = useState(false);
   const [userProfile, setUserProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
   const [showCustomizeTabs, setShowCustomizeTabs] = useState(false);
 
@@ -299,28 +304,28 @@ export default function MoreScreen() {
   const displayName = userProfile?.full_name || user?.email?.split('@')[0] || 'User';
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: t.background }]} contentContainerStyle={styles.content}>
       {/* User Profile Card */}
       <TouchableOpacity
-        style={styles.profileCard}
+        style={[styles.profileCard, { backgroundColor: t.surface, borderColor: t.border }]}
         activeOpacity={0.7}
         onPress={() => router.push('/settings')}
       >
         {userProfile?.avatar_url ? (
           <Image source={{ uri: userProfile.avatar_url, cache: 'force-cache' }} style={styles.avatarImage} />
         ) : (
-          <View style={styles.avatar}>
+          <View style={[styles.avatar, { backgroundColor: t.primary }]}>
             <User size={32} color={colors.white} />
           </View>
         )}
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{displayName}</Text>
-          <Text style={styles.profileRole}>
+          <Text style={[styles.profileName, { color: t.text }]}>{displayName}</Text>
+          <Text style={[styles.profileRole, { color: t.textMuted }]}>
             {currentRole ? currentRole.charAt(0).toUpperCase() + currentRole.slice(1) : 'Member'} • {currentHub?.name || 'No Hub'}
           </Text>
-          <Text style={styles.profileEmail}>{user?.email}</Text>
+          <Text style={[styles.profileEmail, { color: t.textFaint }]}>{user?.email}</Text>
         </View>
-        <ChevronRight size={20} color={colors.slate[400]} />
+        <ChevronRight size={20} color={t.textFaint} />
       </TouchableOpacity>
 
       {/* Features Section */}
@@ -362,8 +367,8 @@ export default function MoreScreen() {
         <SettingToggle
           icon={Moon}
           label="Dark Mode"
-          value={darkMode}
-          onValueChange={setDarkMode}
+          value={isDark}
+          onValueChange={toggleDark}
           iconColor={colors.indigo[600]}
         />
       </MenuSection>
@@ -388,14 +393,14 @@ export default function MoreScreen() {
           }}
           onPress={() => router.push('/settings')}
         />
-        <TouchableOpacity style={styles.menuItem} onPress={handleSwitchHub} activeOpacity={0.7}>
-          <View style={[styles.menuIcon, { backgroundColor: colors.blue[50] }]}>
-            <Building2 size={20} color={colors.blue[600]} />
+        <TouchableOpacity style={[styles.menuItem, { borderBottomColor: t.borderSubtle }]} onPress={handleSwitchHub} activeOpacity={0.7}>
+          <View style={[styles.menuIcon, { backgroundColor: isDark ? colors.blue[700] + '25' : colors.blue[50] }]}>
+            <Building2 size={20} color={isDark ? colors.blue[400] : colors.blue[600]} />
           </View>
-          <Text style={styles.menuLabel}>Switch Hub</Text>
+          <Text style={[styles.menuLabel, { color: t.text }]}>Switch Hub</Text>
           <View style={styles.menuRight}>
-            <Text style={styles.currentHubText}>{currentHub?.name || 'None'}</Text>
-            <ChevronRight size={20} color={colors.slate[400]} />
+            <Text style={[styles.currentHubText, { color: t.textMuted }]}>{currentHub?.name || 'None'}</Text>
+            <ChevronRight size={20} color={t.textFaint} />
           </View>
         </TouchableOpacity>
       </MenuSection>
@@ -411,16 +416,25 @@ export default function MoreScreen() {
           }}
           onPress={() => Linking.openURL('mailto:support@twotreesapps.com')}
         />
+        <MenuItem
+          item={{
+            id: 'feedback',
+            label: 'Report Bug / Feature Request',
+            icon: Bug,
+            color: colors.error[600],
+          }}
+          onPress={() => router.push('/settings/feedback')}
+        />
       </MenuSection>
 
       {/* Sign Out */}
-      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut} activeOpacity={0.7}>
-        <LogOut size={20} color={colors.error[600]} />
-        <Text style={styles.signOutText}>Sign Out</Text>
+      <TouchableOpacity style={[styles.signOutButton, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]} onPress={handleSignOut} activeOpacity={0.7}>
+        <LogOut size={20} color={isDark ? colors.error[400] : colors.error[600]} />
+        <Text style={[styles.signOutText, { color: isDark ? colors.error[400] : colors.error[600] }]}>Sign Out</Text>
       </TouchableOpacity>
 
       {/* Version Info */}
-      <Text style={styles.versionText}>TeamHub Mobile v1.0.0</Text>
+      <Text style={[styles.versionText, { color: t.textFaint }]}>TeamHub Mobile v1.0.0</Text>
 
       {/* Customize Tabs Modal */}
       <CustomizeTabsModal
@@ -454,7 +468,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
   },

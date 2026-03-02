@@ -7,9 +7,10 @@ import { CollapsibleSection } from '../ui/CollapsibleSection';
 interface LevelsSectionProps {
     levels: string[];
     setLevels: React.Dispatch<React.SetStateAction<string[]>>;
+    bare?: boolean;
 }
 
-export function LevelsSection({ levels, setLevels }: LevelsSectionProps) {
+export function LevelsSection({ levels, setLevels, bare }: LevelsSectionProps) {
     const { hub, refreshHub } = useHub();
     const [newLevel, setNewLevel] = useState('');
     const [savingLevels, setSavingLevels] = useState(false);
@@ -63,31 +64,28 @@ export function LevelsSection({ levels, setLevels }: LevelsSectionProps) {
         }
     };
 
-    return (
-        <CollapsibleSection
-            title="Levels"
-            icon={ListOrdered}
-            description="Define the competition levels for your program"
-            actions={
-                <button
-                    onClick={handleSaveLevels}
-                    disabled={savingLevels}
-                    className="btn-primary disabled:opacity-50"
-                >
-                    {savingLevels ? (
-                        <>
-                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                            Saving...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="-ml-1 mr-2 h-4 w-4" />
-                            Save Levels
-                        </>
-                    )}
-                </button>
-            }
+    const saveButton = (
+        <button
+            onClick={handleSaveLevels}
+            disabled={savingLevels}
+            className="btn-primary disabled:opacity-50"
         >
+            {savingLevels ? (
+                <>
+                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                    Saving...
+                </>
+            ) : (
+                <>
+                    <Save className="-ml-1 mr-2 h-4 w-4" />
+                    Save Levels
+                </>
+            )}
+        </button>
+    );
+
+    const content = (
+        <>
             {levelsMessage && (
                 <div className={`mb-4 p-4 rounded-md ${levelsMessage.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {levelsMessage.text}
@@ -169,6 +167,26 @@ export function LevelsSection({ levels, setLevels }: LevelsSectionProps) {
                     ))}
                 </ul>
             )}
+        </>
+    );
+
+    if (bare) {
+        return (
+            <>
+                <div className="flex justify-end mb-4">{saveButton}</div>
+                {content}
+            </>
+        );
+    }
+
+    return (
+        <CollapsibleSection
+            title="Levels"
+            icon={ListOrdered}
+            description="Define the competition levels for your program"
+            actions={saveButton}
+        >
+            {content}
         </CollapsibleSection>
     );
 }

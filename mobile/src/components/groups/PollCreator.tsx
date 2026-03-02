@@ -9,7 +9,8 @@ import {
   ScrollView,
 } from 'react-native';
 import { X, Plus, BarChart3 } from 'lucide-react-native';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 
 interface PollSettings {
   multipleChoice: boolean;
@@ -30,6 +31,7 @@ interface PollCreatorProps {
 }
 
 export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps) {
+  const { t, isDark } = useTheme();
   const [question, setQuestion] = useState(initialData?.question || '');
   const [options, setOptions] = useState<string[]>(
     initialData?.options || ['', '']
@@ -94,13 +96,13 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Question */}
         <View style={styles.section}>
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>
             Question <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
             placeholder="Ask a question..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={question}
             onChangeText={setQuestion}
           />
@@ -108,15 +110,15 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
 
         {/* Options */}
         <View style={styles.section}>
-          <Text style={styles.label}>
-            Options <Text style={styles.hint}>(min 2, max 10)</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>
+            Options <Text style={[styles.hint, { color: t.textFaint }]}>(min 2, max 10)</Text>
           </Text>
           {options.map((option, index) => (
             <View key={index} style={styles.optionRow}>
               <TextInput
-                style={styles.optionInput}
+                style={[styles.optionInput, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
                 placeholder={`Option ${index + 1}`}
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={option}
                 onChangeText={(value) => updateOption(index, value)}
               />
@@ -125,7 +127,7 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
                   onPress={() => removeOption(index)}
                   style={styles.removeButton}
                 >
-                  <X size={16} color={colors.slate[400]} />
+                  <X size={16} color={t.textFaint} />
                 </TouchableOpacity>
               )}
             </View>
@@ -141,7 +143,7 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
         {/* Settings */}
         <View style={styles.settingsSection}>
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>Allow multiple selections</Text>
+            <Text style={[styles.settingLabel, { color: t.textSecondary }]}>Allow multiple selections</Text>
             <Switch
               value={multipleChoice}
               onValueChange={setMultipleChoice}
@@ -150,7 +152,7 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
             />
           </View>
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>Show results before voting</Text>
+            <Text style={[styles.settingLabel, { color: t.textSecondary }]}>Show results before voting</Text>
             <Switch
               value={showResultsBeforeVote}
               onValueChange={setShowResultsBeforeVote}
@@ -159,7 +161,7 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
             />
           </View>
           <View style={styles.settingRow}>
-            <Text style={styles.settingLabel}>Allow changing vote</Text>
+            <Text style={[styles.settingLabel, { color: t.textSecondary }]}>Allow changing vote</Text>
             <Switch
               value={allowChangeVote}
               onValueChange={setAllowChangeVote}
@@ -173,7 +175,7 @@ export function PollCreator({ onSave, onCancel, initialData }: PollCreatorProps)
       {/* Actions */}
       <View style={styles.actions}>
         <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleSave}

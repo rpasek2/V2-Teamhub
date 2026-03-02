@@ -7,7 +7,8 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { BarChart3, Check } from 'lucide-react-native';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 
 interface PollSettings {
@@ -32,6 +33,7 @@ interface PollResponse {
 }
 
 export function PollDisplay({ postId, question, options, settings, currentUserId }: PollDisplayProps) {
+  const { t, isDark } = useTheme();
   const [responses, setResponses] = useState<PollResponse[]>([]);
   const [userResponse, setUserResponse] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
@@ -168,7 +170,7 @@ export function PollDisplay({ postId, question, options, settings, currentUserId
 
       {/* Content */}
       <View style={styles.content}>
-        <Text style={styles.question}>{question}</Text>
+        <Text style={[styles.question, { color: t.text }]}>{question}</Text>
 
         {/* Options */}
         <View style={styles.optionsContainer}>

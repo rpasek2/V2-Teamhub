@@ -11,6 +11,7 @@ import {
 import { X, CalendarCheck } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { format } from 'date-fns';
 
 interface RsvpData {
@@ -26,6 +27,7 @@ interface RsvpCreatorProps {
 }
 
 export function RsvpCreator({ onSave, onCancel }: RsvpCreatorProps) {
+  const { t, isDark } = useTheme();
   const [title, setTitle] = useState('');
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [time, setTime] = useState<Date | undefined>(undefined);
@@ -75,13 +77,13 @@ export function RsvpCreator({ onSave, onCancel }: RsvpCreatorProps) {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Title */}
         <View style={styles.section}>
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>
             Event Title <Text style={styles.required}>*</Text>
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
             placeholder="e.g., Team Dinner"
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={title}
             onChangeText={setTitle}
           />
@@ -89,14 +91,14 @@ export function RsvpCreator({ onSave, onCancel }: RsvpCreatorProps) {
 
         {/* Date */}
         <View style={styles.section}>
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>
             Date <Text style={styles.hint}>(optional)</Text>
           </Text>
           <TouchableOpacity
-            style={styles.dateButton}
+            style={[styles.dateButton, { backgroundColor: t.surface, borderColor: t.border }]}
             onPress={() => setShowDatePicker(true)}
           >
-            <Text style={date ? styles.dateButtonTextSelected : styles.dateButtonText}>
+            <Text style={date ? [styles.dateButtonTextSelected, { color: t.text }] : [styles.dateButtonText, { color: t.textFaint }]}>
               {date ? format(date, 'EEE, MMM d, yyyy') : 'Select date'}
             </Text>
           </TouchableOpacity>
@@ -113,14 +115,14 @@ export function RsvpCreator({ onSave, onCancel }: RsvpCreatorProps) {
 
         {/* Time */}
         <View style={styles.section}>
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>
             Time <Text style={styles.hint}>(optional)</Text>
           </Text>
           <TouchableOpacity
-            style={styles.dateButton}
+            style={[styles.dateButton, { backgroundColor: t.surface, borderColor: t.border }]}
             onPress={() => setShowTimePicker(true)}
           >
-            <Text style={time ? styles.dateButtonTextSelected : styles.dateButtonText}>
+            <Text style={time ? [styles.dateButtonTextSelected, { color: t.text }] : [styles.dateButtonText, { color: t.textFaint }]}>
               {time ? format(time, 'h:mm a') : 'Select time'}
             </Text>
           </TouchableOpacity>
@@ -136,13 +138,13 @@ export function RsvpCreator({ onSave, onCancel }: RsvpCreatorProps) {
 
         {/* Location */}
         <View style={styles.section}>
-          <Text style={styles.label}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>
             Location <Text style={styles.hint}>(optional)</Text>
           </Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
             placeholder="e.g., Main Gym"
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={location}
             onChangeText={setLocation}
           />
@@ -152,7 +154,7 @@ export function RsvpCreator({ onSave, onCancel }: RsvpCreatorProps) {
       {/* Actions */}
       <View style={styles.actions}>
         <TouchableOpacity onPress={onCancel} style={styles.cancelButton}>
-          <Text style={styles.cancelButtonText}>Cancel</Text>
+          <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
         </TouchableOpacity>
         <TouchableOpacity
           onPress={handleSave}

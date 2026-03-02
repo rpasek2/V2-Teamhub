@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { ChevronDown, Calendar, Check } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 
 interface Season {
@@ -35,6 +36,7 @@ export function SeasonPicker({
   showAllOption = true,
   label = 'Season',
 }: SeasonPickerProps) {
+  const { t } = useTheme();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -102,15 +104,15 @@ export function SeasonPicker({
   return (
     <>
       <TouchableOpacity
-        style={styles.pickerButton}
+        style={[styles.pickerButton, { borderColor: `${t.primary}40`, backgroundColor: `${t.primary}10` }]}
         onPress={() => setModalVisible(true)}
         activeOpacity={0.7}
       >
-        <Calendar size={16} color={colors.brand[600]} />
-        <Text style={styles.pickerLabel}>
+        <Calendar size={16} color={t.primary} />
+        <Text style={[styles.pickerLabel, { color: t.text }]}>
           {selectedSeason?.name || 'All Seasons'}
         </Text>
-        <ChevronDown size={16} color={colors.slate[400]} />
+        <ChevronDown size={16} color={t.textFaint} />
       </TouchableOpacity>
 
       <Modal
@@ -119,15 +121,15 @@ export function SeasonPicker({
         transparent={true}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Select {label}</Text>
+        <View style={[styles.modalOverlay, { backgroundColor: t.overlay }]}>
+          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.modalTitle, { color: t.text }]}>Select {label}</Text>
               <TouchableOpacity
                 style={styles.modalCloseBtn}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={styles.modalCloseText}>Done</Text>
+                <Text style={[styles.modalCloseText, { color: t.primary }]}>Done</Text>
               </TouchableOpacity>
             </View>
 
@@ -138,15 +140,15 @@ export function SeasonPicker({
                 const isSelected = item?.id === selectedSeasonId || (!item && !selectedSeasonId);
                 return (
                   <TouchableOpacity
-                    style={[styles.optionItem, isSelected && styles.optionItemSelected]}
+                    style={[styles.optionItem, isSelected && { backgroundColor: `${t.primary}10` }]}
                     onPress={() => handleSelectSeason(item)}
                   >
                     <View style={styles.optionContent}>
-                      <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                      <Text style={[styles.optionText, { color: t.text }, isSelected && { fontWeight: '600', color: t.primary }]}>
                         {item?.name || 'All Seasons'}
                       </Text>
                       {item && (
-                        <Text style={styles.optionDateRange}>
+                        <Text style={[styles.optionDateRange, { color: t.textMuted }]}>
                           {new Date(item.start_date).toLocaleDateString('en-US', {
                             month: 'short',
                             year: 'numeric',
@@ -158,11 +160,11 @@ export function SeasonPicker({
                         </Text>
                       )}
                     </View>
-                    {isSelected && <Check size={20} color={colors.brand[600]} />}
+                    {isSelected && <Check size={20} color={t.primary} />}
                   </TouchableOpacity>
                 );
               }}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
+              ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: t.borderSubtle }]} />}
               contentContainerStyle={styles.listContent}
             />
           </View>

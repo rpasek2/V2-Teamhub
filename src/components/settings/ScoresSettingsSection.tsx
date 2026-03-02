@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { CollapsibleSection } from '../ui/CollapsibleSection';
 import type { QualifyingScoresConfig, LevelQualifyingScores } from '../../types';
 
-export function ScoresSettingsSection() {
+export function ScoresSettingsSection({ bare }: { bare?: boolean } = {}) {
     const { hub, refreshHub } = useHub();
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
@@ -83,31 +83,28 @@ export function ScoresSettingsSection() {
 
     const currentConfig = getCurrentLevelConfig();
 
-    return (
-        <CollapsibleSection
-            title="Scores"
-            icon={Trophy}
-            description="Configure qualifying score thresholds for State, Regional, and National competitions"
-            actions={
-                <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="btn-primary disabled:opacity-50"
-                >
-                    {saving ? (
-                        <>
-                            <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                            Saving...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="-ml-1 mr-2 h-4 w-4" />
-                            Save
-                        </>
-                    )}
-                </button>
-            }
+    const saveButton = (
+        <button
+            onClick={handleSave}
+            disabled={saving}
+            className="btn-primary disabled:opacity-50"
         >
+            {saving ? (
+                <>
+                    <Loader2 className="animate-spin -ml-1 mr-2 h-4 w-4" />
+                    Saving...
+                </>
+            ) : (
+                <>
+                    <Save className="-ml-1 mr-2 h-4 w-4" />
+                    Save
+                </>
+            )}
+        </button>
+    );
+
+    const content = (
+        <>
             {/* Message display */}
             {message && (
                 <div className={`mb-4 p-4 rounded-md ${
@@ -311,6 +308,26 @@ export function ScoresSettingsSection() {
                     </div>
                 </>
             )}
+        </>
+    );
+
+    if (bare) {
+        return (
+            <>
+                <div className="flex justify-end mb-4">{saveButton}</div>
+                {content}
+            </>
+        );
+    }
+
+    return (
+        <CollapsibleSection
+            title="Scores"
+            icon={Trophy}
+            description="Configure qualifying score thresholds for State, Regional, and National competitions"
+            actions={saveButton}
+        >
+            {content}
         </CollapsibleSection>
     );
 }

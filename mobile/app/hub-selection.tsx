@@ -11,7 +11,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { ChevronRight, Plus, Users, LogOut } from 'lucide-react-native';
-import { colors, theme } from '../src/constants/colors';
+import { colors } from '../src/constants/colors';
+import { useTheme } from '../src/hooks/useTheme';
 import { useAuthStore } from '../src/stores/authStore';
 import { useHubStore, Hub } from '../src/stores/hubStore';
 import { Card } from '../src/components/ui';
@@ -26,25 +27,27 @@ const SPORT_CONFIG: Record<string, { color: string; label: string }> = {
 };
 
 function HubCard({ hub, onPress }: { hub: Hub; onPress: () => void }) {
+  const { t } = useTheme();
   const config = SPORT_CONFIG[hub.sport_type] || SPORT_CONFIG.gymnastics;
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.hubCard}>
+      <View style={[styles.hubCard, { backgroundColor: t.surface, borderColor: t.border }]}>
         <View style={[styles.hubIcon, { backgroundColor: config.color }]}>
           <Users size={24} color={colors.white} />
         </View>
         <View style={styles.hubInfo}>
-          <Text style={styles.hubName}>{hub.name}</Text>
-          <Text style={styles.hubSport}>{config.label}</Text>
+          <Text style={[styles.hubName, { color: t.text }]}>{hub.name}</Text>
+          <Text style={[styles.hubSport, { color: t.textMuted }]}>{config.label}</Text>
         </View>
-        <ChevronRight size={20} color={colors.slate[400]} />
+        <ChevronRight size={20} color={t.textFaint} />
       </View>
     </TouchableOpacity>
   );
 }
 
 export default function HubSelectionScreen() {
+  const { t, isDark, colors } = useTheme();
   const user = useAuthStore((state) => state.user);
   const signOut = useAuthStore((state) => state.signOut);
   const hubs = useHubStore((state) => state.hubs);
@@ -81,18 +84,18 @@ export default function HubSelectionScreen() {
 
   if (hubsLoading && !refreshing) {
     return (
-      <SafeAreaView style={styles.loadingContainer} edges={['top', 'bottom']}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <SafeAreaView style={[styles.loadingContainer, { backgroundColor: t.background }]} edges={['top', 'bottom']}>
+        <ActivityIndicator size="large" color={t.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Your Teams</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top', 'bottom']}>
+      <View style={[styles.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <Text style={[styles.title, { color: t.text }]}>Your Teams</Text>
         <TouchableOpacity onPress={handleSignOut} style={styles.signOutButton}>
-          <LogOut size={20} color={colors.slate[500]} />
+          <LogOut size={20} color={t.textMuted} />
         </TouchableOpacity>
       </View>
 
@@ -107,26 +110,26 @@ export default function HubSelectionScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={theme.light.primary}
+            tintColor={t.primary}
           />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIcon}>
-              <Users size={48} color={colors.slate[300]} />
+            <View style={[styles.emptyIcon, { backgroundColor: t.surfaceSecondary }]}>
+              <Users size={48} color={t.textFaint} />
             </View>
-            <Text style={styles.emptyTitle}>No teams yet</Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No teams yet</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               Join a team using an invite code
             </Text>
           </View>
         }
       />
 
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.footerButton}>
-          <Plus size={20} color={theme.light.primary} />
-          <Text style={styles.footerButtonText}>Join with Invite Code</Text>
+      <View style={[styles.footer, { backgroundColor: t.surface, borderTopColor: t.border }]}>
+        <TouchableOpacity style={[styles.footerButton, { borderColor: t.primary }]}>
+          <Plus size={20} color={t.primary} />
+          <Text style={[styles.footerButtonText, { color: t.primary }]}>Join with Invite Code</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -239,13 +242,13 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     borderStyle: 'dashed',
   },
   footerButtonText: {
     marginLeft: 8,
     fontSize: 16,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
 });

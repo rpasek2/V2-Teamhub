@@ -14,7 +14,8 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useNavigation, router } from 'expo-router';
 import { Users, Lock, Globe, Plus, MessageSquare, Image as ImageIcon, FileText, Settings, Trash2 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -49,6 +50,7 @@ interface Post {
 }
 
 export default function GroupDetailsScreen() {
+  const { t, isDark } = useTheme();
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const navigation = useNavigation();
   const user = useAuthStore((state) => state.user);
@@ -354,49 +356,49 @@ export default function GroupDetailsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Group Header */}
-      <View style={styles.header}>
-        <View style={styles.headerIcon}>
-          <Users size={24} color={theme.light.primary} />
+      <View style={[styles.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <View style={[styles.headerIcon, { backgroundColor: `${t.primary}15` }]}>
+          <Users size={24} color={t.primary} />
         </View>
         <View style={styles.headerContent}>
           <View style={styles.headerTitleRow}>
-            <Text style={styles.headerTitle} numberOfLines={1}>
+            <Text style={[styles.headerTitle, { color: t.text }]} numberOfLines={1}>
               {group?.name}
             </Text>
             {group?.type === 'private' ? (
-              <View style={styles.typeBadge}>
-                <Lock size={12} color={colors.slate[500]} />
-                <Text style={styles.typeBadgeText}>Private</Text>
+              <View style={[styles.typeBadge, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}>
+                <Lock size={12} color={t.textMuted} />
+                <Text style={[styles.typeBadgeText, { color: t.textMuted }]}>Private</Text>
               </View>
             ) : (
-              <View style={[styles.typeBadge, styles.publicBadge]}>
-                <Globe size={12} color={colors.emerald[600]} />
-                <Text style={[styles.typeBadgeText, styles.publicBadgeText]}>Public</Text>
+              <View style={[styles.typeBadge, styles.publicBadge, { backgroundColor: isDark ? colors.emerald[700] + '25' : colors.emerald[50] }]}>
+                <Globe size={12} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
+                <Text style={[styles.typeBadgeText, { color: isDark ? colors.emerald[400] : colors.emerald[600] }]}>Public</Text>
               </View>
             )}
           </View>
           {group?.description && (
-            <Text style={styles.headerDescription} numberOfLines={2}>
+            <Text style={[styles.headerDescription, { color: t.textMuted }]} numberOfLines={2}>
               {group.description}
             </Text>
           )}
-          <Text style={styles.memberCount}>{memberCount} members</Text>
+          <Text style={[styles.memberCount, { color: t.textFaint }]}>{memberCount} members</Text>
         </View>
       </View>
 
       {/* Join Button (if not a member) */}
       {!isMember && (
-        <View style={styles.joinContainer}>
-          <TouchableOpacity style={styles.joinButton} onPress={handleJoinGroup}>
+        <View style={[styles.joinContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+          <TouchableOpacity style={[styles.joinButton, { backgroundColor: t.primary }]} onPress={handleJoinGroup}>
             <Users size={18} color={colors.white} />
             <Text style={styles.joinButtonText}>Join Group</Text>
           </TouchableOpacity>
@@ -411,42 +413,42 @@ export default function GroupDetailsScreen() {
       )}
 
       {/* Tab Bar */}
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'posts' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'posts' && [styles.tabActive, { borderBottomColor: t.primary }]]}
           onPress={() => setActiveTab('posts')}
         >
-          <MessageSquare size={18} color={activeTab === 'posts' ? theme.light.primary : colors.slate[400]} />
-          <Text style={[styles.tabText, activeTab === 'posts' && styles.tabTextActive]}>Posts</Text>
+          <MessageSquare size={18} color={activeTab === 'posts' ? t.primary : t.textFaint} />
+          <Text style={[styles.tabText, { color: t.textFaint }, activeTab === 'posts' && { color: t.primary, fontWeight: '600' as const }]}>Posts</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'photos' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'photos' && [styles.tabActive, { borderBottomColor: t.primary }]]}
           onPress={() => setActiveTab('photos')}
         >
-          <ImageIcon size={18} color={activeTab === 'photos' ? theme.light.primary : colors.slate[400]} />
-          <Text style={[styles.tabText, activeTab === 'photos' && styles.tabTextActive]}>Photos</Text>
+          <ImageIcon size={18} color={activeTab === 'photos' ? t.primary : t.textFaint} />
+          <Text style={[styles.tabText, { color: t.textFaint }, activeTab === 'photos' && { color: t.primary, fontWeight: '600' as const }]}>Photos</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'files' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'files' && [styles.tabActive, { borderBottomColor: t.primary }]]}
           onPress={() => setActiveTab('files')}
         >
-          <FileText size={18} color={activeTab === 'files' ? theme.light.primary : colors.slate[400]} />
-          <Text style={[styles.tabText, activeTab === 'files' && styles.tabTextActive]}>Files</Text>
+          <FileText size={18} color={activeTab === 'files' ? t.primary : t.textFaint} />
+          <Text style={[styles.tabText, { color: t.textFaint }, activeTab === 'files' && { color: t.primary, fontWeight: '600' as const }]}>Files</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'members' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'members' && [styles.tabActive, { borderBottomColor: t.primary }]]}
           onPress={() => setActiveTab('members')}
         >
-          <Users size={18} color={activeTab === 'members' ? theme.light.primary : colors.slate[400]} />
-          <Text style={[styles.tabText, activeTab === 'members' && styles.tabTextActive]}>Members</Text>
+          <Users size={18} color={activeTab === 'members' ? t.primary : t.textFaint} />
+          <Text style={[styles.tabText, { color: t.textFaint }, activeTab === 'members' && { color: t.primary, fontWeight: '600' as const }]}>Members</Text>
         </TouchableOpacity>
         {isGroupAdmin && (
           <TouchableOpacity
-            style={[styles.tab, activeTab === 'settings' && styles.tabActive]}
+            style={[styles.tab, activeTab === 'settings' && [styles.tabActive, { borderBottomColor: t.primary }]]}
             onPress={() => setActiveTab('settings')}
           >
-            <Settings size={18} color={activeTab === 'settings' ? theme.light.primary : colors.slate[400]} />
-            <Text style={[styles.tabText, activeTab === 'settings' && styles.tabTextActive]}>Settings</Text>
+            <Settings size={18} color={activeTab === 'settings' ? t.primary : t.textFaint} />
+            <Text style={[styles.tabText, { color: t.textFaint }, activeTab === 'settings' && { color: t.primary, fontWeight: '600' as const }]}>Settings</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -467,12 +469,12 @@ export default function GroupDetailsScreen() {
                 <View style={styles.emptyIcon}>
                   <MessageSquare size={48} color={colors.slate[300]} />
                 </View>
-                <Text style={styles.emptyTitle}>No posts yet</Text>
-                <Text style={styles.emptyText}>
+                <Text style={[styles.emptyTitle, { color: t.text }]}>No posts yet</Text>
+                <Text style={[styles.emptyText, { color: t.textMuted }]}>
                   Be the first to share something with the group!
                 </Text>
                 {isMember && (
-                  <TouchableOpacity style={styles.createFirstButton} onPress={handleCreatePost}>
+                  <TouchableOpacity style={[styles.createFirstButton, { backgroundColor: t.primary }]} onPress={handleCreatePost}>
                     <Plus size={18} color={colors.white} />
                     <Text style={styles.createFirstButtonText}>Create First Post</Text>
                   </TouchableOpacity>
@@ -483,7 +485,7 @@ export default function GroupDetailsScreen() {
 
           {/* Create Post FAB */}
           {isMember && posts.length > 0 && (
-            <TouchableOpacity style={styles.fab} onPress={handleCreatePost}>
+            <TouchableOpacity style={[styles.fab, { backgroundColor: t.primary }]} onPress={handleCreatePost}>
               <Plus size={24} color={colors.white} />
             </TouchableOpacity>
           )}
@@ -517,28 +519,28 @@ export default function GroupDetailsScreen() {
         <ScrollView style={styles.tabContent} showsVerticalScrollIndicator={false}>
           <View style={styles.settingsContainer}>
             {/* Group Info Section */}
-            <View style={styles.settingsSection}>
-              <Text style={styles.settingsSectionTitle}>Group Information</Text>
+            <View style={[styles.settingsSection, { backgroundColor: t.surface, borderColor: t.border }]}>
+              <Text style={[styles.settingsSectionTitle, { color: t.text }]}>Group Information</Text>
 
               <View style={styles.settingsField}>
-                <Text style={styles.settingsLabel}>Name</Text>
+                <Text style={[styles.settingsLabel, { color: t.textSecondary }]}>Name</Text>
                 <TextInput
-                  style={styles.settingsInput}
+                  style={[styles.settingsInput, { color: t.text, backgroundColor: t.surface, borderColor: t.border }]}
                   value={editName}
                   onChangeText={setEditName}
                   placeholder="Group name"
-                  placeholderTextColor={colors.slate[400]}
+                  placeholderTextColor={t.textFaint}
                 />
               </View>
 
               <View style={styles.settingsField}>
-                <Text style={styles.settingsLabel}>Description</Text>
+                <Text style={[styles.settingsLabel, { color: t.textSecondary }]}>Description</Text>
                 <TextInput
-                  style={[styles.settingsInput, styles.settingsTextArea]}
+                  style={[styles.settingsInput, styles.settingsTextArea, { color: t.text, backgroundColor: t.surface, borderColor: t.border }]}
                   value={editDescription}
                   onChangeText={setEditDescription}
                   placeholder="Describe this group..."
-                  placeholderTextColor={colors.slate[400]}
+                  placeholderTextColor={t.textFaint}
                   multiline
                   numberOfLines={3}
                   textAlignVertical="top"
@@ -547,23 +549,23 @@ export default function GroupDetailsScreen() {
             </View>
 
             {/* Privacy Section */}
-            <View style={styles.settingsSection}>
-              <Text style={styles.settingsSectionTitle}>Privacy</Text>
+            <View style={[styles.settingsSection, { backgroundColor: t.surface, borderColor: t.border }]}>
+              <Text style={[styles.settingsSectionTitle, { color: t.text }]}>Privacy</Text>
 
               <View style={styles.settingsToggleRow}>
                 <View style={styles.settingsToggleInfo}>
-                  <View style={styles.settingsToggleIconContainer}>
+                  <View style={[styles.settingsToggleIconContainer, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}>
                     {editIsPrivate ? (
-                      <Lock size={20} color={colors.slate[600]} />
+                      <Lock size={20} color={isDark ? colors.slate[400] : colors.slate[600]} />
                     ) : (
-                      <Globe size={20} color={colors.emerald[600]} />
+                      <Globe size={20} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
                     )}
                   </View>
                   <View>
-                    <Text style={styles.settingsToggleLabel}>
+                    <Text style={[styles.settingsToggleLabel, { color: t.text }]}>
                       {editIsPrivate ? 'Private Group' : 'Public Group'}
                     </Text>
-                    <Text style={styles.settingsToggleDescription}>
+                    <Text style={[styles.settingsToggleDescription, { color: t.textMuted }]}>
                       {editIsPrivate
                         ? 'Only members can see posts'
                         : 'Anyone in the hub can see posts'}
@@ -573,15 +575,15 @@ export default function GroupDetailsScreen() {
                 <Switch
                   value={editIsPrivate}
                   onValueChange={setEditIsPrivate}
-                  trackColor={{ false: colors.slate[200], true: colors.brand[400] }}
-                  thumbColor={editIsPrivate ? colors.brand[600] : colors.slate[50]}
+                  trackColor={{ false: isDark ? colors.slate[600] : colors.slate[200], true: `${t.primary}60` }}
+                  thumbColor={editIsPrivate ? t.primary : isDark ? colors.slate[500] : colors.slate[50]}
                 />
               </View>
             </View>
 
             {/* Save Button */}
             <TouchableOpacity
-              style={[styles.saveSettingsButton, savingSettings && styles.buttonDisabled]}
+              style={[styles.saveSettingsButton, { backgroundColor: t.primary }, savingSettings && styles.buttonDisabled]}
               onPress={handleSaveSettings}
               disabled={savingSettings}
             >
@@ -702,7 +704,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingVertical: 12,
     borderRadius: 12,
   },
@@ -747,7 +749,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
@@ -764,7 +766,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.black,
@@ -790,7 +792,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: theme.light.primary,
+    borderBottomColor: colors.brand[600],
   },
   tabText: {
     fontSize: 13,
@@ -798,7 +800,7 @@ const styles = StyleSheet.create({
     color: colors.slate[400],
   },
   tabTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontWeight: '600',
   },
   tabContent: {
@@ -875,7 +877,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   saveSettingsButton: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',

@@ -13,7 +13,8 @@ import { Link, router } from 'expo-router';
 import { Mail, Lock, User, Calendar } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Button, Input } from '../../src/components/ui';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useAuthStore } from '../../src/stores/authStore';
 
 function getAge(date: Date): number {
@@ -31,6 +32,7 @@ function formatDate(date: Date): string {
 }
 
 export default function RegisterScreen() {
+  const { t, isDark, colors } = useTheme();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -90,7 +92,7 @@ export default function RegisterScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -100,11 +102,11 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
         >
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
+          <View style={[styles.logoContainer, { backgroundColor: t.primary }]}>
             <Text style={styles.logoText}>Gym{'\n'}TeamHub</Text>
           </View>
-          <Text style={styles.title}>Create account</Text>
-          <Text style={styles.subtitle}>Join your team on Gym TeamHub</Text>
+          <Text style={[styles.title, { color: t.text }]}>Create account</Text>
+          <Text style={[styles.subtitle, { color: t.textMuted }]}>Join your team on Gym TeamHub</Text>
         </View>
 
         <View style={styles.form}>
@@ -120,17 +122,17 @@ export default function RegisterScreen() {
             value={fullName}
             onChangeText={setFullName}
             autoCapitalize="words"
-            leftIcon={<User size={20} color={colors.slate[400]} />}
+            leftIcon={<User size={20} color={t.textFaint} />}
           />
 
           <View>
-            <Text style={styles.inputLabel}>Date of birth</Text>
+            <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Date of birth</Text>
             <TouchableOpacity
-              style={styles.dateButton}
+              style={[styles.dateButton, { borderColor: t.border, backgroundColor: t.surface }]}
               onPress={() => setShowDatePicker(true)}
             >
-              <Calendar size={20} color={colors.slate[400]} />
-              <Text style={[styles.dateButtonText, !dateOfBirth && styles.dateButtonPlaceholder]}>
+              <Calendar size={20} color={t.textFaint} />
+              <Text style={[styles.dateButtonText, { color: t.text }, !dateOfBirth && { color: t.textFaint }]}>
                 {dateOfBirth ? formatDate(dateOfBirth) : 'Select your date of birth'}
               </Text>
             </TouchableOpacity>
@@ -148,7 +150,7 @@ export default function RegisterScreen() {
                     style={styles.datePickerDone}
                     onPress={() => setShowDatePicker(false)}
                   >
-                    <Text style={styles.datePickerDoneText}>Done</Text>
+                    <Text style={[styles.datePickerDoneText, { color: t.primary }]}>Done</Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -168,7 +170,7 @@ export default function RegisterScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
-            leftIcon={<Mail size={20} color={colors.slate[400]} />}
+            leftIcon={<Mail size={20} color={t.textFaint} />}
           />
 
           <Input
@@ -177,7 +179,7 @@ export default function RegisterScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            leftIcon={<Lock size={20} color={colors.slate[400]} />}
+            leftIcon={<Lock size={20} color={t.textFaint} />}
             hint="Must be at least 6 characters"
           />
 
@@ -187,7 +189,7 @@ export default function RegisterScreen() {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             secureTextEntry
-            leftIcon={<Lock size={20} color={colors.slate[400]} />}
+            leftIcon={<Lock size={20} color={t.textFaint} />}
           />
 
           <View style={styles.buttonContainer}>
@@ -202,10 +204,10 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+          <Text style={[styles.footerText, { color: t.textSecondary }]}>Already have an account? </Text>
           <Link href="/(auth)/login" asChild>
             <TouchableOpacity>
-              <Text style={styles.footerLink}>Sign in</Text>
+              <Text style={[styles.footerLink, { color: t.primary }]}>Sign in</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -236,7 +238,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 20,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -291,7 +293,7 @@ const styles = StyleSheet.create({
   datePickerDoneText: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   ageBlockedText: {
     marginTop: 8,
@@ -325,7 +327,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   footerLink: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontSize: 14,
     fontWeight: '600',
   },

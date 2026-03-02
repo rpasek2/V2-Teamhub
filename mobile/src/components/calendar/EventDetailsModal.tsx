@@ -21,7 +21,8 @@ import {
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { Badge } from '../ui';
 import { supabase } from '../../services/supabase';
 import { useAuthStore } from '../../stores/authStore';
@@ -70,6 +71,7 @@ export function EventDetailsModal({
   event,
   onEventUpdated,
 }: EventDetailsModalProps) {
+  const { t, isDark } = useTheme();
   const user = useAuthStore((state) => state.user);
   const [rsvpStatus, setRsvpStatus] = useState<'going' | 'maybe' | 'not_going' | null>(null);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
@@ -185,9 +187,9 @@ export function EventDetailsModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.surface }]} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { borderBottomColor: t.border }]}>
           <View style={styles.headerLeft}>
             <View style={[styles.colorBar, { backgroundColor: eventColor }]} />
             <Badge
@@ -197,53 +199,54 @@ export function EventDetailsModal({
             />
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
         </View>
 
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Title */}
-          <Text style={styles.title}>{event.title}</Text>
+          <Text style={[styles.title, { color: t.text }]}>{event.title}</Text>
 
           {/* Event Details */}
           <View style={styles.detailsSection}>
             <View style={styles.detailRow}>
-              <CalendarIcon size={20} color={colors.slate[400]} />
-              <Text style={styles.detailText}>{formatEventDate()}</Text>
+              <CalendarIcon size={20} color={t.textFaint} />
+              <Text style={[styles.detailText, { color: t.textSecondary }]}>{formatEventDate()}</Text>
             </View>
 
             <View style={styles.detailRow}>
-              <Clock size={20} color={colors.slate[400]} />
-              <Text style={styles.detailText}>{formatEventTime()}</Text>
+              <Clock size={20} color={t.textFaint} />
+              <Text style={[styles.detailText, { color: t.textSecondary }]}>{formatEventTime()}</Text>
             </View>
 
             {event.location && (
               <View style={styles.detailRow}>
-                <MapPin size={20} color={colors.slate[400]} />
-                <Text style={styles.detailText}>{event.location}</Text>
+                <MapPin size={20} color={t.textFaint} />
+                <Text style={[styles.detailText, { color: t.textSecondary }]}>{event.location}</Text>
               </View>
             )}
           </View>
 
           {/* Description */}
           {event.description && (
-            <View style={styles.descriptionSection}>
-              <Text style={styles.descriptionText}>{event.description}</Text>
+            <View style={[styles.descriptionSection, { backgroundColor: t.background }]}>
+              <Text style={[styles.descriptionText, { color: t.textSecondary }]}>{event.description}</Text>
             </View>
           )}
 
           {/* RSVP Section */}
           {event.rsvp_enabled !== false && (
-            <View style={styles.rsvpSection}>
-              <Text style={styles.sectionTitle}>Your RSVP</Text>
+            <View style={[styles.rsvpSection, { borderTopColor: t.borderSubtle }]}>
+              <Text style={[styles.sectionTitle, { color: t.text }]}>Your RSVP</Text>
 
               {loading ? (
-                <ActivityIndicator size="small" color={theme.light.primary} />
+                <ActivityIndicator size="small" color={t.primary} />
               ) : (
                 <View style={styles.rsvpButtons}>
                   <TouchableOpacity
                     style={[
                       styles.rsvpButton,
+                      { backgroundColor: t.surfaceSecondary },
                       rsvpStatus === 'going' && styles.rsvpButtonGoing,
                     ]}
                     onPress={() => handleRsvp('going')}
@@ -256,6 +259,7 @@ export function EventDetailsModal({
                     <Text
                       style={[
                         styles.rsvpButtonText,
+                        { color: t.textSecondary },
                         rsvpStatus === 'going' && styles.rsvpButtonTextActive,
                       ]}
                     >
@@ -266,6 +270,7 @@ export function EventDetailsModal({
                   <TouchableOpacity
                     style={[
                       styles.rsvpButton,
+                      { backgroundColor: t.surfaceSecondary },
                       rsvpStatus === 'maybe' && styles.rsvpButtonMaybe,
                     ]}
                     onPress={() => handleRsvp('maybe')}
@@ -278,6 +283,7 @@ export function EventDetailsModal({
                     <Text
                       style={[
                         styles.rsvpButtonText,
+                        { color: t.textSecondary },
                         rsvpStatus === 'maybe' && styles.rsvpButtonTextActive,
                       ]}
                     >
@@ -288,6 +294,7 @@ export function EventDetailsModal({
                   <TouchableOpacity
                     style={[
                       styles.rsvpButton,
+                      { backgroundColor: t.surfaceSecondary },
                       rsvpStatus === 'not_going' && styles.rsvpButtonNotGoing,
                     ]}
                     onPress={() => handleRsvp('not_going')}
@@ -300,6 +307,7 @@ export function EventDetailsModal({
                     <Text
                       style={[
                         styles.rsvpButtonText,
+                        { color: t.textSecondary },
                         rsvpStatus === 'not_going' && styles.rsvpButtonTextActive,
                       ]}
                     >
@@ -313,10 +321,10 @@ export function EventDetailsModal({
 
           {/* Attendees Section */}
           {event.rsvp_enabled !== false && (
-            <View style={styles.attendeesSection}>
+            <View style={[styles.attendeesSection, { borderTopColor: t.borderSubtle }]}>
               <View style={styles.attendeesHeader}>
-                <Users size={18} color={colors.slate[500]} />
-                <Text style={styles.sectionTitle}>
+                <Users size={18} color={t.textMuted} />
+                <Text style={[styles.sectionTitle, { color: t.text }]}>
                   Attendees ({attendees.length})
                 </Text>
               </View>
@@ -337,7 +345,7 @@ export function EventDetailsModal({
                   ))}
                 </View>
               ) : (
-                <Text style={styles.noAttendeesText}>
+                <Text style={[styles.noAttendeesText, { color: t.textFaint }]}>
                   No one has RSVP'd yet.
                 </Text>
               )}

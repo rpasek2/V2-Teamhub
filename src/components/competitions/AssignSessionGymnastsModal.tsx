@@ -216,7 +216,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
         >
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-slate-900/50"
+                className="fixed inset-0 bg-slate-900/50 dark:bg-black/60"
                 onClick={onClose}
             />
 
@@ -242,10 +242,10 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                 {/* Content */}
                 <form onSubmit={handleSubmit} className="mt-6 space-y-5">
                     {error && (
-                        <div className="rounded-md bg-red-50 p-3">
+                        <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-3">
                             <div className="flex items-center gap-2">
                                 <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0" />
-                                <p className="text-sm font-medium text-red-800">{error}</p>
+                                <p className="text-sm font-medium text-red-800 dark:text-red-400">{error}</p>
                             </div>
                         </div>
                     )}
@@ -287,7 +287,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                                                         isLevelFullySelected(level)
                                                             ? 'border-accent-600 bg-accent-600'
                                                             : isLevelPartiallySelected(level)
-                                                                ? 'border-accent-600 bg-accent-100'
+                                                                ? 'border-accent-600 bg-accent-100 dark:bg-accent-800/30'
                                                                 : 'border-line-strong'
                                                     }`}>
                                                         {isLevelFullySelected(level) && (
@@ -306,7 +306,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                                                         <div
                                                             key={gymnast.gymnast_profile_id}
                                                             className={`flex cursor-pointer items-center justify-between px-3 py-2 pl-10 hover:bg-surface-hover ${
-                                                                selectedGymnasts.includes(gymnast.gymnast_profile_id) ? 'bg-accent-50' : ''
+                                                                selectedGymnasts.includes(gymnast.gymnast_profile_id) ? 'bg-accent-50 dark:bg-accent-900/30' : ''
                                                             }`}
                                                             onClick={() => toggleGymnast(gymnast.gymnast_profile_id)}
                                                         >

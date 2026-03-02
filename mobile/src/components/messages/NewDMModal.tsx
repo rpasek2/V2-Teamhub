@@ -13,7 +13,8 @@ import {
 import { X, Search, User } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 import { useHubStore } from '../../stores/hubStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -31,6 +32,7 @@ interface HubMember {
 }
 
 export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
+  const { t, isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [members, setMembers] = useState<HubMember[]>([]);
   const [loading, setLoading] = useState(false);
@@ -129,7 +131,7 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
 
   const renderMember = ({ item }: { item: HubMember }) => (
     <TouchableOpacity
-      style={styles.memberItem}
+      style={[styles.memberItem, { backgroundColor: t.surface, borderBottomColor: t.borderSubtle }]}
       onPress={() => startDMWithUser(item.user_id)}
       activeOpacity={0.7}
       disabled={creating}
@@ -138,8 +140,8 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
         <Text style={styles.avatarText}>{getInitials(item.full_name)}</Text>
       </View>
       <View style={styles.memberInfo}>
-        <Text style={styles.memberName}>{item.full_name}</Text>
-        <Text style={styles.memberEmail}>{item.email}</Text>
+        <Text style={[styles.memberName, { color: t.text }]}>{item.full_name}</Text>
+        <Text style={[styles.memberEmail, { color: t.textMuted }]}>{item.email}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -153,24 +155,24 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.title}>New Message</Text>
+          <Text style={[styles.title, { color: t.text }]}>New Message</Text>
           <View style={styles.placeholder} />
         </View>
 
         {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <View style={styles.searchBar}>
-            <Search size={20} color={colors.slate[400]} />
+        <View style={[styles.searchContainer, { backgroundColor: t.surface }]}>
+          <View style={[styles.searchBar, { backgroundColor: t.surfaceSecondary }]}>
+            <Search size={20} color={t.textFaint} />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: t.text }]}
               placeholder="Search members..."
-              placeholderTextColor={colors.slate[400]}
+              placeholderTextColor={t.textFaint}
               value={searchQuery}
               onChangeText={setSearchQuery}
               autoFocus
@@ -181,7 +183,7 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
         {/* Members List */}
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.light.primary} />
+            <ActivityIndicator size="large" color={t.primary} />
           </View>
         ) : (
           <FlatList
@@ -191,8 +193,8 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
             contentContainerStyle={styles.listContent}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <User size={48} color={colors.slate[300]} />
-                <Text style={styles.emptyText}>
+                <User size={48} color={t.border} />
+                <Text style={[styles.emptyText, { color: t.textFaint }]}>
                   {searchQuery ? 'No members found' : 'No members available'}
                 </Text>
               </View>

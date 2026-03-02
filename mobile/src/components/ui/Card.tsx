@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { ChevronRight } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 
 interface CardProps {
   children: React.ReactNode;
@@ -17,11 +18,12 @@ interface CardProps {
 }
 
 export function Card({ children, style, onPress, showChevron }: CardProps) {
+  const { t } = useTheme();
   const content = (
-    <View style={[styles.card, style]}>
+    <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }, style]}>
       <View style={styles.content}>{children}</View>
       {showChevron && onPress && (
-        <ChevronRight size={20} color={colors.slate[400]} />
+        <ChevronRight size={20} color={t.textFaint} />
       )}
     </View>
   );
@@ -44,11 +46,12 @@ interface CardHeaderProps {
 }
 
 export function CardHeader({ title, subtitle, action }: CardHeaderProps) {
+  const { t } = useTheme();
   return (
     <View style={styles.header}>
       <View style={styles.headerText}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
+        <Text style={[styles.title, { color: t.text }]}>{title}</Text>
+        {subtitle && <Text style={[styles.subtitle, { color: t.textMuted }]}>{subtitle}</Text>}
       </View>
       {action}
     </View>
@@ -61,9 +64,10 @@ interface CardSectionProps {
 }
 
 export function CardSection({ title, children }: CardSectionProps) {
+  const { t } = useTheme();
   return (
-    <View style={styles.section}>
-      {title && <Text style={styles.sectionTitle}>{title}</Text>}
+    <View style={[styles.section, { borderTopColor: t.borderSubtle }]}>
+      {title && <Text style={[styles.sectionTitle, { color: t.textMuted }]}>{title}</Text>}
       {children}
     </View>
   );

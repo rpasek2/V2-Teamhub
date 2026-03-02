@@ -7,7 +7,8 @@ import {
   ViewStyle,
   TextStyle,
 } from 'react-native';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize = 'sm' | 'md' | 'lg';
@@ -39,9 +40,26 @@ export function Button({
   icon,
   iconPosition = 'left',
 }: ButtonProps) {
+  const { t } = useTheme();
+
+  const variantOverride = variant === 'primary'
+    ? { backgroundColor: t.primary }
+    : variant === 'secondary'
+    ? { backgroundColor: t.surface, borderColor: t.border }
+    : variant === 'ghost'
+    ? {}
+    : {}; // danger stays static
+
+  const textOverride = variant === 'secondary'
+    ? { color: t.textSecondary }
+    : variant === 'ghost'
+    ? { color: t.primary }
+    : {};
+
   const buttonStyles = [
     styles.base,
     styles[variant],
+    variantOverride,
     styles[`size_${size}`],
     fullWidth && styles.fullWidth,
     disabled && styles.disabled,
@@ -51,6 +69,7 @@ export function Button({
   const textStyles = [
     styles.text,
     styles[`text_${variant}`],
+    textOverride,
     styles[`text_${size}`],
     disabled && styles.textDisabled,
     textStyle,
@@ -65,7 +84,7 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' || variant === 'danger' ? colors.white : theme.light.primary}
+          color={variant === 'primary' || variant === 'danger' ? colors.white : t.primary}
           size="small"
         />
       ) : (
@@ -90,7 +109,7 @@ const styles = StyleSheet.create({
 
   // Variants
   primary: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   secondary: {
     backgroundColor: colors.white,
@@ -137,7 +156,7 @@ const styles = StyleSheet.create({
     color: colors.slate[700],
   },
   text_ghost: {
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   text_danger: {
     color: colors.white,

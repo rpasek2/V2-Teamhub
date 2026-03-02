@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, Plus, Trash2, Link as LinkIcon } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { useHubStore } from '../../stores/hubStore';
 import { supabase } from '../../services/supabase';
 
@@ -40,6 +41,7 @@ const ROLE_OPTIONS = [
 ];
 
 export function CreateAnnouncementModal({ visible, onClose, onCreated }: CreateAnnouncementModalProps) {
+    const { t, isDark } = useTheme();
     const currentHub = useHubStore(s => s.currentHub);
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
@@ -220,13 +222,13 @@ export function CreateAnnouncementModal({ visible, onClose, onCreated }: CreateA
 
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
-            <SafeAreaView style={s.container} edges={['top', 'bottom']}>
+            <SafeAreaView style={[s.container, { backgroundColor: t.surface }]} edges={['top', 'bottom']}>
                 <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
                     {/* Header */}
-                    <View style={s.header}>
-                        <Text style={s.headerTitle}>Create Announcement</Text>
+                    <View style={[s.header, { borderBottomColor: t.border }]}>
+                        <Text style={[s.headerTitle, { color: t.text }]}>Create Announcement</Text>
                         <TouchableOpacity onPress={handleClose} style={s.closeBtn}>
-                            <X size={20} color={colors.slate[500]} />
+                            <X size={20} color={t.textMuted} />
                         </TouchableOpacity>
                     </View>
 
@@ -238,31 +240,31 @@ export function CreateAnnouncementModal({ visible, onClose, onCreated }: CreateA
                         )}
 
                         {/* Title */}
-                        <Text style={s.label}>Title *</Text>
-                        <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder="Announcement title" placeholderTextColor={colors.slate[400]} />
+                        <Text style={[s.label, { color: t.textSecondary }]}>Title *</Text>
+                        <TextInput style={[s.input, { borderColor: t.border, color: t.text, backgroundColor: t.surface }]} value={title} onChangeText={setTitle} placeholder="Announcement title" placeholderTextColor={t.textFaint} />
 
                         {/* Body */}
-                        <Text style={s.label}>Message</Text>
-                        <TextInput style={[s.input, { minHeight: 80, textAlignVertical: 'top' }]} value={body} onChangeText={setBody} placeholder="Optional message..." placeholderTextColor={colors.slate[400]} multiline />
+                        <Text style={[s.label, { color: t.textSecondary }]}>Message</Text>
+                        <TextInput style={[s.input, { minHeight: 80, textAlignVertical: 'top', borderColor: t.border, color: t.text, backgroundColor: t.surface }]} value={body} onChangeText={setBody} placeholder="Optional message..." placeholderTextColor={t.textFaint} multiline />
 
                         {/* Type Toggle */}
-                        <Text style={s.label}>Type</Text>
+                        <Text style={[s.label, { color: t.textSecondary }]}>Type</Text>
                         <View style={s.pillRow}>
-                            {(['announcement', 'questionnaire'] as const).map(t => (
-                                <TouchableOpacity key={t} onPress={() => setType(t)} style={[s.pill, type === t && s.pillActive]}>
-                                    <Text style={[s.pillText, type === t && s.pillTextActive]}>
-                                        {t === 'announcement' ? 'Announcement' : 'Questionnaire'}
+                            {(['announcement', 'questionnaire'] as const).map(tp => (
+                                <TouchableOpacity key={tp} onPress={() => setType(tp)} style={[s.pill, { backgroundColor: t.surfaceSecondary }, type === tp && [s.pillActive, { backgroundColor: t.surface, borderColor: t.border }]]}>
+                                    <Text style={[s.pillText, { color: t.textMuted }, type === tp && [s.pillTextActive, { color: t.text }]]}>
+                                        {tp === 'announcement' ? 'Announcement' : 'Questionnaire'}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
 
                         {/* Targeting */}
-                        <Text style={s.label}>Target Audience</Text>
+                        <Text style={[s.label, { color: t.textSecondary }]}>Target Audience</Text>
                         <View style={s.pillRow}>
                             {([['all', 'All Members'], ['roles', 'By Role'], ['members', 'Specific']] as [TargetMode, string][]).map(([mode, label]) => (
-                                <TouchableOpacity key={mode} onPress={() => setTargetMode(mode)} style={[s.pill, targetMode === mode && s.pillActive]}>
-                                    <Text style={[s.pillText, targetMode === mode && s.pillTextActive]}>{label}</Text>
+                                <TouchableOpacity key={mode} onPress={() => setTargetMode(mode)} style={[s.pill, { backgroundColor: t.surfaceSecondary }, targetMode === mode && [s.pillActive, { backgroundColor: t.surface, borderColor: t.border }]]}>
+                                    <Text style={[s.pillText, { color: t.textMuted }, targetMode === mode && [s.pillTextActive, { color: t.text }]]}>{label}</Text>
                                 </TouchableOpacity>
                             ))}
                         </View>
@@ -271,14 +273,14 @@ export function CreateAnnouncementModal({ visible, onClose, onCreated }: CreateA
                             <View style={s.indent}>
                                 <View style={s.chipRow}>
                                     {ROLE_OPTIONS.map(r => (
-                                        <TouchableOpacity key={r.value} onPress={() => toggleRole(r.value)} style={[s.chip, selectedRoles.includes(r.value) && s.chipActive]}>
-                                            <Text style={[s.chipText, selectedRoles.includes(r.value) && s.chipTextActive]}>{r.label}</Text>
+                                        <TouchableOpacity key={r.value} onPress={() => toggleRole(r.value)} style={[s.chip, { borderColor: t.border, backgroundColor: t.surface }, selectedRoles.includes(r.value) && s.chipActive]}>
+                                            <Text style={[s.chipText, { color: t.textSecondary }, selectedRoles.includes(r.value) && s.chipTextActive]}>{r.label}</Text>
                                         </TouchableOpacity>
                                     ))}
                                 </View>
                                 {levels.length > 0 && (
                                     <>
-                                        <Text style={s.subLabel}>Filter by level (optional)</Text>
+                                        <Text style={[s.subLabel, { color: t.textMuted }]}>Filter by level (optional)</Text>
                                         <View style={s.chipRow}>
                                             {levels.map(l => (
                                                 <TouchableOpacity key={l} onPress={() => toggleLevel(l)} style={[s.chip, selectedLevels.includes(l) && s.chipActiveIndigo]}>
@@ -293,31 +295,31 @@ export function CreateAnnouncementModal({ visible, onClose, onCreated }: CreateA
 
                         {targetMode === 'members' && (
                             <View style={s.indent}>
-                                <TextInput style={s.input} value={memberSearch} onChangeText={setMemberSearch} placeholder="Search members..." placeholderTextColor={colors.slate[400]} />
+                                <TextInput style={[s.input, { borderColor: t.border, color: t.text, backgroundColor: t.surface }]} value={memberSearch} onChangeText={setMemberSearch} placeholder="Search members..." placeholderTextColor={t.textFaint} />
                                 {loadingMembers ? (
                                     <ActivityIndicator style={{ marginTop: 12 }} color={colors.brand[500]} />
                                 ) : (
-                                    <View style={s.memberList}>
+                                    <View style={[s.memberList, { borderColor: t.border }]}>
                                         {filteredMembers.slice(0, 20).map(m => (
-                                            <TouchableOpacity key={m.id} onPress={() => toggleMember(m.id)} style={s.memberRow}>
-                                                <View style={[s.checkbox, selectedMemberIds.includes(m.id) && s.checkboxActive]} />
+                                            <TouchableOpacity key={m.id} onPress={() => toggleMember(m.id)} style={[s.memberRow, { borderBottomColor: t.borderSubtle }]}>
+                                                <View style={[s.checkbox, { borderColor: t.border }, selectedMemberIds.includes(m.id) && s.checkboxActive]} />
                                                 <View style={{ flex: 1 }}>
-                                                    <Text style={s.memberName}>{m.full_name}</Text>
-                                                    <Text style={s.memberEmail}>{m.role}</Text>
+                                                    <Text style={[s.memberName, { color: t.text }]}>{m.full_name}</Text>
+                                                    <Text style={[s.memberEmail, { color: t.textMuted }]}>{m.role}</Text>
                                                 </View>
                                             </TouchableOpacity>
                                         ))}
                                     </View>
                                 )}
                                 {selectedMemberIds.length > 0 && (
-                                    <Text style={s.subLabel}>{selectedMemberIds.length} selected</Text>
+                                    <Text style={[s.subLabel, { color: t.textMuted }]}>{selectedMemberIds.length} selected</Text>
                                 )}
                             </View>
                         )}
 
                         {/* Links */}
                         <View style={s.sectionHeader}>
-                            <Text style={s.label}>Links</Text>
+                            <Text style={[s.label, { color: t.textSecondary }]}>Links</Text>
                             <TouchableOpacity onPress={addLink} style={s.addBtn}>
                                 <Plus size={14} color={colors.brand[600]} />
                                 <Text style={s.addBtnText}>Add Link</Text>
@@ -325,11 +327,11 @@ export function CreateAnnouncementModal({ visible, onClose, onCreated }: CreateA
                         </View>
                         {links.map((link, idx) => (
                             <View key={idx} style={s.linkRow}>
-                                <LinkIcon size={14} color={colors.slate[400]} />
-                                <TextInput style={[s.input, { flex: 1, marginBottom: 0 }]} value={link.label} onChangeText={v => updateLink(idx, { label: v })} placeholder="Label" placeholderTextColor={colors.slate[400]} />
-                                <TextInput style={[s.input, { flex: 2, marginBottom: 0 }]} value={link.url} onChangeText={v => updateLink(idx, { url: v })} placeholder="https://..." placeholderTextColor={colors.slate[400]} autoCapitalize="none" keyboardType="url" />
+                                <LinkIcon size={14} color={t.textFaint} />
+                                <TextInput style={[s.input, { flex: 1, marginBottom: 0, borderColor: t.border, color: t.text, backgroundColor: t.surface }]} value={link.label} onChangeText={v => updateLink(idx, { label: v })} placeholder="Label" placeholderTextColor={t.textFaint} />
+                                <TextInput style={[s.input, { flex: 2, marginBottom: 0, borderColor: t.border, color: t.text, backgroundColor: t.surface }]} value={link.url} onChangeText={v => updateLink(idx, { url: v })} placeholder="https://..." placeholderTextColor={t.textFaint} autoCapitalize="none" keyboardType="url" />
                                 <TouchableOpacity onPress={() => removeLink(idx)}>
-                                    <Trash2 size={16} color={colors.slate[400]} />
+                                    <Trash2 size={16} color={t.textFaint} />
                                 </TouchableOpacity>
                             </View>
                         ))}
@@ -338,36 +340,36 @@ export function CreateAnnouncementModal({ visible, onClose, onCreated }: CreateA
                         {type === 'questionnaire' && (
                             <>
                                 <View style={s.sectionHeader}>
-                                    <Text style={s.label}>Questions</Text>
+                                    <Text style={[s.label, { color: t.textSecondary }]}>Questions</Text>
                                     <TouchableOpacity onPress={addQuestion} style={s.addBtn}>
                                         <Plus size={14} color={colors.brand[600]} />
                                         <Text style={s.addBtnText}>Add Question</Text>
                                     </TouchableOpacity>
                                 </View>
                                 {questions.map((q, qIdx) => (
-                                    <View key={q.id} style={s.questionCard}>
+                                    <View key={q.id} style={[s.questionCard, { borderColor: t.border }]}>
                                         <View style={s.questionHeader}>
-                                            <Text style={s.questionNum}>{qIdx + 1}.</Text>
-                                            <TextInput style={[s.input, { flex: 1, marginBottom: 0 }]} value={q.question} onChangeText={v => updateQuestion(qIdx, { question: v })} placeholder="Question text" placeholderTextColor={colors.slate[400]} />
+                                            <Text style={[s.questionNum, { color: t.textMuted }]}>{qIdx + 1}.</Text>
+                                            <TextInput style={[s.input, { flex: 1, marginBottom: 0, borderColor: t.border, color: t.text, backgroundColor: t.surface }]} value={q.question} onChangeText={v => updateQuestion(qIdx, { question: v })} placeholder="Question text" placeholderTextColor={t.textFaint} />
                                             <TouchableOpacity onPress={() => removeQuestion(qIdx)}>
-                                                <Trash2 size={16} color={colors.slate[400]} />
+                                                <Trash2 size={16} color={t.textFaint} />
                                             </TouchableOpacity>
                                         </View>
                                         <View style={s.pillRow}>
-                                            <TouchableOpacity onPress={() => updateQuestion(qIdx, { type: 'multiple_choice', options: q.options || ['', ''] })} style={[s.pillSm, q.type === 'multiple_choice' && s.pillActive]}>
-                                                <Text style={[s.pillSmText, q.type === 'multiple_choice' && s.pillTextActive]}>Multiple Choice</Text>
+                                            <TouchableOpacity onPress={() => updateQuestion(qIdx, { type: 'multiple_choice', options: q.options || ['', ''] })} style={[s.pillSm, { backgroundColor: t.surfaceSecondary }, q.type === 'multiple_choice' && [s.pillActive, { backgroundColor: t.surface, borderColor: t.border }]]}>
+                                                <Text style={[s.pillSmText, { color: t.textMuted }, q.type === 'multiple_choice' && [s.pillTextActive, { color: t.text }]]}>Multiple Choice</Text>
                                             </TouchableOpacity>
-                                            <TouchableOpacity onPress={() => updateQuestion(qIdx, { type: 'free_text', options: undefined })} style={[s.pillSm, q.type === 'free_text' && s.pillActive]}>
-                                                <Text style={[s.pillSmText, q.type === 'free_text' && s.pillTextActive]}>Free Text</Text>
+                                            <TouchableOpacity onPress={() => updateQuestion(qIdx, { type: 'free_text', options: undefined })} style={[s.pillSm, { backgroundColor: t.surfaceSecondary }, q.type === 'free_text' && [s.pillActive, { backgroundColor: t.surface, borderColor: t.border }]]}>
+                                                <Text style={[s.pillSmText, { color: t.textMuted }, q.type === 'free_text' && [s.pillTextActive, { color: t.text }]]}>Free Text</Text>
                                             </TouchableOpacity>
                                         </View>
                                         {q.type === 'multiple_choice' && (q.options || []).map((opt, oIdx) => (
                                             <View key={oIdx} style={s.optionRow}>
-                                                <View style={s.radioCircle} />
-                                                <TextInput style={[s.input, { flex: 1, marginBottom: 0 }]} value={opt} onChangeText={v => updateOption(qIdx, oIdx, v)} placeholder={`Option ${oIdx + 1}`} placeholderTextColor={colors.slate[400]} />
+                                                <View style={[s.radioCircle, { borderColor: t.border }]} />
+                                                <TextInput style={[s.input, { flex: 1, marginBottom: 0, borderColor: t.border, color: t.text, backgroundColor: t.surface }]} value={opt} onChangeText={v => updateOption(qIdx, oIdx, v)} placeholder={`Option ${oIdx + 1}`} placeholderTextColor={t.textFaint} />
                                                 {(q.options || []).length > 2 && (
                                                     <TouchableOpacity onPress={() => removeOption(qIdx, oIdx)}>
-                                                        <Trash2 size={14} color={colors.slate[400]} />
+                                                        <Trash2 size={14} color={t.textFaint} />
                                                     </TouchableOpacity>
                                                 )}
                                             </View>
@@ -384,9 +386,9 @@ export function CreateAnnouncementModal({ visible, onClose, onCreated }: CreateA
                     </ScrollView>
 
                     {/* Footer */}
-                    <View style={s.footer}>
-                        <TouchableOpacity onPress={handleClose} style={s.cancelBtn} disabled={submitting}>
-                            <Text style={s.cancelBtnText}>Cancel</Text>
+                    <View style={[s.footer, { borderTopColor: t.border }]}>
+                        <TouchableOpacity onPress={handleClose} style={[s.cancelBtn, { borderColor: t.border }]} disabled={submitting}>
+                            <Text style={[s.cancelBtnText, { color: t.textSecondary }]}>Cancel</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={handleSubmit} style={[s.submitBtn, (!title.trim() || submitting) && { opacity: 0.5 }]} disabled={submitting || !title.trim()}>
                             {submitting ? (

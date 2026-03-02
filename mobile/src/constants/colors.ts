@@ -212,6 +212,13 @@ export const theme = {
     tabIconDefault: colors.slate[400],
     tabIconSelected: colors.brand[600],
 
+    // Extra tokens
+    textFaint: colors.slate[400],
+    borderSubtle: colors.slate[100],
+    inputBg: colors.white,
+    overlay: 'rgba(0, 0, 0, 0.5)',
+    surfaceTertiary: colors.slate[50],
+
     // Status
     success: colors.success[600],
     error: colors.error[600],
@@ -242,6 +249,13 @@ export const theme = {
     tabBar: colors.slate[800],
     tabIconDefault: colors.slate[500],
     tabIconSelected: colors.brand[500],
+
+    // Extra tokens
+    textFaint: colors.slate[500],
+    borderSubtle: colors.slate[700],
+    inputBg: colors.slate[800],
+    overlay: 'rgba(0, 0, 0, 0.7)',
+    surfaceTertiary: colors.slate[700],
 
     // Status
     success: colors.success[500],

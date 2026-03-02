@@ -24,7 +24,8 @@ import {
   Trash2,
   CloudDownload,
 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useOfflineMusicStore } from '../../src/stores/offlineMusicStore';
@@ -45,6 +46,7 @@ interface LevelGroup {
 }
 
 export default function FloorMusicScreen() {
+  const { t, isDark } = useTheme();
   const router = useRouter();
   const [gymnasts, setGymnasts] = useState<FloorMusicGymnast[]>([]);
   const [loading, setLoading] = useState(true);
@@ -176,40 +178,40 @@ export default function FloorMusicScreen() {
       const isDownloading = !!progress;
 
       return (
-        <View key={gymnast.id} style={styles.gymnastRow}>
+        <View key={gymnast.id} style={[styles.gymnastRow, { borderBottomColor: t.borderSubtle }]}>
           <View style={styles.gymnastInfo}>
             <View style={styles.gymnastNameRow}>
-              <Text style={styles.gymnastName}>
+              <Text style={[styles.gymnastName, { color: t.text }]}>
                 {gymnast.first_name} {gymnast.last_name}
               </Text>
               {downloaded && (
-                <View style={styles.downloadedBadge}>
+                <View style={[styles.downloadedBadge, { backgroundColor: isDark ? colors.success[700] + '20' : colors.success[50] }]}>
                   <Check size={10} color={colors.success[600]} />
                 </View>
               )}
             </View>
-            <Text style={styles.musicFileName} numberOfLines={1}>
+            <Text style={[styles.musicFileName, { color: t.textMuted }]} numberOfLines={1}>
               {gymnast.floor_music_name || 'Floor Music'}
             </Text>
           </View>
           <View style={styles.gymnastActions}>
             <TouchableOpacity
-              style={[styles.actionBtn, isPlaying && styles.actionBtnActive]}
+              style={[styles.actionBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }, isPlaying && { backgroundColor: `${t.primary}15` }]}
               onPress={() => handlePlay(gymnast)}
             >
               {isPlaying ? (
-                <Square size={16} color={colors.brand[600]} />
+                <Square size={16} color={t.primary} />
               ) : (
-                <Play size={16} color={colors.brand[600]} />
+                <Play size={16} color={t.primary} />
               )}
             </TouchableOpacity>
             {isDownloading ? (
-              <View style={[styles.actionBtn, styles.downloadingBtn]}>
-                <ActivityIndicator size="small" color={colors.brand[600]} />
+              <View style={[styles.actionBtn, { backgroundColor: `${t.primary}15` }]}>
+                <ActivityIndicator size="small" color={t.primary} />
               </View>
             ) : downloaded ? (
               <TouchableOpacity
-                style={[styles.actionBtn, styles.downloadedBtn]}
+                style={[styles.actionBtn, { backgroundColor: isDark ? colors.success[700] + '20' : colors.success[50] }]}
                 onPress={() => {
                   Alert.alert(
                     'Remove Download',
@@ -225,10 +227,10 @@ export default function FloorMusicScreen() {
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
-                style={styles.actionBtn}
+                style={[styles.actionBtn, { backgroundColor: t.surfaceSecondary }]}
                 onPress={() => offlineStore.downloadFile(gymnast.id, gymnast.floor_music_url, gymnast.floor_music_name || 'floor-music')}
               >
-                <Download size={16} color={colors.slate[600]} />
+                <Download size={16} color={t.textSecondary} />
               </TouchableOpacity>
             )}
           </View>
@@ -241,23 +243,23 @@ export default function FloorMusicScreen() {
   const renderLevelGroup = useCallback(({ item }: { item: LevelGroup }) => {
     const isCollapsed = collapsedLevels.has(item.level);
     return (
-      <View style={styles.levelGroup}>
+      <View style={[styles.levelGroup, { backgroundColor: t.surface, borderColor: t.border }]}>
         <TouchableOpacity
-          style={styles.levelHeader}
+          style={[styles.levelHeader, { backgroundColor: t.background }]}
           onPress={() => toggleLevel(item.level)}
         >
           <View style={styles.levelHeaderLeft}>
             {isCollapsed ? (
-              <ChevronRight size={18} color={colors.slate[400]} />
+              <ChevronRight size={18} color={t.textFaint} />
             ) : (
-              <ChevronDown size={18} color={colors.slate[400]} />
+              <ChevronDown size={18} color={t.textFaint} />
             )}
-            <Text style={styles.levelTitle}>{item.level}</Text>
-            <Text style={styles.levelCount}>({item.gymnasts.length})</Text>
+            <Text style={[styles.levelTitle, { color: t.text }]}>{item.level}</Text>
+            <Text style={[styles.levelCount, { color: t.textMuted }]}>({item.gymnasts.length})</Text>
           </View>
         </TouchableOpacity>
         {!isCollapsed && (
-          <View style={styles.levelContent}>
+          <View style={[styles.levelContent, { borderTopColor: t.borderSubtle }]}>
             {item.gymnasts.map(renderGymnast)}
           </View>
         )}
@@ -267,50 +269,50 @@ export default function FloorMusicScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color={colors.slate[400]} />
+      <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <View style={[styles.searchBar, { backgroundColor: t.surfaceSecondary }]}>
+          <Search size={20} color={t.textFaint} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: t.text }]}
             placeholder="Search by name..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={searchTerm}
             onChangeText={setSearchTerm}
           />
         </View>
-        <Text style={styles.countText}>
+        <Text style={[styles.countText, { color: t.textMuted }]}>
           {gymnasts.length} gymnast{gymnasts.length !== 1 ? 's' : ''} with floor music
         </Text>
       </View>
 
       {/* Level Filter */}
       {levelsWithMusic.length > 1 && (
-        <View style={styles.filterContainer}>
+        <View style={[styles.filterContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList}>
             <TouchableOpacity
-              style={[styles.filterChip, selectedLevel === null && styles.filterChipActive]}
+              style={[styles.filterChip, { backgroundColor: t.surfaceSecondary }, selectedLevel === null && { backgroundColor: t.primary }]}
               onPress={() => setSelectedLevel(null)}
             >
-              <Text style={[styles.filterChipText, selectedLevel === null && styles.filterChipTextActive]}>
+              <Text style={[styles.filterChipText, { color: t.textSecondary }, selectedLevel === null && styles.filterChipTextActive]}>
                 All
               </Text>
             </TouchableOpacity>
             {levelsWithMusic.map((level) => (
               <TouchableOpacity
                 key={level}
-                style={[styles.filterChip, selectedLevel === level && styles.filterChipActive]}
+                style={[styles.filterChip, { backgroundColor: t.surfaceSecondary }, selectedLevel === level && { backgroundColor: t.primary }]}
                 onPress={() => setSelectedLevel(selectedLevel === level ? null : level)}
               >
-                <Text style={[styles.filterChipText, selectedLevel === level && styles.filterChipTextActive]}>
+                <Text style={[styles.filterChipText, { color: t.textSecondary }, selectedLevel === level && styles.filterChipTextActive]}>
                   {level}
                 </Text>
               </TouchableOpacity>
@@ -321,20 +323,20 @@ export default function FloorMusicScreen() {
 
       {/* Offline Toolbar */}
       {gymnasts.length > 0 && (
-        <View style={styles.offlineToolbar}>
-          <Text style={styles.offlineInfoText}>
+        <View style={[styles.offlineToolbar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+          <Text style={[styles.offlineInfoText, { color: t.textMuted }]}>
             {offlineStore.getDownloadCount()} of {gymnasts.length} saved offline
           </Text>
           <View style={styles.offlineActions}>
             {bulkDownloading ? (
-              <TouchableOpacity style={styles.cancelBtn} onPress={offlineStore.cancelBulkDownload}>
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+              <TouchableOpacity style={[styles.cancelBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]} onPress={offlineStore.cancelBulkDownload}>
+                <Text style={[styles.cancelBtnText, { color: t.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
             ) : (
               <>
                 {offlineStore.getDownloadCount() > 0 && (
                   <TouchableOpacity
-                    style={styles.removeAllBtn}
+                    style={[styles.removeAllBtn, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]}
                     onPress={() => {
                       Alert.alert(
                         'Remove All Downloads',
@@ -346,11 +348,11 @@ export default function FloorMusicScreen() {
                       );
                     }}
                   >
-                    <Trash2 size={16} color={colors.error[600]} />
+                    <Trash2 size={16} color={isDark ? colors.error[400] : colors.error[600]} />
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
-                  style={styles.downloadAllBtn}
+                  style={[styles.downloadAllBtn, { backgroundColor: t.primary }]}
                   onPress={async () => {
                     const result = await offlineStore.downloadAll(
                       gymnasts.map(g => ({ id: g.id, floor_music_url: g.floor_music_url, floor_music_name: g.floor_music_name }))
@@ -371,11 +373,11 @@ export default function FloorMusicScreen() {
 
       {groupedByLevel.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Music size={48} color={colors.slate[300]} />
-          <Text style={styles.emptyTitle}>
+          <Music size={48} color={t.textFaint} />
+          <Text style={[styles.emptyTitle, { color: t.text }]}>
             {searchTerm || selectedLevel ? 'No results found' : 'No floor music uploaded yet'}
           </Text>
-          <Text style={styles.emptyText}>
+          <Text style={[styles.emptyText, { color: t.textMuted }]}>
             {searchTerm
               ? 'Try a different search term'
               : 'Upload floor music from gymnast profiles'}

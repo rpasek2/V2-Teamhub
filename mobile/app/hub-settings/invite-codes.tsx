@@ -22,7 +22,8 @@ import {
   Link2,
 } from 'lucide-react-native';
 import { format, addDays } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -45,6 +46,7 @@ const ROLES = [
 ];
 
 export default function InviteCodesScreen() {
+  const { t, isDark } = useTheme();
   const currentHub = useHubStore((state) => state.currentHub);
   const currentRole = useHubStore((state) => state.currentRole);
   const user = useAuthStore((state) => state.user);
@@ -182,14 +184,14 @@ export default function InviteCodesScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
         {/* Create Button */}
         <TouchableOpacity
@@ -210,11 +212,11 @@ export default function InviteCodesScreen() {
             return (
               <View
                 key={code.id}
-                style={[styles.codeCard, isDisabled && styles.codeCardDisabled]}
+                style={[styles.codeCard, { backgroundColor: t.surface, borderColor: t.border }, isDisabled && styles.codeCardDisabled]}
               >
                 <View style={styles.codeHeader}>
                   <View style={styles.codeMain}>
-                    <Text style={[styles.codeText, isDisabled && styles.codeTextDisabled]}>
+                    <Text style={[styles.codeText, { color: t.text }, isDisabled && styles.codeTextDisabled]}>
                       {code.code}
                     </Text>
                     <TouchableOpacity
@@ -243,17 +245,17 @@ export default function InviteCodesScreen() {
 
                 <View style={styles.codeStats}>
                   <View style={styles.codeStat}>
-                    <Users size={14} color={colors.slate[400]} />
-                    <Text style={styles.codeStatText}>
+                    <Users size={14} color={t.textFaint} />
+                    <Text style={[styles.codeStatText, { color: t.textMuted }]}>
                       {code.uses}{code.max_uses ? `/${code.max_uses}` : ''} uses
                     </Text>
                   </View>
                   {code.expires_at && (
                     <View style={styles.codeStat}>
-                      <Calendar size={14} color={isExpired ? colors.error[500] : colors.slate[400]} />
+                      <Calendar size={14} color={isExpired ? colors.error[500] : t.textFaint} />
                       <Text
                         style={[
-                          styles.codeStatText,
+                          styles.codeStatText, { color: t.textMuted },
                           isExpired && { color: colors.error[500] },
                         ]}
                       >
@@ -265,7 +267,7 @@ export default function InviteCodesScreen() {
                   )}
                 </View>
 
-                <View style={styles.codeActions}>
+                <View style={[styles.codeActions, { borderTopColor: t.borderSubtle }]}>
                   <TouchableOpacity
                     style={[
                       styles.toggleBtn,
@@ -300,10 +302,10 @@ export default function InviteCodesScreen() {
             );
           })
         ) : (
-          <View style={styles.emptyCard}>
+          <View style={[styles.emptyCard, { backgroundColor: t.surface, borderColor: t.border }]}>
             <Link2 size={40} color={colors.slate[300]} />
-            <Text style={styles.emptyTitle}>No Invite Codes</Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No Invite Codes</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               Create invite codes to allow others to join this hub
             </Text>
           </View>
@@ -317,31 +319,31 @@ export default function InviteCodesScreen() {
         transparent={true}
         onRequestClose={() => setShowCreateModal(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Create Invite Code</Text>
+        <View style={[styles.modalOverlay, { backgroundColor: t.overlay }]}>
+          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.modalTitle, { color: t.text }]}>Create Invite Code</Text>
               <TouchableOpacity onPress={() => setShowCreateModal(false)}>
-                <X size={24} color={colors.slate[600]} />
+                <X size={24} color={t.textSecondary} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
               {/* Role Selection */}
-              <Text style={styles.inputLabel}>Role</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Role</Text>
               <View style={styles.rolePicker}>
                 {ROLES.map((role) => (
                   <TouchableOpacity
                     key={role.value}
                     style={[
-                      styles.roleOption,
+                      styles.roleOption, { backgroundColor: t.surfaceSecondary, borderColor: t.border },
                       newCodeRole === role.value && styles.roleOptionSelected,
                     ]}
                     onPress={() => setNewCodeRole(role.value)}
                   >
                     <Text
                       style={[
-                        styles.roleOptionText,
+                        styles.roleOptionText, { color: t.textSecondary },
                         newCodeRole === role.value && styles.roleOptionTextSelected,
                       ]}
                     >
@@ -352,31 +354,31 @@ export default function InviteCodesScreen() {
               </View>
 
               {/* Max Uses */}
-              <Text style={styles.inputLabel}>Max Uses (optional)</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Max Uses (optional)</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: t.background, borderColor: t.border, color: t.text }]}
                 placeholder="Unlimited"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 keyboardType="number-pad"
                 value={newCodeMaxUses}
                 onChangeText={setNewCodeMaxUses}
               />
 
               {/* Expires In */}
-              <Text style={styles.inputLabel}>Expires In (days)</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Expires In (days)</Text>
               <View style={styles.expiryPicker}>
                 {['7', '14', '30', ''].map((days) => (
                   <TouchableOpacity
                     key={days || 'never'}
                     style={[
-                      styles.expiryOption,
+                      styles.expiryOption, { backgroundColor: t.surfaceSecondary, borderColor: t.border },
                       newCodeExpiresIn === days && styles.expiryOptionSelected,
                     ]}
                     onPress={() => setNewCodeExpiresIn(days)}
                   >
                     <Text
                       style={[
-                        styles.expiryOptionText,
+                        styles.expiryOptionText, { color: t.textSecondary },
                         newCodeExpiresIn === days && styles.expiryOptionTextSelected,
                       ]}
                     >
@@ -387,12 +389,12 @@ export default function InviteCodesScreen() {
               </View>
             </ScrollView>
 
-            <View style={styles.modalFooter}>
+            <View style={[styles.modalFooter, { borderTopColor: t.border }]}>
               <TouchableOpacity
-                style={styles.cancelBtn}
+                style={[styles.cancelBtn, { backgroundColor: t.surfaceSecondary }]}
                 onPress={() => setShowCreateModal(false)}
               >
-                <Text style={styles.cancelBtnText}>Cancel</Text>
+                <Text style={[styles.cancelBtnText, { color: t.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.confirmBtn, creating && styles.confirmBtnDisabled]}

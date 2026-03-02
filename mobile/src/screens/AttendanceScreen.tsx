@@ -22,10 +22,11 @@ import {
   Users,
 } from 'lucide-react-native';
 import { format, parseISO, addDays, subDays } from 'date-fns';
-import { colors, theme } from '../constants/colors';
+import { colors } from '../constants/colors';
 import { supabase } from '../services/supabase';
 import { useHubStore } from '../stores/hubStore';
 import { useAuthStore } from '../stores/authStore';
+import { useTheme } from '../hooks/useTheme';
 
 type AttendanceStatus = 'present' | 'late' | 'left_early' | 'absent';
 
@@ -58,7 +59,12 @@ interface GymnastWithAttendance extends GymnastProfile {
   expected_end?: string;
 }
 
-const STATUS_CONFIG: Record<AttendanceStatus, { label: string; color: string; bgColor: string; icon: typeof Check }> = {
+const getStatusConfig = (dark: boolean): Record<AttendanceStatus, { label: string; color: string; bgColor: string; icon: typeof Check }> => dark ? {
+  present: { label: 'Present', color: colors.emerald[400], bgColor: colors.emerald[700] + '30', icon: Check },
+  late: { label: 'Late', color: colors.amber[500], bgColor: colors.amber[700] + '30', icon: Clock },
+  left_early: { label: 'Left Early', color: colors.blue[400], bgColor: colors.blue[700] + '30', icon: LogOut },
+  absent: { label: 'Absent', color: colors.error[400], bgColor: colors.error[700] + '30', icon: X },
+} : {
   present: { label: 'Present', color: colors.emerald[700], bgColor: colors.emerald[100], icon: Check },
   late: { label: 'Late', color: colors.amber[700], bgColor: colors.amber[100], icon: Clock },
   left_early: { label: 'Left Early', color: colors.blue[700], bgColor: colors.blue[100], icon: LogOut },
@@ -76,6 +82,9 @@ export function AttendanceScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState<string | null>(null);
   const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
+
+  const { t, isDark } = useTheme();
+  const STATUS_CONFIG = getStatusConfig(isDark);
 
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
@@ -316,20 +325,20 @@ export function AttendanceScreen() {
     const isSaving = saving === gymnast.id;
 
     return (
-      <View key={gymnast.id} style={styles.gymnastRow}>
+      <View key={gymnast.id} style={[styles.gymnastRow, { borderBottomColor: t.borderSubtle }]}>
         <View style={styles.gymnastInfo}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarText}>
+          <View style={[styles.avatar, { backgroundColor: isDark ? colors.slate[700] : colors.slate[200] }]}>
+            <Text style={[styles.avatarText, { color: t.textSecondary }]}>
               {gymnast.first_name?.[0]}
               {gymnast.last_name?.[0]}
             </Text>
           </View>
           <View style={styles.gymnastDetails}>
-            <Text style={styles.gymnastName}>
+            <Text style={[styles.gymnastName, { color: t.text }]}>
               {gymnast.first_name} {gymnast.last_name}
             </Text>
             {gymnast.expected_start && gymnast.expected_end && (
-              <Text style={styles.gymnastTime}>
+              <Text style={[styles.gymnastTime, { color: t.textMuted }]}>
                 {formatTime(gymnast.expected_start)} - {formatTime(gymnast.expected_end)}
               </Text>
             )}
@@ -338,7 +347,7 @@ export function AttendanceScreen() {
 
         <View style={styles.statusButtons}>
           {isSaving ? (
-            <ActivityIndicator size="small" color={colors.slate[400]} />
+            <ActivityIndicator size="small" color={t.textFaint} />
           ) : (
             (['present', 'late', 'left_early', 'absent'] as AttendanceStatus[]).map((status) => {
               const config = STATUS_CONFIG[status];
@@ -352,11 +361,12 @@ export function AttendanceScreen() {
                   disabled={!canManage}
                   style={[
                     styles.statusButton,
+                    { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] },
                     isActive && { backgroundColor: config.bgColor },
                     !canManage && styles.statusButtonDisabled,
                   ]}
                 >
-                  <Icon size={18} color={isActive ? config.color : colors.slate[400]} />
+                  <Icon size={18} color={isActive ? config.color : t.textFaint} />
                 </TouchableOpacity>
               );
             })
@@ -372,52 +382,52 @@ export function AttendanceScreen() {
     const stats = getLevelStats(levelGymnasts);
 
     return (
-      <View style={styles.levelCard}>
+      <View style={[styles.levelCard, { backgroundColor: t.surface, borderColor: t.border }]}>
         <TouchableOpacity
-          style={styles.levelHeader}
+          style={[styles.levelHeader, { backgroundColor: t.surfaceSecondary, borderBottomColor: t.border }]}
           onPress={() => toggleLevel(level)}
           activeOpacity={0.7}
         >
           <View style={styles.levelTitleRow}>
             {isExpanded ? (
-              <ChevronDown size={20} color={colors.slate[500]} />
+              <ChevronDown size={20} color={t.textMuted} />
             ) : (
-              <ChevronUp size={20} color={colors.slate[500]} />
+              <ChevronUp size={20} color={t.textMuted} />
             )}
-            <Text style={styles.levelTitle}>{level}</Text>
-            <Text style={styles.levelCount}>({levelGymnasts.length})</Text>
+            <Text style={[styles.levelTitle, { color: t.text }]}>{level}</Text>
+            <Text style={[styles.levelCount, { color: t.textMuted }]}>({levelGymnasts.length})</Text>
           </View>
 
           <View style={styles.levelStats}>
             {stats.present > 0 && (
-              <View style={[styles.statBadge, { backgroundColor: colors.emerald[100] }]}>
-                <Text style={[styles.statBadgeText, { color: colors.emerald[700] }]}>
+              <View style={[styles.statBadge, { backgroundColor: STATUS_CONFIG.present.bgColor }]}>
+                <Text style={[styles.statBadgeText, { color: STATUS_CONFIG.present.color }]}>
                   {stats.present}
                 </Text>
               </View>
             )}
             {stats.late > 0 && (
-              <View style={[styles.statBadge, { backgroundColor: colors.amber[100] }]}>
-                <Text style={[styles.statBadgeText, { color: colors.amber[700] }]}>{stats.late}</Text>
+              <View style={[styles.statBadge, { backgroundColor: STATUS_CONFIG.late.bgColor }]}>
+                <Text style={[styles.statBadgeText, { color: STATUS_CONFIG.late.color }]}>{stats.late}</Text>
               </View>
             )}
             {stats.absent > 0 && (
-              <View style={[styles.statBadge, { backgroundColor: colors.error[100] }]}>
-                <Text style={[styles.statBadgeText, { color: colors.error[700] }]}>
+              <View style={[styles.statBadge, { backgroundColor: STATUS_CONFIG.absent.bgColor }]}>
+                <Text style={[styles.statBadgeText, { color: STATUS_CONFIG.absent.color }]}>
                   {stats.absent}
                 </Text>
               </View>
             )}
             {canManage && stats.unmarked > 0 && (
               <TouchableOpacity
-                style={styles.markAllButton}
+                style={[styles.markAllButton, { backgroundColor: STATUS_CONFIG.present.bgColor }]}
                 onPress={() => markAllPresent(level)}
                 disabled={saving === `all-${level}`}
               >
                 {saving === `all-${level}` ? (
-                  <ActivityIndicator size="small" color={colors.emerald[700]} />
+                  <ActivityIndicator size="small" color={STATUS_CONFIG.present.color} />
                 ) : (
-                  <Text style={styles.markAllText}>All Present</Text>
+                  <Text style={[styles.markAllText, { color: STATUS_CONFIG.present.color }]}>All Present</Text>
                 )}
               </TouchableOpacity>
             )}
@@ -433,40 +443,40 @@ export function AttendanceScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.dateNav}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
+      <View style={[styles.dateNav, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity onPress={goToPrevDay} style={styles.navButton}>
-          <ChevronLeft size={24} color={colors.slate[600]} />
+          <ChevronLeft size={24} color={t.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={goToToday} style={styles.dateDisplay}>
-          <Calendar size={18} color={colors.slate[500]} />
-          <Text style={styles.dateText}>{format(parseISO(selectedDate), 'EEE, MMM d')}</Text>
-          <Text style={styles.dayText}>{DAYS_OF_WEEK[selectedDayOfWeek]}</Text>
+          <Calendar size={18} color={t.textMuted} />
+          <Text style={[styles.dateText, { color: t.text }]}>{format(parseISO(selectedDate), 'EEE, MMM d')}</Text>
+          <Text style={[styles.dayText, { color: t.textMuted }]}>{DAYS_OF_WEEK[selectedDayOfWeek]}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={goToNextDay} style={styles.navButton}>
-          <ChevronRight size={24} color={colors.slate[600]} />
+          <ChevronRight size={24} color={t.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.summaryBar}>
-        <Users size={16} color={colors.slate[500]} />
-        <Text style={styles.summaryText}>
+      <View style={[styles.summaryBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <Users size={16} color={t.textMuted} />
+        <Text style={[styles.summaryText, { color: t.textSecondary }]}>
           {gymnastsWithPractice.length} gymnasts expected
         </Text>
       </View>
 
       {gymnastsByLevel.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Calendar size={48} color={colors.slate[300]} />
-          <Text style={styles.emptyTitle}>No practice scheduled</Text>
-          <Text style={styles.emptyText}>
+          <Calendar size={48} color={t.textFaint} />
+          <Text style={[styles.emptyTitle, { color: t.text }]}>No practice scheduled</Text>
+          <Text style={[styles.emptyText, { color: t.textMuted }]}>
             No gymnasts have practice on {DAYS_OF_WEEK[selectedDayOfWeek]}.
           </Text>
         </View>
@@ -476,7 +486,7 @@ export function AttendanceScreen() {
           keyExtractor={([level]) => level}
           renderItem={renderLevelSection}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
         />
       )}
     </View>

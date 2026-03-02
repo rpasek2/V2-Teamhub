@@ -20,7 +20,8 @@ import {
   LayoutGrid,
 } from 'lucide-react-native';
 import { format, addDays, subDays, parseISO, isToday } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -40,7 +41,15 @@ const EVENT_LABELS: Record<AssignmentEventType, string> = {
   conditioning: 'Conditioning',
 };
 
-const EVENT_COLORS: Record<AssignmentEventType, { bg: string; text: string }> = {
+const getEventColors = (dark: boolean): Record<AssignmentEventType, { bg: string; text: string }> => dark ? {
+  vault: { bg: colors.purple[700] + '30', text: colors.purple[400] },
+  bars: { bg: colors.blue[700] + '30', text: colors.blue[400] },
+  beam: { bg: colors.rose[700] + '30', text: colors.rose[400] },
+  floor: { bg: colors.emerald[700] + '30', text: colors.emerald[400] },
+  strength: { bg: colors.amber[700] + '30', text: colors.amber[500] },
+  flexibility: { bg: colors.cyan[700] + '30', text: colors.cyan[400] },
+  conditioning: { bg: colors.orange[700] + '30', text: colors.orange[400] },
+} : {
   vault: { bg: colors.purple[100], text: colors.purple[700] },
   bars: { bg: colors.blue[100], text: colors.blue[700] },
   beam: { bg: colors.rose[100], text: colors.rose[700] },
@@ -139,34 +148,36 @@ function calculateOverallStats(assignments: Assignment[]): ProgressStats {
 
 // Progress Bar Component
 function ProgressBar({ percentage }: { percentage: number }) {
+  const { t } = useTheme();
   return (
     <View style={styles.progressBarContainer}>
-      <View style={styles.progressBarBg}>
+      <View style={[styles.progressBarBg, { backgroundColor: t.surfaceSecondary }]}>
         <View style={[styles.progressBarFill, { width: `${percentage}%` }]} />
       </View>
-      <Text style={styles.progressPercentage}>{percentage}%</Text>
+      <Text style={[styles.progressPercentage, { color: t.textSecondary }]}>{percentage}%</Text>
     </View>
   );
 }
 
 // Stats Dashboard Component
 function StatsDashboard({ stats, assignmentCount }: { stats: ProgressStats; assignmentCount: number }) {
+  const { t } = useTheme();
   return (
-    <View style={styles.statsContainer}>
+    <View style={[styles.statsContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
       <View style={styles.statsRow}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{assignmentCount}</Text>
-          <Text style={styles.statLabel}>{assignmentCount === 1 ? 'Gymnast' : 'Gymnasts'}</Text>
+          <Text style={[styles.statValue, { color: t.text }]}>{assignmentCount}</Text>
+          <Text style={[styles.statLabel, { color: t.textMuted }]}>{assignmentCount === 1 ? 'Gymnast' : 'Gymnasts'}</Text>
         </View>
-        <View style={styles.statDivider} />
+        <View style={[styles.statDivider, { backgroundColor: t.border }]} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{stats.completedExercises}</Text>
-          <Text style={styles.statLabel}>Completed</Text>
+          <Text style={[styles.statValue, { color: t.text }]}>{stats.completedExercises}</Text>
+          <Text style={[styles.statLabel, { color: t.textMuted }]}>Completed</Text>
         </View>
-        <View style={styles.statDivider} />
+        <View style={[styles.statDivider, { backgroundColor: t.border }]} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{stats.totalExercises}</Text>
-          <Text style={styles.statLabel}>Total</Text>
+          <Text style={[styles.statValue, { color: t.text }]}>{stats.totalExercises}</Text>
+          <Text style={[styles.statLabel, { color: t.textMuted }]}>Total</Text>
         </View>
       </View>
       <ProgressBar percentage={stats.percentage} />
@@ -188,21 +199,22 @@ function ExerciseItem({
   canToggle: boolean;
   toggling: boolean;
 }) {
+  const { t, isDark } = useTheme();
   return (
     <TouchableOpacity
-      style={[styles.exerciseItem, isCompleted && styles.exerciseItemCompleted]}
+      style={[styles.exerciseItem, isCompleted && { backgroundColor: isDark ? colors.emerald[700] + '15' : colors.emerald[50] }]}
       onPress={canToggle ? onToggle : undefined}
       disabled={!canToggle || toggling}
       activeOpacity={canToggle ? 0.7 : 1}
     >
       {toggling ? (
-        <ActivityIndicator size="small" color={theme.light.primary} style={styles.exerciseCheckbox} />
+        <ActivityIndicator size="small" color={t.primary} style={styles.exerciseCheckbox} />
       ) : isCompleted ? (
-        <CheckCircle2 size={22} color={colors.emerald[500]} style={styles.exerciseCheckbox} />
+        <CheckCircle2 size={22} color={isDark ? colors.emerald[400] : colors.emerald[500]} style={styles.exerciseCheckbox} />
       ) : (
-        <Circle size={22} color={canToggle ? colors.slate[400] : colors.slate[300]} style={styles.exerciseCheckbox} />
+        <Circle size={22} color={t.textFaint} style={styles.exerciseCheckbox} />
       )}
-      <Text style={[styles.exerciseText, isCompleted && styles.exerciseTextCompleted]}>
+      <Text style={[styles.exerciseText, { color: t.textSecondary }, isCompleted && { color: t.textFaint, textDecorationLine: 'line-through' as const }]}>
         {exercise}
       </Text>
     </TouchableOpacity>
@@ -225,19 +237,20 @@ function EventCard({
   onToggleExercise: (index: number) => void;
   togglingIndex: number | null;
 }) {
-  const eventColor = EVENT_COLORS[event];
+  const { t, isDark } = useTheme();
+  const eventColor = getEventColors(isDark)[event];
   const completedCount = completedIndices.length;
   const totalCount = exercises.length;
 
   return (
-    <View style={styles.eventCard}>
+    <View style={[styles.eventCard, { backgroundColor: t.background }]}>
       <View style={styles.eventHeader}>
         <View style={[styles.eventBadge, { backgroundColor: eventColor.bg }]}>
           <Text style={[styles.eventBadgeText, { color: eventColor.text }]}>
             {EVENT_LABELS[event]}
           </Text>
         </View>
-        <Text style={styles.eventProgress}>
+        <Text style={[styles.eventProgress, { color: t.textMuted }]}>
           {completedCount}/{totalCount}
         </Text>
       </View>
@@ -259,7 +272,8 @@ function EventCard({
 
 // Station Card Component — displays stations for a level+event
 function StationEventCard({ station }: { station: StationAssignment }) {
-  const eventColor = EVENT_COLORS[station.event];
+  const { t, isDark } = useTheme();
+  const eventColor = getEventColors(isDark)[station.event];
 
   return (
     <View style={stationStyles.eventSection}>
@@ -272,20 +286,20 @@ function StationEventCard({ station }: { station: StationAssignment }) {
         </Text>
       </View>
       {station.stations.map((main, idx) => (
-        <View key={main.id} style={stationStyles.mainStation}>
+        <View key={main.id} style={[stationStyles.mainStation, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={stationStyles.stationHeader}>
-            <View style={stationStyles.stationNumber}>
+            <View style={[stationStyles.stationNumber, { backgroundColor: isDark ? colors.slate[500] : colors.slate[600] }]}>
               <Text style={stationStyles.stationNumberText}>{idx + 1}</Text>
             </View>
-            <Text style={stationStyles.stationLabel}>Station {idx + 1}</Text>
+            <Text style={[stationStyles.stationLabel, { color: t.textMuted }]}>Station {idx + 1}</Text>
           </View>
-          <Text style={stationStyles.stationContent}>{main.content}</Text>
+          <Text style={[stationStyles.stationContent, { color: t.textSecondary }]}>{main.content}</Text>
           {main.side_stations && main.side_stations.length > 0 && (
-            <View style={stationStyles.sideStationsContainer}>
+            <View style={[stationStyles.sideStationsContainer, { borderTopColor: t.borderSubtle }]}>
               {main.side_stations.map((side, sIdx) => (
-                <View key={side.id} style={stationStyles.sideStation}>
-                  <Text style={stationStyles.sideStationLabel}>Side {sIdx + 1}</Text>
-                  <Text style={stationStyles.sideStationContent}>{side.content}</Text>
+                <View key={side.id} style={[stationStyles.sideStation, { backgroundColor: isDark ? colors.amber[700] + '15' : colors.amber[50], borderColor: isDark ? colors.amber[700] + '30' : colors.amber[200] }]}>
+                  <Text style={[stationStyles.sideStationLabel, { color: isDark ? colors.amber[500] : colors.amber[700] }]}>Side {sIdx + 1}</Text>
+                  <Text style={[stationStyles.sideStationContent, { color: t.textSecondary }]}>{side.content}</Text>
                 </View>
               ))}
             </View>
@@ -298,11 +312,12 @@ function StationEventCard({ station }: { station: StationAssignment }) {
 
 // Station Card for a full level — groups all events for that level
 function LevelStationCard({ level, stations }: { level: string; stations: StationAssignment[] }) {
+  const { t, isDark } = useTheme();
   return (
-    <View style={stationStyles.card}>
+    <View style={[stationStyles.card, { backgroundColor: isDark ? colors.amber[700] + '15' : colors.amber[50], borderColor: isDark ? colors.amber[700] + '30' : colors.amber[200] }]}>
       <View style={stationStyles.cardHeader}>
-        <LayoutGrid size={18} color={colors.amber[600]} />
-        <Text style={stationStyles.cardTitle}>Stations — {level}</Text>
+        <LayoutGrid size={18} color={isDark ? colors.amber[500] : colors.amber[600]} />
+        <Text style={[stationStyles.cardTitle, { color: t.text }]}>Stations — {level}</Text>
       </View>
       {stations.map((s) => (
         <StationEventCard key={s.id} station={s} />
@@ -323,6 +338,7 @@ function AssignmentCard({
   onToggleExercise: (assignmentId: string, event: AssignmentEventType, index: number) => void;
   togglingState: { assignmentId: string; event: string; index: number } | null;
 }) {
+  const { t, isDark } = useTheme();
   const progress = calculateProgress(assignment);
   const isComplete = progress.percentage === 100;
 
@@ -333,25 +349,25 @@ function AssignmentCard({
   });
 
   return (
-    <View style={[styles.assignmentCard, isComplete && styles.assignmentCardComplete]}>
+    <View style={[styles.assignmentCard, { backgroundColor: t.surface, borderColor: t.border }, isComplete && { borderColor: isDark ? colors.emerald[700] : colors.emerald[200], backgroundColor: isDark ? colors.emerald[700] + '10' : colors.emerald[50] }]}>
       <View style={styles.assignmentHeader}>
         <View style={styles.gymnastInfo}>
-          <Text style={styles.gymnastName}>{assignment.gymnast_name}</Text>
+          <Text style={[styles.gymnastName, { color: t.text }]}>{assignment.gymnast_name}</Text>
           {assignment.gymnast_level && (
             <Badge label={assignment.gymnast_level} variant="neutral" size="sm" />
           )}
         </View>
-        <View style={styles.headerProgress}>
-          <Text style={[styles.headerProgressText, isComplete && styles.headerProgressComplete]}>
+        <View style={[styles.headerProgress, { backgroundColor: t.surfaceSecondary }]}>
+          <Text style={[styles.headerProgressText, { color: t.textSecondary }, isComplete && { color: isDark ? colors.emerald[400] : colors.emerald[600] }]}>
             {progress.percentage}%
           </Text>
         </View>
       </View>
 
       {isComplete && (
-        <View style={styles.completeBanner}>
-          <CheckCircle2 size={16} color={colors.emerald[600]} />
-          <Text style={styles.completeBannerText}>All exercises complete!</Text>
+        <View style={[styles.completeBanner, { backgroundColor: isDark ? colors.emerald[700] + '20' : colors.emerald[100] }]}>
+          <CheckCircle2 size={16} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
+          <Text style={[styles.completeBannerText, { color: isDark ? colors.emerald[400] : colors.emerald[700] }]}>All exercises complete!</Text>
         </View>
       )}
 
@@ -379,14 +395,14 @@ function AssignmentCard({
         </View>
       ) : (
         <View style={styles.noExercises}>
-          <Text style={styles.noExercisesText}>No exercises assigned</Text>
+          <Text style={[styles.noExercisesText, { color: t.textFaint }]}>No exercises assigned</Text>
         </View>
       )}
 
       {assignment.notes && (
-        <View style={styles.notesSection}>
-          <Text style={styles.notesLabel}>Notes:</Text>
-          <Text style={styles.notesText}>{assignment.notes}</Text>
+        <View style={[styles.notesSection, { borderTopColor: t.border }]}>
+          <Text style={[styles.notesLabel, { color: t.textMuted }]}>Notes:</Text>
+          <Text style={[styles.notesText, { color: t.textSecondary }]}>{assignment.notes}</Text>
         </View>
       )}
     </View>
@@ -394,6 +410,7 @@ function AssignmentCard({
 }
 
 export default function AssignmentsScreen() {
+  const { t, isDark } = useTheme();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [stations, setStations] = useState<StationAssignment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -622,27 +639,27 @@ export default function AssignmentsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Date Navigator */}
-      <View style={styles.dateNav}>
+      <View style={[styles.dateNav, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity onPress={goToPrevDay} style={styles.navButton}>
-          <ChevronLeft size={24} color={colors.slate[600]} />
+          <ChevronLeft size={24} color={t.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity onPress={goToToday} style={styles.dateDisplay}>
-          <Calendar size={18} color={colors.slate[500]} />
-          <Text style={styles.dateText}>
+          <Calendar size={18} color={t.textMuted} />
+          <Text style={[styles.dateText, { color: t.text }]}>
             {isToday(currentDate) ? 'Today' : format(currentDate, 'EEE, MMM d')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={goToNextDay} style={styles.navButton}>
-          <ChevronRight size={24} color={colors.slate[600]} />
+          <ChevronRight size={24} color={t.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -660,11 +677,11 @@ export default function AssignmentsScreen() {
       >
         {!hasContent ? (
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIcon}>
-              <ClipboardList size={48} color={colors.slate[300]} />
+            <View style={[styles.emptyIcon, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}>
+              <ClipboardList size={48} color={t.textFaint} />
             </View>
-            <Text style={styles.emptyTitle}>No assignments</Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No assignments</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               No assignments for {format(currentDate, 'MMMM d, yyyy')}
             </Text>
           </View>
@@ -677,10 +694,10 @@ export default function AssignmentsScreen() {
               <View key={level} style={styles.levelSection}>
                 {/* Level Header */}
                 <View style={styles.levelHeader}>
-                  <Text style={styles.levelTitle}>{level}</Text>
-                  <View style={styles.levelDivider} />
+                  <Text style={[styles.levelTitle, { color: t.text }]}>{level}</Text>
+                  <View style={[styles.levelDivider, { backgroundColor: t.border }]} />
                   {levelAssignments.length > 0 && (
-                    <Text style={styles.levelCount}>
+                    <Text style={[styles.levelCount, { color: t.textMuted }]}>
                       {levelAssignments.length} gymnast{levelAssignments.length !== 1 ? 's' : ''}
                     </Text>
                   )}

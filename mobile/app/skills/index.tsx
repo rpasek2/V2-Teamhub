@@ -12,7 +12,8 @@ import {
   Pressable,
 } from 'react-native';
 import { Target, ChevronDown, Check } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -51,13 +52,13 @@ interface Gymnast {
 type SkillStatus = 'none' | 'learning' | 'achieved' | 'mastered' | 'injured';
 
 // Status configuration
-const SKILL_STATUS_CONFIG: Record<SkillStatus, { label: string; icon: string; bgColor: string; textColor: string }> = {
-  none: { label: 'Not Started', icon: '', bgColor: colors.slate[100], textColor: colors.slate[400] },
-  learning: { label: 'Learning', icon: '◐', bgColor: colors.amber[100], textColor: colors.amber[700] },
-  achieved: { label: 'Achieved', icon: '✓', bgColor: colors.emerald[100], textColor: colors.emerald[700] },
-  mastered: { label: 'Mastered', icon: '★', bgColor: colors.yellow[100], textColor: colors.yellow[700] },
-  injured: { label: 'Injured', icon: '⚠', bgColor: colors.red[100], textColor: colors.red[700] },
-};
+const getSkillStatusConfig = (isDark: boolean): Record<SkillStatus, { label: string; icon: string; bgColor: string; textColor: string }> => ({
+  none: { label: 'Not Started', icon: '', bgColor: isDark ? colors.slate[700] : colors.slate[100], textColor: isDark ? colors.slate[400] : colors.slate[400] },
+  learning: { label: 'Learning', icon: '◐', bgColor: isDark ? colors.amber[700] + '30' : colors.amber[100], textColor: isDark ? colors.amber[500] : colors.amber[700] },
+  achieved: { label: 'Achieved', icon: '✓', bgColor: isDark ? colors.emerald[700] + '30' : colors.emerald[100], textColor: isDark ? colors.emerald[400] : colors.emerald[700] },
+  mastered: { label: 'Mastered', icon: '★', bgColor: isDark ? colors.yellow[700] + '30' : colors.yellow[100], textColor: isDark ? colors.yellow[500] : colors.yellow[700] },
+  injured: { label: 'Injured', icon: '⚠', bgColor: isDark ? colors.red[700] + '30' : colors.red[100], textColor: isDark ? colors.red[400] : colors.red[700] },
+});
 
 const STATUS_CYCLE: SkillStatus[] = ['none', 'learning', 'achieved', 'mastered', 'injured'];
 
@@ -79,6 +80,7 @@ const DEFAULT_MAG_SKILL_EVENTS: SkillEvent[] = [
 ];
 
 export default function SkillsScreen() {
+  const { t, isDark } = useTheme();
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
@@ -301,43 +303,43 @@ export default function SkillsScreen() {
 
   if (!currentHub) {
     return (
-      <View style={styles.emptyContainer}>
-        <Target size={48} color={colors.slate[300]} />
-        <Text style={styles.emptyTitle}>No hub selected</Text>
-        <Text style={styles.emptyText}>Select a hub to view skills</Text>
+      <View style={[styles.emptyContainer, { backgroundColor: t.background }]}>
+        <Target size={48} color={t.textFaint} />
+        <Text style={[styles.emptyTitle, { color: t.text }]}>No hub selected</Text>
+        <Text style={[styles.emptyText, { color: t.textMuted }]}>Select a hub to view skills</Text>
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Filters Row */}
-      <View style={styles.filtersContainer}>
+      <View style={[styles.filtersContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         {/* Level Dropdown */}
         <View style={styles.dropdownWrapper}>
-          <Text style={styles.dropdownLabel}>Level</Text>
+          <Text style={[styles.dropdownLabel, { color: t.textMuted }]}>Level</Text>
           <TouchableOpacity
-            style={styles.dropdown}
+            style={[styles.dropdown, { backgroundColor: t.background, borderColor: t.border }]}
             onPress={() => setShowLevelDropdown(true)}
           >
-            <Text style={styles.dropdownText} numberOfLines={1}>
+            <Text style={[styles.dropdownText, { color: t.text }]} numberOfLines={1}>
               {selectedLevel || 'Select level'}
             </Text>
-            <ChevronDown size={18} color={colors.slate[500]} />
+            <ChevronDown size={18} color={t.textMuted} />
           </TouchableOpacity>
         </View>
 
         {/* Event Dropdown */}
         <View style={styles.dropdownWrapper}>
-          <Text style={styles.dropdownLabel}>Event</Text>
+          <Text style={[styles.dropdownLabel, { color: t.textMuted }]}>Event</Text>
           <TouchableOpacity
-            style={styles.dropdown}
+            style={[styles.dropdown, { backgroundColor: t.background, borderColor: t.border }]}
             onPress={() => setShowEventDropdown(true)}
           >
-            <Text style={styles.dropdownText} numberOfLines={1}>
+            <Text style={[styles.dropdownText, { color: t.text }]} numberOfLines={1}>
               {selectedEventName || 'Select event'}
             </Text>
-            <ChevronDown size={18} color={colors.slate[500]} />
+            <ChevronDown size={18} color={t.textMuted} />
           </TouchableOpacity>
         </View>
       </View>
@@ -349,16 +351,16 @@ export default function SkillsScreen() {
         animationType="fade"
         onRequestClose={() => setShowLevelDropdown(false)}
       >
-        <Pressable style={styles.pickerOverlay} onPress={() => setShowLevelDropdown(false)}>
-          <View style={styles.pickerContainer}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>Select Level</Text>
+        <Pressable style={[styles.pickerOverlay, { backgroundColor: t.overlay }]} onPress={() => setShowLevelDropdown(false)}>
+          <View style={[styles.pickerContainer, { backgroundColor: t.surface }]}>
+            <View style={[styles.pickerHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.pickerTitle, { color: t.text }]}>Select Level</Text>
             </View>
             <ScrollView style={styles.pickerScroll}>
               {levels.map((level) => (
                 <TouchableOpacity
                   key={level}
-                  style={[styles.pickerItem, selectedLevel === level && styles.pickerItemSelected]}
+                  style={[styles.pickerItem, { borderBottomColor: t.borderSubtle }, selectedLevel === level && { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
                   onPress={() => {
                     setSelectedLevel(level);
                     setShowLevelDropdown(false);
@@ -367,12 +369,13 @@ export default function SkillsScreen() {
                   <Text
                     style={[
                       styles.pickerItemText,
-                      selectedLevel === level && styles.pickerItemTextSelected,
+                      { color: t.textSecondary },
+                      selectedLevel === level && { color: t.primary, fontWeight: '600' },
                     ]}
                   >
                     {level}
                   </Text>
-                  {selectedLevel === level && <Check size={16} color={theme.light.primary} />}
+                  {selectedLevel === level && <Check size={16} color={t.primary} />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -387,35 +390,36 @@ export default function SkillsScreen() {
         animationType="fade"
         onRequestClose={() => setShowEventDropdown(false)}
       >
-        <Pressable style={styles.pickerOverlay} onPress={() => setShowEventDropdown(false)}>
-          <View style={styles.pickerContainer}>
-            <View style={styles.pickerHeader}>
-              <Text style={styles.pickerTitle}>Select Event</Text>
+        <Pressable style={[styles.pickerOverlay, { backgroundColor: t.overlay }]} onPress={() => setShowEventDropdown(false)}>
+          <View style={[styles.pickerContainer, { backgroundColor: t.surface }]}>
+            <View style={[styles.pickerHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.pickerTitle, { color: t.text }]}>Select Event</Text>
             </View>
             <ScrollView style={styles.pickerScroll}>
               {events.map((event) => (
                 <TouchableOpacity
                   key={event.id}
-                  style={[styles.pickerItem, selectedEvent === event.id && styles.pickerItemSelected]}
+                  style={[styles.pickerItem, { borderBottomColor: t.borderSubtle }, selectedEvent === event.id && { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
                   onPress={() => {
                     setSelectedEvent(event.id);
                     setShowEventDropdown(false);
                   }}
                 >
                   <View style={styles.eventItemContent}>
-                    <View style={styles.eventBadge}>
-                      <Text style={styles.eventBadgeText}>{event.label}</Text>
+                    <View style={[styles.eventBadge, { backgroundColor: isDark ? colors.indigo[700] + '30' : colors.indigo[100] }]}>
+                      <Text style={[styles.eventBadgeText, { color: isDark ? colors.indigo[500] : colors.indigo[700] }]}>{event.label}</Text>
                     </View>
                     <Text
                       style={[
                         styles.pickerItemText,
-                        selectedEvent === event.id && styles.pickerItemTextSelected,
+                        { color: t.textSecondary },
+                        selectedEvent === event.id && { color: t.primary, fontWeight: '600' },
                       ]}
                     >
                       {event.fullName}
                     </Text>
                   </View>
-                  {selectedEvent === event.id && <Check size={16} color={theme.light.primary} />}
+                  {selectedEvent === event.id && <Check size={16} color={t.primary} />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -425,33 +429,33 @@ export default function SkillsScreen() {
 
       {/* Error Banner */}
       {error && (
-        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
-          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: isDark ? colors.red[700] + '20' : '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: isDark ? colors.red[700] + '40' : '#FECACA' }}>
+          <Text style={{ color: isDark ? colors.red[400] : '#DC2626', fontSize: 14 }}>{error}</Text>
         </View>
       )}
 
       {/* Content */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={theme.light.primary} />
+          <ActivityIndicator size="large" color={t.primary} />
         </View>
       ) : !selectedLevel || !selectedEvent ? (
         <View style={styles.emptyContainer}>
-          <Target size={48} color={colors.slate[300]} />
-          <Text style={styles.emptyTitle}>Select filters</Text>
-          <Text style={styles.emptyText}>Choose a level and event to view skills</Text>
+          <Target size={48} color={t.textFaint} />
+          <Text style={[styles.emptyTitle, { color: t.text }]}>Select filters</Text>
+          <Text style={[styles.emptyText, { color: t.textMuted }]}>Choose a level and event to view skills</Text>
         </View>
       ) : gymnasts.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Target size={48} color={colors.slate[300]} />
-          <Text style={styles.emptyTitle}>No gymnasts</Text>
-          <Text style={styles.emptyText}>No gymnasts found at {selectedLevel} level</Text>
+          <Target size={48} color={t.textFaint} />
+          <Text style={[styles.emptyTitle, { color: t.text }]}>No gymnasts</Text>
+          <Text style={[styles.emptyText, { color: t.textMuted }]}>No gymnasts found at {selectedLevel} level</Text>
         </View>
       ) : skills.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Target size={48} color={colors.slate[300]} />
-          <Text style={styles.emptyTitle}>No skills defined</Text>
-          <Text style={styles.emptyText}>
+          <Target size={48} color={t.textFaint} />
+          <Text style={[styles.emptyTitle, { color: t.text }]}>No skills defined</Text>
+          <Text style={[styles.emptyText, { color: t.textMuted }]}>
             No skills have been added for {selectedEventName} at {selectedLevel} yet
           </Text>
         </View>
@@ -459,20 +463,20 @@ export default function SkillsScreen() {
         <ScrollView
           style={styles.content}
           contentContainerStyle={styles.contentContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
         >
           {/* Gymnast Cards */}
           {gymnasts.map((gymnast) => (
-            <View key={gymnast.id} style={styles.gymnastCard}>
+            <View key={gymnast.id} style={[styles.gymnastCard, { backgroundColor: t.surface, borderColor: t.border }]}>
               {/* Gymnast Header */}
-              <View style={styles.gymnastHeader}>
-                <View style={styles.gymnastAvatar}>
+              <View style={[styles.gymnastHeader, { backgroundColor: t.background, borderBottomColor: t.border }]}>
+                <View style={[styles.gymnastAvatar, { backgroundColor: t.primary }]}>
                   <Text style={styles.gymnastInitials}>
                     {gymnast.first_name[0]}
                     {gymnast.last_name[0]}
                   </Text>
                 </View>
-                <Text style={styles.gymnastName}>
+                <Text style={[styles.gymnastName, { color: t.text }]}>
                   {gymnast.first_name} {gymnast.last_name}
                 </Text>
               </View>
@@ -481,18 +485,18 @@ export default function SkillsScreen() {
               <View style={styles.skillsList}>
                 {skills.map((skill) => {
                   const status = getSkillStatus(gymnast.id, skill.id);
-                  const config = SKILL_STATUS_CONFIG[status];
+                  const config = getSkillStatusConfig(isDark)[status];
                   const canEdit = isStaff();
 
                   return (
                     <TouchableOpacity
                       key={skill.id}
-                      style={styles.skillRow}
+                      style={[styles.skillRow, { borderBottomColor: t.borderSubtle }]}
                       onPress={() => handleSkillTap(gymnast.id, skill.id)}
                       disabled={!canEdit}
                       activeOpacity={canEdit ? 0.7 : 1}
                     >
-                      <Text style={styles.skillName} numberOfLines={1}>
+                      <Text style={[styles.skillName, { color: t.textSecondary }]} numberOfLines={1}>
                         {skill.skill_name}
                       </Text>
                       <View style={[styles.statusBadge, { backgroundColor: config.bgColor }]}>
@@ -510,7 +514,7 @@ export default function SkillsScreen() {
 
           {/* Footer Hint */}
           {isStaff() && (
-            <Text style={styles.footerHint}>Tap a skill status to cycle through: Not Started → Learning → Achieved → Mastered → Injured</Text>
+            <Text style={[styles.footerHint, { color: t.textMuted }]}>Tap a skill status to cycle through: Not Started → Learning → Achieved → Mastered → Injured</Text>
           )}
         </ScrollView>
       )}
@@ -632,7 +636,7 @@ const styles = StyleSheet.create({
   },
   pickerItemTextSelected: {
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   eventItemContent: {
     flexDirection: 'row',
@@ -683,7 +687,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
   },

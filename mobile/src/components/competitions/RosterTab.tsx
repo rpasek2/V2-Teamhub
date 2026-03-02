@@ -11,7 +11,8 @@ import {
   ChevronRight,
   UserPlus,
 } from 'lucide-react-native';
-import { colors, theme } from '../../../src/constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { GymEvent, Gymnast, EVENT_LABELS, getEventsForGender } from './types';
 
 interface RosterTabProps {
@@ -29,6 +30,7 @@ export function RosterTab({
   onToggleEvent,
   onManageRoster,
 }: RosterTabProps) {
+  const { t, isDark } = useTheme();
   const [collapsedLevels, setCollapsedLevels] = useState<Set<string>>(new Set());
 
   // Group roster by level
@@ -81,24 +83,24 @@ export function RosterTab({
       {/* Manage Roster Button (Staff only) */}
       {isStaff && (
         <TouchableOpacity
-          style={styles.manageRosterButton}
+          style={[styles.manageRosterButton, { backgroundColor: t.surface, borderColor: t.primary }]}
           onPress={onManageRoster}
         >
-          <UserPlus size={18} color={theme.light.primary} />
-          <Text style={styles.manageRosterButtonText}>Manage Roster</Text>
+          <UserPlus size={18} color={t.primary} />
+          <Text style={[styles.manageRosterButtonText, { color: t.primary }]}>Manage Roster</Text>
         </TouchableOpacity>
       )}
 
       {/* Staff hint */}
       {isStaff && roster.length > 0 && (
-        <Text style={styles.staffHint}>Tap event badges to toggle</Text>
+        <Text style={[styles.staffHint, { color: t.textMuted }]}>Tap event badges to toggle</Text>
       )}
 
       {roster.length === 0 ? (
-        <View style={styles.emptySection}>
-          <Users size={40} color={colors.slate[300]} />
-          <Text style={styles.emptySectionTitle}>No gymnasts assigned</Text>
-          <Text style={styles.emptySectionText}>
+        <View style={[styles.emptySection, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Users size={40} color={t.border} />
+          <Text style={[styles.emptySectionTitle, { color: t.text }]}>No gymnasts assigned</Text>
+          <Text style={[styles.emptySectionText, { color: t.textMuted }]}>
             {isStaff
               ? 'Tap "Manage Roster" to add gymnasts.'
               : 'Gymnasts will appear here once assigned to this competition.'}
@@ -106,38 +108,38 @@ export function RosterTab({
         </View>
       ) : (
         Object.entries(rosterByLevel).map(([level, gymnasts]) => (
-          <View key={level} style={styles.levelSection}>
+          <View key={level} style={[styles.levelSection, { backgroundColor: t.surface, borderColor: t.border }]}>
             <TouchableOpacity
-              style={styles.levelHeader}
+              style={[styles.levelHeader, { backgroundColor: t.background }]}
               onPress={() => toggleLevelCollapse(level)}
             >
               {collapsedLevels.has(level) ? (
-                <ChevronRight size={18} color={colors.slate[400]} />
+                <ChevronRight size={18} color={t.textFaint} />
               ) : (
-                <ChevronDown size={18} color={colors.slate[400]} />
+                <ChevronDown size={18} color={t.textFaint} />
               )}
-              <Text style={styles.levelTitle}>{level}</Text>
-              <View style={styles.levelCount}>
-                <Text style={styles.levelCountText}>{gymnasts.length}</Text>
+              <Text style={[styles.levelTitle, { color: t.text }]}>{level}</Text>
+              <View style={[styles.levelCount, { backgroundColor: isDark ? colors.slate[600] : colors.slate[200] }]}>
+                <Text style={[styles.levelCountText, { color: t.textSecondary }]}>{gymnasts.length}</Text>
               </View>
             </TouchableOpacity>
 
             {!collapsedLevels.has(level) && (
-              <View style={styles.gymnastsList}>
+              <View style={[styles.gymnastsList, { borderTopColor: t.borderSubtle }]}>
                 {gymnasts.map((gymnast) => {
                   const availableEvents = getEventsForGender(
                     gymnast.gymnast_profiles?.gender || null
                   );
                   return (
-                    <View key={gymnast.gymnast_profile_id} style={styles.gymnastRow}>
+                    <View key={gymnast.gymnast_profile_id} style={[styles.gymnastRow, { borderBottomColor: t.borderSubtle }]}>
                       <View style={styles.gymnastInfo}>
-                        <View style={styles.gymnastAvatar}>
-                          <Text style={styles.gymnastAvatarText}>
+                        <View style={[styles.gymnastAvatar, { backgroundColor: `${t.primary}20` }]}>
+                          <Text style={[styles.gymnastAvatarText, { color: t.primary }]}>
                             {gymnast.gymnast_profiles?.first_name?.[0] || ''}
                             {gymnast.gymnast_profiles?.last_name?.[0] || ''}
                           </Text>
                         </View>
-                        <Text style={styles.gymnastName}>
+                        <Text style={[styles.gymnastName, { color: t.text }]}>
                           {gymnast.gymnast_profiles?.first_name}{' '}
                           {gymnast.gymnast_profiles?.last_name}
                         </Text>
@@ -150,7 +152,8 @@ export function RosterTab({
                               key={event}
                               style={[
                                 styles.eventBadge,
-                                isActive && styles.eventBadgeActive,
+                                { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] },
+                                isActive && { backgroundColor: t.primary },
                               ]}
                               onPress={() =>
                                 onToggleEvent(
@@ -163,6 +166,7 @@ export function RosterTab({
                               <Text
                                 style={[
                                   styles.eventBadgeText,
+                                  { color: t.textFaint },
                                   isActive && styles.eventBadgeTextActive,
                                 ]}
                               >
@@ -174,12 +178,14 @@ export function RosterTab({
                               key={event}
                               style={[
                                 styles.eventBadge,
-                                isActive && styles.eventBadgeActive,
+                                { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] },
+                                isActive && { backgroundColor: t.primary },
                               ]}
                             >
                               <Text
                                 style={[
                                   styles.eventBadgeText,
+                                  { color: t.textFaint },
                                   isActive && styles.eventBadgeTextActive,
                                 ]}
                               >
@@ -215,7 +221,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     borderRadius: 8,
     paddingVertical: 12,
     marginBottom: 8,
@@ -223,7 +229,7 @@ const styles = StyleSheet.create({
   manageRosterButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   staffHint: {
     fontSize: 12,
@@ -340,7 +346,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.slate[100],
   },
   eventBadgeActive: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   eventBadgeText: {
     fontSize: 10,

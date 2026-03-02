@@ -14,7 +14,7 @@ interface LinkedHub {
     is_incoming: boolean; // true if we received the request, false if we sent it
 }
 
-export function LinkedHubsSettings() {
+export function LinkedHubsSettings({ bare }: { bare?: boolean } = {}) {
     const { user } = useAuth();
     const { hub, currentRole } = useHub();
     const [linkedHubs, setLinkedHubs] = useState<LinkedHub[]>([]);
@@ -23,7 +23,7 @@ export function LinkedHubsSettings() {
     const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
     const [processingId, setProcessingId] = useState<string | null>(null);
 
-    const isOwner = currentRole === 'owner';
+    const isOwner = currentRole === 'owner' || currentRole === 'director';
 
     useEffect(() => {
         if (hub && isOwner) {
@@ -148,21 +148,18 @@ export function LinkedHubsSettings() {
         return null;
     }
 
-    return (
-        <CollapsibleSection
-            title="Linked Marketplaces"
-            icon={Link2}
-            description="Share your marketplace with other hubs you manage"
-            actions={
-                <button
-                    onClick={() => setIsLinkModalOpen(true)}
-                    className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
-                >
-                    <Plus className="h-4 w-4" />
-                    Link Hub
-                </button>
-            }
+    const actionButton = (
+        <button
+            onClick={() => setIsLinkModalOpen(true)}
+            className="inline-flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
         >
+            <Plus className="h-4 w-4" />
+            Link Hub
+        </button>
+    );
+
+    const content = (
+        <>
             {loading ? (
                 <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-6 w-6 animate-spin text-faint" />
@@ -303,6 +300,26 @@ export function LinkedHubsSettings() {
                 onLinkRequested={fetchLinkedHubs}
                 existingLinkIds={[...linkedHubs.map(h => h.id), ...pendingRequests.map(h => h.id)]}
             />
+        </>
+    );
+
+    if (bare) {
+        return (
+            <>
+                <div className="flex justify-end mb-4">{actionButton}</div>
+                {content}
+            </>
+        );
+    }
+
+    return (
+        <CollapsibleSection
+            title="Linked Marketplaces"
+            icon={Link2}
+            description="Share your marketplace with other hubs you manage"
+            actions={actionButton}
+        >
+            {content}
         </CollapsibleSection>
     );
 }

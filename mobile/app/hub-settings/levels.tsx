@@ -16,11 +16,13 @@ import {
   Trash2,
   X,
 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
 export default function LevelsScreen() {
+  const { t, isDark } = useTheme();
   const router = useRouter();
   const currentHub = useHubStore((state) => state.currentHub);
   const currentRole = useHubStore((state) => state.currentRole);
@@ -130,16 +132,16 @@ export default function LevelsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        <Text style={styles.description}>
+        <Text style={[styles.description, { color: t.textSecondary }]}>
           Competition levels are used to categorize gymnasts and filter them in competitions and
           reports. Drag to reorder levels.
         </Text>
@@ -147,9 +149,9 @@ export default function LevelsScreen() {
         {/* Add New Level */}
         <View style={styles.addSection}>
           <TextInput
-            style={styles.addInput}
+            style={[styles.addInput, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
             placeholder="Enter new level (e.g., Level 3)"
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={newLevel}
             onChangeText={setNewLevel}
             onSubmitEditing={addLevel}
@@ -165,7 +167,7 @@ export default function LevelsScreen() {
 
         {/* Levels List */}
         {levels.length > 0 ? (
-          <View style={styles.levelsCard}>
+          <View style={[styles.levelsCard, { backgroundColor: t.surface, borderColor: t.border }]}>
             {levels.map((level, index) => (
               <View key={level} style={styles.levelItem}>
                 <View style={styles.levelDrag}>
@@ -174,10 +176,10 @@ export default function LevelsScreen() {
                     disabled={index === 0}
                     style={{ opacity: index === 0 ? 0.3 : 1 }}
                   >
-                    <GripVertical size={20} color={colors.slate[400]} />
+                    <GripVertical size={20} color={t.textFaint} />
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.levelText}>{level}</Text>
+                <Text style={[styles.levelText, { color: t.text }]}>{level}</Text>
                 <View style={styles.levelActions}>
                   <TouchableOpacity
                     style={styles.levelActionBtn}
@@ -190,9 +192,9 @@ export default function LevelsScreen() {
             ))}
           </View>
         ) : (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyTitle}>No Levels Configured</Text>
-            <Text style={styles.emptyText}>
+          <View style={[styles.emptyCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No Levels Configured</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               Add competition levels above to get started
             </Text>
           </View>

@@ -9,7 +9,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Clock, Grid3X3, Calendar, Users } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -93,10 +94,11 @@ function HoursTab({
   refreshing: boolean;
   onRefresh: () => void;
 }) {
+  const { t, isDark } = useTheme();
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
@@ -105,20 +107,20 @@ function HoursTab({
     <ScrollView
       style={styles.tabContent}
       contentContainerStyle={styles.scrollContent}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textMuted} />}
     >
       {levelGroups.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <Clock size={48} color={colors.slate[300]} />
-          <Text style={styles.emptyTitle}>No schedules yet</Text>
-          <Text style={styles.emptyText}>Practice schedules will appear here once they're set up.</Text>
+          <Clock size={48} color={t.textFaint} />
+          <Text style={[styles.emptyTitle, { color: t.text }]}>No schedules yet</Text>
+          <Text style={[styles.emptyText, { color: t.textMuted }]}>Practice schedules will appear here once they're set up.</Text>
         </View>
       ) : (
         levelGroups.map((group) => (
-          <View key={`${group.level}-${group.schedule_group}`} style={styles.levelCard}>
+          <View key={`${group.level}-${group.schedule_group}`} style={[styles.levelCard, { backgroundColor: t.surface, borderColor: t.border }]}>
             <View style={styles.levelHeader}>
               <View style={styles.levelTitleRow}>
-                <Text style={styles.levelName}>{group.level}</Text>
+                <Text style={[styles.levelName, { color: t.text }]}>{group.level}</Text>
                 {group.is_external_group && (
                   <Badge label="External" variant="neutral" size="sm" />
                 )}
@@ -127,7 +129,7 @@ function HoursTab({
                 )}
               </View>
               {group.group_label && (
-                <Text style={styles.groupLabel}>{group.group_label}</Text>
+                <Text style={[styles.groupLabel, { color: t.textMuted }]}>{group.group_label}</Text>
               )}
             </View>
 
@@ -136,14 +138,14 @@ function HoursTab({
                 const schedule = group.schedules.find((s) => s.day_of_week === dayIndex);
                 return (
                   <View key={day} style={styles.dayColumn}>
-                    <Text style={styles.dayLabel}>{day}</Text>
+                    <Text style={[styles.dayLabel, { color: t.textMuted }]}>{day}</Text>
                     {schedule ? (
-                      <View style={styles.timeSlot}>
-                        <Text style={styles.startTime}>{formatTime(schedule.start_time)}</Text>
-                        <Text style={styles.endTime}>{formatTime(schedule.end_time)}</Text>
+                      <View style={[styles.timeSlot, { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}>
+                        <Text style={[styles.startTime, { color: t.primary }]}>{formatTime(schedule.start_time)}</Text>
+                        <Text style={[styles.endTime, { color: t.primary }]}>{formatTime(schedule.end_time)}</Text>
                       </View>
                     ) : (
-                      <Text style={styles.noTime}>—</Text>
+                      <Text style={[styles.noTime, { color: t.textFaint }]}>—</Text>
                     )}
                   </View>
                 );
@@ -172,10 +174,11 @@ function RotationsTab({
   refreshing: boolean;
   onRefresh: () => void;
 }) {
+  const { t } = useTheme();
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
@@ -191,15 +194,15 @@ function RotationsTab({
   return (
     <View style={styles.tabContent}>
       {/* Day Selector */}
-      <View style={styles.daySelectorContainer}>
+      <View style={[styles.daySelectorContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.daySelector}>
           {DAYS_OF_WEEK.map((day, index) => (
             <TouchableOpacity
               key={day}
-              style={[styles.dayButton, selectedDay === index && styles.dayButtonActive]}
+              style={[styles.dayButton, { backgroundColor: t.surfaceSecondary }, selectedDay === index && { backgroundColor: t.primary }]}
               onPress={() => setSelectedDay(index)}
             >
-              <Text style={[styles.dayButtonText, selectedDay === index && styles.dayButtonTextActive]}>
+              <Text style={[styles.dayButtonText, { color: t.textSecondary }, selectedDay === index && styles.dayButtonTextActive]}>
                 {day.slice(0, 3)}
               </Text>
             </TouchableOpacity>
@@ -208,37 +211,37 @@ function RotationsTab({
       </View>
 
       {/* Day Title */}
-      <View style={styles.dayTitleContainer}>
-        <Text style={styles.dayTitle}>{DAYS_OF_WEEK[selectedDay]} Rotations</Text>
+      <View style={[styles.dayTitleContainer, { backgroundColor: t.surface }]}>
+        <Text style={[styles.dayTitle, { color: t.text }]}>{DAYS_OF_WEEK[selectedDay]} Rotations</Text>
       </View>
 
       {/* Rotations List */}
       <ScrollView
         style={styles.rotationsScroll}
         contentContainerStyle={styles.rotationsContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={t.textMuted} />}
       >
         {combinedLevels.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Grid3X3 size={48} color={colors.slate[300]} />
-            <Text style={styles.emptyTitle}>No practice scheduled</Text>
-            <Text style={styles.emptyText}>
+            <Grid3X3 size={48} color={t.textFaint} />
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No practice scheduled</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               {DAYS_OF_WEEK[selectedDay]} has no practice times set.
             </Text>
           </View>
         ) : (
           combinedLevels.map((combinedLevel) => (
-              <View key={combinedLevel.key} style={styles.rotationLevelCard}>
-                <View style={styles.rotationLevelHeader}>
-                  <Text style={styles.rotationLevelName}>{combinedLevel.displayName}</Text>
-                  <Text style={styles.rotationLevelTime}>
+              <View key={combinedLevel.key} style={[styles.rotationLevelCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                <View style={[styles.rotationLevelHeader, { borderBottomColor: t.borderSubtle }]}>
+                  <Text style={[styles.rotationLevelName, { color: t.text }]}>{combinedLevel.displayName}</Text>
+                  <Text style={[styles.rotationLevelTime, { color: t.textMuted }]}>
                     {formatTimeRange(combinedLevel.levels)}
                   </Text>
                 </View>
 
                 {combinedLevel.blocks.length === 0 ? (
                   <View style={styles.noRotationsContainer}>
-                    <Text style={styles.noRotationsText}>No rotations set</Text>
+                    <Text style={[styles.noRotationsText, { color: t.textFaint }]}>No rotations set</Text>
                   </View>
                 ) : (
                   <View style={styles.blocksContainer}>
@@ -254,14 +257,14 @@ function RotationsTab({
                           <Text style={[styles.blockEventName, { color: block.color }]}>
                             {block.event_name}
                           </Text>
-                          <Text style={styles.blockTime}>
+                          <Text style={[styles.blockTime, { color: t.textMuted }]}>
                             {formatTime(block.start_time)} - {formatTime(block.end_time)}
                           </Text>
                         </View>
                         {block.coach && (
                           <View style={styles.blockCoach}>
-                            <Users size={14} color={colors.slate[400]} />
-                            <Text style={styles.blockCoachName}>{block.coach.full_name}</Text>
+                            <Users size={14} color={t.textFaint} />
+                            <Text style={[styles.blockCoachName, { color: t.textSecondary }]}>{block.coach.full_name}</Text>
                           </View>
                         )}
                       </View>
@@ -277,6 +280,7 @@ function RotationsTab({
 }
 
 export default function ScheduleScreen() {
+  const { t, isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<ScheduleTab>('hours');
   const [schedules, setSchedules] = useState<PracticeSchedule[]>([]);
   const [rotationBlocks, setRotationBlocks] = useState<RotationBlock[]>([]);
@@ -490,24 +494,24 @@ export default function ScheduleScreen() {
   }, [schedules, selectedDay, rotationBlocks, gridSettings]);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Tab Navigation */}
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'hours' && styles.tabButtonActive]}
+          style={[styles.tabButton, { backgroundColor: t.surfaceSecondary }, activeTab === 'hours' && { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
           onPress={() => setActiveTab('hours')}
         >
-          <Calendar size={18} color={activeTab === 'hours' ? theme.light.primary : colors.slate[500]} />
-          <Text style={[styles.tabButtonText, activeTab === 'hours' && styles.tabButtonTextActive]}>
+          <Calendar size={18} color={activeTab === 'hours' ? t.primary : t.textMuted} />
+          <Text style={[styles.tabButtonText, { color: t.textSecondary }, activeTab === 'hours' && { color: t.primary }]}>
             Hours
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabButton, activeTab === 'rotations' && styles.tabButtonActive]}
+          style={[styles.tabButton, { backgroundColor: t.surfaceSecondary }, activeTab === 'rotations' && { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
           onPress={() => setActiveTab('rotations')}
         >
-          <Grid3X3 size={18} color={activeTab === 'rotations' ? theme.light.primary : colors.slate[500]} />
-          <Text style={[styles.tabButtonText, activeTab === 'rotations' && styles.tabButtonTextActive]}>
+          <Grid3X3 size={18} color={activeTab === 'rotations' ? t.primary : t.textMuted} />
+          <Text style={[styles.tabButtonText, { color: t.textSecondary }, activeTab === 'rotations' && { color: t.primary }]}>
             Rotations
           </Text>
         </TouchableOpacity>
@@ -572,7 +576,7 @@ const styles = StyleSheet.create({
     color: colors.slate[600],
   },
   tabButtonTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   tabContent: {
     flex: 1,
@@ -681,7 +685,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.slate[100],
   },
   dayButtonActive: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   dayButtonText: {
     fontSize: 14,

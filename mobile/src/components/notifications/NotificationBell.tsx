@@ -3,9 +3,11 @@ import { TouchableOpacity, View, Text, StyleSheet } from 'react-native';
 import { Bell } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { useActivityFeedStore } from '../../stores/activityFeedStore';
 
 export function NotificationBell() {
+    const { t, isDark } = useTheme();
     const unreadCount = useActivityFeedStore((s) => s.unreadCount);
 
     return (
@@ -14,7 +16,7 @@ export function NotificationBell() {
             onPress={() => router.push('/notifications')}
             activeOpacity={0.7}
         >
-            <Bell size={22} color={colors.slate[600]} />
+            <Bell size={22} color={t.textSecondary} />
             {unreadCount > 0 && (
                 <View style={styles.badge}>
                     <Text style={styles.badgeText}>

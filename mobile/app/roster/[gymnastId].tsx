@@ -46,7 +46,8 @@ import {
   Check,
 } from 'lucide-react-native';
 import { format, parseISO, differenceInYears, subMonths, startOfMonth, endOfMonth, subDays, isAfter } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { SeasonPicker } from '../../src/components/ui/SeasonPicker';
 import { supabase } from '../../src/services/supabase';
@@ -177,16 +178,18 @@ interface Assessment {
 
 type Tab = 'overview' | 'goals' | 'assessment' | 'skills' | 'scores' | 'attendance' | 'assignments';
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bgColor: string }> = {
-  present: { label: 'Present', color: colors.emerald[700], bgColor: colors.emerald[100] },
-  late: { label: 'Late', color: colors.amber[700], bgColor: colors.amber[100] },
-  left_early: { label: 'Left Early', color: colors.blue[700], bgColor: colors.blue[100] },
-  absent: { label: 'Absent', color: colors.error[700], bgColor: colors.error[100] },
-};
+const getStatusConfig = (dark: boolean) => ({
+  present: { label: 'Present', color: dark ? colors.emerald[400] : colors.emerald[700], bgColor: dark ? colors.emerald[700] + '30' : colors.emerald[100] },
+  late: { label: 'Late', color: dark ? colors.amber[500] : colors.amber[700], bgColor: dark ? colors.amber[700] + '30' : colors.amber[100] },
+  left_early: { label: 'Left Early', color: dark ? colors.blue[400] : colors.blue[700], bgColor: dark ? colors.blue[700] + '30' : colors.blue[100] },
+  absent: { label: 'Absent', color: dark ? colors.error[400] : colors.error[700], bgColor: dark ? colors.error[700] + '30' : colors.error[100] },
+});
 
 const ASSIGNMENT_EVENTS = ['vault', 'bars', 'beam', 'floor', 'strength', 'flexibility', 'conditioning'];
 
 export default function GymnastProfileScreen() {
+  const { t, isDark } = useTheme();
+  const STATUS_CONFIG = getStatusConfig(isDark);
   const { gymnastId } = useLocalSearchParams<{ gymnastId: string }>();
   const router = useRouter();
   const [gymnast, setGymnast] = useState<GymnastProfile | null>(null);
@@ -1199,13 +1202,20 @@ export default function GymnastProfileScreen() {
     'mastered': 'Mastered',
     'injured': 'Injured',
   };
-  const SKILL_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
+  const SKILL_STATUS_COLORS: Record<string, { bg: string; text: string }> = isDark ? {
+    'null': { bg: colors.slate[700], text: colors.slate[300] },
+    'none': { bg: colors.slate[700], text: colors.slate[300] },
+    'learning': { bg: colors.amber[700] + '30', text: colors.amber[500] },
+    'achieved': { bg: colors.emerald[700] + '30', text: colors.emerald[400] },
+    'mastered': { bg: colors.amber[700] + '30', text: colors.amber[500] },
+    'injured': { bg: colors.error[700] + '30', text: colors.error[400] },
+  } : {
     'null': { bg: colors.slate[100], text: colors.slate[500] },
     'none': { bg: colors.slate[100], text: colors.slate[500] },
     'learning': { bg: colors.amber[100], text: colors.amber[700] },
     'achieved': { bg: colors.emerald[100], text: colors.emerald[700] },
-    'mastered': { bg: colors.yellow[100], text: colors.yellow[700] },
-    'injured': { bg: colors.red[100], text: colors.red[700] },
+    'mastered': { bg: colors.amber[100], text: colors.amber[700] },
+    'injured': { bg: colors.error[100], text: colors.error[700] },
   };
 
   const cycleSkillStatus = async (skill: DetailedSkill) => {
@@ -1250,16 +1260,16 @@ export default function GymnastProfileScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   if (!gymnast) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.errorText}>Gymnast not found</Text>
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <Text style={[styles.errorText, { color: t.textMuted }]}>Gymnast not found</Text>
       </View>
     );
   }
@@ -1288,29 +1298,33 @@ export default function GymnastProfileScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
+      style={[styles.container, { backgroundColor: t.background }]}
       refreshControl={
         <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
       }
     >
       {/* Profile Header */}
-      <View style={styles.profileHeader}>
+      <View style={[styles.profileHeader, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <View
           style={[
             styles.avatar,
-            { backgroundColor: gymnast.gender === 'Female' ? colors.pink[100] : colors.blue[100] },
+            { backgroundColor: isDark
+              ? (gymnast.gender === 'Female' ? colors.pink[700] + '30' : colors.blue[700] + '30')
+              : (gymnast.gender === 'Female' ? colors.pink[100] : colors.blue[100]) },
           ]}
         >
           <Text
             style={[
               styles.avatarText,
-              { color: gymnast.gender === 'Female' ? colors.pink[600] : colors.blue[600] },
+              { color: isDark
+                ? (gymnast.gender === 'Female' ? colors.pink[400] : colors.blue[400])
+                : (gymnast.gender === 'Female' ? colors.pink[600] : colors.blue[600]) },
             ]}
           >
             {gymnast.first_name[0]}{gymnast.last_name[0]}
           </Text>
         </View>
-        <Text style={styles.gymnastName}>
+        <Text style={[styles.gymnastName, { color: t.text }]}>
           {gymnast.first_name} {gymnast.last_name}
         </Text>
         <View style={styles.badgeRow}>
@@ -1324,16 +1338,16 @@ export default function GymnastProfileScreen() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.tabsScrollView}
+        style={[styles.tabsScrollView, { backgroundColor: t.surface, borderBottomColor: t.border }]}
         contentContainerStyle={styles.tabsContainer}
       >
         {availableTabs.map((tab) => (
           <TouchableOpacity
             key={tab.key}
-            style={[styles.tab, activeTab === tab.key && styles.tabActive]}
+            style={[styles.tab, activeTab === tab.key && { borderBottomColor: t.primary }]}
             onPress={() => setActiveTab(tab.key)}
           >
-            <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
+            <Text style={[styles.tabText, { color: t.textMuted }, activeTab === tab.key && { color: t.primary, fontWeight: '600' }]}>
               {tab.label}
             </Text>
           </TouchableOpacity>
@@ -1346,47 +1360,47 @@ export default function GymnastProfileScreen() {
           <>
             {/* Quick Stats */}
             <View style={styles.statsRow}>
-              <View style={styles.statCard}>
-                <Target size={20} color={colors.brand[600]} />
-                <Text style={styles.statValue}>
+              <View style={[styles.statCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                <Target size={20} color={t.primary} />
+                <Text style={[styles.statValue, { color: t.text }]}>
                   {skillSummary.reduce((sum, s) => sum + s.compete_ready, 0)}
                 </Text>
-                <Text style={styles.statLabel}>Skills Ready</Text>
+                <Text style={[styles.statLabel, { color: t.textMuted }]}>Skills Ready</Text>
               </View>
-              <View style={styles.statCard}>
+              <View style={[styles.statCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                 <BarChart3 size={20} color={colors.amber[600]} />
-                <Text style={styles.statValue}>{recentScores.length}</Text>
-                <Text style={styles.statLabel}>Recent Scores</Text>
+                <Text style={[styles.statValue, { color: t.text }]}>{recentScores.length}</Text>
+                <Text style={[styles.statLabel, { color: t.textMuted }]}>Recent Scores</Text>
               </View>
             </View>
 
             {/* Attendance Summary - if visible */}
             {canViewAttendance && attendanceRecords.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Attendance (6 Months)</Text>
-                <View style={styles.card}>
+                <Text style={[styles.sectionTitle, { color: t.text }]}>Attendance (6 Months)</Text>
+                <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                   <View style={styles.attendanceSummaryRow}>
                     <View style={styles.attendanceSummaryItem}>
-                      <TrendingUp size={16} color={colors.emerald[600]} />
-                      <Text style={[styles.attendanceSummaryValue, { color: colors.emerald[600] }]}>
+                      <TrendingUp size={16} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
+                      <Text style={[styles.attendanceSummaryValue, { color: isDark ? colors.emerald[400] : colors.emerald[600] }]}>
                         {attendanceStats.percentage}%
                       </Text>
-                      <Text style={styles.attendanceSummaryLabel}>Rate</Text>
+                      <Text style={[styles.attendanceSummaryLabel, { color: t.textMuted }]}>Rate</Text>
                     </View>
                     <View style={styles.attendanceSummaryItem}>
-                      <UserCheck size={16} color={colors.emerald[600]} />
-                      <Text style={styles.attendanceSummaryValue}>{attendanceStats.present}</Text>
-                      <Text style={styles.attendanceSummaryLabel}>Present</Text>
+                      <UserCheck size={16} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
+                      <Text style={[styles.attendanceSummaryValue, { color: t.text }]}>{attendanceStats.present}</Text>
+                      <Text style={[styles.attendanceSummaryLabel, { color: t.textMuted }]}>Present</Text>
                     </View>
                     <View style={styles.attendanceSummaryItem}>
-                      <Clock size={16} color={colors.amber[600]} />
-                      <Text style={styles.attendanceSummaryValue}>{attendanceStats.late}</Text>
-                      <Text style={styles.attendanceSummaryLabel}>Late</Text>
+                      <Clock size={16} color={isDark ? colors.amber[500] : colors.amber[600]} />
+                      <Text style={[styles.attendanceSummaryValue, { color: t.text }]}>{attendanceStats.late}</Text>
+                      <Text style={[styles.attendanceSummaryLabel, { color: t.textMuted }]}>Late</Text>
                     </View>
                     <View style={styles.attendanceSummaryItem}>
-                      <AlertTriangle size={16} color={colors.error[600]} />
-                      <Text style={styles.attendanceSummaryValue}>{attendanceStats.absent}</Text>
-                      <Text style={styles.attendanceSummaryLabel}>Absent</Text>
+                      <AlertTriangle size={16} color={isDark ? colors.error[400] : colors.error[600]} />
+                      <Text style={[styles.attendanceSummaryValue, { color: t.text }]}>{attendanceStats.absent}</Text>
+                      <Text style={[styles.attendanceSummaryLabel, { color: t.textMuted }]}>Absent</Text>
                     </View>
                   </View>
                 </View>
@@ -1396,29 +1410,29 @@ export default function GymnastProfileScreen() {
             {/* Assignment Summary - if visible */}
             {canViewAssignments && assignments.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Assignments (30 Days)</Text>
-                <View style={styles.card}>
+                <Text style={[styles.sectionTitle, { color: t.text }]}>Assignments (30 Days)</Text>
+                <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                   <View style={styles.assignmentSummaryRow}>
                     <View style={styles.assignmentSummaryItem}>
-                      <Text style={[styles.assignmentSummaryValue, { color: colors.brand[600] }]}>
+                      <Text style={[styles.assignmentSummaryValue, { color: t.primary }]}>
                         {assignmentStats.completionRate}%
                       </Text>
-                      <Text style={styles.assignmentSummaryLabel}>Completion</Text>
+                      <Text style={[styles.assignmentSummaryLabel, { color: t.textMuted }]}>Completion</Text>
                     </View>
                     <View style={styles.assignmentSummaryItem}>
-                      <Text style={styles.assignmentSummaryValue}>{assignmentStats.totalCompleted}</Text>
-                      <Text style={styles.assignmentSummaryLabel}>Completed</Text>
+                      <Text style={[styles.assignmentSummaryValue, { color: t.text }]}>{assignmentStats.totalCompleted}</Text>
+                      <Text style={[styles.assignmentSummaryLabel, { color: t.textMuted }]}>Completed</Text>
                     </View>
                     <View style={styles.assignmentSummaryItem}>
-                      <Text style={styles.assignmentSummaryValue}>{assignmentStats.totalExercises}</Text>
-                      <Text style={styles.assignmentSummaryLabel}>Total</Text>
+                      <Text style={[styles.assignmentSummaryValue, { color: t.text }]}>{assignmentStats.totalExercises}</Text>
+                      <Text style={[styles.assignmentSummaryLabel, { color: t.textMuted }]}>Total</Text>
                     </View>
                   </View>
-                  <View style={styles.progressBar}>
+                  <View style={[styles.progressBar, { backgroundColor: isDark ? colors.slate[600] : colors.slate[100] }]}>
                     <View
                       style={[
                         styles.progressFill,
-                        { width: `${assignmentStats.completionRate}%`, backgroundColor: colors.brand[500] },
+                        { width: `${assignmentStats.completionRate}%`, backgroundColor: t.primary },
                       ]}
                     />
                   </View>
@@ -1430,12 +1444,12 @@ export default function GymnastProfileScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <Music size={18} color={colors.purple[600]} />
-                  <Text style={styles.sectionTitle}>Floor Music</Text>
+                  <Music size={18} color={isDark ? colors.purple[400] : colors.purple[600]} />
+                  <Text style={[styles.sectionTitle, { color: t.text }]}>Floor Music</Text>
                 </View>
                 {isStaff() && !gymnast.floor_music_url && (
                   <TouchableOpacity
-                    style={styles.floorMusicUploadBtn}
+                    style={[styles.floorMusicUploadBtn, { backgroundColor: t.primary }]}
                     onPress={handleFloorMusicUpload}
                     disabled={uploadingMusic}
                   >
@@ -1450,11 +1464,11 @@ export default function GymnastProfileScreen() {
                   </TouchableOpacity>
                 )}
               </View>
-              <View style={styles.card}>
+              <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                 {gymnast.floor_music_url ? (
                   <View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                      <Text style={[styles.floorMusicName, { flex: 1, marginBottom: 0 }]} numberOfLines={1}>
+                      <Text style={[styles.floorMusicName, { flex: 1, marginBottom: 0, color: t.textSecondary }]} numberOfLines={1}>
                         {gymnast.floor_music_name || 'Floor Music'}
                       </Text>
                       {offlineStore.isDownloaded(gymnast.id, gymnast.floor_music_url) && (
@@ -1466,28 +1480,28 @@ export default function GymnastProfileScreen() {
                     </View>
                     <View style={styles.floorMusicControls}>
                       <TouchableOpacity
-                        style={[styles.floorMusicBtn, { backgroundColor: colors.brand[50] }]}
+                        style={[styles.floorMusicBtn, { backgroundColor: `${t.primary}15` }]}
                         onPress={playingMusic ? stopMusic : playMusic}
                       >
                         {playingMusic ? (
-                          <Square size={16} color={colors.brand[600]} />
+                          <Square size={16} color={t.primary} />
                         ) : (
-                          <Play size={16} color={colors.brand[600]} />
+                          <Play size={16} color={t.primary} />
                         )}
-                        <Text style={[styles.floorMusicBtnText, { color: colors.brand[600] }]}>
+                        <Text style={[styles.floorMusicBtnText, { color: t.primary }]}>
                           {playingMusic ? 'Stop' : 'Play'}
                         </Text>
                       </TouchableOpacity>
                       {offlineStore.activeDownloads[gymnast.id] ? (
-                        <View style={[styles.floorMusicBtn, { backgroundColor: colors.brand[50] }]}>
-                          <ActivityIndicator size="small" color={colors.brand[600]} />
-                          <Text style={[styles.floorMusicBtnText, { color: colors.brand[600] }]}>
+                        <View style={[styles.floorMusicBtn, { backgroundColor: `${t.primary}15` }]}>
+                          <ActivityIndicator size="small" color={t.primary} />
+                          <Text style={[styles.floorMusicBtnText, { color: t.primary }]}>
                             {Math.round((offlineStore.activeDownloads[gymnast.id]?.progress || 0) * 100)}%
                           </Text>
                         </View>
                       ) : offlineStore.isDownloaded(gymnast.id, gymnast.floor_music_url) ? (
                         <TouchableOpacity
-                          style={[styles.floorMusicBtn, { backgroundColor: colors.success[50] }]}
+                          style={[styles.floorMusicBtn, { backgroundColor: isDark ? colors.success[700] + '20' : colors.success[50] }]}
                           onPress={() => {
                             Alert.alert(
                               'Remove Offline Copy',
@@ -1499,24 +1513,24 @@ export default function GymnastProfileScreen() {
                             );
                           }}
                         >
-                          <Check size={16} color={colors.success[600]} />
-                          <Text style={[styles.floorMusicBtnText, { color: colors.success[600] }]}>Saved</Text>
+                          <Check size={16} color={isDark ? colors.success[500] : colors.success[600]} />
+                          <Text style={[styles.floorMusicBtnText, { color: isDark ? colors.success[500] : colors.success[600] }]}>Saved</Text>
                         </TouchableOpacity>
                       ) : (
                         <TouchableOpacity
-                          style={[styles.floorMusicBtn, { backgroundColor: colors.slate[100] }]}
+                          style={[styles.floorMusicBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                           onPress={() => offlineStore.downloadFile(gymnast.id, gymnast.floor_music_url!, gymnast.floor_music_name || 'floor-music')}
                         >
-                          <Download size={16} color={colors.slate[600]} />
-                          <Text style={[styles.floorMusicBtnText, { color: colors.slate[600] }]}>Save</Text>
+                          <Download size={16} color={t.textSecondary} />
+                          <Text style={[styles.floorMusicBtnText, { color: t.textSecondary }]}>Save</Text>
                         </TouchableOpacity>
                       )}
                       {isStaff() && (
                         <TouchableOpacity
-                          style={[styles.floorMusicBtn, { backgroundColor: colors.error[50] }]}
+                          style={[styles.floorMusicBtn, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]}
                           onPress={handleRemoveFloorMusic}
                         >
-                          <Trash2 size={16} color={colors.error[600]} />
+                          <Trash2 size={16} color={isDark ? colors.error[400] : colors.error[600]} />
                         </TouchableOpacity>
                       )}
                     </View>
@@ -1527,17 +1541,17 @@ export default function GymnastProfileScreen() {
                         disabled={uploadingMusic}
                       >
                         {uploadingMusic ? (
-                          <ActivityIndicator size="small" color={colors.brand[600]} />
+                          <ActivityIndicator size="small" color={t.primary} />
                         ) : (
-                          <Text style={styles.floorMusicReplaceBtnText}>Replace file</Text>
+                          <Text style={[styles.floorMusicReplaceBtnText, { color: t.primary }]}>Replace file</Text>
                         )}
                       </TouchableOpacity>
                     )}
                   </View>
                 ) : (
                   <View style={styles.floorMusicEmpty}>
-                    <Music size={32} color={colors.slate[300]} />
-                    <Text style={styles.floorMusicEmptyText}>No floor music uploaded</Text>
+                    <Music size={32} color={t.textFaint} />
+                    <Text style={[styles.floorMusicEmptyText, { color: t.textMuted }]}>No floor music uploaded</Text>
                   </View>
                 )}
               </View>
@@ -1547,28 +1561,28 @@ export default function GymnastProfileScreen() {
             {canViewMedical && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Guardian Information</Text>
+                  <Text style={[styles.sectionTitle, { color: t.text }]}>Guardian Information</Text>
                   {isStaff() && (
                     <TouchableOpacity
-                      style={styles.sectionEditBtn}
+                      style={[styles.sectionEditBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                       onPress={() => setEditingSection(editingSection === 'guardians' ? null : 'guardians')}
                     >
                       {editingSection === 'guardians' ? (
-                        <X size={16} color={colors.slate[500]} />
+                        <X size={16} color={t.textMuted} />
                       ) : (
-                        <Edit2 size={16} color={colors.slate[500]} />
+                        <Edit2 size={16} color={t.textMuted} />
                       )}
                     </TouchableOpacity>
                   )}
                 </View>
 
                 {editingSection === 'guardians' ? (
-                  <View style={styles.card}>
-                    <Text style={styles.editFormSubtitle}>Guardian 1</Text>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+                    <Text style={[styles.editFormSubtitle, { color: t.textSecondary }]}>Guardian 1</Text>
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Name"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={guardianForm.guardian_1.name}
                       onChangeText={(text) => setGuardianForm(prev => ({
                         ...prev,
@@ -1576,9 +1590,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Relationship (e.g., Mother)"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={guardianForm.guardian_1.relationship}
                       onChangeText={(text) => setGuardianForm(prev => ({
                         ...prev,
@@ -1586,9 +1600,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Phone"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       keyboardType="phone-pad"
                       value={guardianForm.guardian_1.phone}
                       onChangeText={(text) => setGuardianForm(prev => ({
@@ -1597,9 +1611,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Email"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       keyboardType="email-address"
                       autoCapitalize="none"
                       value={guardianForm.guardian_1.email}
@@ -1609,11 +1623,11 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
 
-                    <Text style={[styles.editFormSubtitle, { marginTop: 16 }]}>Guardian 2</Text>
+                    <Text style={[styles.editFormSubtitle, { marginTop: 16, color: t.textSecondary }]}>Guardian 2</Text>
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Name"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={guardianForm.guardian_2.name}
                       onChangeText={(text) => setGuardianForm(prev => ({
                         ...prev,
@@ -1621,9 +1635,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Relationship"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={guardianForm.guardian_2.relationship}
                       onChangeText={(text) => setGuardianForm(prev => ({
                         ...prev,
@@ -1631,9 +1645,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Phone"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       keyboardType="phone-pad"
                       value={guardianForm.guardian_2.phone}
                       onChangeText={(text) => setGuardianForm(prev => ({
@@ -1642,9 +1656,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Email"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       keyboardType="email-address"
                       autoCapitalize="none"
                       value={guardianForm.guardian_2.email}
@@ -1656,13 +1670,13 @@ export default function GymnastProfileScreen() {
 
                     <View style={styles.editFormButtons}>
                       <TouchableOpacity
-                        style={styles.editCancelBtn}
+                        style={[styles.editCancelBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                         onPress={() => cancelSectionEdit('guardians')}
                       >
-                        <Text style={styles.editCancelText}>Cancel</Text>
+                        <Text style={[styles.editCancelText, { color: t.textSecondary }]}>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.editSaveBtn, savingProfile && styles.editSaveBtnDisabled]}
+                        style={[styles.editSaveBtn, { backgroundColor: t.primary }, savingProfile && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
                         onPress={saveGuardians}
                         disabled={savingProfile}
                       >
@@ -1675,55 +1689,55 @@ export default function GymnastProfileScreen() {
                     </View>
                   </View>
                 ) : (getGuardianName(gymnast.guardian_1) || getGuardianName(gymnast.guardian_2)) ? (
-                  <View style={styles.card}>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                     {getGuardianName(gymnast.guardian_1) && (
                       <View style={styles.guardianItem}>
-                        <Text style={styles.guardianName}>
+                        <Text style={[styles.guardianName, { color: t.text }]}>
                           {getGuardianName(gymnast.guardian_1)}
                           {gymnast.guardian_1?.relationship && (
-                            <Text style={styles.guardianRelation}> ({gymnast.guardian_1.relationship})</Text>
+                            <Text style={[styles.guardianRelation, { color: t.textMuted }]}> ({gymnast.guardian_1.relationship})</Text>
                           )}
                         </Text>
                         {gymnast.guardian_1?.phone && (
                           <View style={styles.contactRow}>
-                            <Phone size={14} color={colors.slate[400]} />
-                            <Text style={styles.contactText}>{gymnast.guardian_1.phone}</Text>
+                            <Phone size={14} color={t.textFaint} />
+                            <Text style={[styles.contactText, { color: t.textSecondary }]}>{gymnast.guardian_1.phone}</Text>
                           </View>
                         )}
                         {gymnast.guardian_1?.email && (
                           <View style={styles.contactRow}>
-                            <Mail size={14} color={colors.slate[400]} />
-                            <Text style={styles.contactText}>{gymnast.guardian_1.email}</Text>
+                            <Mail size={14} color={t.textFaint} />
+                            <Text style={[styles.contactText, { color: t.textSecondary }]}>{gymnast.guardian_1.email}</Text>
                           </View>
                         )}
                       </View>
                     )}
                     {getGuardianName(gymnast.guardian_2) && (
                       <View style={[styles.guardianItem, { marginTop: 16 }]}>
-                        <Text style={styles.guardianName}>
+                        <Text style={[styles.guardianName, { color: t.text }]}>
                           {getGuardianName(gymnast.guardian_2)}
                           {gymnast.guardian_2?.relationship && (
-                            <Text style={styles.guardianRelation}> ({gymnast.guardian_2.relationship})</Text>
+                            <Text style={[styles.guardianRelation, { color: t.textMuted }]}> ({gymnast.guardian_2.relationship})</Text>
                           )}
                         </Text>
                         {gymnast.guardian_2?.phone && (
                           <View style={styles.contactRow}>
-                            <Phone size={14} color={colors.slate[400]} />
-                            <Text style={styles.contactText}>{gymnast.guardian_2.phone}</Text>
+                            <Phone size={14} color={t.textFaint} />
+                            <Text style={[styles.contactText, { color: t.textSecondary }]}>{gymnast.guardian_2.phone}</Text>
                           </View>
                         )}
                         {gymnast.guardian_2?.email && (
                           <View style={styles.contactRow}>
-                            <Mail size={14} color={colors.slate[400]} />
-                            <Text style={styles.contactText}>{gymnast.guardian_2.email}</Text>
+                            <Mail size={14} color={t.textFaint} />
+                            <Text style={[styles.contactText, { color: t.textSecondary }]}>{gymnast.guardian_2.email}</Text>
                           </View>
                         )}
                       </View>
                     )}
                   </View>
                 ) : isStaff() && (
-                  <View style={styles.card}>
-                    <Text style={styles.emptyFieldText}>No guardian info added. Tap edit to add.</Text>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+                    <Text style={[styles.emptyFieldText, { color: t.textFaint }]}>No guardian info added. Tap edit to add.</Text>
                   </View>
                 )}
               </View>
@@ -1733,28 +1747,28 @@ export default function GymnastProfileScreen() {
             {canViewMedical && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Emergency Contacts</Text>
+                  <Text style={[styles.sectionTitle, { color: t.text }]}>Emergency Contacts</Text>
                   {isStaff() && (
                     <TouchableOpacity
-                      style={styles.sectionEditBtn}
+                      style={[styles.sectionEditBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                       onPress={() => setEditingSection(editingSection === 'emergency' ? null : 'emergency')}
                     >
                       {editingSection === 'emergency' ? (
-                        <X size={16} color={colors.slate[500]} />
+                        <X size={16} color={t.textMuted} />
                       ) : (
-                        <Edit2 size={16} color={colors.slate[500]} />
+                        <Edit2 size={16} color={t.textMuted} />
                       )}
                     </TouchableOpacity>
                   )}
                 </View>
 
                 {editingSection === 'emergency' ? (
-                  <View style={styles.card}>
-                    <Text style={styles.editFormSubtitle}>Emergency Contact 1</Text>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+                    <Text style={[styles.editFormSubtitle, { color: t.textSecondary }]}>Emergency Contact 1</Text>
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Name"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={emergencyForm.emergency_contact_1.name}
                       onChangeText={(text) => setEmergencyForm(prev => ({
                         ...prev,
@@ -1762,9 +1776,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Relationship"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={emergencyForm.emergency_contact_1.relationship}
                       onChangeText={(text) => setEmergencyForm(prev => ({
                         ...prev,
@@ -1772,9 +1786,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Phone"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       keyboardType="phone-pad"
                       value={emergencyForm.emergency_contact_1.phone}
                       onChangeText={(text) => setEmergencyForm(prev => ({
@@ -1783,11 +1797,11 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
 
-                    <Text style={[styles.editFormSubtitle, { marginTop: 16 }]}>Emergency Contact 2</Text>
+                    <Text style={[styles.editFormSubtitle, { marginTop: 16, color: t.textSecondary }]}>Emergency Contact 2</Text>
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Name"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={emergencyForm.emergency_contact_2.name}
                       onChangeText={(text) => setEmergencyForm(prev => ({
                         ...prev,
@@ -1795,9 +1809,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Relationship"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={emergencyForm.emergency_contact_2.relationship}
                       onChangeText={(text) => setEmergencyForm(prev => ({
                         ...prev,
@@ -1805,9 +1819,9 @@ export default function GymnastProfileScreen() {
                       }))}
                     />
                     <TextInput
-                      style={styles.profileInput}
+                      style={[styles.profileInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Phone"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       keyboardType="phone-pad"
                       value={emergencyForm.emergency_contact_2.phone}
                       onChangeText={(text) => setEmergencyForm(prev => ({
@@ -1818,13 +1832,13 @@ export default function GymnastProfileScreen() {
 
                     <View style={styles.editFormButtons}>
                       <TouchableOpacity
-                        style={styles.editCancelBtn}
+                        style={[styles.editCancelBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                         onPress={() => cancelSectionEdit('emergency')}
                       >
-                        <Text style={styles.editCancelText}>Cancel</Text>
+                        <Text style={[styles.editCancelText, { color: t.textSecondary }]}>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.editSaveBtn, savingProfile && styles.editSaveBtnDisabled]}
+                        style={[styles.editSaveBtn, { backgroundColor: t.primary }, savingProfile && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
                         onPress={saveEmergencyContacts}
                         disabled={savingProfile}
                       >
@@ -1837,43 +1851,43 @@ export default function GymnastProfileScreen() {
                     </View>
                   </View>
                 ) : (gymnast.emergency_contact_1?.name || gymnast.emergency_contact_2?.name) ? (
-                  <View style={styles.card}>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                     {gymnast.emergency_contact_1?.name && (
                       <View style={styles.guardianItem}>
-                        <Text style={styles.guardianName}>
+                        <Text style={[styles.guardianName, { color: t.text }]}>
                           {gymnast.emergency_contact_1.name}
                           {gymnast.emergency_contact_1.relationship && (
-                            <Text style={styles.guardianRelation}> ({gymnast.emergency_contact_1.relationship})</Text>
+                            <Text style={[styles.guardianRelation, { color: t.textMuted }]}> ({gymnast.emergency_contact_1.relationship})</Text>
                           )}
                         </Text>
                         {gymnast.emergency_contact_1.phone && (
                           <View style={styles.contactRow}>
-                            <Phone size={14} color={colors.slate[400]} />
-                            <Text style={styles.contactText}>{gymnast.emergency_contact_1.phone}</Text>
+                            <Phone size={14} color={t.textFaint} />
+                            <Text style={[styles.contactText, { color: t.textSecondary }]}>{gymnast.emergency_contact_1.phone}</Text>
                           </View>
                         )}
                       </View>
                     )}
                     {gymnast.emergency_contact_2?.name && (
                       <View style={[styles.guardianItem, { marginTop: 16 }]}>
-                        <Text style={styles.guardianName}>
+                        <Text style={[styles.guardianName, { color: t.text }]}>
                           {gymnast.emergency_contact_2.name}
                           {gymnast.emergency_contact_2.relationship && (
-                            <Text style={styles.guardianRelation}> ({gymnast.emergency_contact_2.relationship})</Text>
+                            <Text style={[styles.guardianRelation, { color: t.textMuted }]}> ({gymnast.emergency_contact_2.relationship})</Text>
                           )}
                         </Text>
                         {gymnast.emergency_contact_2.phone && (
                           <View style={styles.contactRow}>
-                            <Phone size={14} color={colors.slate[400]} />
-                            <Text style={styles.contactText}>{gymnast.emergency_contact_2.phone}</Text>
+                            <Phone size={14} color={t.textFaint} />
+                            <Text style={[styles.contactText, { color: t.textSecondary }]}>{gymnast.emergency_contact_2.phone}</Text>
                           </View>
                         )}
                       </View>
                     )}
                   </View>
                 ) : isStaff() && (
-                  <View style={styles.card}>
-                    <Text style={styles.emptyFieldText}>No emergency contacts added. Tap edit to add.</Text>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+                    <Text style={[styles.emptyFieldText, { color: t.textFaint }]}>No emergency contacts added. Tap edit to add.</Text>
                   </View>
                 )}
               </View>
@@ -1883,28 +1897,28 @@ export default function GymnastProfileScreen() {
             {canViewMedical && (
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Medical Information</Text>
+                  <Text style={[styles.sectionTitle, { color: t.text }]}>Medical Information</Text>
                   {isStaff() && (
                     <TouchableOpacity
-                      style={styles.sectionEditBtn}
+                      style={[styles.sectionEditBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                       onPress={() => setEditingSection(editingSection === 'medical' ? null : 'medical')}
                     >
                       {editingSection === 'medical' ? (
-                        <X size={16} color={colors.slate[500]} />
+                        <X size={16} color={t.textMuted} />
                       ) : (
-                        <Edit2 size={16} color={colors.slate[500]} />
+                        <Edit2 size={16} color={t.textMuted} />
                       )}
                     </TouchableOpacity>
                   )}
                 </View>
 
                 {editingSection === 'medical' ? (
-                  <View style={styles.card}>
-                    <Text style={styles.editFormSubtitle}>Allergies</Text>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+                    <Text style={[styles.editFormSubtitle, { color: t.textSecondary }]}>Allergies</Text>
                     <TextInput
-                      style={[styles.profileInput, styles.profileTextArea]}
+                      style={[styles.profileInput, styles.profileTextArea, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="List any allergies"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={medicalForm.allergies}
                       onChangeText={(text) => setMedicalForm(prev => ({ ...prev, allergies: text }))}
                       multiline
@@ -1912,11 +1926,11 @@ export default function GymnastProfileScreen() {
                       textAlignVertical="top"
                     />
 
-                    <Text style={[styles.editFormSubtitle, { marginTop: 12 }]}>Medications</Text>
+                    <Text style={[styles.editFormSubtitle, { marginTop: 12, color: t.textSecondary }]}>Medications</Text>
                     <TextInput
-                      style={[styles.profileInput, styles.profileTextArea]}
+                      style={[styles.profileInput, styles.profileTextArea, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="List any medications"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={medicalForm.medications}
                       onChangeText={(text) => setMedicalForm(prev => ({ ...prev, medications: text }))}
                       multiline
@@ -1924,11 +1938,11 @@ export default function GymnastProfileScreen() {
                       textAlignVertical="top"
                     />
 
-                    <Text style={[styles.editFormSubtitle, { marginTop: 12 }]}>Conditions</Text>
+                    <Text style={[styles.editFormSubtitle, { marginTop: 12, color: t.textSecondary }]}>Conditions</Text>
                     <TextInput
-                      style={[styles.profileInput, styles.profileTextArea]}
+                      style={[styles.profileInput, styles.profileTextArea, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="List any medical conditions"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={medicalForm.conditions}
                       onChangeText={(text) => setMedicalForm(prev => ({ ...prev, conditions: text }))}
                       multiline
@@ -1936,11 +1950,11 @@ export default function GymnastProfileScreen() {
                       textAlignVertical="top"
                     />
 
-                    <Text style={[styles.editFormSubtitle, { marginTop: 12 }]}>Notes</Text>
+                    <Text style={[styles.editFormSubtitle, { marginTop: 12, color: t.textSecondary }]}>Notes</Text>
                     <TextInput
-                      style={[styles.profileInput, styles.profileTextArea]}
+                      style={[styles.profileInput, styles.profileTextArea, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                       placeholder="Additional notes"
-                      placeholderTextColor={colors.slate[400]}
+                      placeholderTextColor={t.textFaint}
                       value={medicalForm.notes}
                       onChangeText={(text) => setMedicalForm(prev => ({ ...prev, notes: text }))}
                       multiline
@@ -1950,13 +1964,13 @@ export default function GymnastProfileScreen() {
 
                     <View style={styles.editFormButtons}>
                       <TouchableOpacity
-                        style={styles.editCancelBtn}
+                        style={[styles.editCancelBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                         onPress={() => cancelSectionEdit('medical')}
                       >
-                        <Text style={styles.editCancelText}>Cancel</Text>
+                        <Text style={[styles.editCancelText, { color: t.textSecondary }]}>Cancel</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
-                        style={[styles.editSaveBtn, savingProfile && styles.editSaveBtnDisabled]}
+                        style={[styles.editSaveBtn, { backgroundColor: t.primary }, savingProfile && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
                         onPress={saveMedicalInfo}
                         disabled={savingProfile}
                       >
@@ -1969,29 +1983,29 @@ export default function GymnastProfileScreen() {
                     </View>
                   </View>
                 ) : gymnast.medical_info && (gymnast.medical_info.allergies || gymnast.medical_info.medications || gymnast.medical_info.conditions) ? (
-                  <View style={styles.card}>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                     {gymnast.medical_info.allergies && (
                       <View style={styles.medicalItem}>
-                        <Text style={styles.medicalLabel}>Allergies</Text>
-                        <Text style={styles.medicalValue}>{gymnast.medical_info.allergies}</Text>
+                        <Text style={[styles.medicalLabel, { color: t.textMuted }]}>Allergies</Text>
+                        <Text style={[styles.medicalValue, { color: t.textSecondary }]}>{gymnast.medical_info.allergies}</Text>
                       </View>
                     )}
                     {gymnast.medical_info.medications && (
                       <View style={styles.medicalItem}>
-                        <Text style={styles.medicalLabel}>Medications</Text>
-                        <Text style={styles.medicalValue}>{gymnast.medical_info.medications}</Text>
+                        <Text style={[styles.medicalLabel, { color: t.textMuted }]}>Medications</Text>
+                        <Text style={[styles.medicalValue, { color: t.textSecondary }]}>{gymnast.medical_info.medications}</Text>
                       </View>
                     )}
                     {gymnast.medical_info.conditions && (
                       <View style={styles.medicalItem}>
-                        <Text style={styles.medicalLabel}>Conditions</Text>
-                        <Text style={styles.medicalValue}>{gymnast.medical_info.conditions}</Text>
+                        <Text style={[styles.medicalLabel, { color: t.textMuted }]}>Conditions</Text>
+                        <Text style={[styles.medicalValue, { color: t.textSecondary }]}>{gymnast.medical_info.conditions}</Text>
                       </View>
                     )}
                   </View>
                 ) : isStaff() && (
-                  <View style={styles.card}>
-                    <Text style={styles.emptyFieldText}>No medical info added. Tap edit to add.</Text>
+                  <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+                    <Text style={[styles.emptyFieldText, { color: t.textFaint }]}>No medical info added. Tap edit to add.</Text>
                   </View>
                 )}
               </View>
@@ -2003,7 +2017,7 @@ export default function GymnastProfileScreen() {
           <View style={styles.section}>
             {/* Add Goal Button - Staff or gymnast can add */}
             {(isStaff() || linkedGymnasts.some(g => g.id === gymnastId)) && (
-              <TouchableOpacity style={styles.addButton} onPress={openAddGoalModal}>
+              <TouchableOpacity style={[styles.addButton, { backgroundColor: t.primary }]} onPress={openAddGoalModal}>
                 <Plus size={20} color={colors.white} />
                 <Text style={styles.addButtonText}>Add Goal</Text>
               </TouchableOpacity>
@@ -2017,7 +2031,7 @@ export default function GymnastProfileScreen() {
                 const progress = totalSubgoals > 0 ? (completedSubgoals / totalSubgoals) * 100 : 0;
 
                 return (
-                  <View key={goal.id} style={styles.goalCard}>
+                  <View key={goal.id} style={[styles.goalCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                     <TouchableOpacity
                       style={styles.goalHeader}
                       onPress={() => toggleGoalExpanded(goal.id)}
@@ -2026,6 +2040,7 @@ export default function GymnastProfileScreen() {
                       <TouchableOpacity
                         style={[
                           styles.goalCheckbox,
+                          { borderColor: isDark ? colors.slate[500] : colors.slate[300] },
                           goal.completed_at && styles.goalCheckboxChecked,
                         ]}
                         onPress={() => toggleGoalComplete(goal)}
@@ -2037,7 +2052,8 @@ export default function GymnastProfileScreen() {
                           <Text
                             style={[
                               styles.goalTitle,
-                              goal.completed_at && styles.goalTitleCompleted,
+                              { color: t.text },
+                              goal.completed_at && { textDecorationLine: 'line-through' as const, color: t.textFaint },
                             ]}
                             numberOfLines={1}
                           >
@@ -2049,54 +2065,55 @@ export default function GymnastProfileScreen() {
                         </View>
                         {goal.target_date && (
                           <View style={styles.goalDateRow}>
-                            <Calendar size={12} color={colors.slate[400]} />
-                            <Text style={styles.goalDateText}>
+                            <Calendar size={12} color={t.textFaint} />
+                            <Text style={[styles.goalDateText, { color: t.textMuted }]}>
                               {format(parseISO(goal.target_date), 'MMM d, yyyy')}
                             </Text>
                           </View>
                         )}
                         {totalSubgoals > 0 && (
                           <View style={styles.goalProgressRow}>
-                            <View style={styles.progressBarSmall}>
+                            <View style={[styles.progressBarSmall, { backgroundColor: isDark ? colors.slate[600] : colors.slate[100] }]}>
                               <View
                                 style={[
                                   styles.progressFill,
                                   {
                                     width: `${progress}%`,
-                                    backgroundColor: progress === 100 ? colors.success[500] : colors.brand[500],
+                                    backgroundColor: progress === 100 ? colors.success[500] : t.primary,
                                   },
                                 ]}
                               />
                             </View>
-                            <Text style={styles.goalProgressText}>
+                            <Text style={[styles.goalProgressText, { color: t.textMuted }]}>
                               {completedSubgoals}/{totalSubgoals}
                             </Text>
                           </View>
                         )}
                       </View>
                       {isExpanded ? (
-                        <ChevronUp size={20} color={colors.slate[400]} />
+                        <ChevronUp size={20} color={t.textFaint} />
                       ) : (
-                        <ChevronDown size={20} color={colors.slate[400]} />
+                        <ChevronDown size={20} color={t.textFaint} />
                       )}
                     </TouchableOpacity>
 
                     {isExpanded && (
-                      <View style={styles.goalExpanded}>
+                      <View style={[styles.goalExpanded, { borderTopColor: t.borderSubtle }]}>
                         {goal.description && (
-                          <Text style={styles.goalDescription}>{goal.description}</Text>
+                          <Text style={[styles.goalDescription, { color: t.textSecondary }]}>{goal.description}</Text>
                         )}
 
                         {/* Subgoals */}
                         {goal.subgoals && goal.subgoals.length > 0 && (
                           <View style={styles.subgoalsList}>
-                            <Text style={styles.subgoalsTitle}>Milestones</Text>
+                            <Text style={[styles.subgoalsTitle, { color: t.textMuted }]}>Milestones</Text>
                             {goal.subgoals.map((subgoal) => (
-                              <View key={subgoal.id} style={styles.subgoalItem}>
+                              <View key={subgoal.id} style={[styles.subgoalItem, { borderBottomColor: t.borderSubtle }]}>
                                 <TouchableOpacity
                                   style={[
                                     styles.subgoalCheckbox,
-                                    subgoal.completed_at && styles.subgoalCheckboxChecked,
+                                    { borderColor: isDark ? colors.slate[500] : colors.slate[300] },
+                                    subgoal.completed_at && [styles.subgoalCheckboxChecked, { backgroundColor: t.primary, borderColor: t.primary }],
                                   ]}
                                   onPress={() => toggleSubgoalComplete(subgoal)}
                                 >
@@ -2105,7 +2122,8 @@ export default function GymnastProfileScreen() {
                                 <Text
                                   style={[
                                     styles.subgoalTitle,
-                                    subgoal.completed_at && styles.subgoalTitleCompleted,
+                                    { color: t.textSecondary },
+                                    subgoal.completed_at && { textDecorationLine: 'line-through' as const, color: t.textFaint },
                                   ]}
                                   numberOfLines={1}
                                 >
@@ -2116,7 +2134,7 @@ export default function GymnastProfileScreen() {
                                     style={styles.subgoalDeleteBtn}
                                     onPress={() => deleteSubgoal(subgoal.id)}
                                   >
-                                    <X size={14} color={colors.slate[400]} />
+                                    <X size={14} color={t.textFaint} />
                                   </TouchableOpacity>
                                 )}
                               </View>
@@ -2128,9 +2146,9 @@ export default function GymnastProfileScreen() {
                         {(isStaff() || linkedGymnasts.some(g => g.id === gymnastId)) && (
                           <View style={styles.addSubgoalRow}>
                             <TextInput
-                              style={styles.addSubgoalInput}
+                              style={[styles.addSubgoalInput, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                               placeholder="Add milestone..."
-                              placeholderTextColor={colors.slate[400]}
+                              placeholderTextColor={t.textFaint}
                               value={newSubgoalTitle[goal.id] || ''}
                               onChangeText={(text) =>
                                 setNewSubgoalTitle(prev => ({ ...prev, [goal.id]: text }))
@@ -2138,30 +2156,30 @@ export default function GymnastProfileScreen() {
                               onSubmitEditing={() => addSubgoal(goal.id)}
                             />
                             <TouchableOpacity
-                              style={styles.addSubgoalBtn}
+                              style={[styles.addSubgoalBtn, { backgroundColor: `${t.primary}15` }]}
                               onPress={() => addSubgoal(goal.id)}
                             >
-                              <Plus size={16} color={colors.brand[600]} />
+                              <Plus size={16} color={t.primary} />
                             </TouchableOpacity>
                           </View>
                         )}
 
                         {/* Goal Actions */}
                         {(isStaff() || linkedGymnasts.some(g => g.id === gymnastId)) && (
-                          <View style={styles.goalActions}>
+                          <View style={[styles.goalActions, { borderTopColor: t.borderSubtle }]}>
                             <TouchableOpacity
-                              style={styles.goalActionBtn}
+                              style={[styles.goalActionBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50] }]}
                               onPress={() => openEditGoalModal(goal)}
                             >
-                              <Edit2 size={14} color={colors.slate[600]} />
-                              <Text style={styles.goalActionText}>Edit</Text>
+                              <Edit2 size={14} color={t.textSecondary} />
+                              <Text style={[styles.goalActionText, { color: t.textSecondary }]}>Edit</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                              style={[styles.goalActionBtn, styles.goalActionDelete]}
+                              style={[styles.goalActionBtn, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]}
                               onPress={() => deleteGoal(goal.id)}
                             >
-                              <Trash2 size={14} color={colors.error[600]} />
-                              <Text style={[styles.goalActionText, { color: colors.error[600] }]}>Delete</Text>
+                              <Trash2 size={14} color={isDark ? colors.error[400] : colors.error[600]} />
+                              <Text style={[styles.goalActionText, { color: isDark ? colors.error[400] : colors.error[600] }]}>Delete</Text>
                             </TouchableOpacity>
                           </View>
                         )}
@@ -2172,9 +2190,9 @@ export default function GymnastProfileScreen() {
               })
             ) : (
               <View style={styles.emptyContainer}>
-                <Target size={48} color={colors.slate[300]} />
-                <Text style={styles.emptyTitle}>No Goals Set</Text>
-                <Text style={styles.emptyTextCenter}>
+                <Target size={48} color={t.textFaint} />
+                <Text style={[styles.emptyTitle, { color: t.text }]}>No Goals Set</Text>
+                <Text style={[styles.emptyTextCenter, { color: t.textMuted }]}>
                   Set goals to track progress and achievements
                 </Text>
               </View>
@@ -2187,9 +2205,9 @@ export default function GymnastProfileScreen() {
             {/* Edit toggle for staff */}
             {isStaff() && (
               <View style={styles.assessmentHeader}>
-                <Text style={styles.sectionTitle}>Coach Assessment</Text>
+                <Text style={[styles.sectionTitle, { color: t.text }]}>Coach Assessment</Text>
                 <TouchableOpacity
-                  style={styles.editToggleBtn}
+                  style={[styles.editToggleBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                   onPress={() => {
                     if (editingAssessment) {
                       // Cancel edit - reset form
@@ -2204,28 +2222,28 @@ export default function GymnastProfileScreen() {
                   }}
                 >
                   {editingAssessment ? (
-                    <X size={18} color={colors.slate[600]} />
+                    <X size={18} color={t.textMuted} />
                   ) : (
-                    <Edit2 size={18} color={colors.slate[600]} />
+                    <Edit2 size={18} color={t.textMuted} />
                   )}
                 </TouchableOpacity>
               </View>
             )}
 
-            {!isStaff() && <Text style={styles.sectionTitle}>Coach Assessment</Text>}
+            {!isStaff() && <Text style={[styles.sectionTitle, { color: t.text }]}>Coach Assessment</Text>}
 
             {editingAssessment ? (
               // Edit Mode
               <View style={styles.assessmentEditForm}>
-                <View style={styles.assessmentEditCard}>
-                  <View style={[styles.assessmentEditHeader, { backgroundColor: colors.emerald[50] }]}>
-                    <Zap size={18} color={colors.emerald[600]} />
-                    <Text style={[styles.assessmentEditLabel, { color: colors.emerald[700] }]}>Strengths</Text>
+                <View style={[styles.assessmentEditCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  <View style={[styles.assessmentEditHeader, { backgroundColor: isDark ? colors.emerald[700] + '20' : colors.emerald[50] }]}>
+                    <Zap size={18} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
+                    <Text style={[styles.assessmentEditLabel, { color: isDark ? colors.emerald[400] : colors.emerald[700] }]}>Strengths</Text>
                   </View>
                   <TextInput
-                    style={styles.assessmentTextArea}
+                    style={[styles.assessmentTextArea, { color: t.text }]}
                     placeholder="Enter strengths..."
-                    placeholderTextColor={colors.slate[400]}
+                    placeholderTextColor={t.textFaint}
                     value={assessmentForm.strengths}
                     onChangeText={(text) => setAssessmentForm(prev => ({ ...prev, strengths: text }))}
                     multiline
@@ -2234,15 +2252,15 @@ export default function GymnastProfileScreen() {
                   />
                 </View>
 
-                <View style={styles.assessmentEditCard}>
-                  <View style={[styles.assessmentEditHeader, { backgroundColor: colors.amber[50] }]}>
-                    <Activity size={18} color={colors.amber[600]} />
-                    <Text style={[styles.assessmentEditLabel, { color: colors.amber[700] }]}>Areas to Improve</Text>
+                <View style={[styles.assessmentEditCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  <View style={[styles.assessmentEditHeader, { backgroundColor: isDark ? colors.amber[700] + '20' : colors.amber[50] }]}>
+                    <Activity size={18} color={isDark ? colors.amber[500] : colors.amber[600]} />
+                    <Text style={[styles.assessmentEditLabel, { color: isDark ? colors.amber[500] : colors.amber[700] }]}>Areas to Improve</Text>
                   </View>
                   <TextInput
-                    style={styles.assessmentTextArea}
+                    style={[styles.assessmentTextArea, { color: t.text }]}
                     placeholder="Enter areas to improve..."
-                    placeholderTextColor={colors.slate[400]}
+                    placeholderTextColor={t.textFaint}
                     value={assessmentForm.weaknesses}
                     onChangeText={(text) => setAssessmentForm(prev => ({ ...prev, weaknesses: text }))}
                     multiline
@@ -2251,15 +2269,15 @@ export default function GymnastProfileScreen() {
                   />
                 </View>
 
-                <View style={styles.assessmentEditCard}>
-                  <View style={[styles.assessmentEditHeader, { backgroundColor: colors.indigo[50] }]}>
-                    <FileText size={18} color={colors.indigo[600]} />
-                    <Text style={[styles.assessmentEditLabel, { color: colors.indigo[700] }]}>Training Plan</Text>
+                <View style={[styles.assessmentEditCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  <View style={[styles.assessmentEditHeader, { backgroundColor: isDark ? colors.purple[700] + '20' : colors.indigo[50] }]}>
+                    <FileText size={18} color={isDark ? colors.purple[400] : colors.indigo[600]} />
+                    <Text style={[styles.assessmentEditLabel, { color: isDark ? colors.purple[400] : colors.indigo[700] }]}>Training Plan</Text>
                   </View>
                   <TextInput
-                    style={styles.assessmentTextArea}
+                    style={[styles.assessmentTextArea, { color: t.text }]}
                     placeholder="Enter training plan..."
-                    placeholderTextColor={colors.slate[400]}
+                    placeholderTextColor={t.textFaint}
                     value={assessmentForm.overall_plan}
                     onChangeText={(text) => setAssessmentForm(prev => ({ ...prev, overall_plan: text }))}
                     multiline
@@ -2268,15 +2286,15 @@ export default function GymnastProfileScreen() {
                   />
                 </View>
 
-                <View style={styles.assessmentEditCard}>
-                  <View style={[styles.assessmentEditHeader, { backgroundColor: colors.error[50] }]}>
-                    <Heart size={18} color={colors.error[600]} />
-                    <Text style={[styles.assessmentEditLabel, { color: colors.error[700] }]}>Injuries / Notes</Text>
+                <View style={[styles.assessmentEditCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  <View style={[styles.assessmentEditHeader, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]}>
+                    <Heart size={18} color={isDark ? colors.error[400] : colors.error[600]} />
+                    <Text style={[styles.assessmentEditLabel, { color: isDark ? colors.error[400] : colors.error[700] }]}>Injuries / Notes</Text>
                   </View>
                   <TextInput
-                    style={styles.assessmentTextArea}
+                    style={[styles.assessmentTextArea, { color: t.text }]}
                     placeholder="Enter injury notes..."
-                    placeholderTextColor={colors.slate[400]}
+                    placeholderTextColor={t.textFaint}
                     value={assessmentForm.injuries}
                     onChangeText={(text) => setAssessmentForm(prev => ({ ...prev, injuries: text }))}
                     multiline
@@ -2303,50 +2321,50 @@ export default function GymnastProfileScreen() {
                 {assessmentForm.strengths || assessmentForm.weaknesses || assessmentForm.overall_plan || assessmentForm.injuries ? (
                   <>
                     {assessmentForm.strengths && (
-                      <View style={[styles.assessmentViewCard, { borderLeftColor: colors.emerald[500] }]}>
+                      <View style={[styles.assessmentViewCard, { backgroundColor: t.surface, borderColor: t.border, borderLeftColor: isDark ? colors.emerald[400] : colors.emerald[500] }]}>
                         <View style={styles.assessmentViewHeader}>
-                          <Zap size={16} color={colors.emerald[600]} />
-                          <Text style={[styles.assessmentViewLabel, { color: colors.emerald[700] }]}>Strengths</Text>
+                          <Zap size={16} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
+                          <Text style={[styles.assessmentViewLabel, { color: isDark ? colors.emerald[400] : colors.emerald[700] }]}>Strengths</Text>
                         </View>
-                        <Text style={styles.assessmentViewText}>{assessmentForm.strengths}</Text>
+                        <Text style={[styles.assessmentViewText, { color: t.textSecondary }]}>{assessmentForm.strengths}</Text>
                       </View>
                     )}
 
                     {assessmentForm.weaknesses && (
-                      <View style={[styles.assessmentViewCard, { borderLeftColor: colors.amber[500] }]}>
+                      <View style={[styles.assessmentViewCard, { backgroundColor: t.surface, borderColor: t.border, borderLeftColor: isDark ? colors.amber[500] : colors.amber[500] }]}>
                         <View style={styles.assessmentViewHeader}>
-                          <Activity size={16} color={colors.amber[600]} />
-                          <Text style={[styles.assessmentViewLabel, { color: colors.amber[700] }]}>Areas to Improve</Text>
+                          <Activity size={16} color={isDark ? colors.amber[500] : colors.amber[600]} />
+                          <Text style={[styles.assessmentViewLabel, { color: isDark ? colors.amber[500] : colors.amber[700] }]}>Areas to Improve</Text>
                         </View>
-                        <Text style={styles.assessmentViewText}>{assessmentForm.weaknesses}</Text>
+                        <Text style={[styles.assessmentViewText, { color: t.textSecondary }]}>{assessmentForm.weaknesses}</Text>
                       </View>
                     )}
 
                     {assessmentForm.overall_plan && (
-                      <View style={[styles.assessmentViewCard, { borderLeftColor: colors.indigo[500] }]}>
+                      <View style={[styles.assessmentViewCard, { backgroundColor: t.surface, borderColor: t.border, borderLeftColor: isDark ? colors.purple[400] : colors.indigo[500] }]}>
                         <View style={styles.assessmentViewHeader}>
-                          <FileText size={16} color={colors.indigo[600]} />
-                          <Text style={[styles.assessmentViewLabel, { color: colors.indigo[700] }]}>Training Plan</Text>
+                          <FileText size={16} color={isDark ? colors.purple[400] : colors.indigo[600]} />
+                          <Text style={[styles.assessmentViewLabel, { color: isDark ? colors.purple[400] : colors.indigo[700] }]}>Training Plan</Text>
                         </View>
-                        <Text style={styles.assessmentViewText}>{assessmentForm.overall_plan}</Text>
+                        <Text style={[styles.assessmentViewText, { color: t.textSecondary }]}>{assessmentForm.overall_plan}</Text>
                       </View>
                     )}
 
                     {assessmentForm.injuries && (
-                      <View style={[styles.assessmentViewCard, { borderLeftColor: colors.error[500] }]}>
+                      <View style={[styles.assessmentViewCard, { backgroundColor: t.surface, borderColor: t.border, borderLeftColor: isDark ? colors.error[400] : colors.error[500] }]}>
                         <View style={styles.assessmentViewHeader}>
-                          <Heart size={16} color={colors.error[600]} />
-                          <Text style={[styles.assessmentViewLabel, { color: colors.error[700] }]}>Injuries / Notes</Text>
+                          <Heart size={16} color={isDark ? colors.error[400] : colors.error[600]} />
+                          <Text style={[styles.assessmentViewLabel, { color: isDark ? colors.error[400] : colors.error[700] }]}>Injuries / Notes</Text>
                         </View>
-                        <Text style={styles.assessmentViewText}>{assessmentForm.injuries}</Text>
+                        <Text style={[styles.assessmentViewText, { color: t.textSecondary }]}>{assessmentForm.injuries}</Text>
                       </View>
                     )}
                   </>
                 ) : (
                   <View style={styles.emptyContainer}>
-                    <FileText size={48} color={colors.slate[300]} />
-                    <Text style={styles.emptyTitle}>No Assessment Yet</Text>
-                    <Text style={styles.emptyTextCenter}>
+                    <FileText size={48} color={t.textFaint} />
+                    <Text style={[styles.emptyTitle, { color: t.text }]}>No Assessment Yet</Text>
+                    <Text style={[styles.emptyTextCenter, { color: t.textMuted }]}>
                       {isStaff() ? 'Tap the edit button to add an assessment' : 'No assessment has been added by coaches yet'}
                     </Text>
                   </View>
@@ -2358,34 +2376,34 @@ export default function GymnastProfileScreen() {
 
         {activeTab === 'skills' && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Skills by Event</Text>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Skills by Event</Text>
             {isStaff() && (
-              <Text style={styles.skillEditHint}>Tap a skill to change its status</Text>
+              <Text style={[styles.skillEditHint, { color: t.textMuted }]}>Tap a skill to change its status</Text>
             )}
             {skillSummary.map((summary) => {
               const isExpanded = expandedSkillEvents.has(summary.event);
               const eventSkills = detailedSkills.filter(s => s.event === summary.event);
 
               return (
-                <View key={summary.event} style={styles.skillEventCard}>
+                <View key={summary.event} style={[styles.skillEventCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                   <TouchableOpacity
                     style={styles.skillEventHeader}
                     onPress={() => toggleSkillEventExpanded(summary.event)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.skillEventName}>{getEventLabel(summary.event)}</Text>
+                    <Text style={[styles.skillEventName, { color: t.text }]}>{getEventLabel(summary.event)}</Text>
                     <View style={styles.skillEventMeta}>
-                      <Text style={styles.skillEventCount}>
+                      <Text style={[styles.skillEventCount, { color: t.textMuted }]}>
                         {summary.compete_ready} / {summary.total} ready
                       </Text>
                       {isExpanded ? (
-                        <ChevronUp size={18} color={colors.slate[400]} />
+                        <ChevronUp size={18} color={t.textFaint} />
                       ) : (
-                        <ChevronDown size={18} color={colors.slate[400]} />
+                        <ChevronDown size={18} color={t.textFaint} />
                       )}
                     </View>
                   </TouchableOpacity>
-                  <View style={styles.progressBar}>
+                  <View style={[styles.progressBar, { backgroundColor: isDark ? colors.slate[600] : colors.slate[100] }]}>
                     <View
                       style={[
                         styles.progressFill,
@@ -2399,7 +2417,7 @@ export default function GymnastProfileScreen() {
                   </View>
 
                   {isExpanded && eventSkills.length > 0 && (
-                    <View style={styles.skillsList}>
+                    <View style={[styles.skillsList, { borderTopColor: t.borderSubtle }]}>
                       {eventSkills.map((skill) => {
                         const statusKey = String(skill.status || 'null');
                         const statusConfig = SKILL_STATUS_COLORS[statusKey] || SKILL_STATUS_COLORS['null'];
@@ -2408,12 +2426,12 @@ export default function GymnastProfileScreen() {
                         return (
                           <TouchableOpacity
                             key={skill.id}
-                            style={styles.skillItem}
+                            style={[styles.skillItem, { borderBottomColor: t.borderSubtle }]}
                             onPress={() => cycleSkillStatus(skill)}
                             disabled={!isStaff()}
                             activeOpacity={isStaff() ? 0.7 : 1}
                           >
-                            <Text style={styles.skillName} numberOfLines={1}>
+                            <Text style={[styles.skillName, { color: t.text }]} numberOfLines={1}>
                               {skill.name}
                             </Text>
                             <View style={[styles.skillStatusBadge, { backgroundColor: statusConfig.bg }]}>
@@ -2431,9 +2449,9 @@ export default function GymnastProfileScreen() {
             })}
             {skillSummary.length === 0 && (
               <View style={styles.emptyContainer}>
-                <Target size={48} color={colors.slate[300]} />
-                <Text style={styles.emptyTitle}>No Skills Tracked</Text>
-                <Text style={styles.emptyTextCenter}>
+                <Target size={48} color={t.textFaint} />
+                <Text style={[styles.emptyTitle, { color: t.text }]}>No Skills Tracked</Text>
+                <Text style={[styles.emptyTextCenter, { color: t.textMuted }]}>
                   Skills will appear here once they are added to this gymnast
                 </Text>
               </View>
@@ -2456,7 +2474,7 @@ export default function GymnastProfileScreen() {
               </View>
             )}
 
-            <Text style={styles.sectionTitle}>Competition Scores</Text>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Competition Scores</Text>
             {(() => {
               const filteredScores = selectedSeasonId
                 ? recentScores.filter((s) => s.season_id === selectedSeasonId)
@@ -2495,26 +2513,26 @@ export default function GymnastProfileScreen() {
                   const aaScore = comp.scores.reduce((sum, s) => sum + s.score, 0);
 
                   return (
-                    <View key={comp.competition_id} style={styles.competitionScoreCard}>
-                      <View style={styles.competitionScoreHeader}>
+                    <View key={comp.competition_id} style={[styles.competitionScoreCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                      <View style={[styles.competitionScoreHeader, { borderBottomColor: t.borderSubtle }]}>
                         <View style={styles.competitionScoreHeaderLeft}>
-                          <Text style={styles.competitionScoreName}>{comp.competition_name}</Text>
+                          <Text style={[styles.competitionScoreName, { color: t.text }]}>{comp.competition_name}</Text>
                           {comp.competition_date && (
-                            <Text style={styles.competitionScoreDate}>
+                            <Text style={[styles.competitionScoreDate, { color: t.textMuted }]}>
                               {format(parseISO(comp.competition_date), 'MMM d, yyyy')}
                             </Text>
                           )}
                         </View>
-                        <View style={styles.aaScoreContainer}>
-                          <Text style={styles.aaScoreLabel}>AA</Text>
-                          <Text style={styles.aaScoreValue}>{aaScore.toFixed(3)}</Text>
+                        <View style={[styles.aaScoreContainer, { backgroundColor: `${t.primary}15` }]}>
+                          <Text style={[styles.aaScoreLabel, { color: t.primary }]}>AA</Text>
+                          <Text style={[styles.aaScoreValue, { color: t.primary }]}>{aaScore.toFixed(3)}</Text>
                         </View>
                       </View>
                       <View style={styles.eventScoresGrid}>
                         {comp.scores.map((score) => (
-                          <View key={score.id} style={styles.eventScoreItem}>
-                            <Text style={styles.eventScoreLabel}>{getEventLabel(score.event)}</Text>
-                            <Text style={styles.eventScoreValue}>{score.score.toFixed(3)}</Text>
+                          <View key={score.id} style={[styles.eventScoreItem, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50] }]}>
+                            <Text style={[styles.eventScoreLabel, { color: t.textMuted }]}>{getEventLabel(score.event)}</Text>
+                            <Text style={[styles.eventScoreValue, { color: t.text }]}>{score.score.toFixed(3)}</Text>
                           </View>
                         ))}
                       </View>
@@ -2523,9 +2541,9 @@ export default function GymnastProfileScreen() {
                 })
               ) : (
                 <View style={styles.emptyContainer}>
-                  <BarChart3 size={48} color={colors.slate[300]} />
-                  <Text style={styles.emptyTitle}>No Scores Found</Text>
-                  <Text style={styles.emptyTextCenter}>
+                  <BarChart3 size={48} color={t.textFaint} />
+                  <Text style={[styles.emptyTitle, { color: t.text }]}>No Scores Found</Text>
+                  <Text style={[styles.emptyTextCenter, { color: t.textMuted }]}>
                     {selectedSeasonId ? 'No scores for this season' : 'No scores recorded yet'}
                   </Text>
                 </View>
@@ -2538,27 +2556,27 @@ export default function GymnastProfileScreen() {
           <View style={styles.section}>
             {/* Overall Stats */}
             <View style={styles.attendanceStatsGrid}>
-              <View style={[styles.attendanceStatCard, { backgroundColor: colors.emerald[50] }]}>
-                <TrendingUp size={20} color={colors.emerald[600]} />
-                <Text style={[styles.attendanceStatValue, { color: colors.emerald[600] }]}>
+              <View style={[styles.attendanceStatCard, { backgroundColor: isDark ? colors.emerald[700] + '20' : colors.emerald[50] }]}>
+                <TrendingUp size={20} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
+                <Text style={[styles.attendanceStatValue, { color: isDark ? colors.emerald[400] : colors.emerald[600] }]}>
                   {attendanceStats.percentage}%
                 </Text>
-                <Text style={styles.attendanceStatLabel}>6-Month Rate</Text>
+                <Text style={[styles.attendanceStatLabel, { color: t.textMuted }]}>6-Month Rate</Text>
               </View>
-              <View style={[styles.attendanceStatCard, { backgroundColor: colors.emerald[50] }]}>
-                <UserCheck size={20} color={colors.emerald[600]} />
-                <Text style={styles.attendanceStatValue}>{attendanceStats.present}</Text>
-                <Text style={styles.attendanceStatLabel}>Present</Text>
+              <View style={[styles.attendanceStatCard, { backgroundColor: isDark ? colors.emerald[700] + '20' : colors.emerald[50] }]}>
+                <UserCheck size={20} color={isDark ? colors.emerald[400] : colors.emerald[600]} />
+                <Text style={[styles.attendanceStatValue, { color: t.text }]}>{attendanceStats.present}</Text>
+                <Text style={[styles.attendanceStatLabel, { color: t.textMuted }]}>Present</Text>
               </View>
-              <View style={[styles.attendanceStatCard, { backgroundColor: colors.amber[50] }]}>
-                <Clock size={20} color={colors.amber[600]} />
-                <Text style={styles.attendanceStatValue}>{attendanceStats.late}</Text>
-                <Text style={styles.attendanceStatLabel}>Late</Text>
+              <View style={[styles.attendanceStatCard, { backgroundColor: isDark ? colors.amber[700] + '20' : colors.amber[50] }]}>
+                <Clock size={20} color={isDark ? colors.amber[500] : colors.amber[600]} />
+                <Text style={[styles.attendanceStatValue, { color: t.text }]}>{attendanceStats.late}</Text>
+                <Text style={[styles.attendanceStatLabel, { color: t.textMuted }]}>Late</Text>
               </View>
-              <View style={[styles.attendanceStatCard, { backgroundColor: colors.error[50] }]}>
-                <AlertTriangle size={20} color={colors.error[600]} />
-                <Text style={styles.attendanceStatValue}>{attendanceStats.absent}</Text>
-                <Text style={styles.attendanceStatLabel}>Absent</Text>
+              <View style={[styles.attendanceStatCard, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]}>
+                <AlertTriangle size={20} color={isDark ? colors.error[400] : colors.error[600]} />
+                <Text style={[styles.attendanceStatValue, { color: t.text }]}>{attendanceStats.absent}</Text>
+                <Text style={[styles.attendanceStatLabel, { color: t.textMuted }]}>Absent</Text>
               </View>
             </View>
 
@@ -2566,14 +2584,14 @@ export default function GymnastProfileScreen() {
             {monthlyTrends.some((m) => m.total > 0) && (
               <View style={styles.monthlyTrendsSection}>
                 <View style={styles.monthlyTrendsHeader}>
-                  <Text style={styles.sectionTitle}>Monthly Breakdown</Text>
+                  <Text style={[styles.sectionTitle, { color: t.text }]}>Monthly Breakdown</Text>
                   {selectedMonth && (
                     <TouchableOpacity
-                      style={styles.clearFilterBtn}
+                      style={[styles.clearFilterBtn, { backgroundColor: `${t.primary}15` }]}
                       onPress={() => setSelectedMonth(null)}
                     >
-                      <Text style={styles.clearFilterText}>Clear</Text>
-                      <X size={14} color={colors.brand[600]} />
+                      <Text style={[styles.clearFilterText, { color: t.primary }]}>Clear</Text>
+                      <X size={14} color={t.primary} />
                     </TouchableOpacity>
                   )}
                 </View>
@@ -2597,7 +2615,8 @@ export default function GymnastProfileScreen() {
                         key={month.key}
                         style={[
                           styles.monthlyTrendCard,
-                          isSelected && styles.monthlyTrendCardSelected,
+                          { backgroundColor: t.surface, borderColor: t.border },
+                          isSelected && [styles.monthlyTrendCardSelected, { borderColor: t.primary, backgroundColor: `${t.primary}15` }],
                         ]}
                         onPress={() =>
                           setSelectedMonth(isSelected ? null : month.key)
@@ -2607,7 +2626,8 @@ export default function GymnastProfileScreen() {
                         <Text
                           style={[
                             styles.monthlyTrendLabel,
-                            isSelected && styles.monthlyTrendLabelSelected,
+                            { color: t.textSecondary },
+                            isSelected && [styles.monthlyTrendLabelSelected, { color: t.primary }],
                           ]}
                         >
                           {month.label}
@@ -2620,7 +2640,7 @@ export default function GymnastProfileScreen() {
                         >
                           {month.percentage}%
                         </Text>
-                        <View style={styles.monthlyTrendProgressBar}>
+                        <View style={[styles.monthlyTrendProgressBar, { backgroundColor: isDark ? colors.slate[600] : colors.slate[100] }]}>
                           <View
                             style={[
                               styles.monthlyTrendProgressFill,
@@ -2631,7 +2651,7 @@ export default function GymnastProfileScreen() {
                             ]}
                           />
                         </View>
-                        <Text style={styles.monthlyTrendCount}>
+                        <Text style={[styles.monthlyTrendCount, { color: t.textMuted }]}>
                           {month.present}/{month.total} days
                         </Text>
                       </TouchableOpacity>
@@ -2650,9 +2670,9 @@ export default function GymnastProfileScreen() {
             {filteredAttendanceRecords.slice(0, 30).map((record) => {
               const config = STATUS_CONFIG[record.status] || STATUS_CONFIG.present;
               return (
-                <View key={record.id} style={styles.attendanceRecordCard}>
+                <View key={record.id} style={[styles.attendanceRecordCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                   <View style={styles.attendanceRecordHeader}>
-                    <Text style={styles.attendanceRecordDate}>
+                    <Text style={[styles.attendanceRecordDate, { color: t.text }]}>
                       {format(parseISO(record.attendance_date), 'EEEE, MMM d')}
                     </Text>
                     <View style={[styles.statusBadge, { backgroundColor: config.bgColor }]}>
@@ -2664,24 +2684,24 @@ export default function GymnastProfileScreen() {
                   {(record.check_in_time || record.check_out_time) && (
                     <View style={styles.attendanceTimeRow}>
                       {record.check_in_time && (
-                        <Text style={styles.attendanceTimeText}>In: {record.check_in_time}</Text>
+                        <Text style={[styles.attendanceTimeText, { color: t.textMuted }]}>In: {record.check_in_time}</Text>
                       )}
                       {record.check_out_time && (
-                        <Text style={styles.attendanceTimeText}>Out: {record.check_out_time}</Text>
+                        <Text style={[styles.attendanceTimeText, { color: t.textMuted }]}>Out: {record.check_out_time}</Text>
                       )}
                     </View>
                   )}
                   {record.notes && (
-                    <Text style={styles.attendanceNotes}>{record.notes}</Text>
+                    <Text style={[styles.attendanceNotes, { color: t.textMuted }]}>{record.notes}</Text>
                   )}
                 </View>
               );
             })}
             {filteredAttendanceRecords.length === 0 && (
               <View style={styles.emptyContainer}>
-                <UserCheck size={48} color={colors.slate[300]} />
-                <Text style={styles.emptyTitle}>No Attendance Records</Text>
-                <Text style={styles.emptyTextCenter}>
+                <UserCheck size={48} color={t.textFaint} />
+                <Text style={[styles.emptyTitle, { color: t.text }]}>No Attendance Records</Text>
+                <Text style={[styles.emptyTextCenter, { color: t.textMuted }]}>
                   {selectedMonth ? 'No records for this month' : 'No attendance has been recorded yet'}
                 </Text>
               </View>
@@ -2692,34 +2712,34 @@ export default function GymnastProfileScreen() {
         {activeTab === 'assignments' && canViewAssignments && (
           <View style={styles.section}>
             {/* Assignment Stats Card */}
-            <View style={styles.assignmentStatsCard}>
+            <View style={[styles.assignmentStatsCard, { backgroundColor: `${t.primary}15`, borderColor: `${t.primary}30` }]}>
               <View style={styles.assignmentStatsHeader}>
-                <ClipboardList size={20} color={colors.brand[600]} />
-                <Text style={styles.assignmentStatsTitle}>30-Day Statistics</Text>
+                <ClipboardList size={20} color={t.primary} />
+                <Text style={[styles.assignmentStatsTitle, { color: t.text }]}>30-Day Statistics</Text>
               </View>
               <View style={styles.assignmentQuickStats}>
                 <View style={styles.assignmentQuickStat}>
-                  <Text style={styles.assignmentQuickStatValue}>{assignmentStats.totalExercises}</Text>
-                  <Text style={styles.assignmentQuickStatLabel}>Assigned</Text>
+                  <Text style={[styles.assignmentQuickStatValue, { color: t.text }]}>{assignmentStats.totalExercises}</Text>
+                  <Text style={[styles.assignmentQuickStatLabel, { color: t.textMuted }]}>Assigned</Text>
                 </View>
                 <View style={styles.assignmentQuickStat}>
-                  <Text style={[styles.assignmentQuickStatValue, { color: colors.brand[600] }]}>
+                  <Text style={[styles.assignmentQuickStatValue, { color: t.primary }]}>
                     {assignmentStats.totalCompleted}
                   </Text>
-                  <Text style={styles.assignmentQuickStatLabel}>Completed</Text>
+                  <Text style={[styles.assignmentQuickStatLabel, { color: t.textMuted }]}>Completed</Text>
                 </View>
                 <View style={styles.assignmentQuickStat}>
-                  <Text style={[styles.assignmentQuickStatValue, { color: colors.indigo[600] }]}>
+                  <Text style={[styles.assignmentQuickStatValue, { color: isDark ? colors.purple[400] : colors.indigo[600] }]}>
                     {assignmentStats.completionRate}%
                   </Text>
-                  <Text style={styles.assignmentQuickStatLabel}>Rate</Text>
+                  <Text style={[styles.assignmentQuickStatLabel, { color: t.textMuted }]}>Rate</Text>
                 </View>
               </View>
-              <View style={styles.progressBar}>
+              <View style={[styles.progressBar, { backgroundColor: isDark ? colors.slate[600] : colors.slate[100] }]}>
                 <View
                   style={[
                     styles.progressFill,
-                    { width: `${assignmentStats.completionRate}%`, backgroundColor: colors.brand[500] },
+                    { width: `${assignmentStats.completionRate}%`, backgroundColor: t.primary },
                   ]}
                 />
               </View>
@@ -2746,15 +2766,15 @@ export default function GymnastProfileScreen() {
               const dayPercentage = dayTotal > 0 ? Math.round((dayCompleted / dayTotal) * 100) : 0;
 
               return (
-                <View key={assignment.id} style={styles.assignmentCard}>
+                <View key={assignment.id} style={[styles.assignmentCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                   <View style={styles.assignmentCardHeader}>
-                    <Text style={styles.assignmentDate}>
+                    <Text style={[styles.assignmentDate, { color: t.text }]}>
                       {format(parseISO(assignment.date), 'EEEE, MMM d')}
                     </Text>
                     <View style={styles.assignmentPercentageContainer}>
                       <Text style={[
                         styles.assignmentPercentage,
-                        { color: dayPercentage === 100 ? colors.success[600] : dayPercentage >= 80 ? colors.brand[600] : colors.slate[700] }
+                        { color: dayPercentage === 100 ? colors.success[600] : dayPercentage >= 80 ? t.primary : t.textSecondary }
                       ]}>
                         {dayPercentage}%
                       </Text>
@@ -2763,18 +2783,18 @@ export default function GymnastProfileScreen() {
                       )}
                     </View>
                   </View>
-                  <View style={styles.progressBarSmall}>
+                  <View style={[styles.progressBarSmall, { backgroundColor: isDark ? colors.slate[600] : colors.slate[100] }]}>
                     <View
                       style={[
                         styles.progressFill,
                         {
                           width: `${dayPercentage}%`,
-                          backgroundColor: dayPercentage === 100 ? colors.success[500] : dayPercentage >= 80 ? colors.brand[500] : colors.slate[400],
+                          backgroundColor: dayPercentage === 100 ? colors.success[500] : dayPercentage >= 80 ? t.primary : t.textFaint,
                         },
                       ]}
                     />
                   </View>
-                  <Text style={styles.assignmentExerciseCount}>
+                  <Text style={[styles.assignmentExerciseCount, { color: t.textMuted }]}>
                     {dayCompleted} / {dayTotal} exercises
                   </Text>
                 </View>
@@ -2782,9 +2802,9 @@ export default function GymnastProfileScreen() {
             })}
             {assignments.length === 0 && (
               <View style={styles.emptyContainer}>
-                <ClipboardList size={48} color={colors.slate[300]} />
-                <Text style={styles.emptyTitle}>No Assignments Yet</Text>
-                <Text style={styles.emptyTextCenter}>
+                <ClipboardList size={48} color={t.textFaint} />
+                <Text style={[styles.emptyTitle, { color: t.text }]}>No Assignments Yet</Text>
+                <Text style={[styles.emptyTextCenter, { color: t.textMuted }]}>
                   Assignment history will appear here once exercises are assigned
                 </Text>
               </View>
@@ -2802,35 +2822,35 @@ export default function GymnastProfileScreen() {
         transparent={true}
         onRequestClose={() => setGoalModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
+        <View style={[styles.modalOverlay, { backgroundColor: t.overlay }]}>
+          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.modalTitle, { color: t.text }]}>
                 {editingGoal ? 'Edit Goal' : 'Add Goal'}
               </Text>
               <TouchableOpacity
                 style={styles.modalCloseBtn}
                 onPress={() => setGoalModalVisible(false)}
               >
-                <X size={24} color={colors.slate[600]} />
+                <X size={24} color={t.textMuted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.inputLabel}>Title *</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Title *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                 placeholder="Enter goal title"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={goalForm.title}
                 onChangeText={(text) => setGoalForm(prev => ({ ...prev, title: text }))}
               />
 
-              <Text style={styles.inputLabel}>Description</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Description</Text>
               <TextInput
-                style={[styles.input, styles.textArea]}
+                style={[styles.input, styles.textArea, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                 placeholder="Describe the goal"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={goalForm.description}
                 onChangeText={(text) => setGoalForm(prev => ({ ...prev, description: text }))}
                 multiline
@@ -2838,14 +2858,15 @@ export default function GymnastProfileScreen() {
                 textAlignVertical="top"
               />
 
-              <Text style={styles.inputLabel}>Event (optional)</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Event (optional)</Text>
               <View style={styles.eventPicker}>
                 {(gymnast?.gender === 'Female' ? DEFAULT_WAG_EVENTS : DEFAULT_MAG_EVENTS).map((event) => (
                   <TouchableOpacity
                     key={event}
                     style={[
                       styles.eventOption,
-                      goalForm.event === event && styles.eventOptionSelected,
+                      { backgroundColor: isDark ? colors.slate[700] : colors.slate[100], borderColor: t.border },
+                      goalForm.event === event && [styles.eventOptionSelected, { backgroundColor: t.primary, borderColor: t.primary }],
                     ]}
                     onPress={() =>
                       setGoalForm(prev => ({
@@ -2857,6 +2878,7 @@ export default function GymnastProfileScreen() {
                     <Text
                       style={[
                         styles.eventOptionText,
+                        { color: t.textSecondary },
                         goalForm.event === event && styles.eventOptionTextSelected,
                       ]}
                     >
@@ -2866,25 +2888,25 @@ export default function GymnastProfileScreen() {
                 ))}
               </View>
 
-              <Text style={styles.inputLabel}>Target Date (optional)</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Target Date (optional)</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: isDark ? colors.slate[700] : colors.slate[50], borderColor: t.border, color: t.text }]}
                 placeholder="YYYY-MM-DD"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={goalForm.target_date}
                 onChangeText={(text) => setGoalForm(prev => ({ ...prev, target_date: text }))}
               />
             </ScrollView>
 
-            <View style={styles.modalFooter}>
+            <View style={[styles.modalFooter, { borderTopColor: t.border }]}>
               <TouchableOpacity
-                style={styles.cancelButton}
+                style={[styles.cancelButton, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                 onPress={() => setGoalModalVisible(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveButton, (!goalForm.title.trim() || savingGoal) && styles.saveButtonDisabled]}
+                style={[styles.saveButton, { backgroundColor: t.primary }, (!goalForm.title.trim() || savingGoal) && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
                 onPress={saveGoal}
                 disabled={!goalForm.title.trim() || savingGoal}
               >
@@ -2962,7 +2984,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   tabActive: {
-    borderBottomColor: theme.light.primary,
+    borderBottomColor: colors.brand[600],
   },
   tabText: {
     fontSize: 15,
@@ -2970,7 +2992,7 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
   },
   tabTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontWeight: '600',
   },
   content: {

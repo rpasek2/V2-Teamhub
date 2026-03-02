@@ -11,7 +11,8 @@ import {
   Pressable,
 } from 'react-native';
 import { ChevronLeft, ChevronRight, MapPin, Clock, Plus, Filter, CalendarDays } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { Badge, MobileTabGuard } from '../../src/components/ui';
 import { EventDetailsModal, CreateEventModal } from '../../src/components/calendar';
 import { supabase } from '../../src/services/supabase';
@@ -159,6 +160,7 @@ const EVENT_COLORS: Record<string, string> = {
 };
 
 export default function CalendarScreen() {
+  const { t, isDark, colors } = useTheme();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -456,13 +458,17 @@ export default function CalendarScreen() {
             style={[
               styles.dayCircle,
               isToday(day) && styles.todayCircle,
+              isToday(day) && { backgroundColor: `${t.primary}15` },
               isSelected && styles.selectedCircle,
+              isSelected && { backgroundColor: t.primary },
             ]}
           >
             <Text
               style={[
                 styles.dayText,
+                { color: t.text },
                 isToday(day) && !isSelected && styles.todayText,
+                isToday(day) && !isSelected && { color: t.primary },
                 isSelected && styles.selectedText,
                 holiday && !isSelected && !isToday(day) && { color: holiday.textColor },
               ]}
@@ -473,7 +479,7 @@ export default function CalendarScreen() {
           <View style={styles.dayIndicators}>
             {holiday && <Text style={styles.holidayEmoji}>{holiday.emoji}</Text>}
             {dayHasBirthday && <Text style={styles.birthdayEmoji}>🎂</Text>}
-            {dayHasEvents && <View style={[styles.eventDot, isSelected && styles.eventDotSelected]} />}
+            {dayHasEvents && <View style={[styles.eventDot, { backgroundColor: t.primary }, isSelected && styles.eventDotSelected]} />}
           </View>
         </TouchableOpacity>
       );
@@ -503,40 +509,42 @@ export default function CalendarScreen() {
 
   return (
     <MobileTabGuard tabId="calendar">
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Calendar Header */}
-      <View style={styles.calendarHeader}>
+      <View style={[styles.calendarHeader, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <View style={styles.headerTopRow}>
           <TouchableOpacity onPress={goToPrevMonth} style={styles.navButton}>
-            <ChevronLeft size={24} color={colors.slate[700]} />
+            <ChevronLeft size={24} color={t.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.monthTitle}>
+          <Text style={[styles.monthTitle, { color: t.text }]}>
             {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
           </Text>
           <TouchableOpacity onPress={goToNextMonth} style={styles.navButton}>
-            <ChevronRight size={24} color={colors.slate[700]} />
+            <ChevronRight size={24} color={t.textSecondary} />
           </TouchableOpacity>
         </View>
         <View style={styles.headerBottomRow}>
           <TouchableOpacity
             onPress={goToToday}
-            style={styles.todayButton}
+            style={[styles.todayButton, { backgroundColor: `${t.primary}10`, borderColor: `${t.primary}30` }]}
             activeOpacity={0.7}
           >
-            <CalendarDays size={16} color={theme.light.primary} />
-            <Text style={styles.todayButtonText}>Today</Text>
+            <CalendarDays size={16} color={t.primary} />
+            <Text style={[styles.todayButtonText, { color: t.primary }]}>Today</Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setShowFilter(true)}
             style={[
               styles.filterButton,
-              filterType !== 'all' && styles.filterButtonActive,
+              { backgroundColor: t.surfaceSecondary, borderColor: t.border },
+              filterType !== 'all' && { backgroundColor: t.primary, borderColor: t.primary },
             ]}
             activeOpacity={0.7}
           >
-            <Filter size={16} color={filterType !== 'all' ? colors.white : colors.slate[600]} />
+            <Filter size={16} color={filterType !== 'all' ? colors.white : t.textSecondary} />
             <Text style={[
               styles.filterButtonText,
+              { color: t.textSecondary },
               filterType !== 'all' && styles.filterButtonTextActive,
             ]}>
               {filterType === 'all' ? 'Filter' : EVENT_TYPE_OPTIONS.find(o => o.value === filterType)?.label}
@@ -552,16 +560,16 @@ export default function CalendarScreen() {
         animationType="fade"
         onRequestClose={() => setShowFilter(false)}
       >
-        <Pressable style={styles.filterModalOverlay} onPress={() => setShowFilter(false)}>
-          <View style={styles.filterModalContent}>
-            <Text style={styles.filterModalTitle}>Filter by Type</Text>
+        <Pressable style={[styles.filterModalOverlay, { backgroundColor: t.overlay }]} onPress={() => setShowFilter(false)}>
+          <View style={[styles.filterModalContent, { backgroundColor: t.surface }]}>
+            <Text style={[styles.filterModalTitle, { color: t.text }]}>Filter by Type</Text>
             <ScrollView style={styles.filterOptionsList}>
               {EVENT_TYPE_OPTIONS.map(option => (
                 <TouchableOpacity
                   key={option.value}
                   style={[
                     styles.filterOption,
-                    filterType === option.value && styles.filterOptionActive,
+                    filterType === option.value && { backgroundColor: `${t.primary}10` },
                   ]}
                   onPress={() => {
                     setFilterType(option.value);
@@ -573,13 +581,14 @@ export default function CalendarScreen() {
                     <View
                       style={[
                         styles.filterOptionDot,
-                        { backgroundColor: EVENT_COLORS[option.value] || colors.slate[400] },
+                        { backgroundColor: EVENT_COLORS[option.value] || t.textFaint },
                       ]}
                     />
                   )}
                   <Text style={[
                     styles.filterOptionText,
-                    filterType === option.value && styles.filterOptionTextActive,
+                    { color: t.textSecondary },
+                    filterType === option.value && { color: t.primary, fontWeight: '600' as const },
                   ]}>
                     {option.label}
                   </Text>
@@ -591,19 +600,19 @@ export default function CalendarScreen() {
       </Modal>
 
       {/* Day Names */}
-      <View style={styles.dayNamesRow}>
+      <View style={[styles.dayNamesRow, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         {dayNames.map(name => (
           <View key={name} style={styles.dayNameCell}>
-            <Text style={styles.dayName}>{name}</Text>
+            <Text style={[styles.dayName, { color: t.textMuted }]}>{name}</Text>
           </View>
         ))}
       </View>
 
       {/* Calendar Grid */}
-      <View style={styles.calendarGrid}>
+      <View style={[styles.calendarGrid, { backgroundColor: t.surface }]}>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={theme.light.primary} />
+            <ActivityIndicator size="small" color={t.primary} />
           </View>
         ) : (
           renderCalendarDays()
@@ -637,7 +646,7 @@ export default function CalendarScreen() {
             ))}
           </View>
         )}
-        <Text style={styles.eventsSectionTitle}>
+        <Text style={[styles.eventsSectionTitle, { color: t.text }]}>
           {selectedDate
             ? `Events on ${format(parseISO(selectedDate), 'MMM d, yyyy')}`
             : 'Upcoming Events'}
@@ -651,7 +660,7 @@ export default function CalendarScreen() {
           {displayEvents.map(event => (
             <TouchableOpacity
               key={event.id}
-              style={styles.eventCard}
+              style={[styles.eventCard, { backgroundColor: t.surface, borderColor: t.border }]}
               onPress={() => {
                 setSelectedEvent(event);
                 setShowEventModal(true);
@@ -661,12 +670,12 @@ export default function CalendarScreen() {
               <View
                 style={[
                   styles.eventColorBar,
-                  { backgroundColor: EVENT_COLORS[event.type] || colors.slate[400] },
+                  { backgroundColor: EVENT_COLORS[event.type] || t.textFaint },
                 ]}
               />
               <View style={styles.eventContent}>
                 <View style={styles.eventHeader}>
-                  <Text style={styles.eventTitle} numberOfLines={1}>{event.title}</Text>
+                  <Text style={[styles.eventTitle, { color: t.text }]} numberOfLines={1}>{event.title}</Text>
                   <Badge
                     label={event.type.replace('_', ' ')}
                     variant={event.type === 'competition' ? 'warning' : 'neutral'}
@@ -674,21 +683,21 @@ export default function CalendarScreen() {
                   />
                 </View>
                 {!selectedDate && (
-                  <Text style={styles.eventDate}>
+                  <Text style={[styles.eventDate, { color: t.textSecondary }]}>
                     {format(parseISO(event.start_time), 'EEE, MMM d')}
                   </Text>
                 )}
                 <View style={styles.eventMeta}>
                   <View style={styles.eventMetaItem}>
-                    <Clock size={14} color={colors.slate[400]} />
-                    <Text style={styles.eventMetaText}>
+                    <Clock size={14} color={t.textFaint} />
+                    <Text style={[styles.eventMetaText, { color: t.textMuted }]}>
                       {formatEventTime(event)}
                     </Text>
                   </View>
                   {event.location && (
                     <View style={styles.eventMetaItem}>
-                      <MapPin size={14} color={colors.slate[400]} />
-                      <Text style={styles.eventMetaText}>{event.location}</Text>
+                      <MapPin size={14} color={t.textFaint} />
+                      <Text style={[styles.eventMetaText, { color: t.textMuted }]}>{event.location}</Text>
                     </View>
                   )}
                 </View>
@@ -696,7 +705,7 @@ export default function CalendarScreen() {
             </TouchableOpacity>
           ))}
           {displayEvents.length === 0 && !loading && (
-            <Text style={styles.noEventsText}>
+            <Text style={[styles.noEventsText, { color: t.textFaint }]}>
               {filterType !== 'all'
                 ? `No ${filterType.replace('_', ' ')} events${selectedDate ? ' on this day' : ''}`
                 : selectedDate ? 'No events on this day' : 'No upcoming events'}
@@ -708,7 +717,7 @@ export default function CalendarScreen() {
       {/* FAB for adding events - only show for staff */}
       {canAddEvents && (
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: t.primary }]}
           onPress={() => setShowCreateModal(true)}
           activeOpacity={0.8}
         >
@@ -784,7 +793,7 @@ const styles = StyleSheet.create({
   todayButtonText: {
     fontSize: 13,
     fontWeight: '500',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   filterButton: {
     flexDirection: 'row',
@@ -798,8 +807,8 @@ const styles = StyleSheet.create({
     borderColor: colors.slate[200],
   },
   filterButtonActive: {
-    backgroundColor: theme.light.primary,
-    borderColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
+    borderColor: colors.brand[600],
   },
   filterButtonText: {
     fontSize: 13,
@@ -855,7 +864,7 @@ const styles = StyleSheet.create({
     color: colors.slate[700],
   },
   filterOptionTextActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontWeight: '600',
   },
   monthTitle: {
@@ -911,7 +920,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.brand[50],
   },
   selectedCircle: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   dayText: {
     fontSize: 16,
@@ -919,7 +928,7 @@ const styles = StyleSheet.create({
   },
   todayText: {
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   selectedText: {
     fontWeight: '600',
@@ -936,7 +945,7 @@ const styles = StyleSheet.create({
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   eventDotSelected: {
     backgroundColor: colors.white,
@@ -1055,7 +1064,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.black,

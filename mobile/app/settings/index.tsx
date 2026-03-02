@@ -25,14 +25,15 @@ import {
   X,
   Bell,
   ChevronRight,
-  Bug,
 } from 'lucide-react-native';
 import { format } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useAuthStore } from '../../src/stores/authStore';
 
 export default function UserSettingsScreen() {
+  const { t, isDark } = useTheme();
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
 
@@ -256,17 +257,17 @@ export default function UserSettingsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: t.background }]} contentContainerStyle={styles.content}>
       {/* Notification Preferences */}
       <TouchableOpacity
-        style={styles.notificationLink}
+        style={[styles.notificationLink, { backgroundColor: t.surface, borderColor: t.border }]}
         onPress={() => router.push('/settings/notifications')}
         activeOpacity={0.7}
       >
@@ -274,32 +275,16 @@ export default function UserSettingsScreen() {
           <Bell size={18} color={colors.brand[600]} />
         </View>
         <View style={styles.notificationLinkText}>
-          <Text style={styles.notificationLinkTitle}>Notification Preferences</Text>
-          <Text style={styles.notificationLinkDescription}>Choose which features show notifications</Text>
+          <Text style={[styles.notificationLinkTitle, { color: t.text }]}>Notification Preferences</Text>
+          <Text style={[styles.notificationLinkDescription, { color: t.textMuted }]}>Choose which features show notifications</Text>
         </View>
-        <ChevronRight size={18} color={colors.slate[400]} />
-      </TouchableOpacity>
-
-      {/* Feedback & Bug Reports */}
-      <TouchableOpacity
-        style={styles.notificationLink}
-        onPress={() => router.push('/settings/feedback')}
-        activeOpacity={0.7}
-      >
-        <View style={[styles.notificationLinkIcon, { backgroundColor: colors.error[50] }]}>
-          <Bug size={18} color={colors.error[600]} />
-        </View>
-        <View style={styles.notificationLinkText}>
-          <Text style={styles.notificationLinkTitle}>Report Bug / Feature Request</Text>
-          <Text style={styles.notificationLinkDescription}>Help us improve the app</Text>
-        </View>
-        <ChevronRight size={18} color={colors.slate[400]} />
+        <ChevronRight size={18} color={t.textFaint} />
       </TouchableOpacity>
 
       {/* Profile Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Profile</Text>
-        <View style={styles.card}>
+        <Text style={[styles.sectionTitle, { color: t.text }]}>Profile</Text>
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           {/* Avatar */}
           <TouchableOpacity
             style={styles.avatarContainer}
@@ -309,8 +294,8 @@ export default function UserSettingsScreen() {
             {profile?.avatar_url ? (
               <Image source={{ uri: profile.avatar_url, cache: 'force-cache' }} style={styles.avatar} />
             ) : (
-              <View style={styles.avatarPlaceholder}>
-                <User size={40} color={colors.slate[400]} />
+              <View style={[styles.avatarPlaceholder, { backgroundColor: t.surfaceSecondary }]}>
+                <User size={40} color={t.textFaint} />
               </View>
             )}
             <View style={styles.avatarOverlay}>
@@ -321,15 +306,15 @@ export default function UserSettingsScreen() {
               )}
             </View>
           </TouchableOpacity>
-          <Text style={styles.avatarHint}>Tap to change photo</Text>
+          <Text style={[styles.avatarHint, { color: t.textMuted }]}>Tap to change photo</Text>
 
           {/* Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Full Name</Text>
+            <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Full Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: t.text, backgroundColor: t.inputBg, borderColor: t.border }]}
               placeholder="Enter your name"
-              placeholderTextColor={colors.slate[400]}
+              placeholderTextColor={t.textFaint}
               value={fullName}
               onChangeText={setFullName}
             />
@@ -337,11 +322,11 @@ export default function UserSettingsScreen() {
 
           {/* Organization */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Organization</Text>
+            <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Organization</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { color: t.text, backgroundColor: t.inputBg, borderColor: t.border }]}
               placeholder="Enter your organization"
-              placeholderTextColor={colors.slate[400]}
+              placeholderTextColor={t.textFaint}
               value={organization}
               onChangeText={setOrganization}
             />
@@ -368,24 +353,24 @@ export default function UserSettingsScreen() {
           onPress={() => setShowPasswordSection(!showPasswordSection)}
         >
           <View style={styles.sectionHeaderLeft}>
-            <Lock size={20} color={colors.slate[600]} />
-            <Text style={styles.sectionTitle}>Change Password</Text>
+            <Lock size={20} color={t.textSecondary} />
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Change Password</Text>
           </View>
           {showPasswordSection ? (
-            <ChevronUp size={20} color={colors.slate[400]} />
+            <ChevronUp size={20} color={t.textFaint} />
           ) : (
-            <ChevronDown size={20} color={colors.slate[400]} />
+            <ChevronDown size={20} color={t.textFaint} />
           )}
         </TouchableOpacity>
 
         {showPasswordSection && (
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>New Password</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>New Password</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: t.text, backgroundColor: t.inputBg, borderColor: t.border }]}
                 placeholder="Enter new password"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={newPassword}
                 onChangeText={setNewPassword}
                 secureTextEntry
@@ -393,11 +378,11 @@ export default function UserSettingsScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Confirm Password</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Confirm Password</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: t.text, backgroundColor: t.inputBg, borderColor: t.border }]}
                 placeholder="Confirm new password"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
                 secureTextEntry
@@ -411,11 +396,12 @@ export default function UserSettingsScreen() {
                   {req.met ? (
                     <Check size={14} color={colors.emerald[600]} />
                   ) : (
-                    <X size={14} color={colors.slate[400]} />
+                    <X size={14} color={t.textFaint} />
                   )}
                   <Text
                     style={[
                       styles.requirementText,
+                      { color: t.textMuted },
                       req.met && styles.requirementMet,
                     ]}
                   >
@@ -446,37 +432,37 @@ export default function UserSettingsScreen() {
 
       {/* Account Info Section */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account Info</Text>
-        <View style={styles.card}>
-          <View style={styles.infoRow}>
-            <View style={styles.infoIcon}>
-              <User size={16} color={colors.slate[500]} />
+        <Text style={[styles.sectionTitle, { color: t.text }]}>Account Info</Text>
+        <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <View style={[styles.infoRow, { borderBottomColor: t.borderSubtle }]}>
+            <View style={[styles.infoIcon, { backgroundColor: t.surfaceSecondary }]}>
+              <User size={16} color={t.textMuted} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>User ID</Text>
-              <Text style={styles.infoValue} numberOfLines={1}>
+              <Text style={[styles.infoLabel, { color: t.textMuted }]}>User ID</Text>
+              <Text style={[styles.infoValue, { color: t.text }]} numberOfLines={1}>
                 {user?.id || '-'}
               </Text>
             </View>
           </View>
 
-          <View style={styles.infoRow}>
-            <View style={styles.infoIcon}>
-              <Mail size={16} color={colors.slate[500]} />
+          <View style={[styles.infoRow, { borderBottomColor: t.borderSubtle }]}>
+            <View style={[styles.infoIcon, { backgroundColor: t.surfaceSecondary }]}>
+              <Mail size={16} color={t.textMuted} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{user?.email || '-'}</Text>
+              <Text style={[styles.infoLabel, { color: t.textMuted }]}>Email</Text>
+              <Text style={[styles.infoValue, { color: t.text }]}>{user?.email || '-'}</Text>
             </View>
           </View>
 
           <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-            <View style={styles.infoIcon}>
-              <Calendar size={16} color={colors.slate[500]} />
+            <View style={[styles.infoIcon, { backgroundColor: t.surfaceSecondary }]}>
+              <Calendar size={16} color={t.textMuted} />
             </View>
             <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Account Created</Text>
-              <Text style={styles.infoValue}>
+              <Text style={[styles.infoLabel, { color: t.textMuted }]}>Account Created</Text>
+              <Text style={[styles.infoValue, { color: t.text }]}>
                 {profile?.created_at
                   ? format(new Date(profile.created_at), 'MMMM d, yyyy')
                   : '-'}
@@ -499,9 +485,9 @@ export default function UserSettingsScreen() {
             </Text>
           </View>
           {showDeleteSection ? (
-            <ChevronUp size={20} color={colors.slate[400]} />
+            <ChevronUp size={20} color={t.textFaint} />
           ) : (
-            <ChevronDown size={20} color={colors.slate[400]} />
+            <ChevronDown size={20} color={t.textFaint} />
           )}
         </TouchableOpacity>
 
@@ -514,11 +500,11 @@ export default function UserSettingsScreen() {
             </Text>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Type DELETE to confirm</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Type DELETE to confirm</Text>
               <TextInput
-                style={[styles.input, styles.dangerInput]}
+                style={[styles.input, styles.dangerInput, { color: t.text }]}
                 placeholder="DELETE"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={deleteConfirmText}
                 onChangeText={setDeleteConfirmText}
                 autoCapitalize="characters"

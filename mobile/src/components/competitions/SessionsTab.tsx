@@ -13,7 +13,8 @@ import {
   Users,
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
-import { colors, theme } from '../../../src/constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { Session } from './types';
 
 interface SessionsTabProps {
@@ -31,6 +32,8 @@ export function SessionsTab({
   onAddSession,
   onManageSessionGymnasts,
 }: SessionsTabProps) {
+  const { t, isDark } = useTheme();
+
   // Group session gymnasts by level
   const groupSessionGymnastsByLevel = (
     sessionGymnasts: Session['session_gymnasts']
@@ -70,19 +73,19 @@ export function SessionsTab({
       {/* Add Session Button (Staff only) */}
       {isStaff && (
         <TouchableOpacity
-          style={styles.addSessionButton}
+          style={[styles.addSessionButton, { backgroundColor: t.surface, borderColor: t.primary }]}
           onPress={onAddSession}
         >
-          <Plus size={18} color={theme.light.primary} />
-          <Text style={styles.addSessionButtonText}>Add Session</Text>
+          <Plus size={18} color={t.primary} />
+          <Text style={[styles.addSessionButtonText, { color: t.primary }]}>Add Session</Text>
         </TouchableOpacity>
       )}
 
       {sessions.length === 0 ? (
-        <View style={styles.emptySection}>
-          <Clock size={40} color={colors.slate[300]} />
-          <Text style={styles.emptySectionTitle}>No sessions</Text>
-          <Text style={styles.emptySectionText}>
+        <View style={[styles.emptySection, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Clock size={40} color={t.border} />
+          <Text style={[styles.emptySectionTitle, { color: t.text }]}>No sessions</Text>
+          <Text style={[styles.emptySectionText, { color: t.textMuted }]}>
             {isStaff
               ? 'Tap "Add Session" to create a session.'
               : 'Sessions will appear here once scheduled.'}
@@ -90,30 +93,30 @@ export function SessionsTab({
         </View>
       ) : (
         sessions.map((session) => (
-          <View key={session.id} style={styles.sessionCard}>
-            <View style={styles.sessionHeader}>
+          <View key={session.id} style={[styles.sessionCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+            <View style={[styles.sessionHeader, { backgroundColor: t.background, borderBottomColor: t.border }]}>
               <View style={styles.sessionTitleRow}>
-                <Text style={styles.sessionName}>{session.name}</Text>
+                <Text style={[styles.sessionName, { color: t.text }]}>{session.name}</Text>
               </View>
               <View style={styles.sessionDetails}>
                 <View style={styles.sessionDetailRow}>
-                  <Calendar size={14} color={colors.slate[400]} />
-                  <Text style={styles.sessionDetailText}>
+                  <Calendar size={14} color={t.textFaint} />
+                  <Text style={[styles.sessionDetailText, { color: t.textSecondary }]}>
                     {format(parseISO(session.date), 'MMM d, yyyy')}
                   </Text>
                 </View>
                 {session.warmup_time && (
                   <View style={styles.sessionDetailRow}>
-                    <Clock size={14} color={colors.slate[400]} />
-                    <Text style={styles.sessionDetailText}>
+                    <Clock size={14} color={t.textFaint} />
+                    <Text style={[styles.sessionDetailText, { color: t.textSecondary }]}>
                       Warmup: {format(parseISO(`2000-01-01T${session.warmup_time}`), 'h:mm a')}
                     </Text>
                   </View>
                 )}
                 {session.awards_time && (
                   <View style={styles.sessionDetailRow}>
-                    <Trophy size={14} color={colors.slate[400]} />
-                    <Text style={styles.sessionDetailText}>
+                    <Trophy size={14} color={t.textFaint} />
+                    <Text style={[styles.sessionDetailText, { color: t.textSecondary }]}>
                       Awards: {format(parseISO(`2000-01-01T${session.awards_time}`), 'h:mm a')}
                     </Text>
                   </View>
@@ -121,8 +124,8 @@ export function SessionsTab({
               </View>
               {session.session_coaches && session.session_coaches.length > 0 && (
                 <View style={styles.coachesRow}>
-                  <Text style={styles.coachesLabel}>Coaches:</Text>
-                  <Text style={styles.coachesText}>
+                  <Text style={[styles.coachesLabel, { color: t.textMuted }]}>Coaches:</Text>
+                  <Text style={[styles.coachesText, { color: t.textSecondary }]}>
                     {session.session_coaches
                       .map((c) => c.profiles?.full_name)
                       .filter(Boolean)
@@ -135,11 +138,11 @@ export function SessionsTab({
             {/* Manage Gymnasts Button (Staff only) */}
             {isStaff && (
               <TouchableOpacity
-                style={styles.manageGymnastsButton}
+                style={[styles.manageGymnastsButton, { borderBottomColor: t.borderSubtle }]}
                 onPress={() => onManageSessionGymnasts(session)}
               >
-                <Users size={16} color={theme.light.primary} />
-                <Text style={styles.manageGymnastsButtonText}>
+                <Users size={16} color={t.primary} />
+                <Text style={[styles.manageGymnastsButtonText, { color: t.primary }]}>
                   Manage Gymnasts ({session.session_gymnasts?.length || 0})
                 </Text>
               </TouchableOpacity>
@@ -152,8 +155,8 @@ export function SessionsTab({
                 ).map(([level, gymnasts]) => (
                   <View key={level} style={styles.sessionLevelGroup}>
                     <View style={styles.sessionLevelHeader}>
-                      <Text style={styles.sessionLevelTitle}>{level}</Text>
-                      <Text style={styles.sessionLevelCount}>
+                      <Text style={[styles.sessionLevelTitle, { color: t.textSecondary }]}>{level}</Text>
+                      <Text style={[styles.sessionLevelCount, { color: t.textFaint }]}>
                         ({gymnasts.length})
                       </Text>
                     </View>
@@ -161,16 +164,16 @@ export function SessionsTab({
                       {gymnasts.map((gymnast) => (
                         <View
                           key={gymnast.gymnast_profile_id}
-                          style={styles.sessionGymnastChip}
+                          style={[styles.sessionGymnastChip, { backgroundColor: t.surfaceSecondary }]}
                         >
-                          <View style={styles.sessionGymnastAvatar}>
-                            <Text style={styles.sessionGymnastAvatarText}>
+                          <View style={[styles.sessionGymnastAvatar, { backgroundColor: `${t.primary}20` }]}>
+                            <Text style={[styles.sessionGymnastAvatarText, { color: t.primary }]}>
                               {gymnast.gymnast_profiles?.first_name?.[0] || ''}
                               {gymnast.gymnast_profiles?.last_name?.[0] || ''}
                             </Text>
                           </View>
                           <Text
-                            style={styles.sessionGymnastName}
+                            style={[styles.sessionGymnastName, { color: t.text }]}
                             numberOfLines={1}
                           >
                             {gymnast.gymnast_profiles?.first_name}{' '}
@@ -187,7 +190,7 @@ export function SessionsTab({
             {!isStaff && (!session.session_gymnasts ||
               session.session_gymnasts.length === 0) && (
               <View style={styles.noGymnastsAssigned}>
-                <Text style={styles.noGymnastsText}>
+                <Text style={[styles.noGymnastsText, { color: t.textFaint }]}>
                   No gymnasts assigned to this session
                 </Text>
               </View>
@@ -213,7 +216,7 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: colors.white,
     borderWidth: 1,
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     borderRadius: 8,
     paddingVertical: 12,
     marginBottom: 4,
@@ -221,7 +224,7 @@ const styles = StyleSheet.create({
   addSessionButtonText: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
 
   // Empty state
@@ -315,7 +318,7 @@ const styles = StyleSheet.create({
   manageGymnastsButtonText: {
     fontSize: 13,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
 
   // Session gymnasts

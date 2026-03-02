@@ -16,7 +16,8 @@ import {
     ShoppingBag, FolderOpen, BellOff, Briefcase, CalendarOff, GraduationCap
 } from 'lucide-react-native';
 import { formatDistanceToNow, parseISO } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
 import { useActivityFeedStore, type ActivityNotification, type NotificationType } from '../../src/stores/activityFeedStore';
@@ -88,6 +89,7 @@ function navigateToNotification(notification: ActivityNotification) {
 }
 
 export default function NotificationsScreen() {
+    const { t, isDark } = useTheme();
     const currentHub = useHubStore((s) => s.currentHub);
     const user = useAuthStore((s) => s.user);
     const {
@@ -131,7 +133,7 @@ export default function NotificationsScreen() {
 
         return (
             <TouchableOpacity
-                style={[styles.notificationItem, !item.is_read && styles.unreadItem]}
+                style={[styles.notificationItem, { borderBottomColor: t.borderSubtle }, !item.is_read && styles.unreadItem]}
                 onPress={() => handleNotificationPress(item)}
                 activeOpacity={0.7}
             >
@@ -140,17 +142,17 @@ export default function NotificationsScreen() {
                 </View>
                 <View style={styles.contentContainer}>
                     <Text
-                        style={[styles.title, !item.is_read && styles.unreadTitle]}
+                        style={[styles.title, { color: t.textSecondary }, !item.is_read && [styles.unreadTitle, { color: t.text }]]}
                         numberOfLines={1}
                     >
                         {item.title}
                     </Text>
                     {item.body ? (
-                        <Text style={styles.body} numberOfLines={1}>
+                        <Text style={[styles.body, { color: t.textMuted }]} numberOfLines={1}>
                             {item.body}
                         </Text>
                     ) : null}
-                    <Text style={styles.timestamp}>
+                    <Text style={[styles.timestamp, { color: t.textFaint }]}>
                         {formatDistanceToNow(parseISO(item.created_at), { addSuffix: true })}
                     </Text>
                 </View>
@@ -160,13 +162,13 @@ export default function NotificationsScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={[styles.container, { backgroundColor: t.surface }]} edges={['top']}>
             {/* Header */}
-            <View style={styles.header}>
+            <View style={[styles.header, { borderBottomColor: t.border }]}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeft size={24} color={colors.slate[700]} />
+                    <ArrowLeft size={24} color={t.textSecondary} />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Notifications</Text>
+                <Text style={[styles.headerTitle, { color: t.text }]}>Notifications</Text>
                 <View style={styles.headerActions}>
                     {unreadCount > 0 && (
                         <TouchableOpacity onPress={handleMarkAllRead} style={styles.markAllButton}>
@@ -192,7 +194,7 @@ export default function NotificationsScreen() {
                     <RefreshControl
                         refreshing={loading}
                         onRefresh={loadData}
-                        tintColor={theme.light.primary}
+                        tintColor={t.primary}
                     />
                 }
                 onEndReached={handleLoadMore}
@@ -200,16 +202,16 @@ export default function NotificationsScreen() {
                 ListFooterComponent={
                     loadingMore ? (
                         <View style={styles.loadingMore}>
-                            <ActivityIndicator size="small" color={theme.light.primary} />
+                            <ActivityIndicator size="small" color={t.primary} />
                         </View>
                     ) : null
                 }
                 ListEmptyComponent={
                     !loading ? (
                         <View style={styles.emptyState}>
-                            <BellOff size={40} color={colors.slate[300]} />
-                            <Text style={styles.emptyTitle}>You're all caught up!</Text>
-                            <Text style={styles.emptySubtitle}>No new notifications</Text>
+                            <BellOff size={40} color={t.border} />
+                            <Text style={[styles.emptyTitle, { color: t.textMuted }]}>You're all caught up!</Text>
+                            <Text style={[styles.emptySubtitle, { color: t.textFaint }]}>No new notifications</Text>
                         </View>
                     ) : null
                 }

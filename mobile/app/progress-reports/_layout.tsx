@@ -1,12 +1,13 @@
 import { Stack } from 'expo-router';
-import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 
 export default function ProgressReportsLayout() {
+  const { t } = useTheme();
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: colors.white },
-        headerTintColor: colors.slate[900],
+        headerStyle: { backgroundColor: t.surface },
+        headerTintColor: t.text,
         headerTitleStyle: { fontWeight: '600' },
         headerShadowVisible: false,
       }}

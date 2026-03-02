@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'rea
 import { Megaphone, ChevronDown, ChevronUp, X } from 'lucide-react-native';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { useHubStore } from '../../stores/hubStore';
 import { supabase } from '../../services/supabase';
 
@@ -17,6 +18,7 @@ interface AnnouncementStat {
 }
 
 export function ActiveAnnouncementsCard() {
+    const { t, isDark } = useTheme();
     const currentHub = useHubStore(s => s.currentHub);
     const [announcements, setAnnouncements] = useState<AnnouncementStat[]>([]);
     const [loading, setLoading] = useState(true);
@@ -89,12 +91,12 @@ export function ActiveAnnouncementsCard() {
     if (loading || announcements.length === 0) return null;
 
     return (
-        <View style={s.container}>
-            <View style={s.header}>
+        <View style={[s.container, { backgroundColor: t.surface, borderColor: t.border }]}>
+            <View style={[s.header, { borderBottomColor: t.border }]}>
                 <Megaphone size={16} color={colors.brand[600]} />
-                <Text style={s.headerTitle}>Active Announcements</Text>
-                <View style={s.badge}>
-                    <Text style={s.badgeText}>{announcements.length}</Text>
+                <Text style={[s.headerTitle, { color: t.text }]}>Active Announcements</Text>
+                <View style={[s.badge, { backgroundColor: t.surfaceSecondary }]}>
+                    <Text style={[s.badgeText, { color: t.textSecondary }]}>{announcements.length}</Text>
                 </View>
             </View>
 
@@ -102,23 +104,23 @@ export function ActiveAnnouncementsCard() {
                 const pct = a.total > 0 ? Math.round((a.completed / a.total) * 100) : 0;
 
                 return (
-                    <View key={a.id} style={s.item}>
+                    <View key={a.id} style={[s.item, { borderBottomColor: t.borderSubtle }]}>
                         <View style={s.itemHeader}>
                             <View style={{ flex: 1 }}>
-                                <Text style={s.itemTitle} numberOfLines={1}>{a.title}</Text>
-                                <Text style={s.itemMeta}>
+                                <Text style={[s.itemTitle, { color: t.text }]} numberOfLines={1}>{a.title}</Text>
+                                <Text style={[s.itemMeta, { color: t.textMuted }]}>
                                     {a.creator_name} &middot; {formatDistanceToNow(parseISO(a.created_at), { addSuffix: true })}
                                 </Text>
                             </View>
                             <View style={s.statsCol}>
-                                <Text style={s.pctText}>{pct}%</Text>
-                                <Text style={s.statsText}>{a.completed}/{a.total}</Text>
+                                <Text style={[s.pctText, { color: t.text }]}>{pct}%</Text>
+                                <Text style={[s.statsText, { color: t.textMuted }]}>{a.completed}/{a.total}</Text>
                             </View>
                             <TouchableOpacity onPress={() => closeAnnouncement(a.id)} style={s.closeBtn}>
-                                <X size={14} color={colors.slate[400]} />
+                                <X size={14} color={t.textFaint} />
                             </TouchableOpacity>
                         </View>
-                        <View style={s.progressBar}>
+                        <View style={[s.progressBar, { backgroundColor: t.surfaceSecondary }]}>
                             <View style={[s.progressFill, { width: `${pct}%` }]} />
                         </View>
                     </View>

@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Circle, Clock, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react-native';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 import { useAuthStore } from '../../stores/authStore';
 
@@ -37,11 +38,12 @@ function getNextStatus(current: 'pending' | 'in_progress' | 'completed'): 'pendi
 
 function StatusIcon({ status }: { status: string }) {
     if (status === 'completed') return <CheckCircle2 size={22} color={colors.success[500]} />;
-    if (status === 'in_progress') return <Clock size={22} color={theme.light.primary} />;
+    if (status === 'in_progress') return <Clock size={22} color={colors.brand[600]} />;
     return <Circle size={22} color={colors.slate[400]} />;
 }
 
 export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
+    const { t, isDark } = useTheme();
     const user = useAuthStore((state) => state.user);
 
     if (tasks.length === 0) return null;
@@ -53,19 +55,19 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
         <View style={styles.container}>
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
-                    <Text style={styles.title}>My Tasks</Text>
+                    <Text style={[styles.title, { color: t.text }]}>My Tasks</Text>
                     <View style={styles.badge}>
                         <Text style={styles.badgeText}>{tasks.length}</Text>
                     </View>
                 </View>
                 {user && (
                     <TouchableOpacity onPress={() => router.push(`/staff/${user.id}`)}>
-                        <Text style={styles.viewAll}>View All</Text>
+                        <Text style={[styles.viewAll, { color: t.primary }]}>View All</Text>
                     </TouchableOpacity>
                 )}
             </View>
 
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                 {displayTasks.map((task, index) => {
                     const dueDate = task.due_date ? parseISO(task.due_date) : null;
                     const isOverdue = dueDate && isPast(dueDate) && !isToday(dueDate);
@@ -77,6 +79,7 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
                             key={task.id}
                             style={[
                                 styles.taskItem,
+                                { borderBottomColor: t.borderSubtle },
                                 index === displayTasks.length - 1 && styles.lastItem,
                                 isOverdue ? styles.taskItemOverdue : undefined,
                             ]}
@@ -90,7 +93,7 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
 
                             <View style={styles.taskContent}>
                                 <View style={styles.taskTitleRow}>
-                                    <Text style={styles.taskTitle} numberOfLines={1}>{task.title}</Text>
+                                    <Text style={[styles.taskTitle, { color: t.text }]} numberOfLines={1}>{task.title}</Text>
                                     <View style={[styles.priorityBadge, { backgroundColor: priorityColor.bg }]}>
                                         <Text style={[styles.priorityText, { color: priorityColor.text }]}>
                                             {task.priority}
@@ -118,8 +121,8 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
                         style={styles.moreButton}
                         onPress={() => router.push(`/staff/${user.id}`)}
                     >
-                        <Text style={styles.moreButtonText}>+{tasks.length - 5} more tasks</Text>
-                        <ChevronRight size={16} color={theme.light.primary} />
+                        <Text style={[styles.moreButtonText, { color: t.primary }]}>+{tasks.length - 5} more tasks</Text>
+                        <ChevronRight size={16} color={t.primary} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -161,7 +164,7 @@ const styles = StyleSheet.create({
     viewAll: {
         fontSize: 14,
         fontWeight: '500',
-        color: theme.light.primary,
+        color: colors.brand[600],
     },
     card: {
         backgroundColor: colors.white,
@@ -240,6 +243,6 @@ const styles = StyleSheet.create({
     moreButtonText: {
         fontSize: 14,
         fontWeight: '500',
-        color: theme.light.primary,
+        color: colors.brand[600],
     },
 });

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Music, Play, Pause, X } from 'lucide-react-native';
 import { colors } from '../constants/colors';
+import { useTheme } from '../hooks/useTheme';
 import { useMusicPlayerStore } from '../stores/musicPlayerStore';
 
 function formatTime(ms: number): string {
@@ -13,6 +14,7 @@ function formatTime(ms: number): string {
 }
 
 export function MiniMusicPlayer() {
+  const { t, isDark } = useTheme();
   const insets = useSafeAreaInsets();
   const track = useMusicPlayerStore((s) => s.track);
   const isPlaying = useMusicPlayerStore((s) => s.isPlaying);

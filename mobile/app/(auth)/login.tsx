@@ -12,10 +12,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Link, router } from 'expo-router';
 import { Mail, Lock } from 'lucide-react-native';
 import { Button, Input } from '../../src/components/ui';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { useAuthStore } from '../../src/stores/authStore';
 
 export default function LoginScreen() {
+  const { t, isDark, colors } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -40,7 +42,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -50,11 +52,11 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <View style={styles.logoContainer}>
+          <View style={[styles.logoContainer, { backgroundColor: t.primary }]}>
             <Text style={styles.logoText}>Gym{'\n'}TeamHub</Text>
           </View>
-          <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.subtitle}>Sign in to your account</Text>
+          <Text style={[styles.title, { color: t.text }]}>Welcome back</Text>
+          <Text style={[styles.subtitle, { color: t.textMuted }]}>Sign in to your account</Text>
         </View>
 
         <View style={styles.form}>
@@ -72,7 +74,7 @@ export default function LoginScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
-            leftIcon={<Mail size={20} color={colors.slate[400]} />}
+            leftIcon={<Mail size={20} color={t.textFaint} />}
           />
 
           <Input
@@ -81,12 +83,12 @@ export default function LoginScreen() {
             value={password}
             onChangeText={setPassword}
             secureTextEntry
-            leftIcon={<Lock size={20} color={colors.slate[400]} />}
+            leftIcon={<Lock size={20} color={t.textFaint} />}
           />
 
           <TouchableOpacity style={styles.forgotPassword}>
             <Link href="/(auth)/forgot-password" asChild>
-              <Text style={styles.forgotPasswordText}>Forgot password?</Text>
+              <Text style={[styles.forgotPasswordText, { color: t.primary }]}>Forgot password?</Text>
             </Link>
           </TouchableOpacity>
 
@@ -100,10 +102,10 @@ export default function LoginScreen() {
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={[styles.footerText, { color: t.textSecondary }]}>Don't have an account? </Text>
           <Link href="/(auth)/register" asChild>
             <TouchableOpacity>
-              <Text style={styles.footerLink}>Sign up</Text>
+              <Text style={[styles.footerLink, { color: t.primary }]}>Sign up</Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -134,7 +136,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 20,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
@@ -176,7 +178,7 @@ const styles = StyleSheet.create({
     marginTop: -8,
   },
   forgotPasswordText: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontSize: 14,
     fontWeight: '500',
   },
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   footerLink: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontSize: 14,
     fontWeight: '600',
   },

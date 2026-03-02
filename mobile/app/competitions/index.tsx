@@ -11,7 +11,8 @@ import {
 import { useRouter } from 'expo-router';
 import { Trophy, MapPin, Calendar, Users, ChevronRight } from 'lucide-react-native';
 import { format, parseISO, isPast, isFuture } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -28,6 +29,7 @@ interface Competition {
 type FilterTab = 'upcoming' | 'past' | 'all';
 
 export default function CompetitionsScreen() {
+  const { t, isDark } = useTheme();
   const router = useRouter();
   const [competitions, setCompetitions] = useState<Competition[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,29 +108,29 @@ export default function CompetitionsScreen() {
 
     return (
       <TouchableOpacity
-        style={styles.competitionCard}
+        style={[styles.competitionCard, { backgroundColor: t.surface, borderColor: t.border }]}
         activeOpacity={0.7}
         onPress={() => router.push(`/competitions/${item.id}` as any)}
       >
         <View style={styles.cardHeader}>
-          <View style={[styles.iconContainer, { backgroundColor: colors.amber[50] }]}>
-            <Trophy size={20} color={colors.amber[600]} />
+          <View style={[styles.iconContainer, { backgroundColor: isDark ? colors.amber[700] + '20' : colors.amber[50] }]}>
+            <Trophy size={20} color={isDark ? colors.amber[500] : colors.amber[600]} />
           </View>
           <View style={styles.cardHeaderInfo}>
-            <Text style={styles.competitionName} numberOfLines={1}>{item.name}</Text>
+            <Text style={[styles.competitionName, { color: t.text }]} numberOfLines={1}>{item.name}</Text>
             <Badge
               label={isUpcoming ? 'Upcoming' : 'Past'}
               variant={isUpcoming ? 'success' : 'neutral'}
               size="sm"
             />
           </View>
-          <ChevronRight size={20} color={colors.slate[400]} />
+          <ChevronRight size={20} color={t.textFaint} />
         </View>
 
         <View style={styles.cardDetails}>
           <View style={styles.detailRow}>
-            <Calendar size={16} color={colors.slate[400]} />
-            <Text style={styles.detailText}>
+            <Calendar size={16} color={t.textFaint} />
+            <Text style={[styles.detailText, { color: t.textSecondary }]}>
               {format(parseISO(item.start_date), 'MMM d, yyyy')}
               {item.end_date !== item.start_date && ` - ${format(parseISO(item.end_date), 'MMM d, yyyy')}`}
             </Text>
@@ -136,14 +138,14 @@ export default function CompetitionsScreen() {
 
           {item.location && (
             <View style={styles.detailRow}>
-              <MapPin size={16} color={colors.slate[400]} />
-              <Text style={styles.detailText} numberOfLines={1}>{item.location}</Text>
+              <MapPin size={16} color={t.textFaint} />
+              <Text style={[styles.detailText, { color: t.textSecondary }]} numberOfLines={1}>{item.location}</Text>
             </View>
           )}
 
           <View style={styles.detailRow}>
-            <Users size={16} color={colors.slate[400]} />
-            <Text style={styles.detailText}>
+            <Users size={16} color={t.textFaint} />
+            <Text style={[styles.detailText, { color: t.textSecondary }]}>
               {item.gymnast_count} {item.gymnast_count === 1 ? 'gymnast' : 'gymnasts'}
             </Text>
           </View>
@@ -154,37 +156,37 @@ export default function CompetitionsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Filter Tabs */}
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity
-          style={[styles.filterTab, activeFilter === 'upcoming' && styles.filterTabActive]}
+          style={[styles.filterTab, { backgroundColor: t.surfaceSecondary }, activeFilter === 'upcoming' && { backgroundColor: t.primary }]}
           onPress={() => setActiveFilter('upcoming')}
         >
-          <Text style={[styles.filterTabText, activeFilter === 'upcoming' && styles.filterTabTextActive]}>
+          <Text style={[styles.filterTabText, { color: t.textSecondary }, activeFilter === 'upcoming' && styles.filterTabTextActive]}>
             Upcoming
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.filterTab, activeFilter === 'past' && styles.filterTabActive]}
+          style={[styles.filterTab, { backgroundColor: t.surfaceSecondary }, activeFilter === 'past' && { backgroundColor: t.primary }]}
           onPress={() => setActiveFilter('past')}
         >
-          <Text style={[styles.filterTabText, activeFilter === 'past' && styles.filterTabTextActive]}>
+          <Text style={[styles.filterTabText, { color: t.textSecondary }, activeFilter === 'past' && styles.filterTabTextActive]}>
             Past
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.filterTab, activeFilter === 'all' && styles.filterTabActive]}
+          style={[styles.filterTab, { backgroundColor: t.surfaceSecondary }, activeFilter === 'all' && { backgroundColor: t.primary }]}
           onPress={() => setActiveFilter('all')}
         >
-          <Text style={[styles.filterTabText, activeFilter === 'all' && styles.filterTabTextActive]}>
+          <Text style={[styles.filterTabText, { color: t.textSecondary }, activeFilter === 'all' && styles.filterTabTextActive]}>
             All
           </Text>
         </TouchableOpacity>
@@ -192,8 +194,8 @@ export default function CompetitionsScreen() {
 
       {/* Error Banner */}
       {error && (
-        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
-          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: isDark ? colors.error[700] + '20' : '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: isDark ? colors.error[700] + '40' : '#FECACA' }}>
+          <Text style={{ color: isDark ? colors.error[400] : '#DC2626', fontSize: 14 }}>{error}</Text>
         </View>
       )}
 
@@ -208,13 +210,13 @@ export default function CompetitionsScreen() {
         initialNumToRender={15}
         removeClippedSubviews={true}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Trophy size={48} color={colors.slate[300]} />
-            <Text style={styles.emptyTitle}>No competitions</Text>
-            <Text style={styles.emptyText}>
+            <Trophy size={48} color={t.textFaint} />
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No competitions</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               {activeFilter === 'upcoming'
                 ? 'No upcoming competitions scheduled'
                 : activeFilter === 'past'
@@ -255,7 +257,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.slate[100],
   },
   filterTabActive: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   filterTabText: {
     fontSize: 14,

@@ -14,7 +14,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { X, MapPin, AlignLeft, Users, AlertCircle, Star } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 import { useHubStore } from '../../stores/hubStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -52,6 +53,7 @@ const MAX_DESCRIPTION_LENGTH = 2000;
 const MAX_LOCATION_LENGTH = 200;
 
 export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate }: CreateEventModalProps) {
+  const { t, isDark } = useTheme();
   const currentHub = useHubStore((state) => state.currentHub);
   const user = useAuthStore((state) => state.user);
   const [loading, setLoading] = useState(false);
@@ -207,22 +209,22 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.surface }]} edges={['top']}>
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: selectedType?.color || colors.slate[100] }]}>
+        <View style={[styles.header, { backgroundColor: selectedType?.color || t.surfaceSecondary }]}>
           <View style={styles.headerContent}>
             <Text style={styles.headerIcon}>{selectedType?.icon}</Text>
             <View>
-              <Text style={styles.headerTitle}>Create Event</Text>
+              <Text style={[styles.headerTitle, { color: t.text }]}>Create Event</Text>
               {initialDate && (
-                <Text style={styles.headerSubtitle}>
+                <Text style={[styles.headerSubtitle, { color: t.textSecondary }]}>
                   {format(initialDate, 'EEEE, MMMM d, yyyy')}
                 </Text>
               )}
             </View>
           </View>
           <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -236,13 +238,14 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
           )}
 
           {/* Event Type Selection */}
-          <Text style={styles.label}>Event Type</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Event Type</Text>
           <View style={styles.typeGrid}>
             {EVENT_TYPES.map((type) => (
               <TouchableOpacity
                 key={type.value}
                 style={[
                   styles.typeButton,
+                  { borderColor: t.border, backgroundColor: t.surface },
                   eventType === type.value && { backgroundColor: type.color, borderColor: type.textColor },
                 ]}
                 onPress={() => {
@@ -254,6 +257,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                 <Text style={styles.typeIcon}>{type.icon}</Text>
                 <Text style={[
                   styles.typeLabel,
+                  { color: t.textSecondary },
                   eventType === type.value && { color: type.textColor },
                 ]}>
                   {type.label}
@@ -263,60 +267,60 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
           </View>
 
           {/* Title */}
-          <Text style={styles.label}>Event Title</Text>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Event Title</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: t.border, color: t.text, backgroundColor: t.surface }]}
             value={title}
             onChangeText={setTitle}
             placeholder="e.g., Team Practice, Parents Meeting..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             maxLength={MAX_TITLE_LENGTH}
           />
 
           {/* Date & Time */}
-          <Text style={styles.label}>Date & Time</Text>
-          <View style={styles.dateTimeContainer}>
+          <Text style={[styles.label, { color: t.textSecondary }]}>Date & Time</Text>
+          <View style={[styles.dateTimeContainer, { backgroundColor: t.background }]}>
             <View style={styles.dateTimeRow}>
-              <Text style={styles.dateTimeLabel}>Start</Text>
+              <Text style={[styles.dateTimeLabel, { color: t.textSecondary }]}>Start</Text>
               <TouchableOpacity
-                style={styles.dateTimeButton}
+                style={[styles.dateTimeButton, { backgroundColor: t.surface, borderColor: t.border }]}
                 onPress={() => {
                   setPickerMode('date');
                   setShowStartPicker(true);
                 }}
               >
-                <Text style={styles.dateTimeText}>{format(startDate, 'MMM d, yyyy')}</Text>
+                <Text style={[styles.dateTimeText, { color: t.text }]}>{format(startDate, 'MMM d, yyyy')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.dateTimeButton}
+                style={[styles.dateTimeButton, { backgroundColor: t.surface, borderColor: t.border }]}
                 onPress={() => {
                   setPickerMode('time');
                   setShowStartPicker(true);
                 }}
               >
-                <Text style={styles.dateTimeText}>{format(startDate, 'h:mm a')}</Text>
+                <Text style={[styles.dateTimeText, { color: t.text }]}>{format(startDate, 'h:mm a')}</Text>
               </TouchableOpacity>
             </View>
 
             <View style={styles.dateTimeRow}>
-              <Text style={styles.dateTimeLabel}>End</Text>
+              <Text style={[styles.dateTimeLabel, { color: t.textSecondary }]}>End</Text>
               <TouchableOpacity
-                style={styles.dateTimeButton}
+                style={[styles.dateTimeButton, { backgroundColor: t.surface, borderColor: t.border }]}
                 onPress={() => {
                   setPickerMode('date');
                   setShowEndPicker(true);
                 }}
               >
-                <Text style={styles.dateTimeText}>{format(endDate, 'MMM d, yyyy')}</Text>
+                <Text style={[styles.dateTimeText, { color: t.text }]}>{format(endDate, 'MMM d, yyyy')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.dateTimeButton}
+                style={[styles.dateTimeButton, { backgroundColor: t.surface, borderColor: t.border }]}
                 onPress={() => {
                   setPickerMode('time');
                   setShowEndPicker(true);
                 }}
               >
-                <Text style={styles.dateTimeText}>{format(endDate, 'h:mm a')}</Text>
+                <Text style={[styles.dateTimeText, { color: t.text }]}>{format(endDate, 'h:mm a')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -343,30 +347,30 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
           {/* Location */}
           <View style={styles.inputRow}>
-            <MapPin size={18} color={colors.slate[400]} />
-            <Text style={styles.label}>Location</Text>
+            <MapPin size={18} color={t.textFaint} />
+            <Text style={[styles.label, { color: t.textSecondary }]}>Location</Text>
           </View>
           <TextInput
-            style={styles.input}
+            style={[styles.input, { borderColor: t.border, color: t.text, backgroundColor: t.surface }]}
             value={location}
             onChangeText={setLocation}
             placeholder="e.g., Main Gym, Conference Room..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             maxLength={MAX_LOCATION_LENGTH}
           />
 
           {/* Description */}
           <View style={styles.inputRow}>
-            <AlignLeft size={18} color={colors.slate[400]} />
-            <Text style={styles.label}>Description</Text>
-            <Text style={styles.optional}>(optional)</Text>
+            <AlignLeft size={18} color={t.textFaint} />
+            <Text style={[styles.label, { color: t.textSecondary }]}>Description</Text>
+            <Text style={[styles.optional, { color: t.textFaint }]}>(optional)</Text>
           </View>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[styles.input, styles.textArea, { borderColor: t.border, color: t.text, backgroundColor: t.surface }]}
             value={description}
             onChangeText={setDescription}
             placeholder="Add any additional details..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             multiline
             numberOfLines={3}
             textAlignVertical="top"
@@ -374,33 +378,33 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
           />
 
           {/* RSVP Toggle */}
-          <View style={styles.toggleContainer}>
+          <View style={[styles.toggleContainer, { backgroundColor: t.background }]}>
             <View style={styles.toggleInfo}>
-              <View style={styles.toggleIcon}>
-                <Users size={20} color={colors.slate[600]} />
+              <View style={[styles.toggleIcon, { backgroundColor: t.surface }]}>
+                <Users size={20} color={t.textSecondary} />
               </View>
               <View>
-                <Text style={styles.toggleTitle}>Enable RSVPs</Text>
-                <Text style={styles.toggleSubtitle}>Allow members to respond</Text>
+                <Text style={[styles.toggleTitle, { color: t.text }]}>Enable RSVPs</Text>
+                <Text style={[styles.toggleSubtitle, { color: t.textMuted }]}>Allow members to respond</Text>
               </View>
             </View>
             <Switch
               value={rsvpEnabled}
               onValueChange={setRsvpEnabled}
-              trackColor={{ false: colors.slate[200], true: theme.light.primary }}
+              trackColor={{ false: t.border, true: t.primary }}
               thumbColor={colors.white}
             />
           </View>
 
           {/* Save the Date Toggle */}
-          <View style={styles.toggleContainer}>
+          <View style={[styles.toggleContainer, { backgroundColor: t.background }]}>
             <View style={styles.toggleInfo}>
               <View style={[styles.toggleIcon, { backgroundColor: colors.amber[50] }]}>
                 <Star size={20} color={colors.amber[500]} />
               </View>
               <View>
-                <Text style={styles.toggleTitle}>Save the Date</Text>
-                <Text style={styles.toggleSubtitle}>Include in important events list</Text>
+                <Text style={[styles.toggleTitle, { color: t.text }]}>Save the Date</Text>
+                <Text style={[styles.toggleSubtitle, { color: t.textMuted }]}>Include in important events list</Text>
               </View>
             </View>
             <Switch
@@ -412,7 +416,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
             />
           </View>
           {SAVE_THE_DATE_TYPES.includes(eventType) && (
-            <Text style={styles.saveTheDateNote}>
+            <Text style={[styles.saveTheDateNote, { color: t.textMuted }]}>
               Competitions, mentorship, and camp events are automatically included.
             </Text>
           )}
@@ -428,9 +432,9 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
         </ScrollView>
 
         {/* Footer */}
-        <View style={styles.footer}>
-          <TouchableOpacity style={styles.cancelButton} onPress={onClose} disabled={loading}>
-            <Text style={styles.cancelButtonText}>Cancel</Text>
+        <View style={[styles.footer, { borderTopColor: t.border, backgroundColor: t.surface }]}>
+          <TouchableOpacity style={[styles.cancelButton, { borderColor: t.border }]} onPress={onClose} disabled={loading}>
+            <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
@@ -661,7 +665,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 12,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
   },

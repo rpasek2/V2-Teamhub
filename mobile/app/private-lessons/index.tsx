@@ -22,7 +22,8 @@ import {
   XCircle,
 } from 'lucide-react-native';
 import { format, parseISO, isPast } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -79,6 +80,7 @@ interface LessonBooking {
 type Tab = 'coaches' | 'my-bookings';
 
 export default function PrivateLessonsScreen() {
+  const { t, isDark } = useTheme();
   const [coaches, setCoaches] = useState<CoachLessonProfile[]>([]);
   const [coachPackages, setCoachPackages] = useState<Record<string, LessonPackage[]>>({});
   const [bookings, setBookings] = useState<LessonBooking[]>([]);
@@ -196,51 +198,51 @@ export default function PrivateLessonsScreen() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return { bg: colors.success[100], text: colors.success[700], label: 'Confirmed' };
+        return { bg: isDark ? colors.success[700] + '30' : colors.success[100], text: isDark ? colors.success[500] : colors.success[700], label: 'Confirmed' };
       case 'pending':
-        return { bg: colors.amber[100], text: colors.amber[700], label: 'Pending' };
+        return { bg: isDark ? colors.amber[700] + '30' : colors.amber[100], text: isDark ? colors.amber[500] : colors.amber[700], label: 'Pending' };
       case 'cancelled':
-        return { bg: colors.error[100], text: colors.error[700], label: 'Cancelled' };
+        return { bg: isDark ? colors.error[700] + '30' : colors.error[100], text: isDark ? colors.error[400] : colors.error[700], label: 'Cancelled' };
       case 'completed':
-        return { bg: colors.slate[100], text: colors.slate[600], label: 'Completed' };
+        return { bg: isDark ? colors.slate[700] + '30' : colors.slate[100], text: isDark ? colors.slate[400] : colors.slate[600], label: 'Completed' };
       default:
-        return { bg: colors.slate[100], text: colors.slate[600], label: status };
+        return { bg: isDark ? colors.slate[700] + '30' : colors.slate[100], text: isDark ? colors.slate[400] : colors.slate[600], label: status };
     }
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={colors.violet[500]} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
+      <View style={[styles.tabContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'coaches' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'coaches' && { borderBottomColor: isDark ? colors.violet[500] : colors.violet[500] }]}
           onPress={() => setActiveTab('coaches')}
         >
           <Search
             size={18}
-            color={activeTab === 'coaches' ? colors.violet[600] : colors.slate[500]}
+            color={activeTab === 'coaches' ? (isDark ? colors.violet[500] : colors.violet[600]) : t.textMuted}
           />
-          <Text style={[styles.tabText, activeTab === 'coaches' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'coaches' && { color: isDark ? colors.violet[500] : colors.violet[600] }]}>
             Find Lessons
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'my-bookings' && styles.tabActive]}
+          style={[styles.tab, activeTab === 'my-bookings' && { borderBottomColor: isDark ? colors.violet[500] : colors.violet[500] }]}
           onPress={() => setActiveTab('my-bookings')}
         >
           <Calendar
             size={18}
-            color={activeTab === 'my-bookings' ? colors.violet[600] : colors.slate[500]}
+            color={activeTab === 'my-bookings' ? (isDark ? colors.violet[500] : colors.violet[600]) : t.textMuted}
           />
-          <Text style={[styles.tabText, activeTab === 'my-bookings' && styles.tabTextActive]}>
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'my-bookings' && { color: isDark ? colors.violet[500] : colors.violet[600] }]}>
             My Bookings
           </Text>
         </TouchableOpacity>
@@ -251,13 +253,13 @@ export default function PrivateLessonsScreen() {
         <ScrollView
           style={styles.listContainer}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
         >
           {coaches.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <GraduationCap size={48} color={colors.slate[300]} />
-              <Text style={styles.emptyTitle}>No coaches available</Text>
-              <Text style={styles.emptyText}>
+              <GraduationCap size={48} color={t.textFaint} />
+              <Text style={[styles.emptyTitle, { color: t.text }]}>No coaches available</Text>
+              <Text style={[styles.emptyText, { color: t.textMuted }]}>
                 No coaches have set up private lessons yet.
               </Text>
             </View>
@@ -269,7 +271,7 @@ export default function PrivateLessonsScreen() {
                 : coach.coach_profile;
 
               return (
-                <View key={coach.id} style={styles.coachCard}>
+                <View key={coach.id} style={[styles.coachCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                   {/* Coach Header */}
                   <View style={styles.coachHeader}>
                     {profileData?.avatar_url ? (
@@ -278,24 +280,24 @@ export default function PrivateLessonsScreen() {
                         style={styles.coachAvatar}
                       />
                     ) : (
-                      <View style={styles.coachAvatarPlaceholder}>
-                        <User size={24} color={colors.violet[600]} />
+                      <View style={[styles.coachAvatarPlaceholder, { backgroundColor: isDark ? colors.violet[700] + '30' : colors.violet[100] }]}>
+                        <User size={24} color={isDark ? colors.violet[500] : colors.violet[600]} />
                       </View>
                     )}
                     <View style={styles.coachInfo}>
-                      <Text style={styles.coachName}>
+                      <Text style={[styles.coachName, { color: t.text }]}>
                         {profileData?.full_name || 'Coach'}
                       </Text>
                       <View style={styles.coachMeta}>
                         <View style={styles.metaItem}>
-                          <Clock size={12} color={colors.slate[400]} />
-                          <Text style={styles.metaText}>
+                          <Clock size={12} color={t.textFaint} />
+                          <Text style={[styles.metaText, { color: t.textMuted }]}>
                             {coach.lesson_duration_minutes} min
                           </Text>
                         </View>
                         <View style={styles.metaItem}>
-                          <DollarSign size={12} color={colors.slate[400]} />
-                          <Text style={styles.metaText}>
+                          <DollarSign size={12} color={t.textFaint} />
+                          <Text style={[styles.metaText, { color: t.textMuted }]}>
                             ${coach.cost_per_lesson}/lesson
                           </Text>
                         </View>
@@ -305,7 +307,7 @@ export default function PrivateLessonsScreen() {
 
                   {/* Bio */}
                   {coach.bio && (
-                    <Text style={styles.coachBio} numberOfLines={3}>
+                    <Text style={[styles.coachBio, { color: t.textSecondary }]} numberOfLines={3}>
                       {coach.bio}
                     </Text>
                   )}
@@ -315,15 +317,15 @@ export default function PrivateLessonsScreen() {
                     {coach.events.length > 0 && (
                       <View style={styles.tagRow}>
                         <Target size={14} color={colors.violet[500]} />
-                        <Text style={styles.tagLabel}>Events:</Text>
+                        <Text style={[styles.tagLabel, { color: t.textMuted }]}>Events:</Text>
                         <View style={styles.tagsWrap}>
                           {coach.events.slice(0, 4).map((event) => (
-                            <View key={event} style={styles.tag}>
-                              <Text style={styles.tagText}>{event}</Text>
+                            <View key={event} style={[styles.tag, { backgroundColor: isDark ? colors.violet[700] + '30' : colors.violet[100] }]}>
+                              <Text style={[styles.tagText, { color: isDark ? colors.violet[500] : colors.violet[700] }]}>{event}</Text>
                             </View>
                           ))}
                           {coach.events.length > 4 && (
-                            <Text style={styles.moreText}>+{coach.events.length - 4}</Text>
+                            <Text style={[styles.moreText, { color: t.textFaint }]}>+{coach.events.length - 4}</Text>
                           )}
                         </View>
                       </View>
@@ -332,17 +334,17 @@ export default function PrivateLessonsScreen() {
                     {coach.levels.length > 0 && (
                       <View style={styles.tagRow}>
                         <Star size={14} color={colors.violet[500]} />
-                        <Text style={styles.tagLabel}>Levels:</Text>
+                        <Text style={[styles.tagLabel, { color: t.textMuted }]}>Levels:</Text>
                         <View style={styles.tagsWrap}>
                           {coach.levels.slice(0, 4).map((level) => (
-                            <View key={level} style={[styles.tag, styles.levelTag]}>
-                              <Text style={[styles.tagText, styles.levelTagText]}>
+                            <View key={level} style={[styles.tag, styles.levelTag, { backgroundColor: t.surfaceSecondary }]}>
+                              <Text style={[styles.tagText, styles.levelTagText, { color: t.textSecondary }]}>
                                 {level}
                               </Text>
                             </View>
                           ))}
                           {coach.levels.length > 4 && (
-                            <Text style={styles.moreText}>+{coach.levels.length - 4}</Text>
+                            <Text style={[styles.moreText, { color: t.textFaint }]}>+{coach.levels.length - 4}</Text>
                           )}
                         </View>
                       </View>
@@ -351,25 +353,25 @@ export default function PrivateLessonsScreen() {
 
                   {/* Packages */}
                   {packages.length > 0 && (
-                    <View style={styles.packagesContainer}>
-                      <Text style={styles.packagesTitle}>Lesson Options</Text>
+                    <View style={[styles.packagesContainer, { borderTopColor: t.borderSubtle }]}>
+                      <Text style={[styles.packagesTitle, { color: t.textSecondary }]}>Lesson Options</Text>
                       {packages.map((pkg) => (
-                        <View key={pkg.id} style={styles.packageItem}>
+                        <View key={pkg.id} style={[styles.packageItem, { borderBottomColor: t.borderSubtle }]}>
                           <View style={styles.packageInfo}>
-                            <Text style={styles.packageName}>{pkg.name}</Text>
-                            <Text style={styles.packageDuration}>
+                            <Text style={[styles.packageName, { color: t.text }]}>{pkg.name}</Text>
+                            <Text style={[styles.packageDuration, { color: t.textMuted }]}>
                               {pkg.duration_minutes} minutes
                             </Text>
                           </View>
-                          <Text style={styles.packagePrice}>${pkg.price}</Text>
+                          <Text style={[styles.packagePrice, { color: isDark ? colors.violet[500] : colors.violet[600] }]}>${pkg.price}</Text>
                         </View>
                       ))}
                     </View>
                   )}
 
                   {/* Note about booking */}
-                  <View style={styles.bookingNote}>
-                    <Text style={styles.bookingNoteText}>
+                  <View style={[styles.bookingNote, { borderTopColor: t.borderSubtle }]}>
+                    <Text style={[styles.bookingNoteText, { color: t.textMuted }]}>
                       Contact the gym to book a private lesson
                     </Text>
                   </View>
@@ -385,13 +387,13 @@ export default function PrivateLessonsScreen() {
         <ScrollView
           style={styles.listContainer}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
         >
           {bookings.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Calendar size={48} color={colors.slate[300]} />
-              <Text style={styles.emptyTitle}>No bookings</Text>
-              <Text style={styles.emptyText}>
+              <Calendar size={48} color={t.textFaint} />
+              <Text style={[styles.emptyTitle, { color: t.text }]}>No bookings</Text>
+              <Text style={[styles.emptyText, { color: t.textMuted }]}>
                 You don't have any private lesson bookings yet.
               </Text>
             </View>
@@ -400,7 +402,7 @@ export default function PrivateLessonsScreen() {
               {/* Upcoming */}
               {upcomingBookings.length > 0 && (
                 <View style={styles.bookingsSection}>
-                  <Text style={styles.sectionTitle}>Upcoming</Text>
+                  <Text style={[styles.sectionTitle, { color: t.textSecondary }]}>Upcoming</Text>
                   {upcomingBookings.map((booking) => {
                     const status = getStatusBadge(booking.status);
                     const slot = Array.isArray(booking.lesson_slot) ? booking.lesson_slot[0] : booking.lesson_slot;
@@ -411,9 +413,9 @@ export default function PrivateLessonsScreen() {
                     const packageData = Array.isArray(slot.package) ? slot.package[0] : slot.package;
 
                     return (
-                      <View key={booking.id} style={styles.bookingCard}>
+                      <View key={booking.id} style={[styles.bookingCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                         <View style={styles.bookingHeader}>
-                          <View style={styles.bookingDateBadge}>
+                          <View style={[styles.bookingDateBadge, { backgroundColor: isDark ? colors.violet[600] : colors.violet[500] }]}>
                             <Text style={styles.bookingMonth}>
                               {format(startDt, 'MMM')}
                             </Text>
@@ -422,15 +424,15 @@ export default function PrivateLessonsScreen() {
                             </Text>
                           </View>
                           <View style={styles.bookingInfo}>
-                            <Text style={styles.bookingTime}>
+                            <Text style={[styles.bookingTime, { color: t.text }]}>
                               {format(startDt, 'h:mm a')} -{' '}
                               {format(endDt, 'h:mm a')}
                             </Text>
-                            <Text style={styles.bookingCoach}>
+                            <Text style={[styles.bookingCoach, { color: t.textMuted }]}>
                               with {coachData?.full_name || 'Coach'}
                             </Text>
                             {packageData && (
-                              <Text style={styles.bookingPackage}>
+                              <Text style={[styles.bookingPackage, { color: isDark ? colors.violet[500] : colors.violet[600] }]}>
                                 {packageData.name} • ${packageData.price}
                               </Text>
                             )}
@@ -444,7 +446,7 @@ export default function PrivateLessonsScreen() {
                           </View>
                         </View>
                         {slot.notes && (
-                          <Text style={styles.bookingNotes} numberOfLines={2}>
+                          <Text style={[styles.bookingNotes, { color: t.textMuted, borderTopColor: t.borderSubtle }]} numberOfLines={2}>
                             {slot.notes}
                           </Text>
                         )}
@@ -457,7 +459,7 @@ export default function PrivateLessonsScreen() {
               {/* Past */}
               {pastBookings.length > 0 && (
                 <View style={styles.bookingsSection}>
-                  <Text style={styles.sectionTitle}>Past Lessons</Text>
+                  <Text style={[styles.sectionTitle, { color: t.textSecondary }]}>Past Lessons</Text>
                   {pastBookings.slice(0, 10).map((booking) => {
                     const status = getStatusBadge(booking.status);
                     const slot = Array.isArray(booking.lesson_slot) ? booking.lesson_slot[0] : booking.lesson_slot;
@@ -468,11 +470,11 @@ export default function PrivateLessonsScreen() {
                     return (
                       <View
                         key={booking.id}
-                        style={[styles.bookingCard, styles.bookingCardPast]}
+                        style={[styles.bookingCard, styles.bookingCardPast, { backgroundColor: t.surface, borderColor: t.border }]}
                       >
                         <View style={styles.bookingHeader}>
                           <View
-                            style={[styles.bookingDateBadge, styles.bookingDateBadgePast]}
+                            style={[styles.bookingDateBadge, { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
                           >
                             <Text style={[styles.bookingMonth, styles.bookingMonthPast]}>
                               {format(startDt, 'MMM')}
@@ -482,10 +484,10 @@ export default function PrivateLessonsScreen() {
                             </Text>
                           </View>
                           <View style={styles.bookingInfo}>
-                            <Text style={[styles.bookingTime, styles.bookingTimePast]}>
+                            <Text style={[styles.bookingTime, styles.bookingTimePast, { color: t.textSecondary }]}>
                               {format(startDt, 'h:mm a')}
                             </Text>
-                            <Text style={styles.bookingCoach}>
+                            <Text style={[styles.bookingCoach, { color: t.textMuted }]}>
                               with {coachData?.full_name || 'Coach'}
                             </Text>
                           </View>

@@ -15,8 +15,9 @@ import { X, Check, Calendar, Clock } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../../src/constants/colors';
-import { supabase } from '../../../src/services/supabase';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
+import { supabase } from '../../services/supabase';
 
 interface Coach {
   user_id: string;
@@ -42,6 +43,7 @@ export function CreateSessionModal({
   hubId,
   defaultDate,
 }: CreateSessionModalProps) {
+  const { t, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [selectedCoaches, setSelectedCoaches] = useState<Set<string>>(new Set());
@@ -165,14 +167,14 @@ export function CreateSessionModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.modalContainer} edges={['top']}>
-        <View style={styles.modalHeader}>
+      <SafeAreaView style={[styles.modalContainer, { backgroundColor: t.surface }]} edges={['top']}>
+        <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
           <TouchableOpacity style={styles.modalCloseButton} onPress={onClose}>
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.modalTitle}>Add Session</Text>
+          <Text style={[styles.modalTitle, { color: t.text }]}>Add Session</Text>
           <TouchableOpacity
-            style={[styles.modalSaveButton, loading && styles.modalSaveButtonDisabled]}
+            style={[styles.modalSaveButton, { backgroundColor: t.primary }, loading && styles.modalSaveButtonDisabled]}
             onPress={handleSubmit}
             disabled={loading}
           >
@@ -187,25 +189,25 @@ export function CreateSessionModal({
         <ScrollView style={styles.modalContent} keyboardShouldPersistTaps="handled">
           {/* Session Name */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Session Name</Text>
+            <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Session Name</Text>
             <TextInput
-              style={styles.textInput}
+              style={[styles.textInput, { borderColor: t.border, color: t.text, backgroundColor: isDark ? colors.slate[800] : colors.white }]}
               value={name}
               onChangeText={setName}
               placeholder="e.g., Session 1, Morning Session"
-              placeholderTextColor={colors.slate[400]}
+              placeholderTextColor={t.textFaint}
             />
           </View>
 
           {/* Date */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>Date</Text>
+            <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Date</Text>
             <TouchableOpacity
-              style={styles.dateButton}
+              style={[styles.dateButton, { borderColor: t.border, backgroundColor: isDark ? colors.slate[800] : colors.white }]}
               onPress={() => setShowDatePicker(true)}
             >
-              <Calendar size={18} color={colors.slate[500]} />
-              <Text style={styles.dateButtonText}>{format(date, 'MMM d, yyyy')}</Text>
+              <Calendar size={18} color={t.textMuted} />
+              <Text style={[styles.dateButtonText, { color: t.text }]}>{format(date, 'MMM d, yyyy')}</Text>
             </TouchableOpacity>
           </View>
 
@@ -220,15 +222,15 @@ export function CreateSessionModal({
 
           {/* Warmup Time */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              Check-In / Warmup Time <Text style={styles.optionalText}>(optional)</Text>
+            <Text style={[styles.inputLabel, { color: t.textSecondary }]}>
+              Check-In / Warmup Time <Text style={[styles.optionalText, { color: t.textFaint }]}>(optional)</Text>
             </Text>
             <TouchableOpacity
-              style={styles.dateButton}
+              style={[styles.dateButton, { borderColor: t.border, backgroundColor: isDark ? colors.slate[800] : colors.white }]}
               onPress={() => setShowTimePicker(true)}
             >
-              <Clock size={18} color={colors.slate[500]} />
-              <Text style={[styles.dateButtonText, !warmupTime && styles.placeholderText]}>
+              <Clock size={18} color={t.textMuted} />
+              <Text style={[styles.dateButtonText, { color: t.text }, !warmupTime && { color: t.textFaint }]}>
                 {warmupTime ? format(warmupTime, 'h:mm a') : 'Select time'}
               </Text>
             </TouchableOpacity>
@@ -237,7 +239,7 @@ export function CreateSessionModal({
                 style={styles.clearButton}
                 onPress={() => setWarmupTime(null)}
               >
-                <Text style={styles.clearButtonText}>Clear</Text>
+                <Text style={[styles.clearButtonText, { color: t.primary }]}>Clear</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -253,23 +255,23 @@ export function CreateSessionModal({
 
           {/* Coach Assignment */}
           <View style={styles.inputGroup}>
-            <Text style={styles.inputLabel}>
-              Assign Coaches <Text style={styles.optionalText}>(optional)</Text>
+            <Text style={[styles.inputLabel, { color: t.textSecondary }]}>
+              Assign Coaches <Text style={[styles.optionalText, { color: t.textFaint }]}>(optional)</Text>
             </Text>
             {coaches.length > 0 ? (
-              <View style={styles.coachesList}>
+              <View style={[styles.coachesList, { borderColor: t.border }]}>
                 {coaches.map((coach) => {
                   const isSelected = selectedCoaches.has(coach.user_id);
                   return (
                     <TouchableOpacity
                       key={coach.user_id}
-                      style={[styles.coachRow, isSelected && styles.coachRowSelected]}
+                      style={[styles.coachRow, { borderBottomColor: t.borderSubtle }, isSelected && { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
                       onPress={() => toggleCoach(coach.user_id)}
                     >
-                      <Text style={[styles.coachName, isSelected && styles.coachNameSelected]}>
+                      <Text style={[styles.coachName, { color: t.text }, isSelected && styles.coachNameSelected]}>
                         {coach.profiles?.full_name || 'Unknown'}
                       </Text>
-                      <View style={[styles.coachCheckbox, isSelected && styles.coachCheckboxSelected]}>
+                      <View style={[styles.coachCheckbox, { borderColor: isDark ? colors.slate[500] : colors.slate[300] }, isSelected && { backgroundColor: t.primary, borderColor: t.primary }]}>
                         {isSelected && <Check size={14} color={colors.white} />}
                       </View>
                     </TouchableOpacity>
@@ -277,10 +279,10 @@ export function CreateSessionModal({
                 })}
               </View>
             ) : (
-              <Text style={styles.noCoachesText}>No coaches available</Text>
+              <Text style={[styles.noCoachesText, { color: t.textMuted }]}>No coaches available</Text>
             )}
             {selectedCoaches.size > 0 && (
-              <Text style={styles.selectedCountText}>
+              <Text style={[styles.selectedCountText, { color: t.textMuted }]}>
                 {selectedCoaches.size} coach{selectedCoaches.size !== 1 ? 'es' : ''} selected
               </Text>
             )}
@@ -314,7 +316,7 @@ const styles = StyleSheet.create({
     color: colors.slate[900],
   },
   modalSaveButton: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
@@ -377,7 +379,7 @@ const styles = StyleSheet.create({
   },
   clearButtonText: {
     fontSize: 13,
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   coachesList: {
     borderWidth: 1,
@@ -414,8 +416,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   coachCheckboxSelected: {
-    backgroundColor: theme.light.primary,
-    borderColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
+    borderColor: colors.brand[600],
   },
   noCoachesText: {
     fontSize: 14,

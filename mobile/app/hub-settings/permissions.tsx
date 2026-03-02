@@ -13,7 +13,8 @@ import {
   ChevronDown,
   ChevronUp,
 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -50,6 +51,7 @@ const SCOPE_LABELS: Record<string, string> = {
 };
 
 export default function PermissionsScreen() {
+  const { t, isDark } = useTheme();
   const currentHub = useHubStore((state) => state.currentHub);
   const currentRole = useHubStore((state) => state.currentRole);
 
@@ -169,18 +171,18 @@ export default function PermissionsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   if (!isOwner) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
         <Shield size={48} color={colors.slate[300]} />
-        <Text style={styles.errorTitle}>Owner Access Required</Text>
-        <Text style={styles.errorText}>
+        <Text style={[styles.errorTitle, { color: t.text }]}>Owner Access Required</Text>
+        <Text style={[styles.errorText, { color: t.textMuted }]}>
           Only the hub owner can manage permissions
         </Text>
       </View>
@@ -188,9 +190,9 @@ export default function PermissionsScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.content}>
-        <Text style={styles.description}>
+        <Text style={[styles.description, { color: t.textSecondary }]}>
           Configure what each role can access. Tap a permission to cycle through All, Own Only, and
           None.
         </Text>
@@ -200,23 +202,23 @@ export default function PermissionsScreen() {
           const rolePermissions = permissions[role] || {};
 
           return (
-            <View key={role} style={styles.roleCard}>
+            <View key={role} style={[styles.roleCard, { backgroundColor: t.surface, borderColor: t.border }]}>
               <TouchableOpacity
-                style={styles.roleHeader}
+                style={[styles.roleHeader, { backgroundColor: t.background }]}
                 onPress={() => toggleRoleExpanded(role)}
               >
-                <Text style={styles.roleName}>
+                <Text style={[styles.roleName, { color: t.text }]}>
                   {role.charAt(0).toUpperCase() + role.slice(1)}
                 </Text>
                 {isExpanded ? (
-                  <ChevronUp size={20} color={colors.slate[400]} />
+                  <ChevronUp size={20} color={t.textFaint} />
                 ) : (
-                  <ChevronDown size={20} color={colors.slate[400]} />
+                  <ChevronDown size={20} color={t.textFaint} />
                 )}
               </TouchableOpacity>
 
               {isExpanded && (
-                <View style={styles.permissionsList}>
+                <View style={[styles.permissionsList, { borderTopColor: t.borderSubtle }]}>
                   {FEATURES.map((feature) => {
                     const scope = rolePermissions[feature.feature] || 'all';
                     const scopeColor =
@@ -234,7 +236,7 @@ export default function PermissionsScreen() {
                         disabled={saving}
                       >
                         <View style={styles.permissionInfo}>
-                          <Text style={styles.permissionLabel}>{feature.label}</Text>
+                          <Text style={[styles.permissionLabel, { color: t.text }]}>{feature.label}</Text>
                         </View>
                         <View
                           style={[

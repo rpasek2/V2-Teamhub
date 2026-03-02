@@ -13,7 +13,8 @@ import {
 import { X, Hash, Lock } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
 import { useHubStore } from '../../stores/hubStore';
 import { useAuthStore } from '../../stores/authStore';
@@ -25,6 +26,7 @@ interface CreateChannelModalProps {
 }
 
 export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: CreateChannelModalProps) {
+  const { t, isDark } = useTheme();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
@@ -102,13 +104,13 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.title}>Create Channel</Text>
+          <Text style={[styles.title, { color: t.text }]}>Create Channel</Text>
           <TouchableOpacity
             onPress={handleCreate}
             disabled={creating || !name.trim()}
@@ -126,13 +128,13 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
         <View style={styles.form}>
           {/* Channel Name */}
           <View style={styles.field}>
-            <Text style={styles.label}>Channel Name</Text>
-            <View style={styles.inputContainer}>
-              <Hash size={20} color={colors.slate[400]} />
+            <Text style={[styles.label, { color: t.textSecondary }]}>Channel Name</Text>
+            <View style={[styles.inputContainer, { backgroundColor: t.surface, borderColor: t.border }]}>
+              <Hash size={20} color={t.textFaint} />
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
                 placeholder="e.g. announcements"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={name}
                 onChangeText={setName}
                 autoFocus
@@ -143,11 +145,11 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
 
           {/* Description */}
           <View style={styles.field}>
-            <Text style={styles.label}>Description (optional)</Text>
+            <Text style={[styles.label, { color: t.textSecondary }]}>Description (optional)</Text>
             <TextInput
-              style={[styles.input, styles.textArea]}
+              style={[styles.input, styles.textArea, { backgroundColor: t.surface, borderColor: t.border, color: t.text }]}
               placeholder="What's this channel about?"
-              placeholderTextColor={colors.slate[400]}
+              placeholderTextColor={t.textFaint}
               value={description}
               onChangeText={setDescription}
               multiline
@@ -157,7 +159,7 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
           </View>
 
           {/* Privacy Toggle */}
-          <View style={styles.toggleField}>
+          <View style={[styles.toggleField, { backgroundColor: t.surface, borderColor: t.border }]}>
             <View style={styles.toggleInfo}>
               <View style={[styles.toggleIcon, isPrivate && styles.toggleIconPrivate]}>
                 {isPrivate ? (
@@ -167,10 +169,10 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
                 )}
               </View>
               <View style={styles.toggleText}>
-                <Text style={styles.toggleLabel}>
+                <Text style={[styles.toggleLabel, { color: t.text }]}>
                   {isPrivate ? 'Private Channel' : 'Public Channel'}
                 </Text>
-                <Text style={styles.toggleDescription}>
+                <Text style={[styles.toggleDescription, { color: t.textMuted }]}>
                   {isPrivate
                     ? 'Only invited members can view and join'
                     : 'Anyone in the hub can view and join'}
@@ -180,8 +182,8 @@ export function CreateChannelModal({ isOpen, onClose, onChannelCreated }: Create
             <Switch
               value={isPrivate}
               onValueChange={setIsPrivate}
-              trackColor={{ false: colors.slate[200], true: colors.brand[400] }}
-              thumbColor={isPrivate ? colors.brand[600] : colors.slate[50]}
+              trackColor={{ false: t.border, true: `${t.primary}60` }}
+              thumbColor={isPrivate ? t.primary : isDark ? colors.slate[500] : colors.slate[50]}
             />
           </View>
         </View>
@@ -214,7 +216,7 @@ const styles = StyleSheet.create({
     color: colors.slate[900],
   },
   createButton: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

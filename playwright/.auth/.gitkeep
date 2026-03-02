@@ -1,0 +1,2 @@
+# This directory stores authenticated session states for E2E tests
+# The actual auth files are ignored via .gitignore

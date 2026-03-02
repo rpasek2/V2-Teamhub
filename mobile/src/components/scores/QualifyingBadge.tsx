@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Award, Trophy, Medal } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 
 export type QualifyingLevel = 'state' | 'regional' | 'national';
 
@@ -10,30 +11,31 @@ interface QualifyingBadgeProps {
   size?: 'sm' | 'md';
 }
 
-const BADGE_CONFIG: Record<QualifyingLevel, {
+const getBadgeConfig = (isDark: boolean): Record<QualifyingLevel, {
   Icon: typeof Award;
   bgColor: string;
   iconColor: string;
-}> = {
+}> => ({
   state: {
     Icon: Award,
-    bgColor: colors.blue[100],
-    iconColor: colors.blue[700],
+    bgColor: isDark ? colors.blue[700] + '30' : colors.blue[100],
+    iconColor: isDark ? colors.blue[400] : colors.blue[700],
   },
   regional: {
     Icon: Trophy,
-    bgColor: colors.amber[100],
-    iconColor: colors.amber[700],
+    bgColor: isDark ? colors.amber[700] + '30' : colors.amber[100],
+    iconColor: isDark ? colors.amber[500] : colors.amber[700],
   },
   national: {
     Icon: Medal,
-    bgColor: colors.purple[100],
-    iconColor: colors.purple[700],
+    bgColor: isDark ? colors.purple[700] + '30' : colors.purple[100],
+    iconColor: isDark ? colors.purple[400] : colors.purple[700],
   },
-};
+});
 
 export function QualifyingBadge({ level, size = 'sm' }: QualifyingBadgeProps) {
-  const config = BADGE_CONFIG[level];
+  const { isDark } = useTheme();
+  const config = getBadgeConfig(isDark)[level];
   const { Icon } = config;
   const iconSize = size === 'sm' ? 10 : 14;
   const styles = size === 'sm' ? smallStyles : mediumStyles;

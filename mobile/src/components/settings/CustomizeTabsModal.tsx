@@ -23,7 +23,8 @@ import {
   Contact,
 } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../constants/colors';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import {
   useTabPreferencesStore,
   AVAILABLE_TABS,
@@ -51,6 +52,7 @@ interface CustomizeTabsModalProps {
 }
 
 export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps) {
+  const { t, isDark } = useTheme();
   const selectedTabs = useTabPreferencesStore((state) => state.selectedTabs);
   const setSelectedTabs = useTabPreferencesStore((state) => state.setSelectedTabs);
   const resetToDefault = useTabPreferencesStore((state) => state.resetToDefault);
@@ -126,22 +128,22 @@ export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps)
       presentationStyle="pageSheet"
       onRequestClose={handleClose}
     >
-      <SafeAreaView style={styles.container} edges={['top']}>
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top']}>
         {/* Header */}
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           <TouchableOpacity onPress={handleClose} style={styles.headerButton}>
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.title}>Customize Bottom Bar</Text>
+          <Text style={[styles.title, { color: t.text }]}>Customize Bottom Bar</Text>
           <TouchableOpacity
             onPress={handleSave}
             disabled={localSelection.length !== 3}
-            style={[styles.saveButton, localSelection.length !== 3 && styles.saveButtonDisabled]}
+            style={[styles.saveButton, { backgroundColor: t.primary }, localSelection.length !== 3 && { backgroundColor: isDark ? colors.slate[600] : colors.slate[200] }]}
           >
             <Text
               style={[
                 styles.saveButtonText,
-                localSelection.length !== 3 && styles.saveButtonTextDisabled,
+                localSelection.length !== 3 && { color: isDark ? colors.slate[400] : colors.slate[400] },
               ]}
             >
               Save
@@ -150,30 +152,30 @@ export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps)
         </View>
 
         {/* Instructions */}
-        <View style={styles.instructions}>
-          <Text style={styles.instructionText}>
+        <View style={[styles.instructions, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+          <Text style={[styles.instructionText, { color: t.textSecondary }]}>
             Select 3 tabs to show in your bottom navigation bar.
           </Text>
-          <Text style={styles.selectionCount}>
+          <Text style={[styles.selectionCount, { color: t.primary }]}>
             {localSelection.length}/3 selected
           </Text>
         </View>
 
         {/* Preview */}
-        <View style={styles.previewContainer}>
-          <Text style={styles.previewLabel}>Preview</Text>
-          <View style={styles.preview}>
+        <View style={[styles.previewContainer, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <Text style={[styles.previewLabel, { color: t.textMuted }]}>Preview</Text>
+          <View style={[styles.preview, { backgroundColor: t.surfaceSecondary }]}>
             <View style={styles.previewTab}>
-              <Home size={20} color={colors.slate[400]} />
-              <Text style={styles.previewTabLabel}>Home</Text>
+              <Home size={20} color={t.textFaint} />
+              <Text style={[styles.previewTabLabel, { color: t.textMuted }]}>Home</Text>
             </View>
             {localSelection.map((tabId) => {
               const tab = AVAILABLE_TABS.find((t) => t.id === tabId);
               const Icon = TAB_ICONS[tabId] || Users;
               return (
                 <View key={tabId} style={styles.previewTab}>
-                  <Icon size={20} color={theme.light.primary} />
-                  <Text style={[styles.previewTabLabel, styles.previewTabLabelActive]}>
+                  <Icon size={20} color={t.primary} />
+                  <Text style={[styles.previewTabLabel, { color: t.primary, fontWeight: '500' }]}>
                     {tab?.label || tabId}
                   </Text>
                 </View>
@@ -182,13 +184,13 @@ export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps)
             {/* Placeholder slots */}
             {Array.from({ length: Math.max(0, 3 - localSelection.length) }).map((_, i) => (
               <View key={`empty-${i}`} style={styles.previewTabEmpty}>
-                <View style={styles.previewTabPlaceholder} />
-                <Text style={styles.previewTabLabel}>---</Text>
+                <View style={[styles.previewTabPlaceholder, { borderColor: t.textFaint }]} />
+                <Text style={[styles.previewTabLabel, { color: t.textMuted }]}>---</Text>
               </View>
             ))}
             <View style={styles.previewTab}>
-              <Menu size={20} color={colors.slate[400]} />
-              <Text style={styles.previewTabLabel}>More</Text>
+              <Menu size={20} color={t.textFaint} />
+              <Text style={[styles.previewTabLabel, { color: t.textMuted }]}>More</Text>
             </View>
           </View>
         </View>
@@ -204,22 +206,22 @@ export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps)
               return (
                 <TouchableOpacity
                   key={tab.id}
-                  style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                  style={[styles.optionCard, { backgroundColor: t.surface, borderColor: t.border }, isSelected && { borderColor: t.primary, backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
                   onPress={() => handleToggleTab(tab.id)}
                   activeOpacity={0.7}
                 >
                   <View
-                    style={[styles.optionIcon, isSelected && styles.optionIconSelected]}
+                    style={[styles.optionIcon, { backgroundColor: t.surfaceSecondary }, isSelected && { backgroundColor: t.primary }]}
                   >
-                    <Icon size={24} color={isSelected ? colors.white : colors.slate[600]} />
+                    <Icon size={24} color={isSelected ? colors.white : t.textSecondary} />
                   </View>
                   <Text
-                    style={[styles.optionLabel, isSelected && styles.optionLabelSelected]}
+                    style={[styles.optionLabel, { color: t.textSecondary }, isSelected && { color: t.primary, fontWeight: '600' }]}
                   >
                     {tab.label}
                   </Text>
                   {isSelected && (
-                    <View style={styles.selectionBadge}>
+                    <View style={[styles.selectionBadge, { backgroundColor: t.primary }]}>
                       <Text style={styles.selectionBadgeText}>{selectionIndex + 1}</Text>
                     </View>
                   )}
@@ -230,10 +232,10 @@ export function CustomizeTabsModal({ isOpen, onClose }: CustomizeTabsModalProps)
         </ScrollView>
 
         {/* Reset Button */}
-        <View style={styles.footer}>
+        <View style={[styles.footer, { backgroundColor: t.surface, borderTopColor: t.border }]}>
           <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <RotateCcw size={18} color={colors.slate[600]} />
-            <Text style={styles.resetButtonText}>Reset to Default</Text>
+            <RotateCcw size={18} color={t.textSecondary} />
+            <Text style={[styles.resetButtonText, { color: t.textSecondary }]}>Reset to Default</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -265,7 +267,7 @@ const styles = StyleSheet.create({
     color: colors.slate[900],
   },
   saveButton: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
@@ -299,7 +301,7 @@ const styles = StyleSheet.create({
   selectionCount: {
     fontSize: 14,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
     marginLeft: 12,
   },
   previewContainer: {
@@ -348,7 +350,7 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
   },
   previewTabLabelActive: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontWeight: '500',
   },
   scrollView: {
@@ -374,7 +376,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   optionCardSelected: {
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     backgroundColor: colors.brand[50],
   },
   optionIcon: {
@@ -387,7 +389,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   optionIconSelected: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   optionLabel: {
     fontSize: 12,
@@ -395,7 +397,7 @@ const styles = StyleSheet.create({
     color: colors.slate[700],
   },
   optionLabelSelected: {
-    color: theme.light.primary,
+    color: colors.brand[600],
     fontWeight: '600',
   },
   selectionBadge: {
@@ -405,7 +407,7 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
   },

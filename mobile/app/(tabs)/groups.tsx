@@ -11,7 +11,8 @@ import {
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { Users, Lock, ChevronRight } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { NotificationBadge, MobileTabGuard } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -29,6 +30,7 @@ interface Group {
 }
 
 function GroupCard({ group, onPress }: { group: Group; onPress: () => void }) {
+  const { t } = useTheme();
   const formatLastActivity = (timeStr: string | null) => {
     if (!timeStr) return 'No activity';
     try {
@@ -39,9 +41,9 @@ function GroupCard({ group, onPress }: { group: Group; onPress: () => void }) {
   };
 
   return (
-    <TouchableOpacity style={styles.groupCard} onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.groupIcon}>
-        <Users size={24} color={theme.light.primary} />
+    <TouchableOpacity style={[styles.groupCard, { backgroundColor: t.surface, borderColor: t.border }]} onPress={onPress} activeOpacity={0.7}>
+      <View style={[styles.groupIcon, { backgroundColor: `${t.primary}15` }]}>
+        <Users size={24} color={t.primary} />
         {group.unreadPosts > 0 && (
           <View style={styles.unreadBadge}>
             <NotificationBadge count={group.unreadPosts} />
@@ -51,31 +53,32 @@ function GroupCard({ group, onPress }: { group: Group; onPress: () => void }) {
       <View style={styles.groupContent}>
         <View style={styles.groupHeader}>
           <View style={styles.groupTitleRow}>
-            <Text style={styles.groupName} numberOfLines={1}>{group.name}</Text>
+            <Text style={[styles.groupName, { color: t.text }]} numberOfLines={1}>{group.name}</Text>
             {group.type === 'private' && (
-              <Lock size={14} color={colors.slate[400]} style={{ marginLeft: 4 }} />
+              <Lock size={14} color={t.textFaint} style={{ marginLeft: 4 }} />
             )}
           </View>
-          <Text style={styles.lastActivity}>{formatLastActivity(group.lastActivity)}</Text>
+          <Text style={[styles.lastActivity, { color: t.textFaint }]}>{formatLastActivity(group.lastActivity)}</Text>
         </View>
         {group.description && (
-          <Text style={styles.groupDescription} numberOfLines={1}>
+          <Text style={[styles.groupDescription, { color: t.textMuted }]} numberOfLines={1}>
             {group.description}
           </Text>
         )}
         <View style={styles.groupMeta}>
           <View style={styles.metaItem}>
-            <Users size={14} color={colors.slate[400]} />
-            <Text style={styles.metaText}>{group.memberCount} members</Text>
+            <Users size={14} color={t.textFaint} />
+            <Text style={[styles.metaText, { color: t.textMuted }]}>{group.memberCount} members</Text>
           </View>
         </View>
       </View>
-      <ChevronRight size={20} color={colors.slate[400]} />
+      <ChevronRight size={20} color={t.textFaint} />
     </TouchableOpacity>
   );
 }
 
 export default function GroupsScreen() {
+  const { t, isDark, colors } = useTheme();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -204,25 +207,25 @@ export default function GroupsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
     <MobileTabGuard tabId="groups">
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Header Stats */}
-      <View style={styles.statsBar}>
+      <View style={[styles.statsBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{groups.length}</Text>
-          <Text style={styles.statLabel}>Groups</Text>
+          <Text style={[styles.statValue, { color: t.text }]}>{groups.length}</Text>
+          <Text style={[styles.statLabel, { color: t.textMuted }]}>Groups</Text>
         </View>
-        <View style={styles.statDivider} />
+        <View style={[styles.statDivider, { backgroundColor: t.border }]} />
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{totalUnread}</Text>
-          <Text style={styles.statLabel}>Unread</Text>
+          <Text style={[styles.statValue, { color: t.text }]}>{totalUnread}</Text>
+          <Text style={[styles.statLabel, { color: t.textMuted }]}>Unread</Text>
         </View>
       </View>
 
@@ -250,11 +253,11 @@ export default function GroupsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIcon}>
-              <Users size={48} color={colors.slate[300]} />
+            <View style={[styles.emptyIcon, { backgroundColor: t.surfaceSecondary }]}>
+              <Users size={48} color={t.textFaint} />
             </View>
-            <Text style={styles.emptyTitle}>No groups yet</Text>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No groups yet</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               You'll see your team groups here once you're added to them
             </Text>
           </View>

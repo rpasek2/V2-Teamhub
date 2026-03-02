@@ -15,7 +15,8 @@ import {
   BarChart,
   Contact,
 } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { NotificationBadge } from '../../src/components/ui';
 import { useNotificationStore } from '../../src/stores/notificationStore';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -75,6 +76,9 @@ export default function TabLayout() {
   const upcomingEvents = useNotificationStore((state) => state.upcomingEvents);
   const hasMoreNotifications = useNotificationStore((state) => state.hasMoreNotifications);
   const fetchNotificationCounts = useNotificationStore((state) => state.fetchNotificationCounts);
+
+  // Theme
+  const { t } = useTheme();
 
   // Get tab preferences
   const selectedTabs = useTabPreferencesStore((state) => state.selectedTabs);
@@ -163,17 +167,19 @@ export default function TabLayout() {
     <AnnouncementOverlay />
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.light.primary,
-        tabBarInactiveTintColor: colors.slate[400],
+        tabBarActiveTintColor: t.tabIconSelected,
+        tabBarInactiveTintColor: t.tabIconDefault,
         tabBarStyle: {
           ...styles.tabBar,
+          backgroundColor: t.tabBar,
+          borderTopColor: t.border,
           paddingBottom: Math.max(insets.bottom, 8),
           height: 60 + Math.max(insets.bottom, 8),
         },
         tabBarLabelStyle: styles.tabBarLabel,
         headerShown: true,
-        headerStyle: styles.header,
-        headerTitleStyle: styles.headerTitle,
+        headerStyle: [styles.header, { backgroundColor: t.surface, borderBottomColor: t.border }],
+        headerTitleStyle: [styles.headerTitle, { color: t.text }],
       }}
     >
       {/* Fixed: Dashboard (always first) */}

@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Users, Search, Mail, Phone, CheckSquare, Calendar, Clock } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -49,6 +50,7 @@ const ROLE_FILTERS: { key: RoleFilter; label: string }[] = [
 ];
 
 export default function StaffScreen() {
+  const { t, isDark } = useTheme();
   const router = useRouter();
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -192,15 +194,15 @@ export default function StaffScreen() {
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case 'owner':
-        return { bg: colors.amber[100], text: colors.amber[700] };
+        return { bg: isDark ? colors.amber[700] + '30' : colors.amber[100], text: isDark ? colors.amber[500] : colors.amber[700] };
       case 'director':
-        return { bg: colors.purple[100], text: colors.purple[700] };
+        return { bg: isDark ? colors.purple[700] + '30' : colors.purple[100], text: isDark ? colors.purple[400] : colors.purple[700] };
       case 'admin':
-        return { bg: colors.blue[100], text: colors.blue[700] };
+        return { bg: isDark ? colors.blue[700] + '30' : colors.blue[100], text: isDark ? colors.blue[400] : colors.blue[700] };
       case 'coach':
-        return { bg: colors.success[100], text: colors.success[700] };
+        return { bg: isDark ? colors.success[700] + '30' : colors.success[100], text: isDark ? colors.success[500] : colors.success[700] };
       default:
-        return { bg: colors.slate[100], text: colors.slate[600] };
+        return { bg: isDark ? colors.slate[700] : colors.slate[100], text: isDark ? colors.slate[400] : colors.slate[600] };
     }
   };
 
@@ -219,31 +221,31 @@ export default function StaffScreen() {
 
   if (!isStaff) {
     return (
-      <View style={styles.permissionContainer}>
-        <Users size={48} color={colors.slate[300]} />
-        <Text style={styles.permissionText}>You don't have permission to view this page.</Text>
+      <View style={[styles.permissionContainer, { backgroundColor: t.background }]}>
+        <Users size={48} color={t.textFaint} />
+        <Text style={[styles.permissionText, { color: t.textFaint }]}>You don't have permission to view this page.</Text>
       </View>
     );
   }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
-          <Search size={18} color={colors.slate[400]} />
+      <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <View style={[styles.searchInputWrapper, { backgroundColor: t.surfaceSecondary }]}>
+          <Search size={18} color={t.textFaint} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: t.text }]}
             placeholder="Search staff..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -251,16 +253,16 @@ export default function StaffScreen() {
       </View>
 
       {/* Role Filter */}
-      <View style={styles.filterContainer}>
+      <View style={[styles.filterContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
           {ROLE_FILTERS.map((filter) => (
             <TouchableOpacity
               key={filter.key}
-              style={[styles.filterButton, roleFilter === filter.key && styles.filterButtonActive]}
+              style={[styles.filterButton, { backgroundColor: t.surfaceSecondary }, roleFilter === filter.key && { backgroundColor: t.primary }]}
               onPress={() => setRoleFilter(filter.key)}
             >
               <Text
-                style={[styles.filterButtonText, roleFilter === filter.key && styles.filterButtonTextActive]}
+                style={[styles.filterButtonText, { color: t.textSecondary }, roleFilter === filter.key && styles.filterButtonTextActive]}
               >
                 {filter.label}
               </Text>
@@ -271,8 +273,8 @@ export default function StaffScreen() {
 
       {/* Error Banner */}
       {error && (
-        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: '#FECACA' }}>
-          <Text style={{ color: '#DC2626', fontSize: 14 }}>{error}</Text>
+        <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: isDark ? colors.error[700] + '20' : '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: isDark ? colors.error[700] + '40' : '#FECACA' }}>
+          <Text style={{ color: isDark ? colors.error[400] : '#DC2626', fontSize: 14 }}>{error}</Text>
         </View>
       )}
 
@@ -280,13 +282,13 @@ export default function StaffScreen() {
       <ScrollView
         style={styles.listContainer}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
       >
         {filteredStaff.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Users size={48} color={colors.slate[300]} />
-            <Text style={styles.emptyTitle}>No staff members found</Text>
-            <Text style={styles.emptyText}>
+            <Users size={48} color={t.textFaint} />
+            <Text style={[styles.emptyTitle, { color: t.text }]}>No staff members found</Text>
+            <Text style={[styles.emptyText, { color: t.textMuted }]}>
               {searchQuery || roleFilter !== 'all'
                 ? 'Try adjusting your search or filters'
                 : 'Staff profiles will appear here'}
@@ -301,7 +303,7 @@ export default function StaffScreen() {
             return (
               <TouchableOpacity
                 key={member.user_id}
-                style={styles.staffCard}
+                style={[styles.staffCard, { backgroundColor: t.surface, borderColor: t.border }]}
                 onPress={() => handleStaffPress(member.user_id)}
                 activeOpacity={0.7}
               >
@@ -311,8 +313,8 @@ export default function StaffScreen() {
                   {member.profile?.avatar_url ? (
                     <Image source={{ uri: member.profile.avatar_url, cache: 'force-cache' }} style={styles.avatar} />
                   ) : (
-                    <View style={styles.avatarPlaceholder}>
-                      <Text style={styles.avatarText}>
+                    <View style={[styles.avatarPlaceholder, { backgroundColor: isDark ? `${t.primary}20` : colors.brand[100] }]}>
+                      <Text style={[styles.avatarText, { color: t.primary }]}>
                         {getInitials(member.profile?.full_name || '??')}
                       </Text>
                     </View>
@@ -320,11 +322,11 @@ export default function StaffScreen() {
 
                   {/* Name & Role */}
                   <View style={styles.headerInfo}>
-                    <Text style={styles.staffName} numberOfLines={1}>
+                    <Text style={[styles.staffName, { color: t.text }]} numberOfLines={1}>
                       {member.profile?.full_name || 'Unknown'}
                     </Text>
                     {member.staff_profile?.title && (
-                      <Text style={styles.staffTitle} numberOfLines={1}>
+                      <Text style={[styles.staffTitle, { color: t.textMuted }]} numberOfLines={1}>
                         {member.staff_profile.title}
                       </Text>
                     )}
@@ -340,26 +342,26 @@ export default function StaffScreen() {
                 <View style={styles.contactSection}>
                   {contactEmail && (
                     <View style={styles.contactRow}>
-                      <Mail size={14} color={colors.slate[400]} />
-                      <Text style={styles.contactText} numberOfLines={1}>
+                      <Mail size={14} color={t.textFaint} />
+                      <Text style={[styles.contactText, { color: t.textSecondary }]} numberOfLines={1}>
                         {contactEmail}
                       </Text>
                     </View>
                   )}
                   {contactPhone && (
                     <View style={styles.contactRow}>
-                      <Phone size={14} color={colors.slate[400]} />
-                      <Text style={styles.contactText}>{contactPhone}</Text>
+                      <Phone size={14} color={t.textFaint} />
+                      <Text style={[styles.contactText, { color: t.textSecondary }]}>{contactPhone}</Text>
                     </View>
                   )}
                 </View>
 
                 {/* Status Badges */}
-                <View style={styles.statusSection}>
+                <View style={[styles.statusSection, { borderTopColor: t.borderSubtle }]}>
                   {member.pending_tasks > 0 && (
                     <View style={styles.statusBadge}>
                       <CheckSquare size={14} color={colors.amber[500]} />
-                      <Text style={styles.statusText}>
+                      <Text style={[styles.statusText, { color: t.textSecondary }]}>
                         {member.pending_tasks} task{member.pending_tasks !== 1 ? 's' : ''}
                       </Text>
                     </View>
@@ -367,15 +369,15 @@ export default function StaffScreen() {
                   {member.pending_time_off > 0 && (
                     <View style={styles.statusBadge}>
                       <Calendar size={14} color={colors.blue[500]} />
-                      <Text style={styles.statusText}>
+                      <Text style={[styles.statusText, { color: t.textSecondary }]}>
                         {member.pending_time_off} request{member.pending_time_off !== 1 ? 's' : ''}
                       </Text>
                     </View>
                   )}
                   {member.pending_tasks === 0 && member.pending_time_off === 0 && (
                     <View style={styles.statusBadge}>
-                      <Clock size={14} color={colors.slate[400]} />
-                      <Text style={[styles.statusText, { color: colors.slate[400] }]}>
+                      <Clock size={14} color={t.textFaint} />
+                      <Text style={[styles.statusText, { color: t.textFaint }]}>
                         No pending items
                       </Text>
                     </View>
@@ -456,7 +458,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.slate[100],
   },
   filterButtonActive: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   filterButtonText: {
     fontSize: 14,

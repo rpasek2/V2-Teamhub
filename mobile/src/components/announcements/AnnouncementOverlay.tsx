@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Megaphone, ExternalLink } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
 import { useHubStore } from '../../stores/hubStore';
 import { useAuthStore } from '../../stores/authStore';
 import { supabase } from '../../services/supabase';
@@ -37,6 +38,7 @@ interface PendingItem {
 }
 
 export function AnnouncementOverlay() {
+    const { t, isDark } = useTheme();
     const currentHub = useHubStore(s => s.currentHub);
     const user = useAuthStore(s => s.user);
     const [pending, setPending] = useState<PendingItem[]>([]);
@@ -144,18 +146,18 @@ export function AnnouncementOverlay() {
 
     return (
         <Modal visible transparent animationType="fade" onRequestClose={() => {}}>
-            <View style={s.backdrop}>
+            <View style={[s.backdrop, { backgroundColor: t.overlay }]}>
                 <SafeAreaView style={s.cardWrapper} edges={['top', 'bottom']}>
-                    <View style={s.card}>
+                    <View style={[s.card, { backgroundColor: t.surface }]}>
                         {/* Header */}
-                        <View style={s.header}>
+                        <View style={[s.header, { borderBottomColor: t.border }]}>
                             <View style={s.iconBox}>
                                 <Megaphone size={20} color={colors.brand[600]} />
                             </View>
                             <View style={{ flex: 1 }}>
-                                <Text style={s.title} numberOfLines={2}>{current.title}</Text>
+                                <Text style={[s.title, { color: t.text }]} numberOfLines={2}>{current.title}</Text>
                                 {pending.length > 1 && (
-                                    <Text style={s.counter}>{currentIndex + 1} of {pending.length}</Text>
+                                    <Text style={[s.counter, { color: t.textMuted }]}>{currentIndex + 1} of {pending.length}</Text>
                                 )}
                             </View>
                         </View>
@@ -163,7 +165,7 @@ export function AnnouncementOverlay() {
                         {/* Body */}
                         <ScrollView style={s.body} contentContainerStyle={s.bodyContent}>
                             {current.body && (
-                                <Text style={s.bodyText}>{current.body}</Text>
+                                <Text style={[s.bodyText, { color: t.textSecondary }]}>{current.body}</Text>
                             )}
 
                             {/* Links */}
@@ -183,7 +185,7 @@ export function AnnouncementOverlay() {
                                 <View style={s.questionsSection}>
                                     {questions.map((q, idx) => (
                                         <View key={q.id} style={s.questionBlock}>
-                                            <Text style={s.questionText}>
+                                            <Text style={[s.questionText, { color: t.text }]}>
                                                 {idx + 1}. {q.question}
                                                 {q.required && <Text style={{ color: '#ef4444' }}> *</Text>}
                                             </Text>
@@ -198,17 +200,17 @@ export function AnnouncementOverlay() {
                                                             <View style={[s.radio, responses[q.id] === opt && s.radioActive]}>
                                                                 {responses[q.id] === opt && <View style={s.radioDot} />}
                                                             </View>
-                                                            <Text style={s.optionText}>{opt}</Text>
+                                                            <Text style={[s.optionText, { color: t.textSecondary }]}>{opt}</Text>
                                                         </TouchableOpacity>
                                                     ))}
                                                 </View>
                                             ) : (
                                                 <TextInput
-                                                    style={s.textArea}
+                                                    style={[s.textArea, { borderColor: t.border, color: t.text, backgroundColor: t.surface }]}
                                                     value={responses[q.id] || ''}
                                                     onChangeText={v => setResponses(prev => ({ ...prev, [q.id]: v }))}
                                                     placeholder="Your answer..."
-                                                    placeholderTextColor={colors.slate[400]}
+                                                    placeholderTextColor={t.textFaint}
                                                     multiline
                                                 />
                                             )}
@@ -225,7 +227,7 @@ export function AnnouncementOverlay() {
                         </ScrollView>
 
                         {/* Footer */}
-                        <View style={s.footer}>
+                        <View style={[s.footer, { borderTopColor: t.border }]}>
                             <TouchableOpacity onPress={handleSubmit} style={[s.submitBtn, submitting && { opacity: 0.5 }]} disabled={submitting}>
                                 {submitting ? (
                                     <ActivityIndicator size="small" color="#fff" />

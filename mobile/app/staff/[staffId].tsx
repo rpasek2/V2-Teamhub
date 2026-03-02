@@ -37,7 +37,8 @@ import {
   Check,
 } from 'lucide-react-native';
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { isTabEnabled } from '../../src/lib/permissions';
@@ -120,6 +121,7 @@ const TIME_OFF_TYPES: Record<string, { label: string; color: string }> = {
 };
 
 export default function StaffDetailScreen() {
+  const { t, isDark } = useTheme();
   const { staffId } = useLocalSearchParams<{ staffId: string }>();
   const [staffMember, setStaffMember] = useState<StaffMember | null>(null);
   const [schedules, setSchedules] = useState<StaffSchedule[]>([]);
@@ -285,15 +287,15 @@ export default function StaffDetailScreen() {
   const getRoleBadgeStyle = (role: string) => {
     switch (role) {
       case 'owner':
-        return { bg: colors.amber[100], text: colors.amber[700] };
+        return { bg: isDark ? colors.amber[700] + '30' : colors.amber[100], text: isDark ? colors.amber[500] : colors.amber[700] };
       case 'director':
-        return { bg: colors.purple[100], text: colors.purple[700] };
+        return { bg: isDark ? colors.purple[700] + '30' : colors.purple[100], text: isDark ? colors.purple[400] : colors.purple[700] };
       case 'admin':
-        return { bg: colors.blue[100], text: colors.blue[700] };
+        return { bg: isDark ? colors.blue[700] + '30' : colors.blue[100], text: isDark ? colors.blue[400] : colors.blue[700] };
       case 'coach':
-        return { bg: colors.success[100], text: colors.success[700] };
+        return { bg: isDark ? colors.success[700] + '30' : colors.success[100], text: isDark ? colors.success[500] : colors.success[700] };
       default:
-        return { bg: colors.slate[100], text: colors.slate[600] };
+        return { bg: isDark ? colors.slate[700] : colors.slate[100], text: isDark ? colors.slate[400] : colors.slate[600] };
     }
   };
 
@@ -318,29 +320,29 @@ export default function StaffDetailScreen() {
   };
 
   const getCertStatus = (expiryDate: string | null) => {
-    if (!expiryDate) return { status: 'valid', label: 'No Expiry', color: colors.slate[500], bg: colors.slate[100] };
+    if (!expiryDate) return { status: 'valid', label: 'No Expiry', color: isDark ? colors.slate[400] : colors.slate[500], bg: isDark ? colors.slate[700] : colors.slate[100] };
 
     const expiry = parseISO(expiryDate);
     if (isPast(expiry)) {
-      return { status: 'expired', label: 'Expired', color: colors.error[600], bg: colors.error[100] };
+      return { status: 'expired', label: 'Expired', color: isDark ? colors.error[400] : colors.error[600], bg: isDark ? colors.error[700] + '30' : colors.error[100] };
     }
 
     const daysUntil = differenceInDays(expiry, new Date());
     if (daysUntil <= 30) {
-      return { status: 'expiring', label: `${daysUntil}d left`, color: colors.warning[600], bg: colors.warning[100] };
+      return { status: 'expiring', label: `${daysUntil}d left`, color: isDark ? colors.warning[500] : colors.warning[600], bg: isDark ? colors.warning[700] + '30' : colors.warning[100] };
     }
 
-    return { status: 'valid', label: 'Valid', color: colors.success[600], bg: colors.success[100] };
+    return { status: 'valid', label: 'Valid', color: isDark ? colors.success[500] : colors.success[600], bg: isDark ? colors.success[700] + '30' : colors.success[100] };
   };
 
   const getTimeOffStatusStyle = (status: string) => {
     switch (status) {
       case 'approved':
-        return { bg: colors.success[100], text: colors.success[700], icon: CheckCircle };
+        return { bg: isDark ? colors.success[700] + '30' : colors.success[100], text: isDark ? colors.success[500] : colors.success[700], icon: CheckCircle };
       case 'denied':
-        return { bg: colors.error[100], text: colors.error[700], icon: XCircle };
+        return { bg: isDark ? colors.error[700] + '30' : colors.error[100], text: isDark ? colors.error[400] : colors.error[700], icon: XCircle };
       default:
-        return { bg: colors.warning[100], text: colors.warning[700], icon: Clock };
+        return { bg: isDark ? colors.warning[700] + '30' : colors.warning[100], text: isDark ? colors.warning[500] : colors.warning[700], icon: Clock };
     }
   };
 
@@ -486,26 +488,26 @@ export default function StaffDetailScreen() {
 
   if (!isStaff) {
     return (
-      <View style={styles.permissionContainer}>
-        <User size={48} color={colors.slate[300]} />
-        <Text style={styles.permissionText}>You don't have permission to view this page.</Text>
+      <View style={[styles.permissionContainer, { backgroundColor: t.background }]}>
+        <User size={48} color={t.textFaint} />
+        <Text style={[styles.permissionText, { color: t.textFaint }]}>You don't have permission to view this page.</Text>
       </View>
     );
   }
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   if (!staffMember) {
     return (
-      <View style={styles.permissionContainer}>
-        <AlertCircle size={48} color={colors.slate[300]} />
-        <Text style={styles.permissionText}>Staff member not found.</Text>
+      <View style={[styles.permissionContainer, { backgroundColor: t.background }]}>
+        <AlertCircle size={48} color={t.textFaint} />
+        <Text style={[styles.permissionText, { color: t.textFaint }]}>Staff member not found.</Text>
       </View>
     );
   }
@@ -523,27 +525,27 @@ export default function StaffDetailScreen() {
       />
 
       <ScrollView
-        style={styles.container}
+        style={[styles.container, { backgroundColor: t.background }]}
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={t.textMuted} />}
       >
         {/* Header Card */}
-        <View style={styles.headerCard}>
+        <View style={[styles.headerCard, { backgroundColor: t.surface, borderColor: t.border }]}>
           {/* Avatar */}
           {staffMember.profile?.avatar_url ? (
             <Image source={{ uri: staffMember.profile.avatar_url, cache: 'force-cache' }} style={styles.avatar} />
           ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>
+            <View style={[styles.avatarPlaceholder, { backgroundColor: isDark ? `${t.primary}20` : colors.brand[100] }]}>
+              <Text style={[styles.avatarText, { color: t.primary }]}>
                 {getInitials(staffMember.profile?.full_name || '??')}
               </Text>
             </View>
           )}
 
           {/* Name & Role */}
-          <Text style={styles.staffName}>{staffMember.profile?.full_name || 'Unknown'}</Text>
+          <Text style={[styles.staffName, { color: t.text }]}>{staffMember.profile?.full_name || 'Unknown'}</Text>
           {staffMember.staff_profile?.title && (
-            <Text style={styles.staffTitle}>{staffMember.staff_profile.title}</Text>
+            <Text style={[styles.staffTitle, { color: t.textMuted }]}>{staffMember.staff_profile.title}</Text>
           )}
           <View style={[styles.roleBadge, { backgroundColor: roleBadge.bg }]}>
             <Text style={[styles.roleBadgeText, { color: roleBadge.text }]}>
@@ -555,20 +557,20 @@ export default function StaffDetailScreen() {
           <View style={styles.contactActions}>
             {contactEmail && (
               <TouchableOpacity
-                style={styles.contactButton}
+                style={[styles.contactButton, { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
                 onPress={() => handleEmailPress(contactEmail)}
               >
-                <Mail size={20} color={theme.light.primary} />
-                <Text style={styles.contactButtonText}>Email</Text>
+                <Mail size={20} color={t.primary} />
+                <Text style={[styles.contactButtonText, { color: t.primary }]}>Email</Text>
               </TouchableOpacity>
             )}
             {contactPhone && (
               <TouchableOpacity
-                style={styles.contactButton}
+                style={[styles.contactButton, { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
                 onPress={() => handlePhonePress(contactPhone)}
               >
-                <Phone size={20} color={theme.light.primary} />
-                <Text style={styles.contactButtonText}>Call</Text>
+                <Phone size={20} color={t.primary} />
+                <Text style={[styles.contactButtonText, { color: t.primary }]}>Call</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -576,63 +578,63 @@ export default function StaffDetailScreen() {
 
         {/* Bio */}
         {staffMember.staff_profile?.bio && (
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: t.surface, borderColor: t.border }]}>
             <View style={styles.sectionHeader}>
-              <FileText size={18} color={colors.slate[500]} />
-              <Text style={styles.sectionTitle}>About</Text>
+              <FileText size={18} color={t.textMuted} />
+              <Text style={[styles.sectionTitle, { color: t.text }]}>About</Text>
             </View>
-            <Text style={styles.bioText}>{staffMember.staff_profile.bio}</Text>
+            <Text style={[styles.bioText, { color: t.textSecondary }]}>{staffMember.staff_profile.bio}</Text>
           </View>
         )}
 
         {/* Details */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.sectionHeader}>
-            <Briefcase size={18} color={colors.slate[500]} />
-            <Text style={styles.sectionTitle}>Details</Text>
+            <Briefcase size={18} color={t.textMuted} />
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Details</Text>
           </View>
           <View style={styles.detailsList}>
             {contactEmail && (
               <View style={styles.detailRow}>
-                <Mail size={16} color={colors.slate[400]} />
-                <Text style={styles.detailText}>{contactEmail}</Text>
+                <Mail size={16} color={t.textFaint} />
+                <Text style={[styles.detailText, { color: t.textSecondary }]}>{contactEmail}</Text>
               </View>
             )}
             {contactPhone && (
               <View style={styles.detailRow}>
-                <Phone size={16} color={colors.slate[400]} />
-                <Text style={styles.detailText}>{contactPhone}</Text>
+                <Phone size={16} color={t.textFaint} />
+                <Text style={[styles.detailText, { color: t.textSecondary }]}>{contactPhone}</Text>
               </View>
             )}
             {staffMember.staff_profile?.hire_date ? (
               <View style={styles.detailRow}>
-                <Calendar size={16} color={colors.slate[400]} />
-                <Text style={styles.detailText}>
+                <Calendar size={16} color={t.textFaint} />
+                <Text style={[styles.detailText, { color: t.textSecondary }]}>
                   Hired {format(parseISO(staffMember.staff_profile.hire_date), 'MMM d, yyyy')}
                 </Text>
               </View>
             ) : (
               <View style={styles.detailRow}>
-                <Calendar size={16} color={colors.slate[300]} />
-                <Text style={styles.detailTextMuted}>No hire date set</Text>
+                <Calendar size={16} color={t.textFaint} />
+                <Text style={[styles.detailTextMuted, { color: t.textFaint }]}>No hire date set</Text>
               </View>
             )}
           </View>
         </View>
 
         {/* Emergency Contact */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.sectionHeader}>
             <AlertCircle size={18} color={colors.error[500]} />
-            <Text style={styles.sectionTitle}>Emergency Contact</Text>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Emergency Contact</Text>
           </View>
           {staffMember.staff_profile?.emergency_contact?.name ? (
-            <View style={styles.emergencyCard}>
-              <Text style={styles.emergencyName}>
+            <View style={[styles.emergencyCard, { backgroundColor: isDark ? colors.error[700] + '15' : colors.error[50] }]}>
+              <Text style={[styles.emergencyName, { color: t.text }]}>
                 {staffMember.staff_profile.emergency_contact.name}
               </Text>
               {staffMember.staff_profile.emergency_contact.relationship && (
-                <Text style={styles.emergencyRelation}>
+                <Text style={[styles.emergencyRelation, { color: t.textMuted }]}>
                   {staffMember.staff_profile.emergency_contact.relationship}
                 </Text>
               )}
@@ -643,56 +645,56 @@ export default function StaffDetailScreen() {
                     handlePhonePress(staffMember.staff_profile!.emergency_contact!.phone)
                   }
                 >
-                  <Phone size={14} color={colors.slate[400]} />
-                  <Text style={styles.emergencyText}>
+                  <Phone size={14} color={t.textFaint} />
+                  <Text style={[styles.emergencyText, { color: t.textSecondary }]}>
                     {staffMember.staff_profile.emergency_contact.phone}
                   </Text>
                 </TouchableOpacity>
               )}
             </View>
           ) : (
-            <Text style={styles.emptyText}>No emergency contact on file</Text>
+            <Text style={[styles.emptyText, { color: t.textFaint }]}>No emergency contact on file</Text>
           )}
         </View>
 
         {/* Schedule */}
         {isTabEnabled('schedule', currentHub?.settings?.enabledTabs) && (
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.sectionHeader}>
-            <Clock size={18} color={colors.slate[500]} />
-            <Text style={styles.sectionTitle}>Work Schedule</Text>
+            <Clock size={18} color={t.textMuted} />
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Work Schedule</Text>
           </View>
           {schedules.length > 0 ? (
             <View style={styles.scheduleList}>
               {schedules.map((schedule) => (
-                <View key={schedule.id} style={styles.scheduleRow}>
-                  <Text style={styles.scheduleDay}>{DAYS_OF_WEEK[schedule.day_of_week]}</Text>
-                  <Text style={styles.scheduleTime}>
+                <View key={schedule.id} style={[styles.scheduleRow, { borderBottomColor: t.borderSubtle }]}>
+                  <Text style={[styles.scheduleDay, { color: t.textSecondary }]}>{DAYS_OF_WEEK[schedule.day_of_week]}</Text>
+                  <Text style={[styles.scheduleTime, { color: t.textMuted }]}>
                     {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
                   </Text>
                 </View>
               ))}
             </View>
           ) : (
-            <Text style={styles.emptyText}>No schedule set</Text>
+            <Text style={[styles.emptyText, { color: t.textFaint }]}>No schedule set</Text>
           )}
         </View>
         )}
 
         {/* Certifications */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.sectionHeaderWithAction}>
             <View style={styles.sectionHeaderLeft}>
-              <Shield size={18} color={colors.slate[500]} />
-              <Text style={styles.sectionTitle}>Certifications</Text>
+              <Shield size={18} color={t.textMuted} />
+              <Text style={[styles.sectionTitle, { color: t.text }]}>Certifications</Text>
             </View>
             {canManage && (
               <TouchableOpacity
-                style={styles.addButton}
+                style={[styles.addButton, { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
                 onPress={() => setShowAddCertModal(true)}
               >
-                <Plus size={16} color={theme.light.primary} />
-                <Text style={styles.addButtonText}>Add</Text>
+                <Plus size={16} color={t.primary} />
+                <Text style={[styles.addButtonText, { color: t.primary }]}>Add</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -701,14 +703,14 @@ export default function StaffDetailScreen() {
               {certifications.map((cert) => {
                 const status = getCertStatus(cert.expiry_date);
                 return (
-                  <View key={cert.id} style={styles.certificationItem}>
+                  <View key={cert.id} style={[styles.certificationItem, { borderBottomColor: t.borderSubtle }]}>
                     <View style={styles.certificationInfo}>
-                      <Text style={styles.certificationName}>{cert.name}</Text>
+                      <Text style={[styles.certificationName, { color: t.text }]}>{cert.name}</Text>
                       {cert.issuer && (
-                        <Text style={styles.certificationIssuer}>{cert.issuer}</Text>
+                        <Text style={[styles.certificationIssuer, { color: t.textMuted }]}>{cert.issuer}</Text>
                       )}
                       {cert.expiry_date && (
-                        <Text style={styles.certificationDate}>
+                        <Text style={[styles.certificationDate, { color: t.textFaint }]}>
                           Expires {format(parseISO(cert.expiry_date), 'MMM d, yyyy')}
                         </Text>
                       )}
@@ -730,23 +732,23 @@ export default function StaffDetailScreen() {
               })}
             </View>
           ) : (
-            <Text style={styles.emptyText}>No certifications on file</Text>
+            <Text style={[styles.emptyText, { color: t.textFaint }]}>No certifications on file</Text>
           )}
         </View>
 
         {/* Time Off */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.sectionHeaderWithAction}>
             <View style={styles.sectionHeaderLeft}>
-              <CalendarOff size={18} color={colors.slate[500]} />
-              <Text style={styles.sectionTitle}>Time Off</Text>
+              <CalendarOff size={18} color={t.textMuted} />
+              <Text style={[styles.sectionTitle, { color: t.text }]}>Time Off</Text>
             </View>
             <TouchableOpacity
-              style={styles.addButton}
+              style={[styles.addButton, { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
               onPress={() => setShowAddTimeOffModal(true)}
             >
-              <Plus size={16} color={theme.light.primary} />
-              <Text style={styles.addButtonText}>Request</Text>
+              <Plus size={16} color={t.primary} />
+              <Text style={[styles.addButtonText, { color: t.primary }]}>Request</Text>
             </TouchableOpacity>
           </View>
           {timeOffRequests.length > 0 ? (
@@ -756,7 +758,7 @@ export default function StaffDetailScreen() {
                 const typeInfo = TIME_OFF_TYPES[request.type] || TIME_OFF_TYPES.other;
                 const StatusIcon = statusStyle.icon;
                 return (
-                  <View key={request.id} style={styles.timeOffItem}>
+                  <View key={request.id} style={[styles.timeOffItem, { borderBottomColor: t.borderSubtle }]}>
                     <View style={styles.timeOffInfo}>
                       <View style={styles.timeOffHeader}>
                         <View style={[styles.timeOffTypeBadge, { backgroundColor: `${typeInfo.color}20` }]}>
@@ -771,12 +773,12 @@ export default function StaffDetailScreen() {
                           </Text>
                         </View>
                       </View>
-                      <Text style={styles.timeOffDates}>
+                      <Text style={[styles.timeOffDates, { color: t.textSecondary }]}>
                         {format(parseISO(request.start_date), 'MMM d')} -{' '}
                         {format(parseISO(request.end_date), 'MMM d, yyyy')}
                       </Text>
                       {request.notes && (
-                        <Text style={styles.timeOffNotes} numberOfLines={2}>
+                        <Text style={[styles.timeOffNotes, { color: t.textMuted }]} numberOfLines={2}>
                           {request.notes}
                         </Text>
                       )}
@@ -784,18 +786,18 @@ export default function StaffDetailScreen() {
                       {canManage && request.status === 'pending' && (
                         <View style={styles.timeOffActions}>
                           <TouchableOpacity
-                            style={styles.approveButton}
+                            style={[styles.approveButton, { backgroundColor: isDark ? colors.success[700] + '20' : colors.success[50] }]}
                             onPress={() => handleTimeOffDecision(request.id, 'approved')}
                           >
-                            <CheckCircle size={14} color={colors.success[600]} />
-                            <Text style={styles.approveButtonText}>Approve</Text>
+                            <CheckCircle size={14} color={isDark ? colors.success[500] : colors.success[600]} />
+                            <Text style={[styles.approveButtonText, { color: isDark ? colors.success[500] : colors.success[600] }]}>Approve</Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            style={styles.denyButton}
+                            style={[styles.denyButton, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]}
                             onPress={() => handleTimeOffDecision(request.id, 'denied')}
                           >
-                            <XCircle size={14} color={colors.error[600]} />
-                            <Text style={styles.denyButtonText}>Deny</Text>
+                            <XCircle size={14} color={isDark ? colors.error[400] : colors.error[600]} />
+                            <Text style={[styles.denyButtonText, { color: isDark ? colors.error[400] : colors.error[600] }]}>Deny</Text>
                           </TouchableOpacity>
                         </View>
                       )}
@@ -805,67 +807,67 @@ export default function StaffDetailScreen() {
               })}
             </View>
           ) : (
-            <Text style={styles.emptyText}>No time off requests</Text>
+            <Text style={[styles.emptyText, { color: t.textFaint }]}>No time off requests</Text>
           )}
         </View>
 
         {/* Responsibilities */}
-        <View style={styles.section}>
+        <View style={[styles.section, { backgroundColor: t.surface, borderColor: t.border }]}>
           <View style={styles.sectionHeader}>
-            <Award size={18} color={colors.slate[500]} />
-            <Text style={styles.sectionTitle}>Responsibilities</Text>
+            <Award size={18} color={t.textMuted} />
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Responsibilities</Text>
           </View>
           {responsibilities.length > 0 ? (
             <View style={styles.responsibilitiesList}>
               {responsibilities.map((resp) => (
                 <View key={resp.id} style={styles.responsibilityItem}>
-                  <View style={styles.responsibilityBullet} />
+                  <View style={[styles.responsibilityBullet, { backgroundColor: t.primary }]} />
                   <View style={styles.responsibilityContent}>
-                    <Text style={styles.responsibilityTitle}>{resp.title}</Text>
+                    <Text style={[styles.responsibilityTitle, { color: t.text }]}>{resp.title}</Text>
                     {resp.description && (
-                      <Text style={styles.responsibilityDesc}>{resp.description}</Text>
+                      <Text style={[styles.responsibilityDesc, { color: t.textMuted }]}>{resp.description}</Text>
                     )}
                   </View>
                 </View>
               ))}
             </View>
           ) : (
-            <Text style={styles.emptyText}>No responsibilities assigned</Text>
+            <Text style={[styles.emptyText, { color: t.textFaint }]}>No responsibilities assigned</Text>
           )}
         </View>
 
         {/* Active Tasks (only for managers) */}
         {canManage && (
-          <View style={styles.section}>
+          <View style={[styles.section, { backgroundColor: t.surface, borderColor: t.border }]}>
             <View style={styles.sectionHeaderWithAction}>
               <View style={styles.sectionHeaderLeft}>
-                <CheckSquare size={18} color={colors.slate[500]} />
-                <Text style={styles.sectionTitle}>Active Tasks</Text>
+                <CheckSquare size={18} color={t.textMuted} />
+                <Text style={[styles.sectionTitle, { color: t.text }]}>Active Tasks</Text>
               </View>
               <TouchableOpacity
-                style={styles.addButton}
+                style={[styles.addButton, { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
                 onPress={() => setShowAddTaskModal(true)}
               >
-                <Plus size={16} color={theme.light.primary} />
-                <Text style={styles.addButtonText}>Add</Text>
+                <Plus size={16} color={t.primary} />
+                <Text style={[styles.addButtonText, { color: t.primary }]}>Add</Text>
               </TouchableOpacity>
             </View>
             {tasks.length > 0 ? (
               <View style={styles.tasksList}>
                 {tasks.map((task) => (
-                  <View key={task.id} style={styles.taskItem}>
+                  <View key={task.id} style={[styles.taskItem, { borderBottomColor: t.borderSubtle }]}>
                     <TouchableOpacity
-                      style={[styles.taskCheckbox, task.status === 'completed' && styles.taskCheckboxDone]}
+                      style={[styles.taskCheckbox, { borderColor: t.border }, task.status === 'completed' && styles.taskCheckboxDone]}
                       onPress={() => handleUpdateTaskStatus(task.id, task.status === 'completed' ? 'pending' : 'completed')}
                     >
                       {task.status === 'completed' && <Check size={12} color={colors.white} />}
                     </TouchableOpacity>
                     <View style={styles.taskContent}>
-                      <Text style={[styles.taskTitle, task.status === 'completed' && styles.taskTitleDone]}>
+                      <Text style={[styles.taskTitle, { color: t.text }, task.status === 'completed' && styles.taskTitleDone]}>
                         {task.title}
                       </Text>
                       {task.due_date && (
-                        <Text style={styles.taskDue}>
+                        <Text style={[styles.taskDue, { color: t.textMuted }]}>
                           Due {format(parseISO(task.due_date), 'MMM d')}
                         </Text>
                       )}
@@ -882,7 +884,7 @@ export default function StaffDetailScreen() {
                 ))}
               </View>
             ) : (
-              <Text style={styles.emptyText}>No active tasks</Text>
+              <Text style={[styles.emptyText, { color: t.textFaint }]}>No active tasks</Text>
             )}
           </View>
         )}
@@ -897,45 +899,46 @@ export default function StaffDetailScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { backgroundColor: t.overlay }]}
         >
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Assign Task</Text>
+          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.modalTitle, { color: t.text }]}>Assign Task</Text>
               <TouchableOpacity onPress={() => setShowAddTaskModal(false)}>
-                <X size={24} color={colors.slate[500]} />
+                <X size={24} color={t.textMuted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <Text style={[styles.inputLabel, { marginTop: 0 }]}>Task Title *</Text>
+              <Text style={[styles.inputLabel, { marginTop: 0, color: t.textSecondary }]}>Task Title *</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="Enter task title"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={taskForm.title}
                 onChangeText={(text) => setTaskForm({ ...taskForm, title: text })}
               />
 
-              <Text style={styles.inputLabel}>Description</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Description</Text>
               <TextInput
-                style={[styles.textInput, styles.textAreaInput]}
+                style={[styles.textInput, styles.textAreaInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="Enter task description"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={taskForm.description}
                 onChangeText={(text) => setTaskForm({ ...taskForm, description: text })}
                 multiline
                 numberOfLines={3}
               />
 
-              <Text style={styles.inputLabel}>Priority</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Priority</Text>
               <View style={styles.priorityOptions}>
                 {(['low', 'medium', 'high'] as const).map((p) => (
                   <TouchableOpacity
                     key={p}
                     style={[
                       styles.priorityOption,
-                      taskForm.priority === p && styles.priorityOptionActive,
+                      { borderColor: t.border },
+                      taskForm.priority === p && [styles.priorityOptionActive, { backgroundColor: t.surfaceSecondary }],
                       taskForm.priority === p && { borderColor: getPriorityColor(p) },
                     ]}
                     onPress={() => setTaskForm({ ...taskForm, priority: p })}
@@ -944,6 +947,7 @@ export default function StaffDetailScreen() {
                     <Text
                       style={[
                         styles.priorityOptionText,
+                        { color: t.textSecondary },
                         taskForm.priority === p && { color: getPriorityColor(p) },
                       ]}
                     >
@@ -953,25 +957,25 @@ export default function StaffDetailScreen() {
                 ))}
               </View>
 
-              <Text style={styles.inputLabel}>Due Date (YYYY-MM-DD)</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Due Date (YYYY-MM-DD)</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="e.g., 2024-02-15"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={taskForm.due_date}
                 onChangeText={(text) => setTaskForm({ ...taskForm, due_date: text })}
               />
             </ScrollView>
 
-            <View style={styles.modalFooter}>
+            <View style={[styles.modalFooter, { borderTopColor: t.border }]}>
               <TouchableOpacity
-                style={styles.cancelButton}
+                style={[styles.cancelButton, { backgroundColor: t.surfaceSecondary }]}
                 onPress={() => setShowAddTaskModal(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveButton, (!taskForm.title.trim() || saving) && styles.saveButtonDisabled]}
+                style={[styles.saveButton, { backgroundColor: t.primary }, (!taskForm.title.trim() || saving) && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
                 onPress={handleAddTask}
                 disabled={!taskForm.title.trim() || saving}
               >
@@ -993,63 +997,63 @@ export default function StaffDetailScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { backgroundColor: t.overlay }]}
         >
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Add Certification</Text>
+          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.modalTitle, { color: t.text }]}>Add Certification</Text>
               <TouchableOpacity onPress={() => setShowAddCertModal(false)}>
-                <X size={24} color={colors.slate[500]} />
+                <X size={24} color={t.textMuted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <Text style={[styles.inputLabel, { marginTop: 0 }]}>Certification Name *</Text>
+              <Text style={[styles.inputLabel, { marginTop: 0, color: t.textSecondary }]}>Certification Name *</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="e.g., CPR/First Aid"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={certForm.name}
                 onChangeText={(text) => setCertForm({ ...certForm, name: text })}
               />
 
-              <Text style={styles.inputLabel}>Issuing Organization</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Issuing Organization</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="e.g., American Red Cross"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={certForm.issuer}
                 onChangeText={(text) => setCertForm({ ...certForm, issuer: text })}
               />
 
-              <Text style={styles.inputLabel}>Issue Date (YYYY-MM-DD)</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Issue Date (YYYY-MM-DD)</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="e.g., 2024-01-15"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={certForm.issue_date}
                 onChangeText={(text) => setCertForm({ ...certForm, issue_date: text })}
               />
 
-              <Text style={styles.inputLabel}>Expiry Date (YYYY-MM-DD)</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Expiry Date (YYYY-MM-DD)</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="e.g., 2026-01-15"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={certForm.expiry_date}
                 onChangeText={(text) => setCertForm({ ...certForm, expiry_date: text })}
               />
             </ScrollView>
 
-            <View style={styles.modalFooter}>
+            <View style={[styles.modalFooter, { borderTopColor: t.border }]}>
               <TouchableOpacity
-                style={styles.cancelButton}
+                style={[styles.cancelButton, { backgroundColor: t.surfaceSecondary }]}
                 onPress={() => setShowAddCertModal(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.saveButton, (!certForm.name.trim() || saving) && styles.saveButtonDisabled]}
+                style={[styles.saveButton, { backgroundColor: t.primary }, (!certForm.name.trim() || saving) && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] }]}
                 onPress={handleAddCertification}
                 disabled={!certForm.name.trim() || saving}
               >
@@ -1071,35 +1075,37 @@ export default function StaffDetailScreen() {
       >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.modalOverlay}
+          style={[styles.modalOverlay, { backgroundColor: t.overlay }]}
         >
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Request Time Off</Text>
+          <View style={[styles.modalContent, { backgroundColor: t.surface }]}>
+            <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.modalTitle, { color: t.text }]}>Request Time Off</Text>
               <TouchableOpacity onPress={() => setShowAddTimeOffModal(false)}>
-                <X size={24} color={colors.slate[500]} />
+                <X size={24} color={t.textMuted} />
               </TouchableOpacity>
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <Text style={[styles.inputLabel, { marginTop: 0 }]}>Type</Text>
+              <Text style={[styles.inputLabel, { marginTop: 0, color: t.textSecondary }]}>Type</Text>
               <View style={styles.typeOptions}>
-                {(['vacation', 'sick', 'personal', 'other'] as const).map((t) => {
-                  const typeInfo = TIME_OFF_TYPES[t];
+                {(['vacation', 'sick', 'personal', 'other'] as const).map((tp) => {
+                  const typeInfo = TIME_OFF_TYPES[tp];
                   return (
                     <TouchableOpacity
-                      key={t}
+                      key={tp}
                       style={[
                         styles.typeOption,
-                        timeOffForm.type === t && styles.typeOptionActive,
-                        timeOffForm.type === t && { borderColor: typeInfo.color },
+                        { borderColor: t.border },
+                        timeOffForm.type === tp && [styles.typeOptionActive, { backgroundColor: t.surfaceSecondary }],
+                        timeOffForm.type === tp && { borderColor: typeInfo.color },
                       ]}
-                      onPress={() => setTimeOffForm({ ...timeOffForm, type: t })}
+                      onPress={() => setTimeOffForm({ ...timeOffForm, type: tp })}
                     >
                       <Text
                         style={[
                           styles.typeOptionText,
-                          timeOffForm.type === t && { color: typeInfo.color },
+                          { color: t.textSecondary },
+                          timeOffForm.type === tp && { color: typeInfo.color },
                         ]}
                       >
                         {typeInfo.label}
@@ -1109,29 +1115,29 @@ export default function StaffDetailScreen() {
                 })}
               </View>
 
-              <Text style={styles.inputLabel}>Start Date (YYYY-MM-DD) *</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Start Date (YYYY-MM-DD) *</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="e.g., 2024-02-01"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={timeOffForm.start_date}
                 onChangeText={(text) => setTimeOffForm({ ...timeOffForm, start_date: text })}
               />
 
-              <Text style={styles.inputLabel}>End Date (YYYY-MM-DD) *</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>End Date (YYYY-MM-DD) *</Text>
               <TextInput
-                style={styles.textInput}
+                style={[styles.textInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="e.g., 2024-02-05"
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={timeOffForm.end_date}
                 onChangeText={(text) => setTimeOffForm({ ...timeOffForm, end_date: text })}
               />
 
-              <Text style={styles.inputLabel}>Notes</Text>
+              <Text style={[styles.inputLabel, { color: t.textSecondary }]}>Notes</Text>
               <TextInput
-                style={[styles.textInput, styles.textAreaInput]}
+                style={[styles.textInput, styles.textAreaInput, { backgroundColor: t.inputBg, borderColor: t.border, color: t.text }]}
                 placeholder="Add any notes..."
-                placeholderTextColor={colors.slate[400]}
+                placeholderTextColor={t.textFaint}
                 value={timeOffForm.notes}
                 onChangeText={(text) => setTimeOffForm({ ...timeOffForm, notes: text })}
                 multiline
@@ -1139,17 +1145,18 @@ export default function StaffDetailScreen() {
               />
             </ScrollView>
 
-            <View style={styles.modalFooter}>
+            <View style={[styles.modalFooter, { borderTopColor: t.border }]}>
               <TouchableOpacity
-                style={styles.cancelButton}
+                style={[styles.cancelButton, { backgroundColor: t.surfaceSecondary }]}
                 onPress={() => setShowAddTimeOffModal(false)}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={[styles.cancelButtonText, { color: t.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[
                   styles.saveButton,
-                  (!timeOffForm.start_date || !timeOffForm.end_date || saving) && styles.saveButtonDisabled,
+                  { backgroundColor: t.primary },
+                  (!timeOffForm.start_date || !timeOffForm.end_date || saving) && { backgroundColor: isDark ? colors.slate[600] : colors.slate[300] },
                 ]}
                 onPress={handleAddTimeOff}
                 disabled={!timeOffForm.start_date || !timeOffForm.end_date || saving}
@@ -1264,7 +1271,7 @@ const styles = StyleSheet.create({
   contactButtonText: {
     fontSize: 15,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
 
   // Sections
@@ -1310,7 +1317,7 @@ const styles = StyleSheet.create({
   addButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   bioText: {
     fontSize: 15,
@@ -1495,7 +1502,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     marginTop: 6,
   },
   responsibilityContent: {
@@ -1751,7 +1758,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
     borderRadius: 10,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
   },
   saveButtonDisabled: {
     backgroundColor: colors.slate[300],

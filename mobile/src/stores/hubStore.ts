@@ -63,6 +63,7 @@ export interface HubSettings {
   showBirthdays?: boolean;
   anonymous_reports_enabled?: boolean;
   allowParentToggle?: boolean;
+  accentColor?: string;
   seasonConfig?: {
     startMonth: number;
     startDay: number;

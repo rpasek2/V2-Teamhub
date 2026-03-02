@@ -12,7 +12,8 @@ import {
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Search, Edit, Users, User, Hash, ShieldAlert, ChevronRight, Plus } from 'lucide-react-native';
-import { colors, theme } from '../../src/constants/colors';
+import { colors } from '../../src/constants/colors';
+import { useTheme } from '../../src/hooks/useTheme';
 import { NotificationBadge, MobileTabGuard } from '../../src/components/ui';
 import { NewDMModal, AnonymousReportModal, CreateChannelModal } from '../../src/components/messages';
 import { supabase } from '../../src/services/supabase';
@@ -43,13 +44,14 @@ interface OwnerInfo {
 }
 
 function ChannelIcon({ type }: { type: Channel['type'] }) {
+  const { t } = useTheme();
   const size = 20;
 
   switch (type) {
     case 'public':
       return (
-        <View style={[styles.channelIcon, { backgroundColor: colors.brand[50] }]}>
-          <Hash size={size} color={colors.brand[600]} />
+        <View style={[styles.channelIcon, { backgroundColor: `${t.primary}15` }]}>
+          <Hash size={size} color={t.primary} />
         </View>
       );
     case 'private':
@@ -68,6 +70,7 @@ function ChannelIcon({ type }: { type: Channel['type'] }) {
 }
 
 function ChannelItem({ channel, onPress }: { channel: Channel; onPress: () => void }) {
+  const { t } = useTheme();
   const formatTime = (timeStr: string | null) => {
     if (!timeStr) return '';
     try {
@@ -78,7 +81,7 @@ function ChannelItem({ channel, onPress }: { channel: Channel; onPress: () => vo
   };
 
   return (
-    <TouchableOpacity style={styles.channelItem} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={[styles.channelItem, { backgroundColor: t.surface, borderBottomColor: t.borderSubtle }]} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.channelIconContainer}>
         <ChannelIcon type={channel.type} />
         {channel.unreadCount > 0 && (
@@ -87,15 +90,15 @@ function ChannelItem({ channel, onPress }: { channel: Channel; onPress: () => vo
       </View>
       <View style={styles.channelContent}>
         <View style={styles.channelHeader}>
-          <Text style={[styles.channelName, channel.unreadCount > 0 && styles.unreadName]}>
+          <Text style={[styles.channelName, { color: t.text }, channel.unreadCount > 0 && styles.unreadName]}>
             {channel.name}
           </Text>
           {channel.lastMessageTime && (
-            <Text style={styles.channelTime}>{formatTime(channel.lastMessageTime)}</Text>
+            <Text style={[styles.channelTime, { color: t.textFaint }]}>{formatTime(channel.lastMessageTime)}</Text>
           )}
         </View>
         <Text
-          style={[styles.lastMessage, channel.unreadCount > 0 && styles.unreadMessage]}
+          style={[styles.lastMessage, { color: t.textMuted }, channel.unreadCount > 0 && { color: t.textSecondary, fontWeight: '500' }]}
           numberOfLines={1}
         >
           {channel.lastMessage || channel.description || 'No messages yet'}
@@ -106,6 +109,7 @@ function ChannelItem({ channel, onPress }: { channel: Channel; onPress: () => vo
 }
 
 export default function MessagesScreen() {
+  const { t, isDark, colors } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'channels' | 'direct'>('all');
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -399,23 +403,23 @@ export default function MessagesScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.light.primary} />
+      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+        <ActivityIndicator size="large" color={t.primary} />
       </View>
     );
   }
 
   return (
     <MobileTabGuard tabId="messages">
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Search size={20} color={colors.slate[400]} />
+      <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+        <View style={[styles.searchBar, { backgroundColor: t.surfaceSecondary }]}>
+          <Search size={20} color={t.textFaint} />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: t.text }]}
             placeholder="Search messages..."
-            placeholderTextColor={colors.slate[400]}
+            placeholderTextColor={t.textFaint}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -423,28 +427,28 @@ export default function MessagesScreen() {
       </View>
 
       {/* Tab Filter */}
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'all' && styles.activeTab]}
+          style={[styles.tab, activeTab === 'all' && [styles.activeTab, { borderBottomColor: t.primary }]]}
           onPress={() => setActiveTab('all')}
         >
-          <Text style={[styles.tabText, activeTab === 'all' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'all' && { color: t.primary }]}>
             All
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'channels' && styles.activeTab]}
+          style={[styles.tab, activeTab === 'channels' && [styles.activeTab, { borderBottomColor: t.primary }]]}
           onPress={() => setActiveTab('channels')}
         >
-          <Text style={[styles.tabText, activeTab === 'channels' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'channels' && { color: t.primary }]}>
             Channels
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'direct' && styles.activeTab]}
+          style={[styles.tab, activeTab === 'direct' && [styles.activeTab, { borderBottomColor: t.primary }]]}
           onPress={() => setActiveTab('direct')}
         >
-          <Text style={[styles.tabText, activeTab === 'direct' && styles.activeTabText]}>
+          <Text style={[styles.tabText, { color: t.textMuted }, activeTab === 'direct' && { color: t.primary }]}>
             Direct
           </Text>
         </TouchableOpacity>
@@ -459,19 +463,19 @@ export default function MessagesScreen() {
 
       {/* Anonymous Reports Section */}
       {(isOwner || (!isStaffUser && anonymousReportsEnabled && ownerInfo)) && (
-        <View style={styles.anonymousSection}>
+        <View style={[styles.anonymousSection, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           {isOwner ? (
             <TouchableOpacity
-              style={styles.anonymousButton}
+              style={[styles.anonymousButton, { backgroundColor: isDark ? colors.purple[900] + '40' : colors.purple[50], borderColor: isDark ? colors.purple[700] : colors.purple[200] }]}
               onPress={() => router.push('/anonymous-reports')}
               activeOpacity={0.7}
             >
-              <View style={styles.anonymousIconContainer}>
-                <ShieldAlert size={20} color={colors.purple[600]} />
+              <View style={[styles.anonymousIconContainer, { backgroundColor: isDark ? colors.purple[800] + '60' : colors.purple[100] }]}>
+                <ShieldAlert size={20} color={isDark ? colors.purple[400] : colors.purple[600]} />
               </View>
               <View style={styles.anonymousContent}>
-                <Text style={styles.anonymousTitle}>Anonymous Reports</Text>
-                <Text style={styles.anonymousSubtitle}>
+                <Text style={[styles.anonymousTitle, { color: isDark ? colors.purple[300] : colors.purple[800] }]}>Anonymous Reports</Text>
+                <Text style={[styles.anonymousSubtitle, { color: isDark ? colors.purple[400] : colors.purple[600] }]}>
                   {anonymousReports.filter(r => !r.read_at).length > 0
                     ? `${anonymousReports.filter(r => !r.read_at).length} unread`
                     : `${anonymousReports.length} total`}
@@ -484,24 +488,24 @@ export default function MessagesScreen() {
                   </Text>
                 </View>
               )}
-              <ChevronRight size={20} color={colors.slate[400]} />
+              <ChevronRight size={20} color={t.textFaint} />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={styles.anonymousButton}
+              style={[styles.anonymousButton, { backgroundColor: isDark ? colors.purple[900] + '40' : colors.purple[50], borderColor: isDark ? colors.purple[700] : colors.purple[200] }]}
               onPress={() => setShowAnonymousReportModal(true)}
               activeOpacity={0.7}
             >
-              <View style={styles.anonymousIconContainer}>
-                <ShieldAlert size={20} color={colors.purple[600]} />
+              <View style={[styles.anonymousIconContainer, { backgroundColor: isDark ? colors.purple[800] + '60' : colors.purple[100] }]}>
+                <ShieldAlert size={20} color={isDark ? colors.purple[400] : colors.purple[600]} />
               </View>
               <View style={styles.anonymousContent}>
-                <Text style={styles.anonymousTitle}>Anonymous Report</Text>
-                <Text style={styles.anonymousSubtitle}>
+                <Text style={[styles.anonymousTitle, { color: isDark ? colors.purple[300] : colors.purple[800] }]}>Anonymous Report</Text>
+                <Text style={[styles.anonymousSubtitle, { color: isDark ? colors.purple[400] : colors.purple[600] }]}>
                   Send feedback to {ownerInfo?.full_name}
                 </Text>
               </View>
-              <ChevronRight size={20} color={colors.slate[400]} />
+              <ChevronRight size={20} color={t.textFaint} />
             </TouchableOpacity>
           )}
         </View>
@@ -524,7 +528,7 @@ export default function MessagesScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>
+            <Text style={[styles.emptyText, { color: t.textFaint }]}>
               {searchQuery ? 'No messages found' : 'No messages yet'}
             </Text>
           </View>
@@ -536,17 +540,17 @@ export default function MessagesScreen() {
         {/* Create Channel FAB (staff only) */}
         {isStaffUser && (
           <TouchableOpacity
-            style={styles.fabSecondary}
+            style={[styles.fabSecondary, { backgroundColor: t.surface, borderColor: t.primary }]}
             onPress={() => setShowCreateChannelModal(true)}
             activeOpacity={0.8}
           >
-            <Plus size={22} color={theme.light.primary} />
+            <Plus size={22} color={t.primary} />
           </TouchableOpacity>
         )}
 
         {/* New DM FAB */}
         <TouchableOpacity
-          style={styles.fab}
+          style={[styles.fab, { backgroundColor: t.primary }]}
           onPress={() => setShowNewDMModal(true)}
           activeOpacity={0.8}
         >
@@ -627,7 +631,7 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: theme.light.primary,
+    borderBottomColor: colors.brand[600],
   },
   tabText: {
     fontSize: 14,
@@ -635,7 +639,7 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
   },
   activeTabText: {
-    color: theme.light.primary,
+    color: colors.brand[600],
   },
   listContent: {
     paddingVertical: 8,
@@ -710,7 +714,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: colors.black,
@@ -727,7 +731,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     shadowColor: colors.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,

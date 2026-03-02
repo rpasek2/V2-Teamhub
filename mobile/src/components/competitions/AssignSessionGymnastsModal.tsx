@@ -11,8 +11,9 @@ import {
 } from 'react-native';
 import { X, Check, ChevronDown, ChevronRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, theme } from '../../../src/constants/colors';
-import { supabase } from '../../../src/services/supabase';
+import { colors } from '../../constants/colors';
+import { useTheme } from '../../hooks/useTheme';
+import { supabase } from '../../services/supabase';
 
 interface Gymnast {
   gymnast_profile_id: string;
@@ -50,6 +51,7 @@ export function AssignSessionGymnastsModal({
   currentGymnastIds,
   hubLevels,
 }: AssignSessionGymnastsModalProps) {
+  const { t, isDark } = useTheme();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [roster, setRoster] = useState<Gymnast[]>([]);
@@ -210,15 +212,15 @@ export function AssignSessionGymnastsModal({
     const selectedCount = section.data.filter((g) => selectedGymnasts.has(g.gymnast_profile_id)).length;
 
     return (
-      <View style={styles.sectionHeader}>
+      <View style={[styles.sectionHeader, { backgroundColor: t.surfaceSecondary }]}>
         <TouchableOpacity
           style={styles.collapseButton}
           onPress={() => toggleLevelCollapse(section.title)}
         >
           {isCollapsed ? (
-            <ChevronRight size={18} color={colors.slate[500]} />
+            <ChevronRight size={18} color={t.textMuted} />
           ) : (
-            <ChevronDown size={18} color={colors.slate[500]} />
+            <ChevronDown size={18} color={t.textMuted} />
           )}
         </TouchableOpacity>
         <TouchableOpacity
@@ -226,9 +228,9 @@ export function AssignSessionGymnastsModal({
           onPress={() => toggleLevel(section.title)}
         >
           <View style={styles.sectionHeaderLeft}>
-            <Text style={styles.sectionTitle}>{section.title}</Text>
-            <View style={styles.sectionCount}>
-              <Text style={styles.sectionCountText}>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>{section.title}</Text>
+            <View style={[styles.sectionCount, { backgroundColor: isDark ? colors.slate[600] : colors.slate[200] }]}>
+              <Text style={[styles.sectionCountText, { color: t.textSecondary }]}>
                 {selectedCount}/{section.data.length}
               </Text>
             </View>
@@ -236,12 +238,13 @@ export function AssignSessionGymnastsModal({
           <View
             style={[
               styles.sectionCheckbox,
-              allSelected && styles.sectionCheckboxSelected,
-              someSelected && !allSelected && styles.sectionCheckboxPartial,
+              { borderColor: isDark ? colors.slate[500] : colors.slate[300], backgroundColor: isDark ? colors.slate[700] : colors.white },
+              allSelected && { backgroundColor: t.primary, borderColor: t.primary },
+              someSelected && !allSelected && { borderColor: t.primary },
             ]}
           >
             {allSelected && <Check size={12} color={colors.white} />}
-            {someSelected && !allSelected && <View style={styles.partialIndicator} />}
+            {someSelected && !allSelected && <View style={[styles.partialIndicator, { backgroundColor: t.primary }]} />}
           </View>
         </TouchableOpacity>
       </View>
@@ -256,13 +259,13 @@ export function AssignSessionGymnastsModal({
     const isSelected = selectedGymnasts.has(item.gymnast_profile_id);
     return (
       <TouchableOpacity
-        style={[styles.gymnastRow, isSelected && styles.gymnastRowSelected]}
+        style={[styles.gymnastRow, { backgroundColor: t.surface, borderColor: t.border }, isSelected && { borderColor: t.primary, backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
         onPress={() => toggleGymnast(item.gymnast_profile_id)}
       >
-        <Text style={styles.gymnastName}>
+        <Text style={[styles.gymnastName, { color: t.text }]}>
           {item.gymnast_profiles?.first_name} {item.gymnast_profiles?.last_name}
         </Text>
-        <View style={[styles.gymnastCheckbox, isSelected && styles.gymnastCheckboxSelected]}>
+        <View style={[styles.gymnastCheckbox, { borderColor: isDark ? colors.slate[500] : colors.slate[300] }, isSelected && { backgroundColor: t.primary, borderColor: t.primary }]}>
           {isSelected && <Check size={14} color={colors.white} />}
         </View>
       </TouchableOpacity>
@@ -276,14 +279,14 @@ export function AssignSessionGymnastsModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.modalContainer} edges={['top']}>
-        <View style={styles.modalHeader}>
+      <SafeAreaView style={[styles.modalContainer, { backgroundColor: t.surface }]} edges={['top']}>
+        <View style={[styles.modalHeader, { borderBottomColor: t.border }]}>
           <TouchableOpacity style={styles.modalCloseButton} onPress={onClose}>
-            <X size={24} color={colors.slate[600]} />
+            <X size={24} color={t.textSecondary} />
           </TouchableOpacity>
-          <Text style={styles.modalTitle} numberOfLines={1}>Assign Gymnasts</Text>
+          <Text style={[styles.modalTitle, { color: t.text }]} numberOfLines={1}>Assign Gymnasts</Text>
           <TouchableOpacity
-            style={[styles.modalSaveButton, loading && styles.modalSaveButtonDisabled]}
+            style={[styles.modalSaveButton, { backgroundColor: t.primary }, loading && styles.modalSaveButtonDisabled]}
             onPress={handleSubmit}
             disabled={loading}
           >
@@ -295,23 +298,23 @@ export function AssignSessionGymnastsModal({
           </TouchableOpacity>
         </View>
 
-        <View style={styles.modalSubtitleContainer}>
-          <Text style={styles.modalSubtitle} numberOfLines={1}>
+        <View style={[styles.modalSubtitleContainer, { backgroundColor: t.background, borderBottomColor: t.border }]}>
+          <Text style={[styles.modalSubtitle, { color: t.textSecondary }]} numberOfLines={1}>
             {sessionName}
           </Text>
-          <Text style={styles.selectedCountText}>
+          <Text style={[styles.selectedCountText, { color: t.primary }]}>
             {selectedGymnasts.size} selected
           </Text>
         </View>
 
         {fetching ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.light.primary} />
+            <ActivityIndicator size="large" color={t.primary} />
           </View>
         ) : roster.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>No gymnasts in competition roster</Text>
-            <Text style={styles.emptySubtext}>Add gymnasts to the competition first</Text>
+            <Text style={[styles.emptyText, { color: t.textSecondary }]}>No gymnasts in competition roster</Text>
+            <Text style={[styles.emptySubtext, { color: t.textMuted }]}>Add gymnasts to the competition first</Text>
           </View>
         ) : (
           <SectionList
@@ -358,7 +361,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   modalSaveButton: {
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 6,
@@ -392,7 +395,7 @@ const styles = StyleSheet.create({
   selectedCountText: {
     fontSize: 13,
     fontWeight: '600',
-    color: theme.light.primary,
+    color: colors.brand[600],
     marginLeft: 12,
   },
   loadingContainer: {
@@ -472,16 +475,16 @@ const styles = StyleSheet.create({
     backgroundColor: colors.white,
   },
   sectionCheckboxSelected: {
-    backgroundColor: theme.light.primary,
-    borderColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
+    borderColor: colors.brand[600],
   },
   sectionCheckboxPartial: {
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
   },
   partialIndicator: {
     width: 8,
     height: 3,
-    backgroundColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
     borderRadius: 2,
   },
 
@@ -500,7 +503,7 @@ const styles = StyleSheet.create({
     marginLeft: 28,
   },
   gymnastRowSelected: {
-    borderColor: theme.light.primary,
+    borderColor: colors.brand[600],
     backgroundColor: colors.brand[50],
   },
   gymnastName: {
@@ -517,7 +520,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   gymnastCheckboxSelected: {
-    backgroundColor: theme.light.primary,
-    borderColor: theme.light.primary,
+    backgroundColor: colors.brand[600],
+    borderColor: colors.brand[600],
   },
 });
