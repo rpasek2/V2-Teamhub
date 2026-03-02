@@ -46,7 +46,7 @@ export function TeamViewDashboard({ hubId }: TeamViewDashboardProps) {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 text-mint-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
             </div>
         );
     }
@@ -54,15 +54,15 @@ export function TeamViewDashboard({ hubId }: TeamViewDashboardProps) {
     return (
         <div className="space-y-6">
             {/* Sub-tabs */}
-            <div className="flex gap-2 border-b border-slate-200 pb-4">
+            <div className="flex gap-2 border-b border-line pb-4">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveSubTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             activeSubTab === tab.id
-                                ? 'bg-mint-100 text-mint-700'
-                                : 'text-slate-600 hover:bg-slate-100'
+                                ? 'bg-accent-100 text-accent-700'
+                                : 'text-subtle hover:bg-surface-hover'
                         }`}
                     >
                         <tab.icon className="w-4 h-4" />
@@ -92,49 +92,49 @@ export function TeamViewDashboard({ hubId }: TeamViewDashboardProps) {
                 <div className="space-y-6">
                     {/* Stats Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <div className="bg-white rounded-xl border border-slate-200 p-6">
+                        <div className="bg-surface rounded-xl border border-line p-6">
                             <div className="flex items-center gap-3">
                                 <div className="p-3 bg-teal-100 rounded-lg">
                                     <Calendar className="w-6 h-6 text-teal-600" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-slate-900">{scheduledToday}</p>
-                                    <p className="text-sm text-slate-500">Working Today</p>
+                                    <p className="text-2xl font-bold text-heading">{scheduledToday}</p>
+                                    <p className="text-sm text-muted">Working Today</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl border border-slate-200 p-6">
+                        <div className="bg-surface rounded-xl border border-line p-6">
                             <div className="flex items-center gap-3">
                                 <div className="p-3 bg-amber-100 rounded-lg">
                                     <CheckSquare className="w-6 h-6 text-amber-600" />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-slate-900">{pendingTasks}</p>
-                                    <p className="text-sm text-slate-500">Pending Tasks</p>
+                                    <p className="text-2xl font-bold text-heading">{pendingTasks}</p>
+                                    <p className="text-sm text-muted">Pending Tasks</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-xl border border-slate-200 p-6">
+                        <div className="bg-surface rounded-xl border border-line p-6">
                             <div className="flex items-center gap-3">
                                 <div className={`p-3 rounded-lg ${overdueTasks > 0 ? 'bg-red-100' : 'bg-green-100'}`}>
                                     <CheckSquare className={`w-6 h-6 ${overdueTasks > 0 ? 'text-red-600' : 'text-green-600'}`} />
                                 </div>
                                 <div>
-                                    <p className="text-2xl font-bold text-slate-900">{overdueTasks}</p>
-                                    <p className="text-sm text-slate-500">Overdue Tasks</p>
+                                    <p className="text-2xl font-bold text-heading">{overdueTasks}</p>
+                                    <p className="text-sm text-muted">Overdue Tasks</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     {/* Staff Summary */}
-                    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                        <div className="px-6 py-4 border-b border-slate-200">
-                            <h3 className="font-semibold text-slate-900">Staff Summary</h3>
+                    <div className="bg-surface rounded-xl border border-line overflow-hidden">
+                        <div className="px-6 py-4 border-b border-line">
+                            <h3 className="font-semibold text-heading">Staff Summary</h3>
                         </div>
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-line">
                             {staffData.map(staff => {
                                 const activeTasks = staff.tasks.filter(t => t.status !== 'completed').length;
                                 const staffOverdue = staff.tasks.filter(t => {
@@ -154,17 +154,17 @@ export function TeamViewDashboard({ hubId }: TeamViewDashboardProps) {
                                                     className="w-10 h-10 rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                                                    <span className="text-slate-500 font-medium">
+                                                <div className="w-10 h-10 rounded-full bg-surface-active flex items-center justify-center">
+                                                    <span className="text-muted font-medium">
                                                         {staff.profile?.full_name?.charAt(0) || '?'}
                                                     </span>
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="font-medium text-slate-900">
+                                                <p className="font-medium text-heading">
                                                     {staff.profile?.full_name || 'Unknown'}
                                                 </p>
-                                                <p className="text-sm text-slate-500 capitalize">
+                                                <p className="text-sm text-muted capitalize">
                                                     {staff.staff_profile?.title || staff.role}
                                                 </p>
                                             </div>
@@ -173,7 +173,7 @@ export function TeamViewDashboard({ hubId }: TeamViewDashboardProps) {
                                             <span className={`px-2 py-1 rounded-full ${
                                                 isWorkingToday
                                                     ? 'bg-green-100 text-green-700'
-                                                    : 'bg-slate-100 text-slate-500'
+                                                    : 'bg-surface-hover text-muted'
                                             }`}>
                                                 {isWorkingToday ? 'Working today' : 'Off today'}
                                             </span>

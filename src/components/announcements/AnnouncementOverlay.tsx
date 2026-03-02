@@ -109,16 +109,16 @@ export function AnnouncementOverlay() {
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" aria-hidden="true" />
 
             {/* Card */}
-            <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-2xl border border-slate-200 max-h-[90vh] flex flex-col animate-scale-in">
+            <div className="relative w-full max-w-lg transform rounded-xl bg-surface shadow-2xl border border-line max-h-[90vh] flex flex-col animate-scale-in">
                 {/* Header */}
-                <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-200 flex-shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-brand-50 flex items-center justify-center">
-                        <Megaphone className="w-5 h-5 text-brand-600" />
+                <div className="flex items-center gap-3 px-6 py-4 border-b border-line flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-accent-50 flex items-center justify-center">
+                        <Megaphone className="w-5 h-5 text-accent-600" />
                     </div>
                     <div className="min-w-0 flex-1">
-                        <h3 className="text-lg font-semibold text-slate-900 truncate">{current.title}</h3>
+                        <h3 className="text-lg font-semibold text-heading truncate">{current.title}</h3>
                         {pending.length > 1 && (
-                            <p className="text-xs text-slate-500">
+                            <p className="text-xs text-muted">
                                 {currentIndex + 1} of {pending.length}
                             </p>
                         )}
@@ -129,7 +129,7 @@ export function AnnouncementOverlay() {
                 <div className="p-6 overflow-y-auto space-y-5">
                     {/* Message body */}
                     {current.body && (
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{current.body}</p>
+                        <p className="text-sm text-body whitespace-pre-wrap">{current.body}</p>
                     )}
 
                     {/* Links */}
@@ -141,7 +141,7 @@ export function AnnouncementOverlay() {
                                     href={link.url}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-medium"
+                                    className="flex items-center gap-2 text-sm text-accent-600 hover:text-accent-700 font-medium"
                                 >
                                     <ExternalLink className="w-4 h-4 flex-shrink-0" />
                                     {link.label || link.url}
@@ -155,7 +155,7 @@ export function AnnouncementOverlay() {
                         <div className="space-y-4">
                             {questions.map((q, idx) => (
                                 <div key={q.id} className="space-y-2">
-                                    <p className="text-sm font-medium text-slate-900">
+                                    <p className="text-sm font-medium text-heading">
                                         {idx + 1}. {q.question}
                                         {q.required && <span className="text-error-500 ml-1">*</span>}
                                     </p>
@@ -169,9 +169,9 @@ export function AnnouncementOverlay() {
                                                         name={`q-${q.id}`}
                                                         checked={responses[q.id] === opt}
                                                         onChange={() => setResponse(q.id, opt)}
-                                                        className="text-brand-600 focus:ring-brand-500"
+                                                        className="text-accent-600 focus:ring-accent-500"
                                                     />
-                                                    <span className="text-sm text-slate-700">{opt}</span>
+                                                    <span className="text-sm text-body">{opt}</span>
                                                 </label>
                                             ))}
                                         </div>
@@ -197,7 +197,7 @@ export function AnnouncementOverlay() {
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-slate-200 flex-shrink-0">
+                <div className="px-6 py-4 border-t border-line flex-shrink-0">
                     <button
                         onClick={handleAcknowledge}
                         disabled={submitting}

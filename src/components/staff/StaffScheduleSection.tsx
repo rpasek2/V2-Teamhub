@@ -115,7 +115,7 @@ export function StaffScheduleSection({ staffUserId, canEdit }: StaffScheduleSect
     if (loading) {
         return (
             <div className="flex items-center justify-center h-32">
-                <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
+                <Loader2 className="w-6 h-6 text-accent-600 animate-spin" />
             </div>
         );
     }
@@ -123,11 +123,11 @@ export function StaffScheduleSection({ staffUserId, canEdit }: StaffScheduleSect
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-slate-800">Weekly Schedule</h3>
+                <h3 className="text-lg font-medium text-heading">Weekly Schedule</h3>
                 {canEdit && !showAddForm && (
                     <button
                         onClick={() => setShowAddForm(true)}
-                        className="flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium"
+                        className="flex items-center gap-1.5 text-sm text-accent-600 hover:text-accent-700 font-medium"
                     >
                         <Plus className="w-4 h-4" />
                         Add Time Block
@@ -137,14 +137,14 @@ export function StaffScheduleSection({ staffUserId, canEdit }: StaffScheduleSect
 
             {/* Add Form */}
             {showAddForm && (
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4">
+                <div className="p-4 bg-surface-alt rounded-lg border border-line space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Day</label>
+                            <label className="block text-sm font-medium text-body mb-1">Day</label>
                             <select
                                 value={selectedDay}
                                 onChange={(e) => setSelectedDay(parseInt(e.target.value))}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                             >
                                 {DAYS.map((day, index) => (
                                     <option key={day} value={index}>{day}</option>
@@ -152,47 +152,47 @@ export function StaffScheduleSection({ staffUserId, canEdit }: StaffScheduleSect
                             </select>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Role/Activity</label>
+                            <label className="block text-sm font-medium text-body mb-1">Role/Activity</label>
                             <input
                                 type="text"
                                 value={roleLabel}
                                 onChange={(e) => setRoleLabel(e.target.value)}
                                 placeholder="e.g., Admin, Coaching Level 5-7"
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                             />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Start Time</label>
+                            <label className="block text-sm font-medium text-body mb-1">Start Time</label>
                             <input
                                 type="time"
                                 value={startTime}
                                 onChange={(e) => setStartTime(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">End Time</label>
+                            <label className="block text-sm font-medium text-body mb-1">End Time</label>
                             <input
                                 type="time"
                                 value={endTime}
                                 onChange={(e) => setEndTime(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                             />
                         </div>
                     </div>
                     <div className="flex justify-end gap-3">
                         <button
                             onClick={() => setShowAddForm(false)}
-                            className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                            className="px-4 py-2 text-subtle hover:bg-surface-active rounded-lg transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleAddSchedule}
                             disabled={saving || !roleLabel.trim()}
-                            className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors disabled:opacity-50"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                             Add
@@ -207,37 +207,37 @@ export function StaffScheduleSection({ staffUserId, canEdit }: StaffScheduleSect
                     <div
                         key={day}
                         className={`flex items-start gap-4 p-3 rounded-lg ${
-                            blocks.length > 0 ? 'bg-teal-50' : 'bg-slate-50'
+                            blocks.length > 0 ? 'bg-teal-500/10' : 'bg-surface-alt'
                         }`}
                     >
                         <div className="w-20 flex-shrink-0">
                             <span className={`text-sm font-medium ${
-                                blocks.length > 0 ? 'text-teal-700' : 'text-slate-500'
+                                blocks.length > 0 ? 'text-teal-600' : 'text-muted'
                             }`}>
                                 {DAY_ABBREV[dayIndex]}
                             </span>
                         </div>
                         <div className="flex-1">
                             {blocks.length === 0 ? (
-                                <span className="text-sm text-slate-400">Off</span>
+                                <span className="text-sm text-faint">Off</span>
                             ) : (
                                 <div className="flex flex-wrap gap-2">
                                     {blocks.map((block) => (
                                         <div
                                             key={block.id}
-                                            className="flex items-center gap-2 px-3 py-1.5 bg-white rounded-lg border border-teal-200 shadow-sm"
+                                            className="flex items-center gap-2 px-3 py-1.5 bg-surface rounded-lg border border-teal-500/20 shadow-sm"
                                         >
                                             <Clock className="w-3.5 h-3.5 text-teal-500" />
-                                            <span className="text-sm text-slate-700">
+                                            <span className="text-sm text-body">
                                                 {formatTime(block.start_time)} - {formatTime(block.end_time)}
                                             </span>
-                                            <span className="text-sm font-medium text-teal-700">
+                                            <span className="text-sm font-medium text-teal-600">
                                                 ({block.role_label})
                                             </span>
                                             {canEdit && (
                                                 <button
                                                     onClick={() => handleDeleteSchedule(block.id)}
-                                                    className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                                                    className="p-1 text-faint hover:text-red-500 transition-colors"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
@@ -252,7 +252,7 @@ export function StaffScheduleSection({ staffUserId, canEdit }: StaffScheduleSect
             </div>
 
             {schedules.length === 0 && !showAddForm && (
-                <p className="text-sm text-slate-500 text-center py-4">
+                <p className="text-sm text-muted text-center py-4">
                     No schedule set yet. {canEdit && 'Click "Add Time Block" to get started.'}
                 </p>
             )}

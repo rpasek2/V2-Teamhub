@@ -164,10 +164,10 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
 
     const getPriorityColor = (priority: Task['priority']) => {
         switch (priority) {
-            case 'urgent': return 'text-red-600 bg-red-50';
-            case 'high': return 'text-orange-600 bg-orange-50';
-            case 'medium': return 'text-amber-600 bg-amber-50';
-            case 'low': return 'text-slate-600 bg-slate-50';
+            case 'urgent': return 'text-red-600 bg-red-500/10';
+            case 'high': return 'text-orange-600 bg-orange-500/10';
+            case 'medium': return 'text-amber-600 bg-amber-500/10';
+            case 'low': return 'text-subtle bg-surface-alt';
         }
     };
 
@@ -175,7 +175,7 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
         switch (status) {
             case 'completed': return <CheckCircle2 className="w-5 h-5 text-green-500" />;
             case 'in_progress': return <Clock className="w-5 h-5 text-blue-500" />;
-            case 'pending': return <Circle className="w-5 h-5 text-slate-400" />;
+            case 'pending': return <Circle className="w-5 h-5 text-faint" />;
         }
     };
 
@@ -188,7 +188,7 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
     if (loading) {
         return (
             <div className="flex items-center justify-center h-32">
-                <Loader2 className="w-6 h-6 text-brand-600 animate-spin" />
+                <Loader2 className="w-6 h-6 text-accent-600 animate-spin" />
             </div>
         );
     }
@@ -196,15 +196,15 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-slate-800">Tasks</h3>
+                <h3 className="text-lg font-medium text-heading">Tasks</h3>
                 <div className="flex items-center gap-2">
-                    <div className="flex bg-slate-100 rounded-lg p-0.5">
+                    <div className="flex bg-surface-hover rounded-lg p-0.5">
                         <button
                             onClick={() => setFilter('active')}
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                                 filter === 'active'
-                                    ? 'bg-white text-slate-800 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700'
+                                    ? 'bg-surface text-heading shadow-sm'
+                                    : 'text-muted hover:text-body'
                             }`}
                         >
                             Active
@@ -213,8 +213,8 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                             onClick={() => setFilter('completed')}
                             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
                                 filter === 'completed'
-                                    ? 'bg-white text-slate-800 shadow-sm'
-                                    : 'text-slate-500 hover:text-slate-700'
+                                    ? 'bg-surface text-heading shadow-sm'
+                                    : 'text-muted hover:text-body'
                             }`}
                         >
                             Completed
@@ -223,7 +223,7 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                     {isOwner && !showAddForm && (
                         <button
                             onClick={() => setShowAddForm(true)}
-                            className="flex items-center gap-1.5 text-sm text-brand-600 hover:text-brand-700 font-medium"
+                            className="flex items-center gap-1.5 text-sm text-accent-600 hover:text-accent-700 font-medium"
                         >
                             <Plus className="w-4 h-4" />
                             Add Task
@@ -234,43 +234,43 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
 
             {/* Add Form */}
             {showAddForm && (
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-4">
+                <div className="p-4 bg-surface-alt rounded-lg border border-line space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                        <label className="block text-sm font-medium text-body mb-1">Title</label>
                         <input
                             type="text"
                             value={title}
                             onChange={(e) => setTitle(e.target.value)}
                             placeholder="Task title..."
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">Description (optional)</label>
+                        <label className="block text-sm font-medium text-body mb-1">Description (optional)</label>
                         <textarea
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={2}
                             placeholder="Task details..."
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Due Date</label>
+                            <label className="block text-sm font-medium text-body mb-1">Due Date</label>
                             <input
                                 type="date"
                                 value={dueDate}
                                 onChange={(e) => setDueDate(e.target.value)}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+                            <label className="block text-sm font-medium text-body mb-1">Priority</label>
                             <select
                                 value={priority}
                                 onChange={(e) => setPriority(e.target.value as Task['priority'])}
-                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                             >
                                 <option value="low">Low</option>
                                 <option value="medium">Medium</option>
@@ -282,14 +282,14 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                     <div className="flex justify-end gap-3">
                         <button
                             onClick={() => setShowAddForm(false)}
-                            className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors"
+                            className="px-4 py-2 text-subtle hover:bg-surface-active rounded-lg transition-colors"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleAddTask}
                             disabled={saving || !title.trim()}
-                            className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors disabled:opacity-50"
                         >
                             {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                             Add Task
@@ -301,8 +301,8 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
             {/* Tasks List */}
             {filteredTasks.length === 0 ? (
                 <div className="text-center py-8">
-                    <CheckSquare className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-                    <p className="text-sm text-slate-500">
+                    <CheckSquare className="w-10 h-10 text-faint mx-auto mb-3" />
+                    <p className="text-sm text-muted">
                         {filter === 'active' ? 'No active tasks.' : 'No completed tasks.'}
                     </p>
                 </div>
@@ -317,8 +317,8 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                                 key={task.id}
                                 className={`p-3 rounded-lg border ${
                                     isOverdue
-                                        ? 'bg-red-50 border-red-200'
-                                        : 'bg-white border-slate-200'
+                                        ? 'bg-red-500/10 border-red-500/20'
+                                        : 'bg-surface border-line'
                                 }`}
                             >
                                 <div className="flex items-start gap-3">
@@ -342,7 +342,7 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className={`font-medium ${
-                                                task.status === 'completed' ? 'text-slate-400 line-through' : 'text-slate-800'
+                                                task.status === 'completed' ? 'text-faint line-through' : 'text-heading'
                                             }`}>
                                                 {task.title}
                                             </span>
@@ -351,12 +351,12 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                                             </span>
                                         </div>
                                         {task.description && (
-                                            <p className="text-sm text-slate-500 mt-1">{task.description}</p>
+                                            <p className="text-sm text-muted mt-1">{task.description}</p>
                                         )}
                                         <div className="flex items-center gap-3 mt-2 text-xs">
                                             {task.due_date && (
                                                 <span className={`flex items-center gap-1 ${
-                                                    isOverdue ? 'text-red-600' : isDueToday ? 'text-amber-600' : 'text-slate-500'
+                                                    isOverdue ? 'text-red-600' : isDueToday ? 'text-amber-600' : 'text-muted'
                                                 }`}>
                                                     {isOverdue && <AlertCircle className="w-3 h-3" />}
                                                     Due: {format(parseISO(task.due_date), 'MMM d, yyyy')}
@@ -374,7 +374,7 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                                     {isOwner && (
                                         <button
                                             onClick={() => handleDeleteTask(task.id)}
-                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                            className="p-1.5 text-faint hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>

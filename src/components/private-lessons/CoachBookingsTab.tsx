@@ -143,7 +143,7 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
             </div>
         );
     }
@@ -158,8 +158,8 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             filter === f
-                                ? 'bg-brand-100 text-brand-700'
-                                : 'text-slate-600 hover:bg-slate-100'
+                                ? 'bg-accent-500/10 text-accent-600'
+                                : 'text-subtle hover:bg-surface-hover'
                         }`}
                     >
                         {f === 'today' ? 'Today' : f.charAt(0).toUpperCase() + f.slice(1)}
@@ -169,11 +169,11 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
 
             {/* Stats Summary */}
             {filter === 'today' && (
-                <div className="card p-4 bg-violet-50 border-violet-200">
+                <div className="card p-4 bg-violet-500/10 border-violet-500/20">
                     <div className="flex items-center gap-3">
                         <Users className="w-5 h-5 text-violet-600" />
                         <div>
-                            <p className="font-medium text-violet-900">
+                            <p className="font-medium text-violet-600">
                                 {bookings.length} lesson{bookings.length !== 1 ? 's' : ''} today
                             </p>
                             {bookings.length > 0 && (
@@ -189,11 +189,11 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
             {/* Bookings List */}
             {bookings.length === 0 ? (
                 <div className="card p-8 text-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                        <Search className="w-6 h-6 text-slate-400" />
+                    <div className="w-12 h-12 rounded-full bg-surface-hover flex items-center justify-center mx-auto mb-3">
+                        <Search className="w-6 h-6 text-faint" />
                     </div>
-                    <h3 className="font-medium text-slate-900 mb-1">No bookings found</h3>
-                    <p className="text-sm text-slate-500">
+                    <h3 className="font-medium text-heading mb-1">No bookings found</h3>
+                    <p className="text-sm text-muted">
                         {filter === 'today'
                             ? 'No lessons scheduled for today.'
                             : filter === 'upcoming'
@@ -208,7 +208,7 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
                 <div className="space-y-6">
                     {Object.entries(groupedBookings).map(([date, dateBookings]) => (
                         <div key={date}>
-                            <h3 className="text-sm font-semibold text-slate-500 uppercase mb-3">
+                            <h3 className="text-sm font-semibold text-muted uppercase mb-3">
                                 {isToday(parseISO(date))
                                     ? 'Today'
                                     : format(parseISO(date), 'EEEE, MMMM d')}
@@ -289,38 +289,38 @@ function BookingRow({ booking, onClick, showDate }: BookingRowProps) {
             <div className="flex items-center gap-4">
                 {/* Time Block */}
                 <div className="text-center min-w-[60px]">
-                    <p className="text-lg font-bold text-slate-900">
+                    <p className="text-lg font-bold text-heading">
                         {formatTime(slot.start_time).replace(' ', '')}
                     </p>
                     {showDate && (
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-muted">
                             {format(parseISO(slot.slot_date), 'MMM d')}
                         </p>
                     )}
                 </div>
 
                 {/* Details */}
-                <div className="flex-1 min-w-0 border-l border-slate-200 pl-4">
+                <div className="flex-1 min-w-0 border-l border-line pl-4">
                     <div className="flex items-center gap-2 mb-1">
-                        <p className="font-medium text-slate-900">
+                        <p className="font-medium text-heading">
                             {gymnast.first_name} {gymnast.last_name}
                         </p>
-                        <span className="px-1.5 py-0.5 bg-indigo-100 text-indigo-700 text-xs rounded">
+                        <span className="px-1.5 py-0.5 bg-indigo-500/10 text-indigo-600 text-xs rounded">
                             {gymnast.level}
                         </span>
                         {isCancelled && (
-                            <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded">
+                            <span className="px-1.5 py-0.5 bg-red-500/10 text-red-600 text-xs rounded">
                                 Cancelled
                             </span>
                         )}
                         {isPast && !isCancelled && (
-                            <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">
+                            <span className="px-1.5 py-0.5 bg-surface-hover text-subtle text-xs rounded">
                                 Completed
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-slate-500">
-                        <span className="px-2 py-0.5 bg-brand-50 text-brand-700 text-xs rounded-full">
+                    <div className="flex items-center gap-3 text-sm text-muted">
+                        <span className="px-2 py-0.5 bg-accent-500/10 text-accent-600 text-xs rounded-full">
                             {EVENT_LABELS[booking.event] || booking.event}
                         </span>
                         <span className="flex items-center gap-1">
@@ -330,7 +330,7 @@ function BookingRow({ booking, onClick, showDate }: BookingRowProps) {
                     </div>
                 </div>
 
-                <ChevronRight className="w-5 h-5 text-slate-400" />
+                <ChevronRight className="w-5 h-5 text-faint" />
             </div>
         </button>
     );

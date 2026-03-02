@@ -128,14 +128,14 @@ export function CustomEventModal({ isOpen, onClose, onSaved }: CustomEventModalP
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-brand-100 rounded-lg">
-                            <Palette className="w-5 h-5 text-brand-600" />
+                        <div className="p-2 bg-accent-500/10 rounded-lg">
+                            <Palette className="w-5 h-5 text-accent-600" />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-900">Create Custom Event</h2>
+                        <h2 className="text-xl font-bold text-heading">Create Custom Event</h2>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -144,7 +144,7 @@ export function CustomEventModal({ isOpen, onClose, onSaved }: CustomEventModalP
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Event Name */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                        <label className="block text-sm font-medium text-body mb-1">
                             Event Name *
                         </label>
                         <input
@@ -159,7 +159,7 @@ export function CustomEventModal({ isOpen, onClose, onSaved }: CustomEventModalP
 
                     {/* Color Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             Color
                         </label>
                         <div className="grid grid-cols-8 sm:grid-cols-11 gap-1.5">
@@ -171,8 +171,8 @@ export function CustomEventModal({ isOpen, onClose, onSaved }: CustomEventModalP
                                     title={preset.name}
                                     className={`w-8 h-8 rounded-md transition-all ${
                                         color === preset.hex
-                                            ? 'ring-2 ring-offset-1 ring-slate-500 scale-110'
-                                            : 'hover:scale-110 hover:ring-1 hover:ring-slate-300'
+                                            ? 'ring-2 ring-offset-1 ring-line-strong scale-110'
+                                            : 'hover:scale-110 hover:ring-1 hover:ring-line-strong'
                                     }`}
                                     style={{ backgroundColor: preset.hex }}
                                 />
@@ -182,7 +182,7 @@ export function CustomEventModal({ isOpen, onClose, onSaved }: CustomEventModalP
 
                     {/* Preview */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             Preview
                         </label>
                         <div
@@ -199,7 +199,7 @@ export function CustomEventModal({ isOpen, onClose, onSaved }: CustomEventModalP
 
                     {/* Error Message */}
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600">
                             {error}
                         </div>
                     )}

@@ -207,21 +207,21 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
             <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClose}></div>
 
             {/* Modal Content */}
-            <div className="relative z-[10000] w-full max-w-2xl rounded-2xl bg-white shadow-2xl max-h-[90vh] flex flex-col">
+            <div className="relative z-[10000] w-full max-w-2xl rounded-2xl bg-surface shadow-2xl max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-line">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-brand-100 flex items-center justify-center">
-                            <Send className="h-5 w-5 text-brand-600" />
+                        <div className="h-10 w-10 rounded-full bg-accent-100 flex items-center justify-center">
+                            <Send className="h-5 w-5 text-accent-600" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-slate-900">Create Post</h3>
-                            <p className="text-xs text-slate-500">Share with your group</p>
+                            <h3 className="text-lg font-semibold text-heading">Create Post</h3>
+                            <p className="text-xs text-muted">Share with your group</p>
                         </div>
                     </div>
                     <button
                         type="button"
-                        className="p-2 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="p-2 rounded-full text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                         onClick={handleClose}
                     >
                         <X className="h-5 w-5" />
@@ -231,8 +231,8 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                 {/* Scrollable Content */}
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                     {error && (
-                        <div className="mb-4 rounded-lg bg-red-50 border border-red-200 p-4">
-                            <p className="text-sm font-medium text-red-800">{error}</p>
+                        <div className="mb-4 rounded-lg bg-red-500/10 border border-red-500/20 p-4">
+                            <p className="text-sm font-medium text-red-600">{error}</p>
                         </div>
                     )}
 
@@ -241,7 +241,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                         <div>
                             <textarea
                                 rows={4}
-                                className="block w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 placeholder-slate-400 shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow resize-none"
+                                className="block w-full rounded-xl border border-line bg-surface px-4 py-3 text-heading placeholder-faint shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow resize-none"
                                 placeholder="What's on your mind?"
                                 value={content}
                                 onChange={(e) => setContent(e.target.value)}
@@ -251,15 +251,15 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
 
                         {/* Image Previews */}
                         {selectedImages.length > 0 && (
-                            <div className="rounded-xl border border-slate-200 p-3">
+                            <div className="rounded-xl border border-line p-3">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-medium text-slate-600">
+                                    <span className="text-xs font-medium text-subtle">
                                         Images ({selectedImages.length}/10)
                                     </span>
                                 </div>
                                 <div className="grid grid-cols-4 gap-2">
                                     {selectedImages.map((img) => (
-                                        <div key={`${img.name}-${img.size}-${img.lastModified}`} className="relative group aspect-square rounded-lg overflow-hidden bg-slate-100">
+                                        <div key={`${img.name}-${img.size}-${img.lastModified}`} className="relative group aspect-square rounded-lg overflow-hidden bg-surface-hover">
                                             <img
                                                 src={URL.createObjectURL(img)}
                                                 alt=""
@@ -280,26 +280,26 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
 
                         {/* File Previews */}
                         {selectedFiles.length > 0 && (
-                            <div className="rounded-xl border border-slate-200 p-3">
+                            <div className="rounded-xl border border-line p-3">
                                 <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs font-medium text-slate-600">
+                                    <span className="text-xs font-medium text-subtle">
                                         Files ({selectedFiles.length}/5)
                                     </span>
                                 </div>
                                 <div className="space-y-2">
                                     {selectedFiles.map((file) => (
-                                        <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2">
+                                        <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between bg-surface-alt rounded-lg px-3 py-2">
                                             <div className="flex items-center gap-2 min-w-0">
-                                                <Paperclip className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                                                <span className="text-sm text-slate-700 truncate">{file.name}</span>
-                                                <span className="text-xs text-slate-400 flex-shrink-0">
+                                                <Paperclip className="h-4 w-4 text-faint flex-shrink-0" />
+                                                <span className="text-sm text-body truncate">{file.name}</span>
+                                                <span className="text-xs text-faint flex-shrink-0">
                                                     {formatFileSize(file.size)}
                                                 </span>
                                             </div>
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveFile(selectedFiles.indexOf(file))}
-                                                className="p-1 text-slate-400 hover:text-red-500"
+                                                className="p-1 text-faint hover:text-red-500"
                                             >
                                                 <X className="h-4 w-4" />
                                             </button>
@@ -313,13 +313,13 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                         {attachments.map((attachment, idx) => (
                             <div key={attachment.type === 'poll' ? `poll-${attachment.question}` : attachment.type === 'signup' ? `signup-${attachment.title}` : attachment.type === 'rsvp' ? `rsvp-${attachment.title}` : `attachment-${idx}`} className="relative">
                                 {attachment.type === 'poll' && (
-                                    <div className="rounded-xl border border-purple-200 bg-purple-50 p-4">
+                                    <div className="rounded-xl border border-purple-500/20 bg-purple-500/10 p-4">
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2">
                                                 <BarChart3 className="h-5 w-5 text-purple-600" />
                                                 <div>
-                                                    <p className="font-medium text-purple-900">Poll</p>
-                                                    <p className="text-sm text-purple-700">{attachment.question}</p>
+                                                    <p className="font-medium text-purple-600">Poll</p>
+                                                    <p className="text-sm text-purple-600">{attachment.question}</p>
                                                 </div>
                                             </div>
                                             <button
@@ -338,13 +338,13 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                     </div>
                                 )}
                                 {attachment.type === 'signup' && (
-                                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                                    <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2">
                                                 <ClipboardList className="h-5 w-5 text-emerald-600" />
                                                 <div>
-                                                    <p className="font-medium text-emerald-900">Sign-Up</p>
-                                                    <p className="text-sm text-emerald-700">{attachment.title}</p>
+                                                    <p className="font-medium text-emerald-600">Sign-Up</p>
+                                                    <p className="text-sm text-emerald-600">{attachment.title}</p>
                                                 </div>
                                             </div>
                                             <button
@@ -365,13 +365,13 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                     </div>
                                 )}
                                 {attachment.type === 'rsvp' && (
-                                    <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                                    <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-4">
                                         <div className="flex items-start justify-between">
                                             <div className="flex items-center gap-2">
                                                 <CalendarCheck className="h-5 w-5 text-blue-600" />
                                                 <div>
-                                                    <p className="font-medium text-blue-900">RSVP Request</p>
-                                                    <p className="text-sm text-blue-700">{attachment.title}</p>
+                                                    <p className="font-medium text-blue-600">RSVP Request</p>
+                                                    <p className="text-sm text-blue-600">{attachment.title}</p>
                                                     {(attachment.date || attachment.location) && (
                                                         <p className="text-xs text-blue-500 mt-1">
                                                             {attachment.date && new Date(attachment.date).toLocaleDateString()}
@@ -417,7 +417,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
+                <div className="px-6 py-4 border-t border-line bg-surface-alt rounded-b-2xl">
                     {/* Attachment Toolbar */}
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1">
@@ -433,7 +433,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                 type="button"
                                 onClick={() => imageInputRef.current?.click()}
                                 disabled={selectedImages.length >= 10 || loading}
-                                className="p-2.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-brand-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2.5 rounded-lg text-muted hover:text-accent-600 hover:bg-accent-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title={`Add images (max ${FILE_LIMITS.postImage.maxSizeLabel} each)`}
                             >
                                 <ImageIcon className="h-5 w-5" />
@@ -450,19 +450,19 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                 type="button"
                                 onClick={() => fileInputRef.current?.click()}
                                 disabled={selectedFiles.length >= 5 || loading}
-                                className="p-2.5 rounded-lg text-slate-500 hover:text-brand-600 hover:bg-brand-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2.5 rounded-lg text-muted hover:text-accent-600 hover:bg-accent-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title={`Add files (max ${FILE_LIMITS.postFile.maxSizeLabel} each)`}
                             >
                                 <Paperclip className="h-5 w-5" />
                             </button>
 
-                            <div className="w-px h-6 bg-slate-200 mx-1" />
+                            <div className="w-px h-6 bg-surface-active mx-1" />
 
                             <button
                                 type="button"
                                 onClick={() => setActiveCreator('poll')}
                                 disabled={hasInteractiveAttachment || activeCreator !== null || loading}
-                                className="p-2.5 rounded-lg text-slate-500 hover:text-purple-600 hover:bg-purple-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2.5 rounded-lg text-muted hover:text-purple-600 hover:bg-purple-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Add poll"
                             >
                                 <BarChart3 className="h-5 w-5" />
@@ -472,7 +472,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                 type="button"
                                 onClick={() => setActiveCreator('signup')}
                                 disabled={hasInteractiveAttachment || activeCreator !== null || loading}
-                                className="p-2.5 rounded-lg text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2.5 rounded-lg text-muted hover:text-emerald-600 hover:bg-emerald-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Add sign-up"
                             >
                                 <ClipboardList className="h-5 w-5" />
@@ -482,7 +482,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                 type="button"
                                 onClick={() => setActiveCreator('rsvp')}
                                 disabled={hasInteractiveAttachment || activeCreator !== null || loading}
-                                className="p-2.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="p-2.5 rounded-lg text-muted hover:text-blue-600 hover:bg-blue-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                 title="Add RSVP"
                             >
                                 <CalendarCheck className="h-5 w-5" />
@@ -493,7 +493,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                             <button
                                 type="button"
                                 onClick={handleClose}
-                                className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800"
+                                className="px-4 py-2 text-sm font-medium text-subtle hover:text-heading"
                             >
                                 Cancel
                             </button>
@@ -501,7 +501,7 @@ export function CreatePostModal({ isOpen, onClose, groupId, onPostCreated }: Cre
                                 type="submit"
                                 onClick={handleSubmit}
                                 disabled={loading || !content.trim()}
-                                className="inline-flex items-center px-5 py-2 text-sm font-semibold text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                className="inline-flex items-center px-5 py-2 text-sm font-semibold text-white bg-accent-600 rounded-lg hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                             >
                                 {loading ? (
                                     <>

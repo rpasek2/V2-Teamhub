@@ -67,12 +67,12 @@ export function Login() {
     return (
         <div className="min-h-screen flex">
             {/* Left Side - Hero Section */}
-            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-accent-500 via-accent-600 to-accent-800 relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
-                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-brand-300 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
-                    <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-brand-200 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute top-0 left-0 w-96 h-96 bg-surface rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent-300 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
+                    <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-accent-200 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
                 </div>
 
                 {/* Content */}
@@ -82,7 +82,7 @@ export function Login() {
                         <div className="flex items-center justify-center mb-8">
                             <img src={landingLogo} alt="The Gymnastics TeamHub" className="h-72 xl:h-80 w-auto" />
                         </div>
-                        <p className="text-lg text-brand-100 max-w-md">
+                        <p className="text-lg text-accent-100 max-w-md">
                             The all-in-one platform for managing your gymnastics team, from roster to competitions.
                         </p>
                     </div>
@@ -91,12 +91,12 @@ export function Login() {
                     <div className="space-y-6">
                         {features.map((feature, index) => (
                             <div key={index} className="flex items-start gap-4 group">
-                                <div className="flex-shrink-0 w-10 h-10 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center group-hover:bg-white/20 transition-colors">
+                                <div className="flex-shrink-0 w-10 h-10 bg-surface/10 backdrop-blur-sm rounded-lg flex items-center justify-center group-hover:bg-surface/20 transition-colors">
                                     <feature.icon className="w-5 h-5 text-white" />
                                 </div>
                                 <div>
                                     <h3 className="text-white font-semibold mb-1">{feature.title}</h3>
-                                    <p className="text-brand-200 text-sm">{feature.description}</p>
+                                    <p className="text-accent-200 text-sm">{feature.description}</p>
                                 </div>
                             </div>
                         ))}
@@ -106,7 +106,7 @@ export function Login() {
             </div>
 
             {/* Right Side - Login Form */}
-            <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center px-6 py-12 bg-white">
+            <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center px-6 py-12 bg-surface">
                 <div className="w-full max-w-md">
                     {/* Mobile Logo */}
                     <div className="lg:hidden text-center mb-8">
@@ -115,10 +115,10 @@ export function Login() {
 
                     {/* Form Header */}
                     <div className="text-center lg:text-left mb-8">
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                        <h2 className="text-2xl font-bold text-heading mb-2">
                             Welcome back
                         </h2>
-                        <p className="text-slate-600">
+                        <p className="text-subtle">
                             Sign in to access your team dashboard
                         </p>
                     </div>
@@ -126,7 +126,7 @@ export function Login() {
                     {/* Login Form */}
                     <form onSubmit={handleLogin} className="space-y-5">
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
+                            <label htmlFor="email" className="block text-sm font-medium text-body mb-1.5">
                                 Email address
                             </label>
                             <input
@@ -135,7 +135,7 @@ export function Login() {
                                 type="email"
                                 autoComplete="email"
                                 required
-                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                className="block w-full px-4 py-3 rounded-xl border border-line-strong text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-shadow"
                                 placeholder="you@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -144,10 +144,10 @@ export function Login() {
 
                         <div>
                             <div className="flex items-center justify-between mb-1.5">
-                                <label htmlFor="password" className="block text-sm font-medium text-slate-700">
+                                <label htmlFor="password" className="block text-sm font-medium text-body">
                                     Password
                                 </label>
-                                <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:text-brand-500">
+                                <Link to="/forgot-password" className="text-sm font-medium text-accent-600 hover:text-accent-500">
                                     Forgot password?
                                 </Link>
                             </div>
@@ -157,7 +157,7 @@ export function Login() {
                                 type="password"
                                 autoComplete="current-password"
                                 required
-                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                className="block w-full px-4 py-3 rounded-xl border border-line-strong text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-shadow"
                                 placeholder="Enter your password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -173,7 +173,7 @@ export function Login() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-accent-600 text-white font-semibold hover:bg-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                         >
                             {loading ? (
                                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -189,27 +189,27 @@ export function Login() {
                     {/* Divider */}
                     <div className="relative my-8">
                         <div className="absolute inset-0 flex items-center">
-                            <div className="w-full border-t border-slate-200" />
+                            <div className="w-full border-t border-line" />
                         </div>
                         <div className="relative flex justify-center text-sm">
-                            <span className="px-4 bg-white text-slate-500">New to The Gymnastics TeamHub?</span>
+                            <span className="px-4 bg-surface text-muted">New to The Gymnastics TeamHub?</span>
                         </div>
                     </div>
 
                     {/* Sign Up Link */}
                     <Link
                         to="/register"
-                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-slate-200 text-slate-700 font-semibold hover:border-brand-300 hover:text-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 transition-colors"
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-line text-body font-semibold hover:border-accent-300 hover:text-accent-600 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 transition-colors"
                     >
                         Create an account
                     </Link>
 
                     {/* Footer */}
-                    <p className="mt-8 text-center text-xs text-slate-500">
+                    <p className="mt-8 text-center text-xs text-muted">
                         By signing in, you agree to our{' '}
-                        <a href="https://twotreesapps-site.web.app/teamhub-terms.html" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">Terms of Service</a>
+                        <a href="https://twotreesapps-site.web.app/teamhub-terms.html" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline">Terms of Service</a>
                         {' '}and{' '}
-                        <a href="https://twotreesapps-site.web.app/teamhub-privacy.html" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">Privacy Policy</a>
+                        <a href="https://twotreesapps-site.web.app/teamhub-privacy.html" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline">Privacy Policy</a>
                     </p>
                 </div>
             </div>

@@ -34,7 +34,7 @@ export function EventCard({
                 'rounded-xl border p-4 transition-all',
                 colors.bg,
                 colors.border,
-                isComplete && 'ring-2 ring-success-500/50 ring-offset-1 ring-offset-white',
+                isComplete && 'ring-2 ring-success-500/50 ring-offset-1 ring-offset-surface',
                 className
             )}
         >
@@ -51,7 +51,7 @@ export function EventCard({
                 </div>
                 <span className={clsx(
                     'text-sm font-medium',
-                    isComplete ? 'text-success-500' : 'text-slate-500'
+                    isComplete ? 'text-success-500' : 'text-muted'
                 )}>
                     {completedCount}/{totalCount}
                     {isComplete && ' ✓'}
@@ -69,14 +69,14 @@ export function EventCard({
                             onClick={() => !readOnly && onToggleExercise?.(index)}
                             className={clsx(
                                 'flex items-start gap-3 text-sm',
-                                !readOnly && 'cursor-pointer hover:bg-slate-100 -mx-2 px-2 py-1 rounded-lg transition-colors',
-                                isCompleted ? 'text-slate-400' : 'text-slate-700'
+                                !readOnly && 'cursor-pointer hover:bg-surface-hover -mx-2 px-2 py-1 rounded-lg transition-colors',
+                                isCompleted ? 'text-faint' : 'text-body'
                             )}
                         >
                             {isCompleted ? (
                                 <Check className="w-5 h-5 text-success-400 flex-shrink-0 mt-0.5" />
                             ) : (
-                                <Circle className="w-5 h-5 text-slate-500 flex-shrink-0 mt-0.5" />
+                                <Circle className="w-5 h-5 text-muted flex-shrink-0 mt-0.5" />
                             )}
                             <span className={isCompleted ? 'line-through' : ''}>
                                 {exercise}

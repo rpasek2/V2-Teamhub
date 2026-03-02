@@ -667,22 +667,22 @@ export default function Messages() {
 
     if (loadingChannels) {
         return (
-            <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-white shadow-sm ring-1 ring-slate-200 sm:rounded-xl">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+            <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-surface shadow-sm ring-1 ring-line sm:rounded-xl">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent-500 border-t-transparent"></div>
             </div>
         );
     }
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-white shadow-sm ring-1 ring-slate-200 sm:rounded-xl">
+        <div className="flex h-[calc(100vh-4rem)] overflow-hidden bg-surface shadow-sm ring-1 ring-line sm:rounded-xl">
             {/* Sidebar */}
-            <div className="w-64 border-r border-slate-200 bg-slate-50 flex flex-col">
-                <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-                    <h2 className="font-semibold text-slate-900">Messages</h2>
+            <div className="w-64 border-r border-line bg-surface-alt flex flex-col">
+                <div className="p-4 border-b border-line flex justify-between items-center">
+                    <h2 className="font-semibold text-heading">Messages</h2>
                 </div>
                 <div className="flex-1 overflow-y-auto p-2 space-y-1">
                     {/* Channels Section */}
-                    <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                    <div className="px-3 py-2 text-xs font-semibold text-muted uppercase tracking-wider flex items-center justify-between">
                         <span>Channels</span>
                         {!isAthlete && (
                             <button
@@ -693,7 +693,7 @@ export default function Messages() {
                                     setChannelMemberSearch('');
                                     fetchHubMembers();
                                 }}
-                                className="p-1 rounded hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-900"
+                                className="p-1 rounded hover:bg-surface-active transition-colors text-faint hover:text-heading"
                                 title="New channel"
                             >
                                 <Plus className="h-3.5 w-3.5" />
@@ -714,8 +714,8 @@ export default function Messages() {
                                 }}
                                 className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                                     selectedChannel?.id === channel.id && !viewingAnonymousReports
-                                        ? 'bg-white text-brand-600 shadow-sm'
-                                        : 'text-slate-600 hover:bg-slate-100'
+                                        ? 'bg-surface text-accent-600 shadow-sm'
+                                        : 'text-subtle hover:bg-surface-hover'
                                 }`}
                             >
                                 <div className="flex items-center min-w-0">
@@ -737,7 +737,7 @@ export default function Messages() {
                             {isStaff && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); deleteChannel(channel.id); }}
-                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-faint hover:text-red-500 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-opacity"
                                     title="Delete channel"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
@@ -759,8 +759,8 @@ export default function Messages() {
                                 }}
                                 className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                                     selectedChannel?.id === channel.id && !viewingAnonymousReports
-                                        ? 'bg-white text-brand-600 shadow-sm'
-                                        : 'text-slate-600 hover:bg-slate-100'
+                                        ? 'bg-surface text-accent-600 shadow-sm'
+                                        : 'text-subtle hover:bg-surface-hover'
                                 }`}
                             >
                                 <div className="flex items-center min-w-0">
@@ -778,7 +778,7 @@ export default function Messages() {
                             {isStaff && (
                                 <button
                                     onClick={(e) => { e.stopPropagation(); deleteChannel(channel.id); }}
-                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/gc:opacity-100 transition-opacity"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-faint hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/gc:opacity-100 transition-opacity"
                                     title="Delete channel"
                                 >
                                     <Trash2 className="h-3.5 w-3.5" />
@@ -788,11 +788,11 @@ export default function Messages() {
                     ))}
 
                     {/* Direct Messages Section */}
-                    <div className="px-3 py-2 mt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
+                    <div className="px-3 py-2 mt-4 text-xs font-semibold text-muted uppercase tracking-wider flex items-center justify-between">
                         <span>Direct Messages</span>
                         <button
                             onClick={openNewDmModal}
-                            className="p-1 rounded hover:bg-slate-200 transition-colors text-slate-400 hover:text-slate-900"
+                            className="p-1 rounded hover:bg-surface-active transition-colors text-faint hover:text-heading"
                             title="New message"
                         >
                             <Plus className="h-3.5 w-3.5" />
@@ -800,7 +800,7 @@ export default function Messages() {
                     </div>
 
                     {dmChannels.length === 0 ? (
-                        <p className="px-3 py-2 text-xs text-slate-400">No conversations yet</p>
+                        <p className="px-3 py-2 text-xs text-faint">No conversations yet</p>
                     ) : (
                         dmChannels.map((channel) => (
                             <div key={channel.id} className="group/dm relative">
@@ -814,12 +814,12 @@ export default function Messages() {
                                     }}
                                     className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                                         selectedChannel?.id === channel.id && !viewingAnonymousReports
-                                            ? 'bg-white text-brand-600 shadow-sm'
-                                            : 'text-slate-600 hover:bg-slate-100'
+                                            ? 'bg-surface text-accent-600 shadow-sm'
+                                            : 'text-subtle hover:bg-surface-hover'
                                     }`}
                                 >
                                     <div className="flex items-center min-w-0">
-                                        <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2 flex-shrink-0">
+                                        <div className="h-6 w-6 rounded-full bg-surface-active flex items-center justify-center text-xs font-medium text-subtle mr-2 flex-shrink-0">
                                             {channel.dm_other_user?.full_name?.[0] || '?'}
                                         </div>
                                         <span className="truncate">
@@ -839,7 +839,7 @@ export default function Messages() {
                                 {user && channel.dm_participant_ids?.includes(user.id) && (
                                     <button
                                         onClick={(e) => { e.stopPropagation(); deleteChannel(channel.id); }}
-                                        className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/dm:opacity-100 transition-opacity"
+                                        className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded text-faint hover:text-red-500 hover:bg-red-50 opacity-0 group-hover/dm:opacity-100 transition-opacity"
                                         title="Delete conversation"
                                     >
                                         <Trash2 className="h-3.5 w-3.5" />
@@ -852,7 +852,7 @@ export default function Messages() {
                     {/* Anonymous Reports Section - For Owner */}
                     {isOwner && (
                         <>
-                            <div className="px-3 py-2 mt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            <div className="px-3 py-2 mt-4 text-xs font-semibold text-muted uppercase tracking-wider">
                                 <span>Anonymous Reports</span>
                             </div>
                             <button
@@ -863,8 +863,8 @@ export default function Messages() {
                                 }}
                                 className={`w-full flex items-center justify-between px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                                     viewingAnonymousReports && !selectedReport
-                                        ? 'bg-white text-purple-600 shadow-sm'
-                                        : 'text-slate-600 hover:bg-slate-100'
+                                        ? 'bg-surface text-purple-600 shadow-sm'
+                                        : 'text-subtle hover:bg-surface-hover'
                                 }`}
                             >
                                 <div className="flex items-center">
@@ -883,7 +883,7 @@ export default function Messages() {
                     {/* Submit Anonymous Report - For Non-Staff */}
                     {!isStaff && anonymousReportsEnabled && ownerInfo && (
                         <>
-                            <div className="px-3 py-2 mt-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                            <div className="px-3 py-2 mt-4 text-xs font-semibold text-muted uppercase tracking-wider">
                                 <span>Anonymous</span>
                             </div>
                             <button
@@ -899,45 +899,45 @@ export default function Messages() {
             </div>
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col min-w-0 bg-white">
+            <div className="flex-1 flex flex-col min-w-0 bg-surface">
                 {/* Anonymous Reports View - For Owner */}
                 {viewingAnonymousReports && isOwner ? (
                     <>
                         {/* Header */}
-                        <div className="px-6 py-4 border-b border-slate-200 flex items-center">
+                        <div className="px-6 py-4 border-b border-line flex items-center">
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 mr-3">
                                 <ShieldAlert className="h-4 w-4 text-purple-600" />
                             </div>
-                            <h3 className="text-lg font-medium text-slate-900">Anonymous Reports</h3>
+                            <h3 className="text-lg font-medium text-heading">Anonymous Reports</h3>
                             <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
                                 {anonymousReports.length} report{anonymousReports.length !== 1 ? 's' : ''}
                             </span>
                         </div>
 
                         {/* Reports List */}
-                        <div className="flex-1 overflow-y-auto bg-slate-50">
+                        <div className="flex-1 overflow-y-auto bg-surface-alt">
                             {loadingReports ? (
                                 <div className="flex items-center justify-center h-full">
-                                    <Loader2 className="h-8 w-8 animate-spin text-slate-400" />
+                                    <Loader2 className="h-8 w-8 animate-spin text-faint" />
                                 </div>
                             ) : anonymousReports.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full text-center p-6">
                                     <div className="rounded-full bg-purple-100 p-4 mb-4">
                                         <ShieldAlert className="h-8 w-8 text-purple-400" />
                                     </div>
-                                    <h3 className="text-lg font-medium text-slate-900">No anonymous reports</h3>
-                                    <p className="mt-1 text-sm text-slate-500">
+                                    <h3 className="text-lg font-medium text-heading">No anonymous reports</h3>
+                                    <p className="mt-1 text-sm text-muted">
                                         When members submit anonymous reports, they'll appear here.
                                     </p>
                                 </div>
                             ) : (
-                                <div className="divide-y divide-slate-200">
+                                <div className="divide-y divide-line">
                                     {anonymousReports.map((report) => (
                                         <div
                                             key={report.id}
-                                            className={`p-4 hover:bg-white transition-colors cursor-pointer ${
+                                            className={`p-4 hover:bg-surface transition-colors cursor-pointer ${
                                                 !report.read_at ? 'bg-purple-50' : ''
-                                            } ${selectedReport?.id === report.id ? 'bg-white ring-1 ring-purple-200' : ''}`}
+                                            } ${selectedReport?.id === report.id ? 'bg-surface ring-1 ring-purple-200' : ''}`}
                                             onClick={() => {
                                                 setSelectedReport(report);
                                                 if (!report.read_at) {
@@ -951,17 +951,17 @@ export default function Messages() {
                                                         {!report.read_at && (
                                                             <span className="h-2 w-2 rounded-full bg-purple-500 flex-shrink-0" />
                                                         )}
-                                                        <span className="text-xs text-slate-500">
+                                                        <span className="text-xs text-muted">
                                                             {format(new Date(report.created_at), 'MMM d, yyyy · h:mm a')}
                                                         </span>
                                                     </div>
-                                                    <p className="text-sm text-slate-700 line-clamp-2">
+                                                    <p className="text-sm text-body line-clamp-2">
                                                         {report.message}
                                                     </p>
                                                 </div>
                                                 <div className="flex items-center gap-1 flex-shrink-0">
                                                     {report.read_at && (
-                                                        <span className="text-xs text-slate-400 flex items-center gap-1">
+                                                        <span className="text-xs text-faint flex items-center gap-1">
                                                             <Check className="h-3 w-3" />
                                                             Read
                                                         </span>
@@ -973,7 +973,7 @@ export default function Messages() {
                                                                 deleteReport(report.id);
                                                             }
                                                         }}
-                                                        className="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50"
+                                                        className="p-1 rounded text-faint hover:text-red-500 hover:bg-red-50"
                                                         title="Delete report"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
@@ -988,9 +988,9 @@ export default function Messages() {
 
                         {/* Selected Report Detail */}
                         {selectedReport && (
-                            <div className="border-t border-slate-200 p-6 bg-white">
+                            <div className="border-t border-line p-6 bg-surface">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs text-slate-500">
+                                    <span className="text-xs text-muted">
                                         Received {format(new Date(selectedReport.created_at), 'MMMM d, yyyy · h:mm a')}
                                     </span>
                                     {selectedReport.read_at && (
@@ -1000,10 +1000,10 @@ export default function Messages() {
                                         </span>
                                     )}
                                 </div>
-                                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                                    <p className="text-sm text-slate-700 whitespace-pre-wrap">{selectedReport.message}</p>
+                                <div className="bg-surface-alt rounded-lg p-4 border border-line">
+                                    <p className="text-sm text-body whitespace-pre-wrap">{selectedReport.message}</p>
                                 </div>
-                                <p className="mt-3 text-xs text-slate-400">
+                                <p className="mt-3 text-xs text-faint">
                                     This report was submitted anonymously. You cannot reply to the sender.
                                 </p>
                             </div>
@@ -1012,14 +1012,14 @@ export default function Messages() {
                 ) : selectedChannel ? (
                     <>
                         {/* Header */}
-                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+                        <div className="px-6 py-4 border-b border-line flex items-center justify-between">
                             <div className="flex items-center">
                                 {selectedChannel.dm_participant_ids ? (
                                     <>
-                                        <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium text-slate-600 mr-3">
+                                        <div className="h-8 w-8 rounded-full bg-surface-active flex items-center justify-center text-sm font-medium text-subtle mr-3">
                                             {selectedChannel.dm_other_user?.full_name?.[0] || '?'}
                                         </div>
-                                        <h3 className="text-lg font-medium text-slate-900">
+                                        <h3 className="text-lg font-medium text-heading">
                                             {(selectedChannel.dm_other_users && selectedChannel.dm_other_users.length > 1)
                                                 ? selectedChannel.dm_other_users.map(u => u.full_name).join(', ')
                                                 : selectedChannel.dm_other_user?.full_name || 'Unknown'}
@@ -1028,15 +1028,15 @@ export default function Messages() {
                                 ) : (
                                     <>
                                         {selectedChannel.group_id ? (
-                                            <Users className="mr-2 h-5 w-5 text-slate-400" />
+                                            <Users className="mr-2 h-5 w-5 text-faint" />
                                         ) : selectedChannel.type === 'private' ? (
-                                            <Lock className="mr-2 h-5 w-5 text-slate-400" />
+                                            <Lock className="mr-2 h-5 w-5 text-faint" />
                                         ) : (
-                                            <Hash className="mr-2 h-5 w-5 text-slate-400" />
+                                            <Hash className="mr-2 h-5 w-5 text-faint" />
                                         )}
-                                        <h3 className="text-lg font-medium text-slate-900">{selectedChannel.name}</h3>
+                                        <h3 className="text-lg font-medium text-heading">{selectedChannel.name}</h3>
                                         {selectedChannel.group_id && (
-                                            <span className="ml-2 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full">
+                                            <span className="ml-2 text-xs bg-surface-hover text-subtle px-2 py-0.5 rounded-full">
                                                 Group
                                             </span>
                                         )}
@@ -1048,7 +1048,7 @@ export default function Messages() {
                                 && (selectedChannel.created_by === user?.id || isStaff) && (
                                 <button
                                     onClick={openManageMembersModal}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                                     title="Manage members"
                                 >
                                     <UserPlus className="h-4 w-4" />
@@ -1058,11 +1058,11 @@ export default function Messages() {
                         </div>
 
                         {/* Messages List */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50">
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface-alt">
                             {messages.length === 0 ? (
                                 <div className="text-center py-12">
-                                    <MessageSquare className="mx-auto h-12 w-12 text-slate-300" />
-                                    <p className="mt-2 text-sm text-slate-500">
+                                    <MessageSquare className="mx-auto h-12 w-12 text-faint" />
+                                    <p className="mt-2 text-sm text-muted">
                                         {selectedChannel.dm_participant_ids
                                             ? `Start a conversation with ${selectedChannel.dm_other_user?.full_name || 'this user'}`
                                             : 'No messages yet. Start the conversation!'}
@@ -1078,7 +1078,7 @@ export default function Messages() {
                                             <div className={`flex max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                                 <div className={`flex-shrink-0 ${isMe ? 'ml-3' : 'mr-3'}`}>
                                                     {showHeader && (
-                                                        <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600">
+                                                        <div className="h-8 w-8 rounded-full bg-surface-active flex items-center justify-center text-xs font-medium text-subtle">
                                                             {message.profiles?.full_name?.[0] || message.profiles?.email?.[0] || '?'}
                                                         </div>
                                                     )}
@@ -1087,18 +1087,18 @@ export default function Messages() {
                                                 <div>
                                                     {showHeader && (
                                                         <div className={`flex items-baseline mb-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                                            <span className="text-sm font-medium text-slate-900 mr-2">
+                                                            <span className="text-sm font-medium text-heading mr-2">
                                                                 {message.profiles?.full_name || 'Unknown'}
                                                             </span>
-                                                            <span className="text-xs text-slate-400">
+                                                            <span className="text-xs text-faint">
                                                                 {format(new Date(message.created_at), 'h:mm a')}
                                                             </span>
                                                         </div>
                                                     )}
                                                     <div
                                                         className={`px-4 py-2 rounded-lg text-sm ${isMe
-                                                            ? 'bg-mint-500 text-white rounded-tr-none'
-                                                            : 'bg-white text-slate-700 border border-slate-200 rounded-tl-none'
+                                                            ? 'bg-accent-500 text-white rounded-tr-none'
+                                                            : 'bg-surface text-body border border-line rounded-tl-none'
                                                             }`}
                                                     >
                                                         {message.content}
@@ -1113,7 +1113,7 @@ export default function Messages() {
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-4 border-t border-slate-200 bg-white">
+                        <div className="p-4 border-t border-line bg-surface">
                             <form onSubmit={sendMessage} className="flex gap-2">
                                 <input
                                     type="text"
@@ -1141,9 +1141,9 @@ export default function Messages() {
                 ) : (
                     <div className="flex-1 flex items-center justify-center">
                         <div className="text-center">
-                            <MessageSquare className="mx-auto h-12 w-12 text-slate-300" />
-                            <h3 className="mt-2 text-sm font-semibold text-slate-900">No conversation selected</h3>
-                            <p className="mt-1 text-sm text-slate-500">Select a channel or start a new message.</p>
+                            <MessageSquare className="mx-auto h-12 w-12 text-faint" />
+                            <h3 className="mt-2 text-sm font-semibold text-heading">No conversation selected</h3>
+                            <p className="mt-1 text-sm text-muted">Select a channel or start a new message.</p>
                         </div>
                     </div>
                 )}
@@ -1156,19 +1156,19 @@ export default function Messages() {
                         className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
                         onClick={() => setShowNewDmModal(false)}
                     />
-                    <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200">
-                        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-                            <h3 className="text-lg font-semibold text-slate-900">New Message</h3>
+                    <div className="relative w-full max-w-md bg-surface rounded-xl shadow-2xl border border-line">
+                        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+                            <h3 className="text-lg font-semibold text-heading">New Message</h3>
                             <button
                                 onClick={() => setShowNewDmModal(false)}
-                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                                className="rounded-full p-1 text-faint hover:bg-surface-hover hover:text-heading"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <div className="p-4">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                 <input
                                     type="text"
                                     value={dmSearchTerm}
@@ -1180,23 +1180,23 @@ export default function Messages() {
                             </div>
                             <div className="mt-4 max-h-64 overflow-y-auto">
                                 {loadingMembers ? (
-                                    <p className="text-center py-4 text-sm text-slate-500">Loading...</p>
+                                    <p className="text-center py-4 text-sm text-muted">Loading...</p>
                                 ) : filteredMembers.length === 0 ? (
-                                    <p className="text-center py-4 text-sm text-slate-500">No members found</p>
+                                    <p className="text-center py-4 text-sm text-muted">No members found</p>
                                 ) : (
                                     <div className="space-y-1">
                                         {filteredMembers.map((member) => (
                                             <button
                                                 key={member.user_id}
                                                 onClick={() => startDmWithUser(member.user_id)}
-                                                className="w-full flex items-center px-3 py-2 rounded-md hover:bg-slate-100 transition-colors"
+                                                className="w-full flex items-center px-3 py-2 rounded-md hover:bg-surface-hover transition-colors"
                                             >
-                                                <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center text-sm font-medium text-slate-600 mr-3">
+                                                <div className="h-8 w-8 rounded-full bg-surface-active flex items-center justify-center text-sm font-medium text-subtle mr-3">
                                                     {member.full_name[0]}
                                                 </div>
                                                 <div className="text-left">
-                                                    <p className="text-sm font-medium text-slate-900">{member.full_name}</p>
-                                                    <p className="text-xs text-slate-500">{member.email}</p>
+                                                    <p className="text-sm font-medium text-heading">{member.full_name}</p>
+                                                    <p className="text-xs text-muted">{member.email}</p>
                                                 </div>
                                             </button>
                                         ))}
@@ -1216,21 +1216,21 @@ export default function Messages() {
                         className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
                         onClick={() => setShowNewChannelModal(false)}
                     />
-                    <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200">
-                        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-                            <h3 className="text-lg font-semibold text-slate-900">New Channel</h3>
+                    <div className="relative w-full max-w-md bg-surface rounded-xl shadow-2xl border border-line">
+                        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+                            <h3 className="text-lg font-semibold text-heading">New Channel</h3>
                             <button
                                 onClick={() => setShowNewChannelModal(false)}
-                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                                className="rounded-full p-1 text-faint hover:bg-surface-hover hover:text-heading"
                             >
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <form onSubmit={createNewChannel} className="p-4 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Channel name</label>
+                                <label className="block text-sm font-medium text-body mb-1">Channel name</label>
                                 <div className="relative">
-                                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Hash className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                     <input
                                         type="text"
                                         value={newChannelName}
@@ -1244,10 +1244,10 @@ export default function Messages() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
-                                    Add members <span className="text-slate-400 font-normal">(optional)</span>
+                                <label className="block text-sm font-medium text-body mb-1">
+                                    Add members <span className="text-faint font-normal">(optional)</span>
                                 </label>
-                                <p className="text-xs text-slate-500 mb-2">
+                                <p className="text-xs text-muted mb-2">
                                     Leave empty for a hub-wide channel visible to everyone, or select members for a private channel.
                                 </p>
 
@@ -1260,13 +1260,13 @@ export default function Messages() {
                                             return (
                                                 <span
                                                     key={id}
-                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-brand-100 text-brand-700"
+                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-accent-100 text-accent-700"
                                                 >
                                                     {member.full_name}
                                                     <button
                                                         type="button"
                                                         onClick={() => toggleMemberSelection(id)}
-                                                        className="hover:text-brand-900"
+                                                        className="hover:text-accent-900"
                                                     >
                                                         <X className="h-3 w-3" />
                                                     </button>
@@ -1278,7 +1278,7 @@ export default function Messages() {
 
                                 {/* Search */}
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                     <input
                                         type="text"
                                         value={channelMemberSearch}
@@ -1289,7 +1289,7 @@ export default function Messages() {
                                 </div>
 
                                 {/* Member list */}
-                                <div className="mt-2 max-h-48 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                <div className="mt-2 max-h-48 overflow-y-auto border border-line rounded-lg divide-y divide-line">
                                     {hubMembers
                                         .filter(m =>
                                             m.full_name.toLowerCase().includes(channelMemberSearch.toLowerCase()) ||
@@ -1303,17 +1303,17 @@ export default function Messages() {
                                                     type="button"
                                                     onClick={() => toggleMemberSelection(member.user_id)}
                                                     className={`w-full flex items-center px-3 py-2 text-left transition-colors ${
-                                                        isSelected ? 'bg-brand-50' : 'hover:bg-slate-50'
+                                                        isSelected ? 'bg-accent-50' : 'hover:bg-surface-hover'
                                                     }`}
                                                 >
-                                                    <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2.5 flex-shrink-0">
+                                                    <div className="h-7 w-7 rounded-full bg-surface-active flex items-center justify-center text-xs font-medium text-subtle mr-2.5 flex-shrink-0">
                                                         {member.full_name[0]}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-slate-900 truncate">{member.full_name}</p>
+                                                        <p className="text-sm font-medium text-heading truncate">{member.full_name}</p>
                                                     </div>
                                                     {isSelected && (
-                                                        <Check className="h-4 w-4 text-brand-600 flex-shrink-0" />
+                                                        <Check className="h-4 w-4 text-accent-600 flex-shrink-0" />
                                                     )}
                                                 </button>
                                             );
@@ -1350,12 +1350,12 @@ export default function Messages() {
                         className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
                         onClick={() => setShowManageMembersModal(false)}
                     />
-                    <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200">
-                        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-                            <h3 className="text-lg font-semibold text-slate-900">Channel Members</h3>
+                    <div className="relative w-full max-w-md bg-surface rounded-xl shadow-2xl border border-line">
+                        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+                            <h3 className="text-lg font-semibold text-heading">Channel Members</h3>
                             <button
                                 onClick={() => setShowManageMembersModal(false)}
-                                className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                                className="rounded-full p-1 text-faint hover:bg-surface-hover hover:text-heading"
                             >
                                 <X className="h-5 w-5" />
                             </button>
@@ -1363,27 +1363,27 @@ export default function Messages() {
                         <div className="p-4 space-y-4">
                             {/* Current members */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-body mb-2">
                                     Current members ({existingMembers.length})
                                 </label>
-                                <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                <div className="max-h-40 overflow-y-auto border border-line rounded-lg divide-y divide-line">
                                     {existingMembers.map((member) => (
                                         <div key={member.user_id} className="flex items-center justify-between px-3 py-2">
                                             <div className="flex items-center min-w-0">
-                                                <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2.5 flex-shrink-0">
+                                                <div className="h-7 w-7 rounded-full bg-surface-active flex items-center justify-center text-xs font-medium text-subtle mr-2.5 flex-shrink-0">
                                                     {member.full_name[0]}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-slate-900 truncate">{member.full_name}</p>
+                                                    <p className="text-sm font-medium text-heading truncate">{member.full_name}</p>
                                                     {member.user_id === user?.id && (
-                                                        <span className="text-xs text-slate-400">You</span>
+                                                        <span className="text-xs text-faint">You</span>
                                                     )}
                                                 </div>
                                             </div>
                                             {member.user_id !== user?.id && (
                                                 <button
                                                     onClick={() => removeMemberFromChannel(selectedChannel.id, member.user_id)}
-                                                    className="p-1 rounded text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                                                    className="p-1 rounded text-faint hover:text-red-500 hover:bg-red-50 transition-colors"
                                                     title="Remove member"
                                                 >
                                                     <X className="h-3.5 w-3.5" />
@@ -1396,9 +1396,9 @@ export default function Messages() {
 
                             {/* Add new members */}
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">Add members</label>
+                                <label className="block text-sm font-medium text-body mb-1">Add members</label>
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                     <input
                                         type="text"
                                         value={manageMemberSearch}
@@ -1407,7 +1407,7 @@ export default function Messages() {
                                         className="input w-full pl-10"
                                     />
                                 </div>
-                                <div className="mt-2 max-h-40 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                <div className="mt-2 max-h-40 overflow-y-auto border border-line rounded-lg divide-y divide-line">
                                     {hubMembers
                                         .filter(m =>
                                             !existingMembers.some(em => em.user_id === m.user_id) &&
@@ -1421,13 +1421,13 @@ export default function Messages() {
                                                     await addMembersToChannel(selectedChannel.id, [member.user_id]);
                                                     setExistingMembers(prev => [...prev, member]);
                                                 }}
-                                                className="w-full flex items-center px-3 py-2 text-left hover:bg-slate-50 transition-colors"
+                                                className="w-full flex items-center px-3 py-2 text-left hover:bg-surface-hover transition-colors"
                                             >
-                                                <div className="h-7 w-7 rounded-full bg-slate-200 flex items-center justify-center text-xs font-medium text-slate-600 mr-2.5 flex-shrink-0">
+                                                <div className="h-7 w-7 rounded-full bg-surface-active flex items-center justify-center text-xs font-medium text-subtle mr-2.5 flex-shrink-0">
                                                     {member.full_name[0]}
                                                 </div>
-                                                <p className="text-sm font-medium text-slate-900 truncate flex-1">{member.full_name}</p>
-                                                <Plus className="h-4 w-4 text-slate-400" />
+                                                <p className="text-sm font-medium text-heading truncate flex-1">{member.full_name}</p>
+                                                <Plus className="h-4 w-4 text-faint" />
                                             </button>
                                         ))}
                                     {hubMembers.filter(m =>
@@ -1435,7 +1435,7 @@ export default function Messages() {
                                         (m.full_name.toLowerCase().includes(manageMemberSearch.toLowerCase()) ||
                                          m.email.toLowerCase().includes(manageMemberSearch.toLowerCase()))
                                     ).length === 0 && (
-                                        <p className="px-3 py-3 text-sm text-slate-500 text-center">No more members to add</p>
+                                        <p className="px-3 py-3 text-sm text-muted text-center">No more members to add</p>
                                     )}
                                 </div>
                             </div>

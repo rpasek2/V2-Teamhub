@@ -129,14 +129,14 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-brand-100 rounded-lg">
-                            <Palette className="w-5 h-5 text-brand-600" />
+                        <div className="p-2 bg-accent-500/10 rounded-lg">
+                            <Palette className="w-5 h-5 text-accent-600" />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-900">Edit Event</h2>
+                        <h2 className="text-xl font-bold text-heading">Edit Event</h2>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -145,7 +145,7 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Event Name */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                        <label className="block text-sm font-medium text-body mb-1">
                             Event Name *
                         </label>
                         <input
@@ -160,7 +160,7 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
 
                     {/* Color Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             Color
                         </label>
                         <div className="grid grid-cols-8 sm:grid-cols-11 gap-1.5">
@@ -172,8 +172,8 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
                                     title={preset.name}
                                     className={`w-8 h-8 rounded-md transition-all ${
                                         color === preset.hex
-                                            ? 'ring-2 ring-offset-1 ring-slate-500 scale-110'
-                                            : 'hover:scale-110 hover:ring-1 hover:ring-slate-300'
+                                            ? 'ring-2 ring-offset-1 ring-line-strong scale-110'
+                                            : 'hover:scale-110 hover:ring-1 hover:ring-line-strong'
                                     }`}
                                     style={{ backgroundColor: preset.hex }}
                                 />
@@ -183,7 +183,7 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
 
                     {/* Preview */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             Preview
                         </label>
                         <div
@@ -200,15 +200,15 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
 
                     {/* Error Message */}
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600">
                             {error}
                         </div>
                     )}
 
                     {/* Delete Confirmation */}
                     {showDeleteConfirm && !event.is_default && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                            <p className="text-sm text-red-700 mb-3">
+                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                            <p className="text-sm text-red-600 mb-3">
                                 Are you sure you want to delete this event? Existing rotation blocks using this event will keep their name but lose the event reference.
                             </p>
                             <div className="flex gap-2">
@@ -239,7 +239,7 @@ export function EditEventModal({ event, onClose, onSaved }: EditEventModalProps)
                                 <button
                                     type="button"
                                     onClick={() => setShowDeleteConfirm(true)}
-                                    className="btn-ghost text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    className="btn-ghost text-red-600 hover:text-red-700 hover:bg-red-500/10"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                     Delete

@@ -71,7 +71,7 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
             case 'director': return 'bg-purple-100 text-purple-700';
             case 'admin': return 'bg-blue-100 text-blue-700';
             case 'coach': return 'bg-green-100 text-green-700';
-            default: return 'bg-slate-100 text-slate-600';
+            default: return 'bg-surface-hover text-subtle';
         }
     };
 
@@ -87,16 +87,16 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-lg bg-white rounded-xl shadow-xl">
+                <div className="relative w-full max-w-lg bg-surface rounded-xl shadow-xl">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-slate-200">
+                    <div className="flex items-center justify-between p-4 border-b border-line">
                         <div className="flex items-center gap-2">
-                            <Users className="w-5 h-5 text-mint-600" />
-                            <h2 className="text-lg font-semibold text-slate-900">Bulk Assign Task</h2>
+                            <Users className="w-5 h-5 text-accent-600" />
+                            <h2 className="text-lg font-semibold text-heading">Bulk Assign Task</h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                            className="p-1 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -106,7 +106,7 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
                     <form onSubmit={handleSubmit} className="p-4 space-y-4">
                         {/* Task Title */}
                         <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
+                            <label htmlFor="title" className="block text-sm font-medium text-body mb-1">
                                 Task Title *
                             </label>
                             <input
@@ -122,8 +122,8 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
 
                         {/* Description */}
                         <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">
-                                Description <span className="text-slate-400">(optional)</span>
+                            <label htmlFor="description" className="block text-sm font-medium text-body mb-1">
+                                Description <span className="text-faint">(optional)</span>
                             </label>
                             <textarea
                                 id="description"
@@ -138,7 +138,7 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
                         {/* Due Date & Priority */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="dueDate" className="block text-sm font-medium text-slate-700 mb-1">
+                                <label htmlFor="dueDate" className="block text-sm font-medium text-body mb-1">
                                     Due Date
                                 </label>
                                 <input
@@ -150,7 +150,7 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
                                 />
                             </div>
                             <div>
-                                <label htmlFor="priority" className="block text-sm font-medium text-slate-700 mb-1">
+                                <label htmlFor="priority" className="block text-sm font-medium text-body mb-1">
                                     Priority
                                 </label>
                                 <select
@@ -169,7 +169,7 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
 
                         {/* Staff Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Assign To *
                             </label>
 
@@ -178,7 +178,7 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
                                 <button
                                     type="button"
                                     onClick={selectAll}
-                                    className="px-3 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                                    className="px-3 py-1 text-xs font-medium rounded-full bg-surface-hover text-body hover:bg-surface-active transition-colors"
                                 >
                                     Select All
                                 </button>
@@ -199,27 +199,27 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
                                 <button
                                     type="button"
                                     onClick={clearSelection}
-                                    className="px-3 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                                    className="px-3 py-1 text-xs font-medium rounded-full bg-surface-hover text-muted hover:bg-surface-active transition-colors"
                                 >
                                     Clear
                                 </button>
                             </div>
 
                             {/* Staff List */}
-                            <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                            <div className="max-h-48 overflow-y-auto border border-line rounded-lg divide-y divide-line">
                                 {staffData.map(staff => (
                                     <label
                                         key={staff.user_id}
                                         className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${
                                             selectedStaff.has(staff.user_id)
-                                                ? 'bg-mint-50'
-                                                : 'hover:bg-slate-50'
+                                                ? 'bg-accent-50'
+                                                : 'hover:bg-surface-hover'
                                         }`}
                                     >
                                         <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                                             selectedStaff.has(staff.user_id)
-                                                ? 'bg-mint-500 border-mint-500'
-                                                : 'border-slate-300'
+                                                ? 'bg-accent-500 border-accent-500'
+                                                : 'border-line-strong'
                                         }`}>
                                             {selectedStaff.has(staff.user_id) && (
                                                 <Check className="w-3.5 h-3.5 text-white" />
@@ -232,7 +232,7 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
                                             className="sr-only"
                                         />
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-slate-900 text-sm">
+                                            <p className="font-medium text-heading text-sm">
                                                 {staff.profile?.full_name || 'Unknown'}
                                             </p>
                                         </div>
@@ -244,7 +244,7 @@ export function BulkTaskModal({ isOpen, onClose, hubId, staffData, onTasksAssign
                             </div>
 
                             {selectedStaff.size > 0 && (
-                                <p className="text-xs text-mint-600 mt-2">
+                                <p className="text-xs text-accent-600 mt-2">
                                     {selectedStaff.size} staff member{selectedStaff.size !== 1 ? 's' : ''} selected
                                 </p>
                             )}

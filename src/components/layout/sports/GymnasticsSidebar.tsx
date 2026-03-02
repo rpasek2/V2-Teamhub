@@ -145,20 +145,20 @@ export function GymnasticsSidebar() {
         <div
             className={clsx(
                 "flex h-full flex-col transition-all duration-200 ease-out overflow-x-hidden",
-                "bg-white border-r border-slate-200",
+                "bg-surface border-r border-line",
                 showExpanded ? "w-64" : "w-16"
             )}
             onMouseEnter={() => !isLocked && setIsExpanded(true)}
             onMouseLeave={() => !isLocked && setIsExpanded(false)}
         >
             {/* Header - Back to Overview */}
-            <div className="flex h-14 items-center justify-between border-b border-slate-200 px-3">
+            <div className="flex h-14 items-center justify-between border-b border-line px-3">
                 <Link
                     to="/"
-                    className="group flex items-center text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
+                    className="group flex items-center text-sm font-medium text-muted hover:text-heading transition-colors"
                     title={!showExpanded ? "Back to Overview" : undefined}
                 >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 group-hover:bg-slate-200 transition-colors flex-shrink-0">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-hover group-hover:bg-surface-active transition-colors flex-shrink-0">
                         <ArrowLeft className="h-5 w-5" />
                     </div>
                     <div
@@ -169,8 +169,8 @@ export function GymnasticsSidebar() {
                             transition: 'opacity 150ms ease-out, max-width 200ms ease-out'
                         }}
                     >
-                        <span className="text-[10px] uppercase tracking-wider text-slate-400">Back to</span>
-                        <span className="font-medium text-slate-600 group-hover:text-slate-900 text-sm">Overview</span>
+                        <span className="text-[10px] uppercase tracking-wider text-faint">Back to</span>
+                        <span className="font-medium text-subtle group-hover:text-heading text-sm">Overview</span>
                     </div>
                 </Link>
                 {showExpanded && (
@@ -180,8 +180,8 @@ export function GymnasticsSidebar() {
                         className={clsx(
                             "flex h-7 w-7 items-center justify-center rounded-md transition-colors flex-shrink-0",
                             isLocked
-                                ? "text-brand-600 bg-brand-50 hover:bg-brand-100"
-                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                                ? "text-accent-600 bg-accent-50 hover:bg-accent-100"
+                                : "text-faint hover:text-subtle hover:bg-surface-hover"
                         )}
                     >
                         {isLocked ? <Pin className="h-3.5 w-3.5" /> : <PinOff className="h-3.5 w-3.5" />}
@@ -190,7 +190,7 @@ export function GymnasticsSidebar() {
             </div>
 
             {/* Hub Name */}
-            <div className="border-b border-slate-200 px-3 py-3">
+            <div className="border-b border-line px-3 py-3">
                 <div className="flex items-center" title={!showExpanded ? hub?.name : undefined}>
                     <div className="flex h-10 w-10 items-center justify-center flex-shrink-0 rounded-lg overflow-hidden">
                         <img src={appIcon} alt="TeamHub" className="h-10 w-10 object-contain" />
@@ -203,8 +203,8 @@ export function GymnasticsSidebar() {
                             transition: 'opacity 150ms ease-out, max-width 200ms ease-out'
                         }}
                     >
-                        <span className="text-sm font-semibold text-slate-900">{hub?.name}</span>
-                        <span className="text-[10px] uppercase tracking-wider text-mint-600">{sportConfig.name}</span>
+                        <span className="text-sm font-semibold text-heading">{hub?.name}</span>
+                        <span className="text-[10px] uppercase tracking-wider text-accent-600">{sportConfig.name}</span>
                     </div>
                 </div>
             </div>
@@ -229,8 +229,8 @@ export function GymnasticsSidebar() {
                                 className={clsx(
                                     "group flex items-center rounded-lg text-sm font-medium py-2.5 mx-1",
                                     isActive
-                                        ? 'bg-slate-100 text-slate-900'
-                                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+                                        ? 'bg-surface-hover text-heading'
+                                        : 'text-subtle hover:bg-surface-hover hover:text-heading'
                                 )}
                             >
                                 <div className={clsx(
@@ -238,14 +238,14 @@ export function GymnasticsSidebar() {
                                     isActive && "ml-0.5"
                                 )}>
                                     {isActive && (
-                                        <div className="absolute left-0 w-0.5 h-5 bg-mint-500 rounded-r-full" />
+                                        <div className="absolute left-0 w-0.5 h-5 bg-accent-500 rounded-r-full" />
                                     )}
                                     <item.icon
                                         className={clsx(
                                             "h-[18px] w-[18px]",
                                             isActive
-                                                ? 'text-mint-600'
-                                                : 'text-slate-400 group-hover:text-slate-600'
+                                                ? 'text-accent-600'
+                                                : 'text-faint group-hover:text-subtle'
                                         )}
                                         aria-hidden="true"
                                     />
@@ -283,22 +283,22 @@ export function GymnasticsSidebar() {
             </div>
 
             {/* User Profile & Sign Out */}
-            <div className="border-t border-slate-200 px-2 py-2 space-y-1">
+            <div className="border-t border-line px-2 py-2 space-y-1">
                 {/* User Profile */}
                 <Link
                     to="/settings"
                     title={!showExpanded ? userProfile?.full_name || 'Profile' : undefined}
-                    className="group flex items-center rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 py-2.5 mx-1"
+                    className="group flex items-center rounded-lg text-sm font-medium text-subtle hover:bg-surface-hover hover:text-heading py-2.5 mx-1"
                 >
                     <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 ml-1.5">
                         {userProfile?.avatar_url ? (
                             <img
                                 src={userProfile.avatar_url}
                                 alt={userProfile.full_name || 'User'}
-                                className="h-7 w-7 rounded-full object-cover ring-2 ring-slate-200 group-hover:ring-mint-500/50 transition-all"
+                                className="h-7 w-7 rounded-full object-cover ring-2 ring-line group-hover:ring-accent-500/50 transition-all"
                             />
                         ) : (
-                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 group-hover:bg-slate-200">
+                            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-surface-hover text-muted group-hover:bg-surface-active">
                                 <User className="h-4 w-4" />
                             </div>
                         )}
@@ -319,11 +319,11 @@ export function GymnasticsSidebar() {
                 <button
                     onClick={() => signOut()}
                     title={!showExpanded ? "Sign out" : undefined}
-                    className="group flex w-full items-center rounded-lg text-sm font-medium text-slate-500 hover:bg-error-100 hover:text-error-600 py-2.5 mx-1"
+                    className="group flex w-full items-center rounded-lg text-sm font-medium text-muted hover:bg-error-100 hover:text-error-600 py-2.5 mx-1"
                 >
                     <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 ml-1.5">
                         <LogOut
-                            className="h-[18px] w-[18px] text-slate-400 group-hover:text-error-600"
+                            className="h-[18px] w-[18px] text-faint group-hover:text-error-600"
                             aria-hidden="true"
                         />
                     </div>

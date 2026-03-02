@@ -87,20 +87,20 @@ export function SeasonsSection({ seasonConfig, setSeasonConfig }: SeasonsSection
             }
         >
             {seasonMessage && (
-                <div className={`mb-4 p-4 rounded-md ${seasonMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                <div className={`mb-4 p-4 rounded-md ${seasonMessage.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {seasonMessage.text}
                 </div>
             )}
 
             {/* Season Start Date Configuration */}
             <div className="mb-6">
-                <h4 className="text-sm font-medium text-slate-900 mb-2">Season Start Date</h4>
-                <p className="text-xs text-slate-500 mb-3">
+                <h4 className="text-sm font-medium text-heading mb-2">Season Start Date</h4>
+                <p className="text-xs text-muted mb-3">
                     New seasons automatically start on this date each year. The current season is determined by this setting.
                 </p>
                 <div className="flex gap-3">
                     <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Month</label>
+                        <label className="block text-xs font-medium text-subtle mb-1">Month</label>
                         <select
                             value={seasonConfig.startMonth}
                             onChange={(e) => setSeasonConfig({ ...seasonConfig, startMonth: parseInt(e.target.value) })}
@@ -112,7 +112,7 @@ export function SeasonsSection({ seasonConfig, setSeasonConfig }: SeasonsSection
                         </select>
                     </div>
                     <div>
-                        <label className="block text-xs font-medium text-slate-600 mb-1">Day</label>
+                        <label className="block text-xs font-medium text-subtle mb-1">Day</label>
                         <select
                             value={seasonConfig.startDay}
                             onChange={(e) => setSeasonConfig({ ...seasonConfig, startDay: parseInt(e.target.value) })}
@@ -128,33 +128,33 @@ export function SeasonsSection({ seasonConfig, setSeasonConfig }: SeasonsSection
 
             {/* Seasons List */}
             <div>
-                <h4 className="text-sm font-medium text-slate-900 mb-2">Your Seasons</h4>
+                <h4 className="text-sm font-medium text-heading mb-2">Your Seasons</h4>
                 {loadingSeasons ? (
                     <div className="flex items-center justify-center py-6">
-                        <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                        <Loader2 className="h-6 w-6 animate-spin text-faint" />
                     </div>
                 ) : seasons.length === 0 ? (
-                    <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
-                        <CalendarDays className="mx-auto h-8 w-8 text-slate-400" />
-                        <p className="mt-2 text-sm text-slate-500">No seasons yet.</p>
-                        <p className="text-xs text-slate-400">Seasons are created automatically when you create competitions.</p>
+                    <div className="text-center py-6 bg-surface-alt rounded-lg border-2 border-dashed border-line">
+                        <CalendarDays className="mx-auto h-8 w-8 text-faint" />
+                        <p className="mt-2 text-sm text-muted">No seasons yet.</p>
+                        <p className="text-xs text-faint">Seasons are created automatically when you create competitions.</p>
                     </div>
                 ) : (
                     <div className="space-y-2">
                         {seasons.map((season) => (
                             <div
                                 key={season.id}
-                                className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-slate-200"
+                                className="flex items-center justify-between bg-surface rounded-lg px-4 py-3 border border-line"
                             >
                                 <div className="flex items-center gap-3">
-                                    <span className="text-sm font-medium text-slate-900">{season.name}</span>
+                                    <span className="text-sm font-medium text-heading">{season.name}</span>
                                     {season.is_current && (
-                                        <span className="px-2 py-0.5 text-xs font-medium bg-brand-100 text-brand-700 rounded-full">
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-accent-500/10 text-accent-600 rounded-full">
                                             Current
                                         </span>
                                     )}
                                 </div>
-                                <span className="text-xs text-slate-500">
+                                <span className="text-xs text-muted">
                                     {format(parseISO(season.start_date), 'MMM d, yyyy')} - {format(parseISO(season.end_date), 'MMM d, yyyy')}
                                 </span>
                             </div>

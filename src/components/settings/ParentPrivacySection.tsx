@@ -122,36 +122,36 @@ export function ParentPrivacySection() {
         >
             {loadingPrivacy ? (
                 <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-faint" />
                 </div>
             ) : (
                 <>
                     {privacyMessage && (
                         <div className={`mb-4 p-3 rounded-lg flex items-center gap-2 text-sm ${
                             privacyMessage.type === 'success'
-                                ? 'bg-green-50 text-green-700 border border-green-200'
-                                : 'bg-red-50 text-red-700 border border-red-200'
+                                ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                                : 'bg-red-500/10 text-red-600 border border-red-500/20'
                         }`}>
                             {privacyMessage.type === 'success' && <Check className="h-4 w-4" />}
                             {privacyMessage.text}
                         </div>
                     )}
 
-                    <p className="text-sm text-slate-600 mb-4">
+                    <p className="text-sm text-subtle mb-4">
                         Your gymnast's name and your name are always visible to other parents in this hub.
                         Choose what additional information you'd like to share:
                     </p>
 
                     <div className="space-y-3">
                         {/* Email Toggle */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <div className="flex items-center justify-between p-4 bg-surface-alt rounded-lg border border-line">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-blue-100 rounded-lg">
+                                <div className="p-2 bg-blue-500/10 rounded-lg">
                                     <Mail className="h-4 w-4 text-blue-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900">Email Address</p>
-                                    <p className="text-xs text-slate-500">Allow other parents to see your email</p>
+                                    <p className="text-sm font-medium text-heading">Email Address</p>
+                                    <p className="text-xs text-muted">Allow other parents to see your email</p>
                                 </div>
                             </div>
                             <button
@@ -159,12 +159,12 @@ export function ParentPrivacySection() {
                                 role="switch"
                                 aria-checked={privacySettings.show_email}
                                 onClick={() => handlePrivacyToggle('show_email')}
-                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                    privacySettings.show_email ? 'bg-brand-600' : 'bg-slate-200'
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 ${
+                                    privacySettings.show_email ? 'bg-accent-600' : 'bg-surface-active'
                                 }`}
                             >
                                 <span
-                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                         privacySettings.show_email ? 'translate-x-5' : 'translate-x-0'
                                     }`}
                                 />
@@ -172,14 +172,14 @@ export function ParentPrivacySection() {
                         </div>
 
                         {/* Phone Toggle */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <div className="flex items-center justify-between p-4 bg-surface-alt rounded-lg border border-line">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-green-100 rounded-lg">
+                                <div className="p-2 bg-green-500/10 rounded-lg">
                                     <Phone className="h-4 w-4 text-green-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900">Phone Number</p>
-                                    <p className="text-xs text-slate-500">Allow other parents to see your phone number</p>
+                                    <p className="text-sm font-medium text-heading">Phone Number</p>
+                                    <p className="text-xs text-muted">Allow other parents to see your phone number</p>
                                 </div>
                             </div>
                             <button
@@ -187,12 +187,12 @@ export function ParentPrivacySection() {
                                 role="switch"
                                 aria-checked={privacySettings.show_phone}
                                 onClick={() => handlePrivacyToggle('show_phone')}
-                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                    privacySettings.show_phone ? 'bg-brand-600' : 'bg-slate-200'
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 ${
+                                    privacySettings.show_phone ? 'bg-accent-600' : 'bg-surface-active'
                                 }`}
                             >
                                 <span
-                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                         privacySettings.show_phone ? 'translate-x-5' : 'translate-x-0'
                                     }`}
                                 />
@@ -200,14 +200,14 @@ export function ParentPrivacySection() {
                         </div>
 
                         {/* Level Toggle */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <div className="flex items-center justify-between p-4 bg-surface-alt rounded-lg border border-line">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-purple-100 rounded-lg">
+                                <div className="p-2 bg-purple-500/10 rounded-lg">
                                     <Award className="h-4 w-4 text-purple-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900">Gymnast's Level</p>
-                                    <p className="text-xs text-slate-500">Allow other parents to see your gymnast's level</p>
+                                    <p className="text-sm font-medium text-heading">Gymnast's Level</p>
+                                    <p className="text-xs text-muted">Allow other parents to see your gymnast's level</p>
                                 </div>
                             </div>
                             <button
@@ -215,12 +215,12 @@ export function ParentPrivacySection() {
                                 role="switch"
                                 aria-checked={privacySettings.show_gymnast_level}
                                 onClick={() => handlePrivacyToggle('show_gymnast_level')}
-                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                    privacySettings.show_gymnast_level ? 'bg-brand-600' : 'bg-slate-200'
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 ${
+                                    privacySettings.show_gymnast_level ? 'bg-accent-600' : 'bg-surface-active'
                                 }`}
                             >
                                 <span
-                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                         privacySettings.show_gymnast_level ? 'translate-x-5' : 'translate-x-0'
                                     }`}
                                 />
@@ -228,14 +228,14 @@ export function ParentPrivacySection() {
                         </div>
 
                         {/* Birthday Toggle */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+                        <div className="flex items-center justify-between p-4 bg-surface-alt rounded-lg border border-line">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-pink-100 rounded-lg">
+                                <div className="p-2 bg-pink-500/10 rounded-lg">
                                     <Cake className="h-4 w-4 text-pink-600" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900">Gymnast's Birthday</p>
-                                    <p className="text-xs text-slate-500">Allow other parents to see your gymnast's birthday</p>
+                                    <p className="text-sm font-medium text-heading">Gymnast's Birthday</p>
+                                    <p className="text-xs text-muted">Allow other parents to see your gymnast's birthday</p>
                                 </div>
                             </div>
                             <button
@@ -243,12 +243,12 @@ export function ParentPrivacySection() {
                                 role="switch"
                                 aria-checked={privacySettings.show_gymnast_birthday}
                                 onClick={() => handlePrivacyToggle('show_gymnast_birthday')}
-                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                    privacySettings.show_gymnast_birthday ? 'bg-brand-600' : 'bg-slate-200'
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 ${
+                                    privacySettings.show_gymnast_birthday ? 'bg-accent-600' : 'bg-surface-active'
                                 }`}
                             >
                                 <span
-                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                         privacySettings.show_gymnast_birthday ? 'translate-x-5' : 'translate-x-0'
                                     }`}
                                 />

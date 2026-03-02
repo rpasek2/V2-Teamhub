@@ -665,39 +665,39 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                 {/* Role Selection */}
                 {!selectedRole && !addingGymnastProfile && (
                     <div className="space-y-4">
-                        <p className="text-sm text-slate-600">What would you like to add?</p>
+                        <p className="text-sm text-subtle">What would you like to add?</p>
                         <div className="grid grid-cols-2 gap-4">
                             <button
                                 type="button"
                                 onClick={() => setAddingGymnastProfile(true)}
-                                className="flex flex-col items-center justify-center rounded-lg border-2 border-slate-200 p-4 hover:border-brand-500 hover:bg-brand-50 transition-colors"
+                                className="flex flex-col items-center justify-center rounded-lg border-2 border-line p-4 hover:border-accent-500 hover:bg-accent-50 transition-colors"
                             >
-                                <Users className="h-8 w-8 text-brand-600 mb-2" />
+                                <Users className="h-8 w-8 text-accent-600 mb-2" />
                                 <span className="font-medium">Athlete</span>
-                                <span className="text-xs text-slate-500 mt-1">Gymnast profile</span>
+                                <span className="text-xs text-muted mt-1">Gymnast profile</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleRoleSelect('parent')}
-                                className="flex flex-col items-center justify-center rounded-lg border-2 border-slate-200 p-4 hover:border-brand-500 hover:bg-brand-50 transition-colors"
+                                className="flex flex-col items-center justify-center rounded-lg border-2 border-line p-4 hover:border-accent-500 hover:bg-accent-50 transition-colors"
                             >
-                                <UserPlus className="h-8 w-8 text-brand-600 mb-2" />
+                                <UserPlus className="h-8 w-8 text-accent-600 mb-2" />
                                 <span className="font-medium">Parent</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleRoleSelect('coach')}
-                                className="flex flex-col items-center justify-center rounded-lg border-2 border-slate-200 p-4 hover:border-brand-500 hover:bg-brand-50 transition-colors"
+                                className="flex flex-col items-center justify-center rounded-lg border-2 border-line p-4 hover:border-accent-500 hover:bg-accent-50 transition-colors"
                             >
-                                <UserPlus className="h-8 w-8 text-brand-600 mb-2" />
+                                <UserPlus className="h-8 w-8 text-accent-600 mb-2" />
                                 <span className="font-medium">Coach</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => handleRoleSelect('admin')}
-                                className="flex flex-col items-center justify-center rounded-lg border-2 border-slate-200 p-4 hover:border-brand-500 hover:bg-brand-50 transition-colors"
+                                className="flex flex-col items-center justify-center rounded-lg border-2 border-line p-4 hover:border-accent-500 hover:bg-accent-50 transition-colors"
                             >
-                                <UserPlus className="h-8 w-8 text-brand-600 mb-2" />
+                                <UserPlus className="h-8 w-8 text-accent-600 mb-2" />
                                 <span className="font-medium">Admin</span>
                             </button>
                         </div>
@@ -708,11 +708,11 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                 {addingGymnastProfile && mode === 'select' && (
                     <div className="space-y-3">
                         <div className="flex items-center justify-between">
-                            <p className="text-sm text-slate-600">How would you like to add athletes?</p>
+                            <p className="text-sm text-subtle">How would you like to add athletes?</p>
                             <button
                                 type="button"
                                 onClick={handleBack}
-                                className="text-sm text-brand-600 hover:text-brand-700"
+                                className="text-sm text-accent-600 hover:text-accent-700"
                             >
                                 Back
                             </button>
@@ -721,20 +721,20 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                             <button
                                 type="button"
                                 onClick={() => setMode('single')}
-                                className="flex flex-col items-center justify-center rounded-lg border-2 border-slate-200 p-4 hover:border-brand-500 hover:bg-brand-50 transition-colors"
+                                className="flex flex-col items-center justify-center rounded-lg border-2 border-line p-4 hover:border-accent-500 hover:bg-accent-50 transition-colors"
                             >
-                                <UserPlus className="h-8 w-8 text-brand-600 mb-2" />
+                                <UserPlus className="h-8 w-8 text-accent-600 mb-2" />
                                 <span className="font-medium">Add One</span>
-                                <span className="text-xs text-slate-500 mt-1">Single athlete</span>
+                                <span className="text-xs text-muted mt-1">Single athlete</span>
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setMode('bulk')}
-                                className="flex flex-col items-center justify-center rounded-lg border-2 border-slate-200 p-4 hover:border-brand-500 hover:bg-brand-50 transition-colors"
+                                className="flex flex-col items-center justify-center rounded-lg border-2 border-line p-4 hover:border-accent-500 hover:bg-accent-50 transition-colors"
                             >
-                                <Upload className="h-8 w-8 text-brand-600 mb-2" />
+                                <Upload className="h-8 w-8 text-accent-600 mb-2" />
                                 <span className="font-medium">Bulk Import</span>
-                                <span className="text-xs text-slate-500 mt-1">Multiple athletes</span>
+                                <span className="text-xs text-muted mt-1">Multiple athletes</span>
                             </button>
                         </div>
                     </div>
@@ -745,20 +745,20 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                     addingGymnastProfile && mode === 'single' && (
                         <form onSubmit={handleSingleGymnastSubmit} className="max-h-[70vh] overflow-y-auto -mx-6 px-6">
                             {/* Header */}
-                            <div className="flex items-center justify-between sticky top-0 bg-white pb-4 pt-1 z-10 border-b border-slate-100 -mx-6 px-6">
+                            <div className="flex items-center justify-between sticky top-0 bg-surface pb-4 pt-1 z-10 border-b border-line -mx-6 px-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-100">
-                                        <Users className="h-5 w-5 text-brand-600" />
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-100">
+                                        <Users className="h-5 w-5 text-accent-600" />
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-slate-900">{initialData ? 'Edit Athlete' : 'New Athlete'}</h4>
-                                        <p className="text-xs text-slate-500">Enter gymnast information</p>
+                                        <h4 className="font-semibold text-heading">{initialData ? 'Edit Athlete' : 'New Athlete'}</h4>
+                                        <p className="text-xs text-muted">Enter gymnast information</p>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     onClick={handleBack}
-                                    className="text-sm text-slate-500 hover:text-slate-700 flex items-center gap-1"
+                                    className="text-sm text-muted hover:text-body flex items-center gap-1"
                                 >
                                     <ChevronDown className="h-4 w-4 rotate-90" />
                                     Back
@@ -767,31 +767,31 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
 
                             <div className="space-y-6 pt-6">
                                 {/* Basic Information Card */}
-                                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                                    <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                                        <User className="h-4 w-4 text-slate-500" />
-                                        <h5 className="text-sm font-semibold text-slate-700">Basic Information</h5>
+                                <div className="rounded-xl border border-line bg-surface overflow-hidden">
+                                    <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                                        <User className="h-4 w-4 text-muted" />
+                                        <h5 className="text-sm font-semibold text-body">Basic Information</h5>
                                     </div>
                                     <div className="p-4 space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">First Name <span className="text-red-500">*</span></label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">First Name <span className="text-red-500">*</span></label>
                                                 <input
                                                     type="text"
                                                     value={firstName}
                                                     onChange={(e) => setFirstName(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="Jane"
                                                     required
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Last Name <span className="text-red-500">*</span></label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Last Name <span className="text-red-500">*</span></label>
                                                 <input
                                                     type="text"
                                                     value={lastName}
                                                     onChange={(e) => setLastName(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="Doe"
                                                     required
                                                 />
@@ -799,21 +799,21 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Date of Birth <span className="text-red-500">*</span></label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Date of Birth <span className="text-red-500">*</span></label>
                                                 <input
                                                     type="date"
                                                     value={dateOfBirth}
                                                     onChange={(e) => setDateOfBirth(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     required
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Gender</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Gender</label>
                                                 <select
                                                     value={gender}
                                                     onChange={(e) => setGender(e.target.value as 'Male' | 'Female' | '')}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow bg-white"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow bg-surface"
                                                 >
                                                     <option value="">Select...</option>
                                                     <option value="Female">Female</option>
@@ -823,12 +823,12 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Level</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Level</label>
                                                 {levels.length > 0 ? (
                                                     <select
                                                         value={level}
                                                         onChange={(e) => setLevel(e.target.value)}
-                                                        className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow bg-white"
+                                                        className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow bg-surface"
                                                     >
                                                         <option value="">Select level...</option>
                                                         {levels.map((lvl) => (
@@ -841,17 +841,17 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                                         value={level}
                                                         onChange={(e) => setLevel(e.target.value)}
                                                         placeholder="e.g., Level 3"
-                                                        className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                        className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     />
                                                 )}
                                             </div>
                                             <div className="grid grid-cols-2 gap-2">
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-600 mb-1.5">ID Type</label>
+                                                    <label className="block text-xs font-medium text-subtle mb-1.5">ID Type</label>
                                                     <select
                                                         value={memberIdType}
                                                         onChange={(e) => setMemberIdType(e.target.value as 'USAG' | 'AAU' | 'Other' | '')}
-                                                        className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow bg-white"
+                                                        className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow bg-surface"
                                                     >
                                                         <option value="">-</option>
                                                         <option value="USAG">USAG</option>
@@ -860,31 +860,31 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="block text-xs font-medium text-slate-600 mb-1.5">Member ID</label>
+                                                    <label className="block text-xs font-medium text-subtle mb-1.5">Member ID</label>
                                                     <input
                                                         type="text"
                                                         value={memberId}
                                                         onChange={(e) => setMemberId(e.target.value)}
                                                         placeholder="ID #"
-                                                        className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                        className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     />
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="space-y-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">T-Shirt Size</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">T-Shirt Size</label>
                                                 <div className="space-y-1.5">
                                                     <div className="flex flex-wrap gap-1.5">
-                                                        <span className="text-[10px] text-slate-400 w-full">Youth:</span>
+                                                        <span className="text-[10px] text-faint w-full">Youth:</span>
                                                         {['YXS', 'YS', 'YM', 'YL', 'YXL'].map((size) => (
                                                             <button
                                                                 key={size}
                                                                 type="button"
                                                                 onClick={() => setTshirtSize(tshirtSize === size ? '' : size)}
                                                                 className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${tshirtSize === size
-                                                                        ? 'bg-brand-600 text-white border-brand-600'
-                                                                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
+                                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                                        : 'bg-surface text-subtle border-line-strong hover:border-accent-300'
                                                                     }`}
                                                             >
                                                                 {size}
@@ -892,15 +892,15 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                                         ))}
                                                     </div>
                                                     <div className="flex flex-wrap gap-1.5">
-                                                        <span className="text-[10px] text-slate-400 w-full">Adult:</span>
+                                                        <span className="text-[10px] text-faint w-full">Adult:</span>
                                                         {['AXS', 'AS', 'AM', 'AL', 'AXL', 'AXXL'].map((size) => (
                                                             <button
                                                                 key={size}
                                                                 type="button"
                                                                 onClick={() => setTshirtSize(tshirtSize === size ? '' : size)}
                                                                 className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${tshirtSize === size
-                                                                        ? 'bg-brand-600 text-white border-brand-600'
-                                                                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
+                                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                                        : 'bg-surface text-subtle border-line-strong hover:border-accent-300'
                                                                     }`}
                                                             >
                                                                 {size}
@@ -910,18 +910,18 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Leo Size</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Leo Size</label>
                                                 <div className="space-y-1.5">
                                                     <div className="flex flex-wrap gap-1.5">
-                                                        <span className="text-[10px] text-slate-400 w-full">Child:</span>
+                                                        <span className="text-[10px] text-faint w-full">Child:</span>
                                                         {['CXXS', 'CXS', 'CS', 'CM', 'CL', 'CXL'].map((size) => (
                                                             <button
                                                                 key={size}
                                                                 type="button"
                                                                 onClick={() => setLeoSize(leoSize === size ? '' : size)}
                                                                 className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${leoSize === size
-                                                                        ? 'bg-brand-600 text-white border-brand-600'
-                                                                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
+                                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                                        : 'bg-surface text-subtle border-line-strong hover:border-accent-300'
                                                                     }`}
                                                             >
                                                                 {size}
@@ -929,15 +929,15 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                                         ))}
                                                     </div>
                                                     <div className="flex flex-wrap gap-1.5">
-                                                        <span className="text-[10px] text-slate-400 w-full">Adult:</span>
+                                                        <span className="text-[10px] text-faint w-full">Adult:</span>
                                                         {['AXS', 'AS', 'AM', 'AL', 'AXL', 'AXXL', 'A3XL', 'A4XL'].map((size) => (
                                                             <button
                                                                 key={size}
                                                                 type="button"
                                                                 onClick={() => setLeoSize(leoSize === size ? '' : size)}
                                                                 className={`px-2.5 py-1 text-xs font-medium rounded-md border transition-all ${leoSize === size
-                                                                        ? 'bg-brand-600 text-white border-brand-600'
-                                                                        : 'bg-white text-slate-600 border-slate-300 hover:border-brand-300'
+                                                                        ? 'bg-accent-600 text-white border-accent-600'
+                                                                        : 'bg-surface text-subtle border-line-strong hover:border-accent-300'
                                                                     }`}
                                                             >
                                                                 {size}
@@ -951,50 +951,50 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                 </div>
 
                                 {/* Primary Guardian Card */}
-                                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                                    <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                                        <Phone className="h-4 w-4 text-slate-500" />
-                                        <h5 className="text-sm font-semibold text-slate-700">Primary Guardian</h5>
+                                <div className="rounded-xl border border-line bg-surface overflow-hidden">
+                                    <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                                        <Phone className="h-4 w-4 text-muted" />
+                                        <h5 className="text-sm font-semibold text-body">Primary Guardian</h5>
                                     </div>
                                     <div className="p-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">First Name</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">First Name</label>
                                                 <input
                                                     type="text"
                                                     value={g1FirstName}
                                                     onChange={(e) => setG1FirstName(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="First name"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Last Name</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Last Name</label>
                                                 <input
                                                     type="text"
                                                     value={g1LastName}
                                                     onChange={(e) => setG1LastName(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="Last name"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Email</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Email</label>
                                                 <input
                                                     type="email"
                                                     value={g1Email}
                                                     onChange={(e) => setG1Email(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="email@example.com"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Phone</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Phone</label>
                                                 <input
                                                     type="tel"
                                                     value={g1Phone}
                                                     onChange={(e) => setG1Phone(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="(555) 123-4567"
                                                 />
                                             </div>
@@ -1003,51 +1003,51 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                 </div>
 
                                 {/* Secondary Guardian Card */}
-                                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-                                    <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                                        <Heart className="h-4 w-4 text-slate-500" />
-                                        <h5 className="text-sm font-semibold text-slate-700">Secondary Guardian</h5>
-                                        <span className="text-xs text-slate-400 ml-auto">Optional</span>
+                                <div className="rounded-xl border border-line bg-surface overflow-hidden">
+                                    <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                                        <Heart className="h-4 w-4 text-muted" />
+                                        <h5 className="text-sm font-semibold text-body">Secondary Guardian</h5>
+                                        <span className="text-xs text-faint ml-auto">Optional</span>
                                     </div>
                                     <div className="p-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">First Name</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">First Name</label>
                                                 <input
                                                     type="text"
                                                     value={g2FirstName}
                                                     onChange={(e) => setG2FirstName(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="First name"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Last Name</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Last Name</label>
                                                 <input
                                                     type="text"
                                                     value={g2LastName}
                                                     onChange={(e) => setG2LastName(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="Last name"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Email</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Email</label>
                                                 <input
                                                     type="email"
                                                     value={g2Email}
                                                     onChange={(e) => setG2Email(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="email@example.com"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Phone</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Phone</label>
                                                 <input
                                                     type="tel"
                                                     value={g2Phone}
                                                     onChange={(e) => setG2Phone(e.target.value)}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                                                     placeholder="(555) 123-4567"
                                                 />
                                             </div>
@@ -1056,7 +1056,7 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                 </div>
 
                                 {/* Medical Information Card */}
-                                <div className="rounded-xl border border-red-200 bg-white overflow-hidden">
+                                <div className="rounded-xl border border-red-200 bg-surface overflow-hidden">
                                     <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border-b border-red-200">
                                         <Shield className="h-4 w-4 text-red-500" />
                                         <h5 className="text-sm font-semibold text-red-700">Medical Information</h5>
@@ -1065,43 +1065,43 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                     <div className="p-4 space-y-4">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Allergies</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Allergies</label>
                                                 <textarea
                                                     value={allergies}
                                                     onChange={(e) => setAllergies(e.target.value)}
                                                     rows={2}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow resize-none"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow resize-none"
                                                     placeholder="List any allergies..."
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-600 mb-1.5">Medications</label>
+                                                <label className="block text-xs font-medium text-subtle mb-1.5">Medications</label>
                                                 <textarea
                                                     value={medications}
                                                     onChange={(e) => setMedications(e.target.value)}
                                                     rows={2}
-                                                    className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow resize-none"
+                                                    className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow resize-none"
                                                     placeholder="Current medications..."
                                                 />
                                             </div>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Medical Conditions</label>
+                                            <label className="block text-xs font-medium text-subtle mb-1.5">Medical Conditions</label>
                                             <textarea
                                                 value={conditions}
                                                 onChange={(e) => setConditions(e.target.value)}
                                                 rows={2}
-                                                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow resize-none"
+                                                className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow resize-none"
                                                 placeholder="Any conditions coaches should be aware of..."
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-medium text-slate-600 mb-1.5">Additional Notes</label>
+                                            <label className="block text-xs font-medium text-subtle mb-1.5">Additional Notes</label>
                                             <textarea
                                                 value={medicalNotes}
                                                 onChange={(e) => setMedicalNotes(e.target.value)}
                                                 rows={2}
-                                                className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow resize-none"
+                                                className="block w-full rounded-lg border border-line-strong px-3 py-2 text-sm shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow resize-none"
                                                 placeholder="Other important information..."
                                             />
                                         </div>
@@ -1134,13 +1134,13 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                 )}
 
                                 {/* Action Buttons */}
-                                <div className="flex items-center gap-3 pt-2 pb-4 sticky bottom-0 bg-white border-t border-slate-100 -mx-6 px-6 mt-6">
+                                <div className="flex items-center gap-3 pt-2 pb-4 sticky bottom-0 bg-surface border-t border-line -mx-6 px-6 mt-6">
                                     {initialData && (
                                         <button
                                             type="button"
                                             onClick={handleDelete}
                                             disabled={loading || !!success}
-                                            className="inline-flex items-center rounded-lg border border-red-300 bg-white px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                                            className="inline-flex items-center rounded-lg border border-red-300 bg-surface px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50 transition-colors"
                                         >
                                             <Trash2 className="h-4 w-4 mr-2" />
                                             Delete
@@ -1150,14 +1150,14 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                     <button
                                         type="button"
                                         onClick={handleClose}
-                                        className="rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                                        className="rounded-lg border border-line-strong bg-surface px-4 py-2.5 text-sm font-medium text-body hover:bg-surface-hover transition-colors"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={loading || !!success}
-                                        className="inline-flex items-center rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50 transition-colors shadow-sm"
+                                        className="inline-flex items-center rounded-lg bg-accent-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50 transition-colors shadow-sm"
                                     >
                                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                         {initialData ? 'Save Changes' : 'Add Athlete'}
@@ -1172,20 +1172,20 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                     mode === 'single' && selectedRole && !addingGymnastProfile && (
                         <form onSubmit={handleSingleSubmit} className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h4 className="font-medium text-slate-900">
+                                <h4 className="font-medium text-heading">
                                     Add {selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1)}
                                 </h4>
                                 <button
                                     type="button"
                                     onClick={handleBack}
-                                    className="text-sm text-brand-600 hover:text-brand-700"
+                                    className="text-sm text-accent-600 hover:text-accent-700"
                                 >
                                     Back
                                 </button>
                             </div>
 
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-slate-700">
+                                <label htmlFor="email" className="block text-sm font-medium text-body">
                                     Email Address
                                 </label>
                                 <input
@@ -1193,11 +1193,11 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                     id="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 sm:text-sm"
                                     placeholder="user@example.com"
                                     required
                                 />
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-xs text-muted">
                                     The user must already have an account.
                                 </p>
                             </div>
@@ -1221,7 +1221,7 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                         type="button"
                                         onClick={handleDelete}
                                         disabled={loading || !!success}
-                                        className="rounded-md border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50 mr-auto"
+                                        className="rounded-md border border-red-300 bg-surface px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:opacity-50 mr-auto"
                                     >
                                         <Trash2 className="h-4 w-4 mr-2 inline-block" />
                                         Delete
@@ -1230,14 +1230,14 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                    className="rounded-md border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading || !!success}
-                                    className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                    className="inline-flex items-center rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                                 >
                                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     {initialData ? 'Save Changes' : 'Add Member'}
@@ -1252,33 +1252,33 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                     mode === 'bulk' && addingGymnastProfile && (
                         <form onSubmit={handleBulkSubmit} className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h4 className="font-medium text-slate-900">Bulk Import Gymnasts</h4>
+                                <h4 className="font-medium text-heading">Bulk Import Gymnasts</h4>
                                 <button
                                     type="button"
                                     onClick={handleBack}
-                                    className="text-sm text-brand-600 hover:text-brand-700"
+                                    className="text-sm text-accent-600 hover:text-accent-700"
                                 >
                                     Back
                                 </button>
                             </div>
 
                             <div>
-                                <label htmlFor="rollSheetFile" className="block text-sm font-medium text-slate-700">
+                                <label htmlFor="rollSheetFile" className="block text-sm font-medium text-body">
                                     Upload Roll Sheet
                                 </label>
                                 <div className="mt-2">
                                     <label
                                         htmlFor="rollSheetFile"
-                                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100"
+                                        className="flex flex-col items-center justify-center w-full h-32 border-2 border-line-strong border-dashed rounded-lg cursor-pointer bg-surface-alt hover:bg-surface-hover"
                                     >
                                         <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                            <Upload className="w-8 h-8 mb-2 text-slate-500" />
-                                            <p className="mb-2 text-sm text-slate-500">
+                                            <Upload className="w-8 h-8 mb-2 text-muted" />
+                                            <p className="mb-2 text-sm text-muted">
                                                 <span className="font-semibold">Click to upload</span> or drag and drop
                                             </p>
-                                            <p className="text-xs text-slate-500">iClassPro roll sheet (HTML file)</p>
+                                            <p className="text-xs text-muted">iClassPro roll sheet (HTML file)</p>
                                             {bulkFile && (
-                                                <p className="mt-2 text-sm text-brand-600 font-medium">{bulkFile.name}</p>
+                                                <p className="mt-2 text-sm text-accent-600 font-medium">{bulkFile.name}</p>
                                             )}
                                         </div>
                                         <input
@@ -1294,7 +1294,7 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                         />
                                     </label>
                                 </div>
-                                <p className="mt-2 text-xs text-slate-500">
+                                <p className="mt-2 text-xs text-muted">
                                     Upload an iClassPro roll sheet HTML file. The system will automatically extract gymnast names, birthdates, gender, level, and guardian information.
                                 </p>
                             </div>
@@ -1316,14 +1316,14 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                 <button
                                     type="button"
                                     onClick={handleClose}
-                                    className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                                    className="rounded-md border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading || !!success}
-                                    className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                    className="inline-flex items-center rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                                 >
                                     {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                     Import Gymnasts

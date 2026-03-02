@@ -248,15 +248,15 @@ export function AttendanceMetricsTab() {
     };
 
     const getPercentageBgColor = (percentage: number) => {
-        if (percentage >= 90) return 'bg-emerald-100';
-        if (percentage >= 75) return 'bg-amber-100';
-        return 'bg-red-100';
+        if (percentage >= 90) return 'bg-emerald-500/10';
+        if (percentage >= 75) return 'bg-amber-500/10';
+        return 'bg-red-500/10';
     };
 
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
             </div>
         );
     }
@@ -270,8 +270,8 @@ export function AttendanceMetricsTab() {
             <div className="card p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     <div className="flex items-center gap-2">
-                        <Calendar className="w-5 h-5 text-slate-400" />
-                        <span className="text-sm font-medium text-slate-700">Date Range:</span>
+                        <Calendar className="w-5 h-5 text-faint" />
+                        <span className="text-sm font-medium text-body">Date Range:</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         {(['week', 'month', 'custom'] as const).map(range => (
@@ -280,8 +280,8 @@ export function AttendanceMetricsTab() {
                                 onClick={() => setDateRange(range)}
                                 className={`px-3 py-1.5 text-sm rounded-lg ${
                                     dateRange === range
-                                        ? 'bg-brand-100 text-brand-700'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-accent-500/10 text-accent-600'
+                                        : 'bg-surface-hover text-subtle hover:bg-surface-active'
                                 }`}
                             >
                                 {range === 'week' ? 'Last 7 Days' : range === 'month' ? 'This Month' : 'Custom'}
@@ -296,7 +296,7 @@ export function AttendanceMetricsTab() {
                                 onChange={(e) => setStartDate(e.target.value)}
                                 className="input text-sm"
                             />
-                            <span className="text-slate-400">to</span>
+                            <span className="text-faint">to</span>
                             <input
                                 type="date"
                                 value={endDate}
@@ -312,12 +312,12 @@ export function AttendanceMetricsTab() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="card p-4">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
+                        <div className="p-2 bg-blue-500/10 rounded-lg">
                             <Users className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500">Total Gymnasts</p>
-                            <p className="text-2xl font-bold text-slate-900">{overallStats.totalGymnasts}</p>
+                            <p className="text-sm text-muted">Total Gymnasts</p>
+                            <p className="text-2xl font-bold text-heading">{overallStats.totalGymnasts}</p>
                         </div>
                     </div>
                 </div>
@@ -327,7 +327,7 @@ export function AttendanceMetricsTab() {
                             <TrendingUp className={`w-5 h-5 ${getPercentageColor(overallStats.avgPercentage)}`} />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500">Average Attendance</p>
+                            <p className="text-sm text-muted">Average Attendance</p>
                             <p className={`text-2xl font-bold ${getPercentageColor(overallStats.avgPercentage)}`}>
                                 {overallStats.avgPercentage}%
                             </p>
@@ -336,12 +336,12 @@ export function AttendanceMetricsTab() {
                 </div>
                 <div className="card p-4">
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${overallStats.totalWarnings > 0 ? 'bg-red-100' : 'bg-slate-100'}`}>
-                            <AlertTriangle className={`w-5 h-5 ${overallStats.totalWarnings > 0 ? 'text-red-600' : 'text-slate-400'}`} />
+                        <div className={`p-2 rounded-lg ${overallStats.totalWarnings > 0 ? 'bg-red-500/10' : 'bg-surface-hover'}`}>
+                            <AlertTriangle className={`w-5 h-5 ${overallStats.totalWarnings > 0 ? 'text-red-600' : 'text-faint'}`} />
                         </div>
                         <div>
-                            <p className="text-sm text-slate-500">Attendance Warnings</p>
-                            <p className={`text-2xl font-bold ${overallStats.totalWarnings > 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                            <p className="text-sm text-muted">Attendance Warnings</p>
+                            <p className={`text-2xl font-bold ${overallStats.totalWarnings > 0 ? 'text-red-600' : 'text-heading'}`}>
                                 {overallStats.totalWarnings}
                             </p>
                         </div>
@@ -351,26 +351,26 @@ export function AttendanceMetricsTab() {
 
             {/* Warnings Section */}
             {gymnastsWithWarnings.length > 0 && (
-                <div className="card border-red-200">
-                    <div className="p-4 bg-red-50 border-b border-red-200">
+                <div className="card border-red-500/20">
+                    <div className="p-4 bg-red-500/10 border-b border-red-500/20">
                         <div className="flex items-center gap-2">
                             <AlertTriangle className="w-5 h-5 text-red-600" />
-                            <h3 className="font-semibold text-red-900">
+                            <h3 className="font-semibold text-red-600">
                                 Attendance Warnings ({gymnastsWithWarnings.length})
                             </h3>
                         </div>
-                        <p className="text-sm text-red-700 mt-1">
+                        <p className="text-sm text-red-500 mt-1">
                             Gymnasts with 3 or more consecutive absences
                         </p>
                     </div>
-                    <div className="divide-y divide-red-100">
+                    <div className="divide-y divide-red-500/10">
                         {gymnastsWithWarnings.map(stat => (
                             <div key={stat.gymnast.id} className="p-4 flex items-center justify-between">
                                 <div>
-                                    <p className="font-medium text-slate-900">
+                                    <p className="font-medium text-heading">
                                         {stat.gymnast.first_name} {stat.gymnast.last_name}
                                     </p>
-                                    <p className="text-sm text-slate-500">
+                                    <p className="text-sm text-muted">
                                         {stat.gymnast.level}
                                         {stat.lastAbsenceDate && (
                                             <span className="ml-2">
@@ -383,7 +383,7 @@ export function AttendanceMetricsTab() {
                                     <p className="text-lg font-bold text-red-600">
                                         {stat.consecutiveAbsences} absences
                                     </p>
-                                    <p className="text-sm text-slate-500">in a row</p>
+                                    <p className="text-sm text-muted">in a row</p>
                                 </div>
                             </div>
                         ))}
@@ -394,15 +394,15 @@ export function AttendanceMetricsTab() {
             {/* Level Breakdown */}
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-slate-900">Attendance by Level</h3>
+                    <h3 className="font-semibold text-heading">Attendance by Level</h3>
                     <label className="flex items-center gap-2 text-sm">
                         <input
                             type="checkbox"
                             checked={showWarningsOnly}
                             onChange={(e) => setShowWarningsOnly(e.target.checked)}
-                            className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                            className="rounded border-line-strong text-accent-600 focus:ring-accent-500"
                         />
-                        <span className="text-slate-600">Show warnings only</span>
+                        <span className="text-subtle">Show warnings only</span>
                     </label>
                 </div>
 
@@ -418,17 +418,17 @@ export function AttendanceMetricsTab() {
                     return (
                         <div key={level.level} className="card overflow-hidden">
                             <div
-                                className="flex items-center justify-between p-4 bg-slate-50 border-b border-slate-200 cursor-pointer hover:bg-slate-100"
+                                className="flex items-center justify-between p-4 bg-surface border-b border-line cursor-pointer hover:bg-surface-hover"
                                 onClick={() => toggleLevel(level.level)}
                             >
                                 <div className="flex items-center gap-3">
                                     {isExpanded ? (
-                                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                                        <ChevronDown className="w-5 h-5 text-faint" />
                                     ) : (
-                                        <ChevronRight className="w-5 h-5 text-slate-400" />
+                                        <ChevronRight className="w-5 h-5 text-faint" />
                                     )}
-                                    <span className="font-semibold text-slate-900">{level.level}</span>
-                                    <span className="text-sm text-slate-500">
+                                    <span className="font-semibold text-heading">{level.level}</span>
+                                    <span className="text-sm text-muted">
                                         ({level.totalGymnasts} gymnasts)
                                     </span>
                                 </div>
@@ -439,7 +439,7 @@ export function AttendanceMetricsTab() {
                                         </span>
                                     </div>
                                     {level.gymnastsWithWarnings > 0 && (
-                                        <div className="px-2 py-1 rounded-full bg-red-100 text-red-700 text-xs font-medium flex items-center gap-1">
+                                        <div className="px-2 py-1 rounded-full bg-red-500/10 text-red-600 text-xs font-medium flex items-center gap-1">
                                             <AlertTriangle className="w-3 h-3" />
                                             {level.gymnastsWithWarnings}
                                         </div>
@@ -451,7 +451,7 @@ export function AttendanceMetricsTab() {
                                 <div className="overflow-x-auto">
                                     <table className="w-full">
                                         <thead>
-                                            <tr className="bg-slate-50 text-xs text-slate-500 uppercase">
+                                            <tr className="bg-surface text-xs text-muted uppercase">
                                                 <th className="text-left px-4 py-2 font-medium">Gymnast</th>
                                                 <th className="text-center px-2 py-2 font-medium">Scheduled</th>
                                                 <th className="text-center px-2 py-2 font-medium">Present</th>
@@ -462,15 +462,15 @@ export function AttendanceMetricsTab() {
                                                 <th className="text-center px-2 py-2 font-medium">Streak</th>
                                             </tr>
                                         </thead>
-                                        <tbody className="divide-y divide-slate-100">
+                                        <tbody className="divide-y divide-line">
                                             {levelGymnasts.map(stat => (
-                                                <tr key={stat.gymnast.id} className="hover:bg-slate-50">
+                                                <tr key={stat.gymnast.id} className="hover:bg-surface-hover">
                                                     <td className="px-4 py-3">
-                                                        <span className="font-medium text-slate-900">
+                                                        <span className="font-medium text-heading">
                                                             {stat.gymnast.first_name} {stat.gymnast.last_name}
                                                         </span>
                                                     </td>
-                                                    <td className="text-center px-2 py-3 text-slate-600">
+                                                    <td className="text-center px-2 py-3 text-subtle">
                                                         {stat.totalScheduled}
                                                     </td>
                                                     <td className="text-center px-2 py-3 text-emerald-600">
@@ -492,14 +492,14 @@ export function AttendanceMetricsTab() {
                                                     </td>
                                                     <td className="text-center px-2 py-3">
                                                         {stat.consecutiveAbsences >= 3 ? (
-                                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-100 text-red-700 text-sm font-medium">
+                                                            <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-500/10 text-red-600 text-sm font-medium">
                                                                 <AlertTriangle className="w-3 h-3" />
                                                                 {stat.consecutiveAbsences}
                                                             </span>
                                                         ) : stat.consecutiveAbsences > 0 ? (
-                                                            <span className="text-slate-500">{stat.consecutiveAbsences}</span>
+                                                            <span className="text-muted">{stat.consecutiveAbsences}</span>
                                                         ) : (
-                                                            <span className="text-slate-300">-</span>
+                                                            <span className="text-faint">-</span>
                                                         )}
                                                     </td>
                                                 </tr>

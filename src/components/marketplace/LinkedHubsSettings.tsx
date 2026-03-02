@@ -165,14 +165,14 @@ export function LinkedHubsSettings() {
         >
             {loading ? (
                 <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-faint" />
                 </div>
             ) : (
                 <div className="space-y-6">
                     {/* Pending Incoming Requests */}
                     {pendingRequests.filter(r => r.is_incoming).length > 0 && (
                         <div>
-                            <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
+                            <h4 className="text-sm font-medium text-body mb-3 flex items-center gap-2">
                                 <AlertCircle className="h-4 w-4 text-amber-500" />
                                 Pending Requests
                             </h4>
@@ -180,11 +180,11 @@ export function LinkedHubsSettings() {
                                 {pendingRequests.filter(r => r.is_incoming).map((request) => (
                                     <div
                                         key={request.link_id}
-                                        className="flex items-center justify-between p-3 rounded-lg bg-amber-50 border border-amber-200"
+                                        className="flex items-center justify-between p-3 rounded-lg bg-amber-500/10 border border-amber-500/20"
                                     >
                                         <div>
-                                            <p className="font-medium text-slate-900">{request.name}</p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="font-medium text-heading">{request.name}</p>
+                                            <p className="text-xs text-muted">
                                                 Wants to link their marketplace with yours
                                             </p>
                                         </div>
@@ -204,7 +204,7 @@ export function LinkedHubsSettings() {
                                             <button
                                                 onClick={() => handleRejectLink(request.link_id)}
                                                 disabled={processingId === request.link_id}
-                                                className="inline-flex items-center gap-1 rounded-lg bg-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-300 disabled:opacity-50"
+                                                className="inline-flex items-center gap-1 rounded-lg bg-surface-active px-3 py-1.5 text-xs font-medium text-body hover:bg-surface-active disabled:opacity-50"
                                             >
                                                 <X className="h-3 w-3" />
                                                 Decline
@@ -219,26 +219,26 @@ export function LinkedHubsSettings() {
                     {/* Pending Outgoing Requests */}
                     {pendingRequests.filter(r => !r.is_incoming).length > 0 && (
                         <div>
-                            <h4 className="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2">
-                                <Clock className="h-4 w-4 text-slate-400" />
+                            <h4 className="text-sm font-medium text-body mb-3 flex items-center gap-2">
+                                <Clock className="h-4 w-4 text-faint" />
                                 Awaiting Approval
                             </h4>
                             <div className="space-y-2">
                                 {pendingRequests.filter(r => !r.is_incoming).map((request) => (
                                     <div
                                         key={request.link_id}
-                                        className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-200"
+                                        className="flex items-center justify-between p-3 rounded-lg bg-surface-alt border border-line"
                                     >
                                         <div>
-                                            <p className="font-medium text-slate-900">{request.name}</p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="font-medium text-heading">{request.name}</p>
+                                            <p className="text-xs text-muted">
                                                 Waiting for their approval
                                             </p>
                                         </div>
                                         <button
                                             onClick={() => handleRemoveLink(request.link_id)}
                                             disabled={processingId === request.link_id}
-                                            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-muted hover:text-red-600 hover:bg-red-500/10 disabled:opacity-50"
                                         >
                                             {processingId === request.link_id ? (
                                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -256,23 +256,23 @@ export function LinkedHubsSettings() {
                     {/* Active Links */}
                     {linkedHubs.length > 0 ? (
                         <div>
-                            <h4 className="text-sm font-medium text-slate-700 mb-3">
+                            <h4 className="text-sm font-medium text-body mb-3">
                                 Active Links ({linkedHubs.length})
                             </h4>
                             <div className="space-y-2">
                                 {linkedHubs.map((linkedHub) => (
                                     <div
                                         key={linkedHub.link_id}
-                                        className="flex items-center justify-between p-3 rounded-lg bg-purple-50 border border-purple-200"
+                                        className="flex items-center justify-between p-3 rounded-lg bg-purple-500/10 border border-purple-500/20"
                                     >
                                         <div className="flex items-center gap-3">
                                             <Link2 className="h-4 w-4 text-purple-600" />
-                                            <p className="font-medium text-slate-900">{linkedHub.name}</p>
+                                            <p className="font-medium text-heading">{linkedHub.name}</p>
                                         </div>
                                         <button
                                             onClick={() => handleRemoveLink(linkedHub.link_id)}
                                             disabled={processingId === linkedHub.link_id}
-                                            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-50"
+                                            className="inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-medium text-muted hover:text-red-600 hover:bg-red-500/10 disabled:opacity-50"
                                         >
                                             {processingId === linkedHub.link_id ? (
                                                 <Loader2 className="h-3 w-3 animate-spin" />
@@ -287,8 +287,8 @@ export function LinkedHubsSettings() {
                         </div>
                     ) : pendingRequests.length === 0 ? (
                         <div className="text-center py-8">
-                            <Link2 className="mx-auto h-10 w-10 text-slate-300" />
-                            <p className="mt-3 text-sm text-slate-500">
+                            <Link2 className="mx-auto h-10 w-10 text-faint" />
+                            <p className="mt-3 text-sm text-muted">
                                 No linked hubs yet. Link your other hubs to share marketplace items.
                             </p>
                         </div>

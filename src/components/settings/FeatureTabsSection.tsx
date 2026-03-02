@@ -93,7 +93,7 @@ export function FeatureTabsSection({ enabledTabs, setEnabledTabs }: FeatureTabsS
             }
         >
             {tabsMessage && (
-                <div className={`mb-4 p-4 rounded-md ${tabsMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                <div className={`mb-4 p-4 rounded-md ${tabsMessage.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {tabsMessage.text}
                 </div>
             )}
@@ -113,25 +113,25 @@ export function FeatureTabsSection({ enabledTabs, setEnabledTabs }: FeatureTabsS
                             disabled={isLastEnabled || isForceDisabled}
                             className={`flex items-start gap-3 p-4 rounded-lg border-2 text-left transition-all ${
                                 isEnabled && !isForceDisabled
-                                    ? 'border-mint-500 bg-mint-50'
-                                    : 'border-slate-200 bg-slate-50 opacity-60'
-                            } ${isLastEnabled || isForceDisabled ? 'cursor-not-allowed' : 'hover:border-mint-400'}`}
+                                    ? 'border-accent-500 bg-accent-500/10'
+                                    : 'border-line bg-surface-alt opacity-60'
+                            } ${isLastEnabled || isForceDisabled ? 'cursor-not-allowed' : 'hover:border-accent-400'}`}
                             title={isForceDisabled ? 'Requires Schedule to be enabled' : isLastEnabled ? 'At least one tab must be enabled' : undefined}
                         >
                             <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
                                 isEnabled && !isForceDisabled
-                                    ? 'bg-mint-500 border-mint-500'
-                                    : 'border-slate-300 bg-white'
+                                    ? 'bg-accent-500 border-accent-500'
+                                    : 'border-line-strong bg-surface'
                             }`}>
                                 {isEnabled && !isForceDisabled && (
                                     <Check className="h-3.5 w-3.5 text-white" />
                                 )}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className={`text-sm font-medium ${isEnabled && !isForceDisabled ? 'text-slate-900' : 'text-slate-500'}`}>
+                                <p className={`text-sm font-medium ${isEnabled && !isForceDisabled ? 'text-heading' : 'text-muted'}`}>
                                     {tab.label}
                                 </p>
-                                <p className="text-xs text-slate-500 mt-0.5">
+                                <p className="text-xs text-muted mt-0.5">
                                     {tab.description}
                                 </p>
                                 {isForceDisabled && (

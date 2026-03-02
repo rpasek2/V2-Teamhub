@@ -121,7 +121,7 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0"
                 >
-                    <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+                    <div className="fixed inset-0 bg-black/50 transition-opacity" />
                 </Transition.Child>
 
                 <div className="fixed inset-0 z-10 overflow-y-auto">
@@ -135,11 +135,11 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
+                            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl sm:p-6">
                                 <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                                     <button
                                         type="button"
-                                        className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                                        className="rounded-md bg-surface text-faint hover:text-muted focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
                                         onClick={onClose}
                                     >
                                         <span className="sr-only">Close</span>
@@ -149,59 +149,59 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
 
                                 <div className="sm:flex sm:items-start">
                                     <div className="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
-                                        <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-gray-900">
+                                        <Dialog.Title as="h3" className="text-base font-semibold leading-6 text-heading">
                                             Manage Competition Roster
                                         </Dialog.Title>
                                         <div className="mt-2">
                                             <form onSubmit={handleSubmit} className="space-y-4">
                                                 {error && (
-                                                    <div className="rounded-md bg-red-50 p-4">
+                                                    <div className="rounded-md bg-red-500/10 p-4">
                                                         <div className="flex">
                                                             <div className="flex-shrink-0">
-                                                                <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+                                                                <AlertCircle className="h-5 w-5 text-red-500" aria-hidden="true" />
                                                             </div>
                                                             <div className="ml-3">
-                                                                <h3 className="text-sm font-medium text-red-800">{error}</h3>
+                                                                <h3 className="text-sm font-medium text-red-600">{error}</h3>
                                                             </div>
                                                         </div>
                                                     </div>
                                                 )}
 
                                                 <div>
-                                                    <label className="block text-sm font-medium leading-6 text-gray-900">
+                                                    <label className="block text-sm font-medium leading-6 text-heading">
                                                         Select Gymnasts
                                                     </label>
-                                                    <div className="mt-2 max-h-[400px] overflow-y-auto rounded-md border border-gray-200 p-2">
+                                                    <div className="mt-2 max-h-[400px] overflow-y-auto rounded-md border border-line p-2">
                                                         {allGymnasts.length > 0 ? (
                                                             <div className="space-y-2">
                                                                 {allGymnasts.map((gymnast) => (
                                                                     <div
                                                                         key={gymnast.id}
-                                                                        className={`flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-gray-50 ${selectedGymnasts.includes(gymnast.id) ? 'bg-brand-50' : ''
+                                                                        className={`flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-surface-hover ${selectedGymnasts.includes(gymnast.id) ? 'bg-accent-500/10' : ''
                                                                             }`}
                                                                         onClick={() => toggleGymnast(gymnast.id)}
                                                                     >
                                                                         <div className="flex items-center gap-2">
-                                                                            <span className="text-sm text-gray-900">
+                                                                            <span className="text-sm text-heading">
                                                                                 {gymnast.first_name} {gymnast.last_name}
                                                                             </span>
                                                                             {gymnast.level && (
-                                                                                <span className="text-xs text-gray-500">
+                                                                                <span className="text-xs text-muted">
                                                                                     {gymnast.level}
                                                                                 </span>
                                                                             )}
                                                                         </div>
                                                                         {selectedGymnasts.includes(gymnast.id) && (
-                                                                            <Check className="h-4 w-4 text-brand-600" />
+                                                                            <Check className="h-4 w-4 text-accent-600" />
                                                                         )}
                                                                     </div>
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <p className="text-sm text-gray-500">No gymnasts found in hub.</p>
+                                                            <p className="text-sm text-muted">No gymnasts found in hub.</p>
                                                         )}
                                                     </div>
-                                                    <p className="mt-1 text-xs text-gray-500">
+                                                    <p className="mt-1 text-xs text-muted">
                                                         {selectedGymnasts.length} selected
                                                     </p>
                                                 </div>
@@ -210,7 +210,7 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
                                                     <button
                                                         type="submit"
                                                         disabled={loading}
-                                                        className="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:ml-3 sm:w-auto disabled:opacity-50"
+                                                        className="inline-flex w-full justify-center rounded-md bg-accent-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 sm:ml-3 sm:w-auto disabled:opacity-50"
                                                     >
                                                         {loading ? (
                                                             <>
@@ -223,7 +223,7 @@ export function ManageCompetitionRosterModal({ isOpen, onClose, onRosterUpdated,
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                                                        className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-heading shadow-sm ring-1 ring-inset ring-line-strong hover:bg-surface-hover sm:mt-0 sm:w-auto"
                                                         onClick={onClose}
                                                     >
                                                         Cancel

@@ -255,7 +255,7 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
 
     if (loading) {
         return (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4">
                 <div className="flex items-center justify-center py-4">
                     <Loader2 className="h-5 w-5 animate-spin text-emerald-500" />
                 </div>
@@ -266,20 +266,20 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
     const allowUserSlots = settings?.allowUserSlots || false;
 
     return (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 bg-emerald-100 border-b border-emerald-200">
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 bg-emerald-500/15 border-b border-emerald-500/20">
                 <ClipboardList className="h-4 w-4 text-emerald-600" />
-                <span className="text-sm font-semibold text-emerald-700">Sign-Up</span>
+                <span className="text-sm font-semibold text-emerald-600">Sign-Up</span>
                 {allowUserSlots && (
-                    <span className="text-xs text-emerald-600 bg-emerald-200 px-2 py-0.5 rounded-full ml-auto">
+                    <span className="text-xs text-emerald-600 bg-emerald-500/15 px-2 py-0.5 rounded-full ml-auto">
                         Open list
                     </span>
                 )}
             </div>
             <div className="p-4">
-                <p className="font-medium text-slate-900">{title}</p>
+                <p className="font-medium text-heading">{title}</p>
                 {description && (
-                    <p className="text-sm text-slate-600 mt-1">{description}</p>
+                    <p className="text-sm text-subtle mt-1">{description}</p>
                 )}
 
                 <div className="mt-4 space-y-3">
@@ -293,27 +293,27 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
                             slotResponses.filter(r => r.user_id !== user?.id).length === 0;
 
                         return (
-                            <div key={index} className="rounded-lg border border-slate-200 bg-white overflow-hidden">
-                                <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                            <div key={index} className="rounded-lg border border-line bg-surface overflow-hidden">
+                                <div className="flex items-center justify-between px-4 py-3 border-b border-line">
                                     <div className="flex items-center gap-2 min-w-0">
-                                        <span className="font-medium text-slate-900 truncate">{slot.name}</span>
+                                        <span className="font-medium text-heading truncate">{slot.name}</span>
                                         {isUserAdded && (
-                                            <span className="text-xs text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded flex-shrink-0">
+                                            <span className="text-xs text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded flex-shrink-0">
                                                 added
                                             </span>
                                         )}
-                                        <span className="text-xs text-slate-500 flex-shrink-0">
+                                        <span className="text-xs text-muted flex-shrink-0">
                                             {slotResponses.length}{slot.maxSignups ? `/${slot.maxSignups}` : ''} signed up
                                         </span>
                                         {isFull && !isSignedUp && (
-                                            <span className="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded-full flex-shrink-0">Full</span>
+                                            <span className="text-xs px-2 py-0.5 bg-red-500/10 text-red-600 rounded-full flex-shrink-0">Full</span>
                                         )}
                                     </div>
                                     <div className="flex items-center gap-2 flex-shrink-0">
                                         {canRemove && (
                                             <button
                                                 onClick={() => handleRemoveUserSlot(index)}
-                                                className="p-1 text-slate-400 hover:text-red-500 rounded"
+                                                className="p-1 text-faint hover:text-red-500 rounded"
                                                 title="Remove this item"
                                             >
                                                 <X className="h-4 w-4" />
@@ -324,10 +324,10 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
                                             disabled={!canSignUp || signingUp !== null}
                                             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                                                 isSignedUp
-                                                    ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'
+                                                    ? 'bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20'
                                                     : canSignUp
                                                         ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                                                        : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                        : 'bg-surface-hover text-faint cursor-not-allowed'
                                             }`}
                                         >
                                             {signingUp === index ? (
@@ -346,12 +346,12 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
 
                                 {/* Show who signed up */}
                                 {slotResponses.length > 0 && (
-                                    <div className="px-4 py-2 bg-slate-50">
+                                    <div className="px-4 py-2 bg-surface-alt">
                                         <div className="flex flex-wrap gap-2">
                                             {slotResponses.map((response) => (
                                                 <div
                                                     key={response.id}
-                                                    className="flex items-center gap-1.5 px-2 py-1 bg-white rounded-full border border-slate-200 text-xs"
+                                                    className="flex items-center gap-1.5 px-2 py-1 bg-surface rounded-full border border-line text-xs"
                                                 >
                                                     {response.profiles?.avatar_url ? (
                                                         <img
@@ -360,9 +360,9 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
                                                             className="h-4 w-4 rounded-full"
                                                         />
                                                     ) : (
-                                                        <User className="h-3 w-3 text-slate-400" />
+                                                        <User className="h-3 w-3 text-faint" />
                                                     )}
-                                                    <span className="text-slate-700">
+                                                    <span className="text-body">
                                                         {response.profiles?.full_name || 'Unknown'}
                                                     </span>
                                                     {response.user_id === user?.id && (
@@ -381,14 +381,14 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
                     {allowUserSlots && user && (
                         <div className="mt-3">
                             {showAddSlot ? (
-                                <div className="rounded-lg border border-dashed border-emerald-300 bg-emerald-50 p-3">
+                                <div className="rounded-lg border border-dashed border-emerald-300 bg-emerald-500/10 p-3">
                                     <div className="flex gap-2">
                                         <input
                                             type="text"
                                             value={newSlotName}
                                             onChange={(e) => setNewSlotName(e.target.value)}
                                             placeholder="What will you bring?"
-                                            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                                            className="flex-1 rounded-lg border border-line-strong bg-surface text-heading px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && newSlotName.trim()) {
                                                     handleAddSlot();
@@ -412,7 +412,7 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
                                                 setShowAddSlot(false);
                                                 setNewSlotName('');
                                             }}
-                                            className="p-2 text-slate-400 hover:text-slate-600"
+                                            className="p-2 text-faint hover:text-subtle"
                                         >
                                             <X className="h-5 w-5" />
                                         </button>
@@ -421,7 +421,7 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
                             ) : (
                                 <button
                                     onClick={() => setShowAddSlot(true)}
-                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dashed border-emerald-300 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-400 transition-colors"
+                                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg border border-dashed border-emerald-300 text-emerald-600 hover:bg-emerald-500/10 hover:border-emerald-400 transition-colors"
                                 >
                                     <Plus className="h-4 w-4" />
                                     <span className="text-sm font-medium">Add something to bring</span>
@@ -432,7 +432,7 @@ export function SignupDisplay({ postId, title, description, slots: initialSlots,
 
                     {/* Empty state when no slots and user slots allowed */}
                     {slots.length === 0 && allowUserSlots && (
-                        <p className="text-sm text-slate-500 text-center py-2">
+                        <p className="text-sm text-muted text-center py-2">
                             No items yet. Be the first to add something!
                         </p>
                     )}

@@ -23,10 +23,10 @@ interface MonthStats {
 }
 
 const STATUS_CONFIG: Record<AttendanceStatus, { label: string; bgColor: string; textColor: string; dotColor: string }> = {
-    present: { label: 'Present', bgColor: 'bg-emerald-100', textColor: 'text-emerald-700', dotColor: 'bg-emerald-500' },
-    late: { label: 'Late', bgColor: 'bg-amber-100', textColor: 'text-amber-700', dotColor: 'bg-amber-500' },
-    absent: { label: 'Absent', bgColor: 'bg-red-100', textColor: 'text-red-700', dotColor: 'bg-red-500' },
-    left_early: { label: 'Left Early', bgColor: 'bg-blue-100', textColor: 'text-blue-700', dotColor: 'bg-blue-500' },
+    present: { label: 'Present', bgColor: 'bg-emerald-500/10', textColor: 'text-emerald-600', dotColor: 'bg-emerald-500' },
+    late: { label: 'Late', bgColor: 'bg-amber-500/10', textColor: 'text-amber-600', dotColor: 'bg-amber-500' },
+    absent: { label: 'Absent', bgColor: 'bg-red-500/10', textColor: 'text-red-600', dotColor: 'bg-red-500' },
+    left_early: { label: 'Left Early', bgColor: 'bg-blue-500/10', textColor: 'text-blue-600', dotColor: 'bg-blue-500' },
 };
 
 export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 'A' }: GymnastAttendanceTabProps) {
@@ -198,19 +198,19 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
     };
 
     const getPercentageBgColor = (percentage: number) => {
-        if (percentage >= 90) return 'bg-emerald-100';
-        if (percentage >= 75) return 'bg-amber-100';
-        return 'bg-red-100';
+        if (percentage >= 90) return 'bg-emerald-500/15';
+        if (percentage >= 75) return 'bg-amber-500/15';
+        return 'bg-red-500/15';
     };
 
     if (!gymnastLevel) {
         return (
             <div className="flex flex-col items-center justify-center text-center py-12">
-                <div className="rounded-full bg-slate-100 p-4">
-                    <UserCheck className="h-8 w-8 text-slate-400" />
+                <div className="rounded-full bg-surface-hover p-4">
+                    <UserCheck className="h-8 w-8 text-faint" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">No level assigned</h3>
-                <p className="mt-2 text-sm text-slate-500">
+                <h3 className="mt-4 text-lg font-semibold text-heading">No level assigned</h3>
+                <p className="mt-2 text-sm text-muted">
                     Assign a level to this gymnast to track their attendance.
                 </p>
             </div>
@@ -220,7 +220,7 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-accent-500" />
             </div>
         );
     }
@@ -228,11 +228,11 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
     if (attendanceRecords.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center text-center py-12">
-                <div className="rounded-full bg-slate-100 p-4">
-                    <UserCheck className="h-8 w-8 text-slate-400" />
+                <div className="rounded-full bg-surface-hover p-4">
+                    <UserCheck className="h-8 w-8 text-faint" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">No Attendance Records</h3>
-                <p className="mt-2 text-sm text-slate-500">
+                <h3 className="mt-4 text-lg font-semibold text-heading">No Attendance Records</h3>
+                <p className="mt-2 text-sm text-muted">
                     No attendance has been recorded for this gymnast yet.
                 </p>
             </div>
@@ -249,11 +249,11 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
                             <TrendingUp className={`w-5 h-5 ${getPercentageColor(overallStats.percentage)}`} />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500 uppercase tracking-wide">Attendance</p>
+                            <p className="text-xs text-muted uppercase tracking-wide">Attendance</p>
                             <p className={`text-xl font-bold ${getPercentageColor(overallStats.percentage)}`}>
                                 {overallStats.percentage}%
                             </p>
-                            <p className="text-xs text-slate-400">
+                            <p className="text-xs text-faint">
                                 {overallStats.totalPresent + overallStats.totalLate + overallStats.totalLeftEarly}/{overallStats.totalScheduled}
                             </p>
                         </div>
@@ -261,45 +261,45 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
                 </div>
                 <div className="card p-4">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-emerald-100 rounded-lg">
+                        <div className="p-2 bg-emerald-500/15 rounded-lg">
                             <UserCheck className="w-5 h-5 text-emerald-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500 uppercase tracking-wide">Present</p>
+                            <p className="text-xs text-muted uppercase tracking-wide">Present</p>
                             <p className="text-xl font-bold text-emerald-600">{overallStats.totalPresent}</p>
                         </div>
                     </div>
                 </div>
                 <div className="card p-4">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-amber-100 rounded-lg">
+                        <div className="p-2 bg-amber-500/15 rounded-lg">
                             <Clock className="w-5 h-5 text-amber-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500 uppercase tracking-wide">Late</p>
+                            <p className="text-xs text-muted uppercase tracking-wide">Late</p>
                             <p className="text-xl font-bold text-amber-600">{overallStats.totalLate}</p>
                         </div>
                     </div>
                 </div>
                 <div className="card p-4">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-100 rounded-lg">
+                        <div className="p-2 bg-blue-500/15 rounded-lg">
                             <Clock className="w-5 h-5 text-blue-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500 uppercase tracking-wide">Left Early</p>
+                            <p className="text-xs text-muted uppercase tracking-wide">Left Early</p>
                             <p className="text-xl font-bold text-blue-600">{overallStats.totalLeftEarly}</p>
                         </div>
                     </div>
                 </div>
                 <div className="card p-4">
                     <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${overallStats.totalAbsent > 0 ? 'bg-red-100' : 'bg-slate-100'}`}>
-                            <AlertTriangle className={`w-5 h-5 ${overallStats.totalAbsent > 0 ? 'text-red-600' : 'text-slate-400'}`} />
+                        <div className={`p-2 rounded-lg ${overallStats.totalAbsent > 0 ? 'bg-red-500/15' : 'bg-surface-hover'}`}>
+                            <AlertTriangle className={`w-5 h-5 ${overallStats.totalAbsent > 0 ? 'text-red-600' : 'text-faint'}`} />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500 uppercase tracking-wide">Absent</p>
-                            <p className={`text-xl font-bold ${overallStats.totalAbsent > 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                            <p className="text-xs text-muted uppercase tracking-wide">Absent</p>
+                            <p className={`text-xl font-bold ${overallStats.totalAbsent > 0 ? 'text-red-600' : 'text-heading'}`}>
                                 {overallStats.totalAbsent}
                             </p>
                         </div>
@@ -309,12 +309,12 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
 
             {/* Consecutive Absences Warning */}
             {overallStats.consecutiveAbsences >= 3 && (
-                <div className="card border-red-200 bg-red-50 p-4">
+                <div className="card border-red-500/20 bg-red-500/10 p-4">
                     <div className="flex items-center gap-3">
-                        <AlertTriangle className="w-5 h-5 text-red-600" />
+                        <AlertTriangle className="w-5 h-5 text-red-500" />
                         <div>
-                            <p className="font-medium text-red-900">Attendance Warning</p>
-                            <p className="text-sm text-red-700">
+                            <p className="font-medium text-red-600">Attendance Warning</p>
+                            <p className="text-sm text-red-500">
                                 {overallStats.consecutiveAbsences} consecutive absences
                             </p>
                         </div>
@@ -324,9 +324,9 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
 
             {/* Monthly Trend */}
             <div className="card overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                    <Calendar className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-sm font-semibold text-slate-900">Monthly Trend</h3>
+                <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                    <Calendar className="h-4 w-4 text-muted" />
+                    <h3 className="text-sm font-semibold text-heading">Monthly Trend</h3>
                 </div>
                 <div className="p-4">
                     <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
@@ -336,15 +336,15 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
                                 onClick={() => setSelectedMonthOffset(index)}
                                 className={`text-center p-3 rounded-lg transition-colors ${
                                     selectedMonthOffset === index
-                                        ? 'bg-brand-100 ring-2 ring-brand-500'
-                                        : 'bg-slate-50 hover:bg-slate-100'
+                                        ? 'bg-accent-500/10 ring-2 ring-accent-500'
+                                        : 'bg-surface-alt hover:bg-surface-hover'
                                 }`}
                             >
-                                <p className="text-xs text-slate-500">{stat.month.slice(0, 3)}</p>
+                                <p className="text-xs text-muted">{stat.month.slice(0, 3)}</p>
                                 <p className={`text-lg font-bold ${getPercentageColor(stat.percentage)}`}>
                                     {stat.percentage}%
                                 </p>
-                                <p className="text-xs text-slate-400">
+                                <p className="text-xs text-faint">
                                     {stat.present + stat.late + stat.leftEarly}/{stat.totalScheduled}
                                 </p>
                             </button>
@@ -355,20 +355,20 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
 
             {/* Selected Month Details */}
             <div className="card overflow-hidden">
-                <div className="flex items-center justify-between px-4 py-3 bg-slate-50 border-b border-slate-200">
+                <div className="flex items-center justify-between px-4 py-3 bg-surface border-b border-line">
                     <div className="flex items-center gap-2">
-                        <UserCheck className="h-4 w-4 text-slate-500" />
-                        <h3 className="text-sm font-semibold text-slate-900">
+                        <UserCheck className="h-4 w-4 text-muted" />
+                        <h3 className="text-sm font-semibold text-heading">
                             {monthlyStats[selectedMonthOffset]?.month} {monthlyStats[selectedMonthOffset]?.year} Records
                         </h3>
                     </div>
-                    <span className="text-sm text-slate-500">
+                    <span className="text-sm text-muted">
                         {selectedMonthRecords.length} record{selectedMonthRecords.length !== 1 ? 's' : ''}
                     </span>
                 </div>
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-line">
                     {selectedMonthRecords.length === 0 ? (
-                        <div className="p-6 text-center text-sm text-slate-500">
+                        <div className="p-6 text-center text-sm text-muted">
                             No attendance records for this month
                         </div>
                     ) : (
@@ -377,27 +377,27 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
                             return (
                                 <div
                                     key={record.id}
-                                    className="flex items-center justify-between px-4 py-3 hover:bg-slate-50"
+                                    className="flex items-center justify-between px-4 py-3 hover:bg-surface-hover"
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-2.5 h-2.5 rounded-full ${config.dotColor}`} />
                                         <div>
-                                            <p className="text-sm font-medium text-slate-900">
+                                            <p className="text-sm font-medium text-heading">
                                                 {format(parseISO(record.attendance_date), 'EEEE, MMMM d')}
                                             </p>
                                             {record.notes && (
-                                                <p className="text-xs text-slate-500 mt-0.5">{record.notes}</p>
+                                                <p className="text-xs text-muted mt-0.5">{record.notes}</p>
                                             )}
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         {record.check_in_time && (
-                                            <span className="text-xs text-slate-400">
+                                            <span className="text-xs text-faint">
                                                 In: {record.check_in_time}
                                             </span>
                                         )}
                                         {record.check_out_time && (
-                                            <span className="text-xs text-slate-400">
+                                            <span className="text-xs text-faint">
                                                 Out: {record.check_out_time}
                                             </span>
                                         )}
@@ -413,7 +413,7 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
             </div>
 
             {/* Footer */}
-            <p className="text-xs text-slate-500 text-center">
+            <p className="text-xs text-muted text-center">
                 Showing attendance from the last 6 months
             </p>
         </div>

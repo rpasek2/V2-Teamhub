@@ -228,10 +228,10 @@ export function BookLessonModal({
             <div className="card p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-slate-900">Book Private Lesson</h2>
+                    <h2 className="text-xl font-bold text-heading">Book Private Lesson</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -239,45 +239,45 @@ export function BookLessonModal({
 
                 {success ? (
                     <div className="text-center py-8">
-                        <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+                        <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mx-auto mb-4">
                             <Check className="w-8 h-8 text-green-600" />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900 mb-2">Booking Confirmed!</h3>
-                        <p className="text-slate-600">Your lesson has been scheduled and added to the calendar.</p>
+                        <h3 className="text-lg font-semibold text-heading mb-2">Booking Confirmed!</h3>
+                        <p className="text-subtle">Your lesson has been scheduled and added to the calendar.</p>
                     </div>
                 ) : (
                     <>
                         {/* Slot Info */}
-                        <div className="bg-slate-50 rounded-lg p-4 mb-6">
+                        <div className="bg-surface-alt rounded-lg p-4 mb-6">
                             <div className="flex items-center gap-3 mb-3">
-                                <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center">
+                                <div className="h-10 w-10 rounded-full bg-violet-500/10 flex items-center justify-center">
                                     <User className="w-5 h-5 text-violet-600" />
                                 </div>
                                 <div>
-                                    <p className="font-semibold text-slate-900">{coachName}</p>
-                                    <p className="text-sm text-slate-500">Instructor</p>
+                                    <p className="font-semibold text-heading">{coachName}</p>
+                                    <p className="text-sm text-muted">Instructor</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="flex items-center gap-2 text-sm">
-                                    <Calendar className="w-4 h-4 text-slate-400" />
-                                    <span className="text-slate-700">
+                                    <Calendar className="w-4 h-4 text-faint" />
+                                    <span className="text-body">
                                         {format(parseISO(slot.slot_date), 'EEE, MMM d, yyyy')}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
-                                    <Clock className="w-4 h-4 text-slate-400" />
-                                    <span className="text-slate-700">
+                                    <Clock className="w-4 h-4 text-faint" />
+                                    <span className="text-body">
                                         {formatTime(slot.start_time)} - {formatTime(displayEndTime)}
                                     </span>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 text-sm mt-2">
-                                <DollarSign className="w-4 h-4 text-slate-400" />
-                                <span className="text-slate-700 font-medium">
+                                <DollarSign className="w-4 h-4 text-faint" />
+                                <span className="text-body font-medium">
                                     ${displayPrice.toFixed(2)}
                                     {selectedPackage && (
-                                        <span className="text-slate-500 font-normal ml-1">
+                                        <span className="text-muted font-normal ml-1">
                                             ({selectedPackage.name})
                                         </span>
                                     )}
@@ -288,7 +288,7 @@ export function BookLessonModal({
                         {/* Select Package (if multiple packages available) */}
                         {activePackages.length > 1 && (
                             <div className="mb-4">
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-body mb-2">
                                     Select Lesson Package *
                                 </label>
                                 <div className="space-y-2">
@@ -299,14 +299,14 @@ export function BookLessonModal({
                                             onClick={() => setSelectedPackageId(pkg.id)}
                                             className={`w-full p-3 rounded-lg border-2 text-left transition-colors ${
                                                 selectedPackageId === pkg.id
-                                                    ? 'border-brand-500 bg-brand-50'
-                                                    : 'border-slate-200 bg-white hover:border-slate-300'
+                                                    ? 'border-accent-500 bg-accent-500/10'
+                                                    : 'border-line bg-surface hover:border-line-strong'
                                             }`}
                                         >
                                             <div className="flex items-center justify-between">
                                                 <div>
-                                                    <p className="font-medium text-slate-900">{pkg.name}</p>
-                                                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                                                    <p className="font-medium text-heading">{pkg.name}</p>
+                                                    <div className="flex items-center gap-3 text-xs text-muted mt-1">
                                                         <span className="flex items-center gap-1">
                                                             <Clock className="w-3 h-3" />
                                                             {formatDuration(pkg.duration_minutes)}
@@ -317,10 +317,10 @@ export function BookLessonModal({
                                                         </span>
                                                     </div>
                                                     {pkg.description && (
-                                                        <p className="text-xs text-slate-500 mt-1">{pkg.description}</p>
+                                                        <p className="text-xs text-muted mt-1">{pkg.description}</p>
                                                     )}
                                                 </div>
-                                                <p className="text-lg font-bold text-brand-600">
+                                                <p className="text-lg font-bold text-accent-600">
                                                     ${pkg.price}
                                                 </p>
                                             </div>
@@ -332,7 +332,7 @@ export function BookLessonModal({
 
                         {/* Select Gymnast */}
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Select Gymnast *
                             </label>
                             {eligibleGymnasts.length > 0 ? (
@@ -349,7 +349,7 @@ export function BookLessonModal({
                                     ))}
                                 </select>
                             ) : (
-                                <p className="text-sm text-amber-600 bg-amber-50 p-3 rounded-lg">
+                                <p className="text-sm text-amber-600 bg-amber-500/10 p-3 rounded-lg">
                                     No linked gymnasts match the coach's levels ({coachProfile?.levels.join(', ')}).
                                 </p>
                             )}
@@ -357,7 +357,7 @@ export function BookLessonModal({
 
                         {/* Select Event */}
                         <div className="mb-6">
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Lesson Focus *
                             </label>
                             <div className="flex flex-wrap gap-2">
@@ -368,8 +368,8 @@ export function BookLessonModal({
                                         onClick={() => setSelectedEvent(evt)}
                                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                             selectedEvent === evt
-                                                ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
-                                                : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                                ? 'bg-accent-500/15 text-accent-600 border-2 border-accent-500/30'
+                                                : 'bg-surface-hover text-subtle border-2 border-transparent hover:bg-surface-active'
                                         }`}
                                     >
                                         {EVENT_LABELS[evt] || evt}
@@ -380,7 +380,7 @@ export function BookLessonModal({
 
                         {/* Error Message */}
                         {error && (
-                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-4">
+                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600 mb-4">
                                 {error}
                             </div>
                         )}

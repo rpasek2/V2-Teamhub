@@ -242,7 +242,7 @@ export function StaffDetails() {
     if (loading) {
         return (
             <div className="animate-fade-in p-8">
-                <div className="flex items-center gap-2 text-slate-400">
+                <div className="flex items-center gap-2 text-faint">
                     <Loader2 className="w-5 h-5 animate-spin" />
                     Loading staff profile...
                 </div>
@@ -255,12 +255,12 @@ export function StaffDetails() {
             <div className="animate-fade-in p-8">
                 <button
                     onClick={() => navigate(`/hub/${hubId}/staff`)}
-                    className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-4"
+                    className="flex items-center gap-2 text-muted hover:text-heading transition-colors mb-4"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     Back to Staff
                 </button>
-                <div className="text-slate-500">Staff member not found.</div>
+                <div className="text-muted">Staff member not found.</div>
             </div>
         );
     }
@@ -277,7 +277,7 @@ export function StaffDetails() {
             {/* Back Button */}
             <button
                 onClick={() => navigate(`/hub/${hubId}/staff`)}
-                className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-6"
+                className="flex items-center gap-2 text-muted hover:text-heading transition-colors mb-6"
             >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Staff
@@ -294,7 +294,7 @@ export function StaffDetails() {
                                 className="h-16 w-16 rounded-full object-cover ring-4 ring-white/30"
                             />
                         ) : (
-                            <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
+                            <div className="h-16 w-16 rounded-full bg-surface/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
                                 <span className="text-2xl font-bold text-white">{initials}</span>
                             </div>
                         )}
@@ -323,7 +323,7 @@ export function StaffDetails() {
                         <button
                             onClick={handleMessageClick}
                             disabled={creatingDm}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface/20 hover:bg-surface/30 text-white text-sm font-medium transition-colors disabled:opacity-50"
                         >
                             {creatingDm ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                             Message
@@ -333,15 +333,15 @@ export function StaffDetails() {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex border-b border-slate-200 mb-6 overflow-x-auto">
+            <div className="flex border-b border-line mb-6 overflow-x-auto">
                 {visibleTabs.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                             activeTab === tab.id
-                                ? 'border-teal-500 text-teal-600'
-                                : 'border-transparent text-slate-500 hover:text-slate-900 hover:border-slate-300'
+                                ? 'border-accent-500 text-accent-600'
+                                : 'border-transparent text-muted hover:text-heading hover:border-line-strong'
                         }`}
                     >
                         {tab.icon}
@@ -354,13 +354,13 @@ export function StaffDetails() {
             <div className="space-y-4">
                 {activeTab === 'profile' && (
                     <div className="card overflow-hidden">
-                        <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                            <User className="h-4 w-4 text-slate-500" />
-                            <h3 className="text-sm font-semibold text-slate-900">Profile Information</h3>
+                        <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                            <User className="h-4 w-4 text-muted" />
+                            <h3 className="text-sm font-semibold text-heading">Profile Information</h3>
                             {canEdit && !isEditing && (
                                 <button
                                     onClick={() => setIsEditing(true)}
-                                    className="ml-auto p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                    className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                                     title="Edit profile"
                                 >
                                     <Pencil className="h-3.5 w-3.5" />
@@ -384,7 +384,7 @@ export function StaffDetails() {
                                             });
                                         }}
                                         disabled={saving}
-                                        className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                        className="p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                                         title="Cancel"
                                     >
                                         <X className="h-3.5 w-3.5" />
@@ -392,7 +392,7 @@ export function StaffDetails() {
                                     <button
                                         onClick={handleSaveProfile}
                                         disabled={saving}
-                                        className="p-1.5 rounded-md text-teal-600 hover:text-teal-700 hover:bg-teal-50 transition-colors"
+                                        className="p-1.5 rounded-md text-accent-600 hover:text-accent-700 hover:bg-accent-500/10 transition-colors"
                                         title="Save"
                                     >
                                         {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
@@ -404,102 +404,102 @@ export function StaffDetails() {
                             {isEditing ? (
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Title</label>
                                         <input
                                             type="text"
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             placeholder="e.g., Head Coach, Program Director"
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Bio</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Bio</label>
                                         <textarea
                                             value={bio}
                                             onChange={(e) => setBio(e.target.value)}
                                             rows={3}
                                             placeholder="A brief description..."
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                         />
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Work Phone</label>
+                                            <label className="block text-sm font-medium text-body mb-1">Work Phone</label>
                                             <input
                                                 type="tel"
                                                 value={phone}
                                                 onChange={(e) => setPhone(e.target.value)}
                                                 placeholder="(555) 123-4567"
-                                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Work Email</label>
+                                            <label className="block text-sm font-medium text-body mb-1">Work Email</label>
                                             <input
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 placeholder="work@example.com"
-                                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Hire Date</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Hire Date</label>
                                         <input
                                             type="date"
                                             value={hireDate}
                                             onChange={(e) => setHireDate(e.target.value)}
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                         />
                                     </div>
 
                                     {/* Emergency Contact */}
-                                    <div className="pt-4 border-t border-slate-200">
+                                    <div className="pt-4 border-t border-line">
                                         <div className="flex items-center gap-2 mb-3">
                                             <AlertCircle className="w-4 h-4 text-red-500" />
-                                            <label className="text-sm font-medium text-slate-700">Emergency Contact</label>
+                                            <label className="text-sm font-medium text-body">Emergency Contact</label>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs text-slate-500 mb-1">Name</label>
+                                                <label className="block text-xs text-muted mb-1">Name</label>
                                                 <input
                                                     type="text"
                                                     value={emergencyContact.name}
                                                     onChange={(e) => setEmergencyContact(prev => ({ ...prev, name: e.target.value }))}
                                                     placeholder="Contact name"
-                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-slate-500 mb-1">Relationship</label>
+                                                <label className="block text-xs text-muted mb-1">Relationship</label>
                                                 <input
                                                     type="text"
                                                     value={emergencyContact.relationship}
                                                     onChange={(e) => setEmergencyContact(prev => ({ ...prev, relationship: e.target.value }))}
                                                     placeholder="e.g., Spouse, Parent"
-                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-slate-500 mb-1">Phone</label>
+                                                <label className="block text-xs text-muted mb-1">Phone</label>
                                                 <input
                                                     type="tel"
                                                     value={emergencyContact.phone}
                                                     onChange={(e) => setEmergencyContact(prev => ({ ...prev, phone: e.target.value }))}
                                                     placeholder="(555) 123-4567"
-                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-slate-500 mb-1">Email (optional)</label>
+                                                <label className="block text-xs text-muted mb-1">Email (optional)</label>
                                                 <input
                                                     type="email"
                                                     value={emergencyContact.email || ''}
                                                     onChange={(e) => setEmergencyContact(prev => ({ ...prev, email: e.target.value }))}
                                                     placeholder="contact@example.com"
-                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+                                                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                                 />
                                             </div>
                                         </div>
@@ -509,20 +509,20 @@ export function StaffDetails() {
                                 <div className="space-y-6">
                                     {/* Contact Info */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                            <Mail className="w-5 h-5 text-slate-400" />
+                                        <div className="flex items-center gap-3 p-3 bg-surface-alt rounded-lg">
+                                            <Mail className="w-5 h-5 text-faint" />
                                             <div>
-                                                <p className="text-xs text-slate-500">Email</p>
-                                                <p className="text-sm text-slate-700">
+                                                <p className="text-xs text-muted">Email</p>
+                                                <p className="text-sm text-body">
                                                     {staffMember.staff_profile?.email || staffMember.profile?.email || 'Not set'}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                            <Phone className="w-5 h-5 text-slate-400" />
+                                        <div className="flex items-center gap-3 p-3 bg-surface-alt rounded-lg">
+                                            <Phone className="w-5 h-5 text-faint" />
                                             <div>
-                                                <p className="text-xs text-slate-500">Phone</p>
-                                                <p className="text-sm text-slate-700">
+                                                <p className="text-xs text-muted">Phone</p>
+                                                <p className="text-sm text-body">
                                                     {staffMember.staff_profile?.phone || 'Not set'}
                                                 </p>
                                             </div>
@@ -531,8 +531,8 @@ export function StaffDetails() {
 
                                     {/* Bio */}
                                     <div>
-                                        <h3 className="text-sm font-medium text-slate-700 mb-2">Bio</h3>
-                                        <p className="text-sm text-slate-600">
+                                        <h3 className="text-sm font-medium text-body mb-2">Bio</h3>
+                                        <p className="text-sm text-subtle">
                                             {staffMember.staff_profile?.bio || 'No bio added yet.'}
                                         </p>
                                     </div>
@@ -540,8 +540,8 @@ export function StaffDetails() {
                                     {/* Hire Date (staff only) */}
                                     {!isParentView && staffMember.staff_profile?.hire_date && (
                                         <div>
-                                            <h3 className="text-sm font-medium text-slate-700 mb-2">Hire Date</h3>
-                                            <p className="text-sm text-slate-600">
+                                            <h3 className="text-sm font-medium text-body mb-2">Hire Date</h3>
+                                            <p className="text-sm text-subtle">
                                                 {new Date(staffMember.staff_profile.hire_date).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'long',
@@ -553,34 +553,34 @@ export function StaffDetails() {
 
                                     {/* Emergency Contact (staff only) */}
                                     {!isParentView && (
-                                        <div className="pt-4 border-t border-slate-200">
+                                        <div className="pt-4 border-t border-line">
                                             <div className="flex items-center gap-2 mb-3">
                                                 <AlertCircle className="w-4 h-4 text-red-500" />
-                                                <h3 className="text-sm font-medium text-slate-700">Emergency Contact</h3>
+                                                <h3 className="text-sm font-medium text-body">Emergency Contact</h3>
                                             </div>
                                             {staffMember.staff_profile?.emergency_contact ? (
                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                    <div className="p-3 bg-red-50 rounded-lg">
+                                                    <div className="p-3 bg-red-500/10 rounded-lg">
                                                         <p className="text-xs text-red-600 font-medium">Name</p>
-                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.name}</p>
+                                                        <p className="text-sm text-body">{staffMember.staff_profile.emergency_contact.name}</p>
                                                     </div>
-                                                    <div className="p-3 bg-red-50 rounded-lg">
+                                                    <div className="p-3 bg-red-500/10 rounded-lg">
                                                         <p className="text-xs text-red-600 font-medium">Relationship</p>
-                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.relationship || 'Not specified'}</p>
+                                                        <p className="text-sm text-body">{staffMember.staff_profile.emergency_contact.relationship || 'Not specified'}</p>
                                                     </div>
-                                                    <div className="p-3 bg-red-50 rounded-lg">
+                                                    <div className="p-3 bg-red-500/10 rounded-lg">
                                                         <p className="text-xs text-red-600 font-medium">Phone</p>
-                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.phone}</p>
+                                                        <p className="text-sm text-body">{staffMember.staff_profile.emergency_contact.phone}</p>
                                                     </div>
                                                     {staffMember.staff_profile.emergency_contact.email && (
-                                                        <div className="p-3 bg-red-50 rounded-lg">
+                                                        <div className="p-3 bg-red-500/10 rounded-lg">
                                                             <p className="text-xs text-red-600 font-medium">Email</p>
-                                                            <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.email}</p>
+                                                            <p className="text-sm text-body">{staffMember.staff_profile.emergency_contact.email}</p>
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : (
-                                                <p className="text-sm text-slate-500 italic">No emergency contact added yet.</p>
+                                                <p className="text-sm text-muted italic">No emergency contact added yet.</p>
                                             )}
                                         </div>
                                     )}

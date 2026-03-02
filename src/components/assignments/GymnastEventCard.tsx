@@ -105,19 +105,19 @@ export function GymnastEventCard({ assignment, eventKey, eventColor, borderColor
         <div
             ref={cardRef}
             className={`${eventColor} rounded-lg border ${borderColor} p-3 sm:p-4 transition-all duration-300 ${
-                isComplete ? 'ring-2 ring-mint-500 ring-offset-2 ring-offset-white' : ''
+                isComplete ? 'ring-2 ring-accent-500 ring-offset-2 ring-offset-surface' : ''
             }`}
         >
             {/* Header */}
             <div className="flex items-center justify-between gap-2 mb-2 sm:mb-3">
                 <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
                     {isComplete && <span className="text-base sm:text-lg animate-bounce flex-shrink-0">🏆</span>}
-                    <h4 className={`font-medium text-sm sm:text-base truncate ${isComplete ? 'text-mint-600' : 'text-slate-900'}`}>
+                    <h4 className={`font-medium text-sm sm:text-base truncate ${isComplete ? 'text-accent-600' : 'text-heading'}`}>
                         {gymnast?.first_name} {gymnast?.last_name}
                     </h4>
                 </div>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                    <span className={`text-xs sm:text-sm ${isComplete ? 'text-mint-600 font-semibold' : 'text-slate-500'}`}>
+                    <span className={`text-xs sm:text-sm ${isComplete ? 'text-accent-600 font-semibold' : 'text-muted'}`}>
                         {completedCount}/{totalCount}
                     </span>
 
@@ -125,23 +125,23 @@ export function GymnastEventCard({ assignment, eventKey, eventColor, borderColor
                     <div className="relative" ref={menuRef}>
                         <button
                             onClick={() => setShowMenu(!showMenu)}
-                            className="p-1 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors"
+                            className="p-1 text-muted hover:text-body hover:bg-surface-hover rounded transition-colors"
                         >
                             <MoreVertical className="w-4 h-4" />
                         </button>
 
                         {showMenu && (
-                            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                            <div className="absolute right-0 top-full mt-1 w-48 bg-surface rounded-lg shadow-lg border border-line py-1 z-20">
                                 <button
                                     onClick={handleRemoveEvent}
-                                    className="w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2"
+                                    className="w-full px-3 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2"
                                 >
-                                    <UserX className="w-4 h-4 text-slate-500" />
+                                    <UserX className="w-4 h-4 text-muted" />
                                     Mark absent (this event)
                                 </button>
                                 <button
                                     onClick={handleDeleteAssignment}
-                                    className="w-full px-3 py-2 text-left text-sm text-error-500 hover:bg-error-50 flex items-center gap-2"
+                                    className="w-full px-3 py-2 text-left text-sm text-error-500 hover:bg-error-500/10 flex items-center gap-2"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                     Delete all (full day)
@@ -167,11 +167,11 @@ export function GymnastEventCard({ assignment, eventKey, eventColor, borderColor
                                 type="checkbox"
                                 checked={isCompleted}
                                 onChange={() => handleToggle(index)}
-                                className="mt-0.5 w-4 h-4 rounded border-slate-300 bg-white text-mint-500 focus:ring-mint-500 cursor-pointer flex-shrink-0"
+                                className="mt-0.5 w-4 h-4 rounded border-line-strong bg-surface text-accent-500 focus:ring-accent-500 cursor-pointer flex-shrink-0"
                             />
                             <span
                                 className={`text-xs sm:text-sm break-words ${
-                                    isCompleted ? 'line-through text-slate-400' : 'text-slate-700'
+                                    isCompleted ? 'line-through text-faint' : 'text-body'
                                 }`}
                             >
                                 {exercise}

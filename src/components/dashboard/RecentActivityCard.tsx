@@ -21,18 +21,18 @@ interface RecentActivityCardProps {
 export function RecentActivityCard({ recentActivity, loadingStats }: RecentActivityCardProps) {
     return (
         <div className="card">
-            <div className="px-6 py-4 border-b border-slate-200">
-                <h2 className="text-lg font-semibold text-slate-900">Recent Activity</h2>
+            <div className="px-6 py-4 border-b border-line">
+                <h2 className="text-lg font-semibold text-heading">Recent Activity</h2>
             </div>
             <div className="p-6">
                 {loadingStats ? (
                     <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin text-mint-500" />
+                        <Loader2 className="h-6 w-6 animate-spin text-accent-500" />
                     </div>
                 ) : recentActivity.length === 0 ? (
                     <div className="text-center py-8">
-                        <MessageSquare className="w-10 h-10 mx-auto text-slate-600 mb-3" />
-                        <p className="text-slate-400">No recent activity</p>
+                        <MessageSquare className="w-10 h-10 mx-auto text-subtle mb-3" />
+                        <p className="text-faint">No recent activity</p>
                     </div>
                 ) : (
                     <ul className="space-y-1">
@@ -43,26 +43,26 @@ export function RecentActivityCard({ recentActivity, loadingStats }: RecentActiv
                                 activity.type === 'member' ? UserPlus : FileText;
 
                             const iconColor = activity.type === 'event' ? 'text-indigo-600' :
-                                activity.type === 'post' ? 'text-mint-600' :
-                                activity.type === 'competition' ? 'text-mint-600' :
-                                activity.type === 'member' ? 'text-mint-600' :
-                                'text-slate-500';
+                                activity.type === 'post' ? 'text-accent-600' :
+                                activity.type === 'competition' ? 'text-accent-600' :
+                                activity.type === 'member' ? 'text-accent-600' :
+                                'text-muted';
 
                             const activityContent = (
                                 <div className="flex items-center gap-3 py-3">
                                     <div className={clsx(
                                         "flex h-9 w-9 items-center justify-center rounded-lg",
-                                        "bg-slate-100"
+                                        "bg-surface-hover"
                                     )}>
                                         <ActivityIcon className={clsx("h-4 w-4", iconColor)} />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium text-slate-700 truncate">{activity.description}</p>
+                                        <p className="text-sm font-medium text-body truncate">{activity.description}</p>
                                         {activity.content && (
-                                            <p className="text-sm text-slate-500 mt-0.5 line-clamp-1">{activity.content}</p>
+                                            <p className="text-sm text-muted mt-0.5 line-clamp-1">{activity.content}</p>
                                         )}
                                     </div>
-                                    <span className="text-xs text-slate-500 flex-shrink-0">
+                                    <span className="text-xs text-muted flex-shrink-0">
                                         {format(parseISO(activity.timestamp), 'MMM d')}
                                     </span>
                                 </div>
@@ -77,7 +77,7 @@ export function RecentActivityCard({ recentActivity, loadingStats }: RecentActiv
                                     {activity.link ? (
                                         <Link
                                             to={activity.link}
-                                            className="block rounded-lg hover:bg-slate-100 transition-colors -mx-3 px-3"
+                                            className="block rounded-lg hover:bg-surface-hover transition-colors -mx-3 px-3"
                                         >
                                             {activityContent}
                                         </Link>

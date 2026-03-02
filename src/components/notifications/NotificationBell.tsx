@@ -26,7 +26,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, typeof MessageCircle> = {
 };
 
 const NOTIFICATION_COLORS: Record<NotificationType, string> = {
-    message: 'bg-brand-50 text-brand-600',
+    message: 'bg-accent-50 text-accent-600',
     post: 'bg-purple-50 text-purple-600',
     event: 'bg-indigo-50 text-indigo-600',
     competition: 'bg-amber-50 text-amber-600',
@@ -34,7 +34,7 @@ const NOTIFICATION_COLORS: Record<NotificationType, string> = {
     skill: 'bg-pink-50 text-pink-600',
     assignment: 'bg-blue-50 text-blue-600',
     marketplace_item: 'bg-orange-50 text-orange-600',
-    resource: 'bg-slate-100 text-slate-600',
+    resource: 'bg-surface-hover text-subtle',
     staff_task: 'bg-teal-50 text-teal-600',
 };
 
@@ -150,9 +150,9 @@ export function NotificationBell() {
             <button
                 ref={bellRef}
                 onClick={() => { setIsOpen(!isOpen); setShowSettings(false); }}
-                className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                className="relative p-2 rounded-lg hover:bg-surface-hover transition-colors"
             >
-                <Bell className="w-5 h-5 text-slate-600" />
+                <Bell className="w-5 h-5 text-subtle" />
                 {unreadFeedCount > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 h-5 min-w-5 px-1.5 flex items-center justify-center rounded-full bg-error-500 text-white text-xs font-medium">
                         {unreadFeedCount > 99 ? '99+' : unreadFeedCount}
@@ -164,20 +164,20 @@ export function NotificationBell() {
                 <div
                     ref={dropdownRef}
                     style={getDropdownStyle()}
-                    className="w-96 max-h-[500px] bg-white rounded-xl border border-slate-200 shadow-xl flex flex-col overflow-hidden"
+                    className="w-96 max-h-[500px] bg-surface rounded-xl border border-line shadow-xl flex flex-col overflow-hidden"
                 >
                     {showSettings ? (
                         <NotificationSettings onBack={() => { setShowSettings(false); loadNotifications(true); }} />
                     ) : (
                         <>
                             {/* Header */}
-                            <div className="flex items-center justify-between p-4 border-b border-slate-200">
-                                <h3 className="font-semibold text-slate-900">Notifications</h3>
+                            <div className="flex items-center justify-between p-4 border-b border-line">
+                                <h3 className="font-semibold text-heading">Notifications</h3>
                                 <div className="flex items-center gap-1">
                                     {unreadFeedCount > 0 && (
                                         <button
                                             onClick={handleMarkAllRead}
-                                            className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
+                                            className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-muted hover:text-body"
                                             title="Mark all as read"
                                         >
                                             <CheckCheck className="w-4 h-4" />
@@ -185,7 +185,7 @@ export function NotificationBell() {
                                     )}
                                     <button
                                         onClick={() => setShowSettings(true)}
-                                        className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-slate-500 hover:text-slate-700"
+                                        className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors text-muted hover:text-body"
                                         title="Notification settings"
                                     >
                                         <Settings className="w-4 h-4" />
@@ -197,54 +197,54 @@ export function NotificationBell() {
                             <div className="flex-1 overflow-y-auto" onScroll={handleScroll}>
                                 {notifications.length === 0 && !loading ? (
                                     <div className="flex flex-col items-center justify-center py-12 px-4">
-                                        <BellOff className="w-10 h-10 text-slate-300 mb-3" />
-                                        <p className="text-sm font-medium text-slate-500">You're all caught up!</p>
-                                        <p className="text-xs text-slate-400 mt-1">No new notifications</p>
+                                        <BellOff className="w-10 h-10 text-faint mb-3" />
+                                        <p className="text-sm font-medium text-muted">You're all caught up!</p>
+                                        <p className="text-xs text-faint mt-1">No new notifications</p>
                                     </div>
                                 ) : (
                                     <>
                                         {notifications.map((notification) => {
                                             const Icon = NOTIFICATION_ICONS[notification.type] || Bell;
-                                            const colorClass = NOTIFICATION_COLORS[notification.type] || 'bg-slate-100 text-slate-600';
+                                            const colorClass = NOTIFICATION_COLORS[notification.type] || 'bg-surface-hover text-subtle';
 
                                             return (
                                                 <button
                                                     key={notification.id}
                                                     onClick={() => handleNotificationClick(notification)}
-                                                    className={`w-full flex items-start gap-3 p-3 text-left hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 ${
-                                                        !notification.is_read ? 'bg-brand-50/30' : ''
+                                                    className={`w-full flex items-start gap-3 p-3 text-left hover:bg-surface-hover transition-colors border-b border-line last:border-b-0 ${
+                                                        !notification.is_read ? 'bg-accent-50/30' : ''
                                                     }`}
                                                 >
                                                     <div className={`relative w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${colorClass}`}>
                                                         <Icon className="w-4 h-4" />
                                                         {notification.count > 1 && (
-                                                            <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-brand-500 text-white text-[10px] font-bold">
+                                                            <span className="absolute -top-1.5 -right-1.5 h-4 min-w-4 px-1 flex items-center justify-center rounded-full bg-accent-500 text-white text-[10px] font-bold">
                                                                 {notification.count > 99 ? '99+' : notification.count}
                                                             </span>
                                                         )}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className={`text-sm ${!notification.is_read ? 'font-medium text-slate-900' : 'text-slate-700'} line-clamp-1`}>
+                                                        <p className={`text-sm ${!notification.is_read ? 'font-medium text-heading' : 'text-body'} line-clamp-1`}>
                                                             {notification.title}
                                                         </p>
                                                         {notification.body && (
-                                                            <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
+                                                            <p className="text-xs text-muted line-clamp-1 mt-0.5">
                                                                 {notification.body}
                                                             </p>
                                                         )}
-                                                        <p className="text-xs text-slate-400 mt-1">
+                                                        <p className="text-xs text-faint mt-1">
                                                             {formatDistanceToNow(parseISO(notification.created_at), { addSuffix: true })}
                                                         </p>
                                                     </div>
                                                     {!notification.is_read && (
-                                                        <div className="w-2 h-2 rounded-full bg-brand-500 flex-shrink-0 mt-2" />
+                                                        <div className="w-2 h-2 rounded-full bg-accent-500 flex-shrink-0 mt-2" />
                                                     )}
                                                 </button>
                                             );
                                         })}
                                         {loading && (
                                             <div className="flex items-center justify-center py-4">
-                                                <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+                                                <Loader2 className="w-5 h-5 text-faint animate-spin" />
                                             </div>
                                         )}
                                     </>

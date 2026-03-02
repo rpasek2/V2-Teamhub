@@ -138,7 +138,7 @@ export function GymnastDetails() {
     if (loading) {
         return (
             <div className="animate-fade-in p-8">
-                <div className="text-slate-400">Loading gymnast profile...</div>
+                <div className="text-faint">Loading gymnast profile...</div>
             </div>
         );
     }
@@ -147,7 +147,7 @@ export function GymnastDetails() {
     if (!canAccessProfile) {
         return (
             <div className="animate-fade-in p-8">
-                <div className="text-slate-500">You don't have permission to view this profile.</div>
+                <div className="text-muted">You don't have permission to view this profile.</div>
             </div>
         );
     }
@@ -157,12 +157,12 @@ export function GymnastDetails() {
             <div className="animate-fade-in p-8">
                 <button
                     onClick={() => navigate(`/hub/${hub?.id}/roster`)}
-                    className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-4"
+                    className="flex items-center gap-2 text-muted hover:text-heading transition-colors mb-4"
                 >
                     <ArrowLeft className="h-4 w-4" />
                     Back to Roster
                 </button>
-                <div className="text-slate-500">Gymnast not found.</div>
+                <div className="text-muted">Gymnast not found.</div>
             </div>
         );
     }
@@ -172,35 +172,35 @@ export function GymnastDetails() {
             {/* Back Button */}
             <button
                 onClick={() => navigate(`/hub/${hub?.id}/roster`)}
-                className="flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors mb-6"
+                className="flex items-center gap-2 text-muted hover:text-heading transition-colors mb-6"
             >
                 <ArrowLeft className="h-4 w-4" />
                 Back to Roster
             </button>
 
             {/* Header */}
-            <div className="bg-gradient-to-br from-brand-500 via-brand-600 to-brand-700 rounded-xl p-6 text-white mb-6">
+            <div className="bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700 rounded-xl p-6 text-white mb-6">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
+                        <div className="h-16 w-16 rounded-full bg-surface/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
                             <span className="text-2xl font-bold text-white">
                                 {(gymnast.first_name || '?')[0]}{(gymnast.last_name || '?')[0]}
                             </span>
                         </div>
                         <div>
-                            <p className="text-brand-200 text-sm font-medium">ID: {gymnast.gymnast_id}</p>
+                            <p className="text-accent-200 text-sm font-medium">ID: {gymnast.gymnast_id}</p>
                             <h1 className="text-2xl font-bold tracking-tight">
                                 {gymnast.first_name} {gymnast.last_name}
                             </h1>
                             <div className="flex items-center gap-2 mt-1.5">
                                 {gymnast.level && (
-                                    <span className="inline-flex items-center rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-sm font-medium">
+                                    <span className="inline-flex items-center rounded-full bg-surface/20 backdrop-blur-sm px-3 py-1 text-sm font-medium">
                                         <Award className="h-3.5 w-3.5 mr-1.5" />
                                         {gymnast.level}
                                     </span>
                                 )}
                                 {gymnast.gender && (
-                                    <span className="inline-flex items-center rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium">
+                                    <span className="inline-flex items-center rounded-full bg-surface/10 px-2.5 py-1 text-xs font-medium">
                                         {gymnast.gender}
                                     </span>
                                 )}
@@ -211,7 +211,7 @@ export function GymnastDetails() {
                         <button
                             onClick={handleMessageClick}
                             disabled={creatingDm}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 text-white text-sm font-medium transition-colors disabled:opacity-50"
+                            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-surface/20 hover:bg-surface/30 text-white text-sm font-medium transition-colors disabled:opacity-50"
                         >
                             {creatingDm ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                             Message Parent
@@ -221,13 +221,13 @@ export function GymnastDetails() {
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex border-b border-slate-200 mb-6">
+            <div className="flex border-b border-line mb-6">
                 <button
                     onClick={() => setActiveTab('profile')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === 'profile'
-                            ? 'border-brand-500 text-brand-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                            ? 'border-accent-500 text-accent-600'
+                            : 'border-transparent text-muted hover:text-heading'
                     }`}
                 >
                     <User className="h-4 w-4" />
@@ -237,8 +237,8 @@ export function GymnastDetails() {
                     onClick={() => setActiveTab('goals')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === 'goals'
-                            ? 'border-brand-500 text-brand-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                            ? 'border-accent-500 text-accent-600'
+                            : 'border-transparent text-muted hover:text-heading'
                     }`}
                 >
                     <Target className="h-4 w-4" />
@@ -248,8 +248,8 @@ export function GymnastDetails() {
                     onClick={() => setActiveTab('assessment')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === 'assessment'
-                            ? 'border-brand-500 text-brand-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                            ? 'border-accent-500 text-accent-600'
+                            : 'border-transparent text-muted hover:text-heading'
                     }`}
                 >
                     <ClipboardList className="h-4 w-4" />
@@ -260,8 +260,8 @@ export function GymnastDetails() {
                     onClick={() => setActiveTab('assignments')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === 'assignments'
-                            ? 'border-brand-500 text-brand-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                            ? 'border-accent-500 text-accent-600'
+                            : 'border-transparent text-muted hover:text-heading'
                     }`}
                 >
                     <ListChecks className="h-4 w-4" />
@@ -273,8 +273,8 @@ export function GymnastDetails() {
                     onClick={() => setActiveTab('skills')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === 'skills'
-                            ? 'border-brand-500 text-brand-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                            ? 'border-accent-500 text-accent-600'
+                            : 'border-transparent text-muted hover:text-heading'
                     }`}
                 >
                     <Sparkles className="h-4 w-4" />
@@ -286,8 +286,8 @@ export function GymnastDetails() {
                     onClick={() => setActiveTab('scores')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === 'scores'
-                            ? 'border-brand-500 text-brand-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                            ? 'border-accent-500 text-accent-600'
+                            : 'border-transparent text-muted hover:text-heading'
                     }`}
                 >
                     <Trophy className="h-4 w-4" />
@@ -299,8 +299,8 @@ export function GymnastDetails() {
                     onClick={() => setActiveTab('attendance')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
                         activeTab === 'attendance'
-                            ? 'border-brand-500 text-brand-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-900'
+                            ? 'border-accent-500 text-accent-600'
+                            : 'border-transparent text-muted hover:text-heading'
                     }`}
                 >
                     <UserCheck className="h-4 w-4" />

@@ -137,12 +137,12 @@ export function Register() {
     return (
         <div className="min-h-screen flex">
             {/* Left Side - Hero Section */}
-            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-brand-500 via-brand-600 to-brand-800 relative overflow-hidden">
+            <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 bg-gradient-to-br from-accent-500 via-accent-600 to-accent-800 relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 opacity-10">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
-                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-brand-300 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
-                    <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-brand-200 rounded-full blur-3xl" />
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-surface rounded-full blur-3xl translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent-300 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2" />
+                    <div className="absolute top-1/3 left-1/3 w-64 h-64 bg-accent-200 rounded-full blur-3xl" />
                 </div>
 
                 {/* Content */}
@@ -154,9 +154,9 @@ export function Register() {
                         </div>
                         <h1 className="text-4xl xl:text-5xl font-bold text-white leading-tight mb-4">
                             Start Managing<br />
-                            <span className="text-brand-200">Your Team Today</span>
+                            <span className="text-accent-200">Your Team Today</span>
                         </h1>
-                        <p className="text-lg text-brand-100 max-w-md">
+                        <p className="text-lg text-accent-100 max-w-md">
                             Join thousands of coaches and team managers who trust The Gymnastics TeamHub for their organization needs.
                         </p>
                     </div>
@@ -166,26 +166,26 @@ export function Register() {
                         <h3 className="text-white font-semibold text-lg mb-4">Everything you need:</h3>
                         {benefits.map((benefit, index) => (
                             <div key={index} className="flex items-center gap-3">
-                                <div className="flex-shrink-0 w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
+                                <div className="flex-shrink-0 w-6 h-6 bg-surface/20 rounded-full flex items-center justify-center">
                                     <Check className="w-4 h-4 text-white" />
                                 </div>
-                                <span className="text-brand-100">{benefit}</span>
+                                <span className="text-accent-100">{benefit}</span>
                             </div>
                         ))}
                     </div>
 
                     {/* Quote */}
                     <div className="mt-12 pt-8 border-t border-white/10">
-                        <blockquote className="text-brand-100 italic text-lg">
+                        <blockquote className="text-accent-100 italic text-lg">
                             "The Gymnastics TeamHub transformed how we manage our program. Everything is organized and accessible."
                         </blockquote>
                         <div className="mt-4 flex items-center gap-3">
-                            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+                            <div className="w-10 h-10 bg-surface/20 rounded-full flex items-center justify-center">
                                 <span className="text-white font-semibold">JD</span>
                             </div>
                             <div>
                                 <div className="text-white font-medium">Jane Doe</div>
-                                <div className="text-brand-200 text-sm">Head Coach, Elite Gymnastics</div>
+                                <div className="text-accent-200 text-sm">Head Coach, Elite Gymnastics</div>
                             </div>
                         </div>
                     </div>
@@ -193,12 +193,12 @@ export function Register() {
             </div>
 
             {/* Right Side - Register Form */}
-            <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center px-6 py-12 bg-white">
+            <div className="w-full lg:w-1/2 xl:w-2/5 flex items-center justify-center px-6 py-12 bg-surface">
                 <div className="w-full max-w-md">
                     {/* Back to Login - Mobile */}
                     <Link
                         to="/login"
-                        className="inline-flex items-center gap-1 text-sm text-slate-600 hover:text-brand-600 mb-6 lg:mb-8"
+                        className="inline-flex items-center gap-1 text-sm text-subtle hover:text-accent-600 mb-6 lg:mb-8"
                     >
                         <ArrowLeft className="w-4 h-4" />
                         Back to sign in
@@ -211,10 +211,10 @@ export function Register() {
 
                     {/* Form Header */}
                     <div className="text-center lg:text-left mb-8">
-                        <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                        <h2 className="text-2xl font-bold text-heading mb-2">
                             Create your account
                         </h2>
-                        <p className="text-slate-600">
+                        <p className="text-subtle">
                             Get started with The Gymnastics TeamHub in just a few steps
                         </p>
                     </div>
@@ -222,7 +222,7 @@ export function Register() {
                     {/* Register Form */}
                     <form onSubmit={handleRegister} className="space-y-4">
                         <div>
-                            <label htmlFor="fullName" className="block text-sm font-medium text-slate-700 mb-1.5">
+                            <label htmlFor="fullName" className="block text-sm font-medium text-body mb-1.5">
                                 Full name
                             </label>
                             <input
@@ -230,7 +230,7 @@ export function Register() {
                                 name="fullName"
                                 type="text"
                                 required
-                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                className="block w-full px-4 py-3 rounded-xl border border-line-strong text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-shadow"
                                 placeholder="John Smith"
                                 value={fullName}
                                 onChange={(e) => setFullName(e.target.value)}
@@ -238,7 +238,7 @@ export function Register() {
                         </div>
 
                         <div>
-                            <label htmlFor="dateOfBirth" className="block text-sm font-medium text-slate-700 mb-1.5">
+                            <label htmlFor="dateOfBirth" className="block text-sm font-medium text-body mb-1.5">
                                 Date of birth
                             </label>
                             <input
@@ -247,7 +247,7 @@ export function Register() {
                                 type="date"
                                 required
                                 max={new Date().toISOString().split('T')[0]}
-                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                className="block w-full px-4 py-3 rounded-xl border border-line-strong text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-shadow"
                                 value={dateOfBirth}
                                 onChange={(e) => handleDateOfBirthChange(e.target.value)}
                             />
@@ -259,7 +259,7 @@ export function Register() {
                         </div>
 
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1.5">
+                            <label htmlFor="email" className="block text-sm font-medium text-body mb-1.5">
                                 Email address
                             </label>
                             <input
@@ -268,7 +268,7 @@ export function Register() {
                                 type="email"
                                 autoComplete="email"
                                 required
-                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                className="block w-full px-4 py-3 rounded-xl border border-line-strong text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-shadow"
                                 placeholder="you@example.com"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -276,7 +276,7 @@ export function Register() {
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-1.5">
+                            <label htmlFor="password" className="block text-sm font-medium text-body mb-1.5">
                                 Password
                             </label>
                             <input
@@ -285,7 +285,7 @@ export function Register() {
                                 type="password"
                                 autoComplete="new-password"
                                 required
-                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                className="block w-full px-4 py-3 rounded-xl border border-line-strong text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-shadow"
                                 placeholder="Create a strong password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -296,14 +296,14 @@ export function Register() {
                                 <div className="mt-3 space-y-2">
                                     {/* Strength Bar */}
                                     <div className="flex items-center gap-2">
-                                        <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                        <div className="flex-1 h-1.5 bg-surface-active rounded-full overflow-hidden">
                                             <div
                                                 className={`h-full transition-all duration-300 ${passwordStrength.color}`}
                                                 style={{ width: `${(passwordStrength.score / 4) * 100}%` }}
                                             />
                                         </div>
                                         <span className={`text-xs font-medium ${
-                                            passwordStrength.score >= 3 ? 'text-green-600' : 'text-slate-500'
+                                            passwordStrength.score >= 3 ? 'text-green-600' : 'text-muted'
                                         }`}>
                                             {passwordStrength.label}
                                         </span>
@@ -312,7 +312,7 @@ export function Register() {
                                     {/* Requirements Checklist */}
                                     <div className="grid grid-cols-2 gap-1">
                                         <div className={`flex items-center gap-1 text-xs ${
-                                            passwordStrength.requirements.minLength ? 'text-green-600' : 'text-slate-400'
+                                            passwordStrength.requirements.minLength ? 'text-green-600' : 'text-faint'
                                         }`}>
                                             {passwordStrength.requirements.minLength ? (
                                                 <Check className="w-3 h-3" />
@@ -322,7 +322,7 @@ export function Register() {
                                             8+ characters
                                         </div>
                                         <div className={`flex items-center gap-1 text-xs ${
-                                            passwordStrength.requirements.hasUppercase ? 'text-green-600' : 'text-slate-400'
+                                            passwordStrength.requirements.hasUppercase ? 'text-green-600' : 'text-faint'
                                         }`}>
                                             {passwordStrength.requirements.hasUppercase ? (
                                                 <Check className="w-3 h-3" />
@@ -332,7 +332,7 @@ export function Register() {
                                             Uppercase letter
                                         </div>
                                         <div className={`flex items-center gap-1 text-xs ${
-                                            passwordStrength.requirements.hasLowercase ? 'text-green-600' : 'text-slate-400'
+                                            passwordStrength.requirements.hasLowercase ? 'text-green-600' : 'text-faint'
                                         }`}>
                                             {passwordStrength.requirements.hasLowercase ? (
                                                 <Check className="w-3 h-3" />
@@ -342,7 +342,7 @@ export function Register() {
                                             Lowercase letter
                                         </div>
                                         <div className={`flex items-center gap-1 text-xs ${
-                                            passwordStrength.requirements.hasNumber ? 'text-green-600' : 'text-slate-400'
+                                            passwordStrength.requirements.hasNumber ? 'text-green-600' : 'text-faint'
                                         }`}>
                                             {passwordStrength.requirements.hasNumber ? (
                                                 <Check className="w-3 h-3" />
@@ -357,7 +357,7 @@ export function Register() {
                         </div>
 
                         <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1.5">
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-body mb-1.5">
                                 Confirm password
                             </label>
                             <input
@@ -366,12 +366,12 @@ export function Register() {
                                 type="password"
                                 autoComplete="new-password"
                                 required
-                                className={`block w-full px-4 py-3 rounded-xl border text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow ${
+                                className={`block w-full px-4 py-3 rounded-xl border text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-shadow ${
                                     confirmPassword && password !== confirmPassword
                                         ? 'border-red-300 bg-red-50'
                                         : confirmPassword && password === confirmPassword
                                         ? 'border-green-300 bg-green-50'
-                                        : 'border-slate-300'
+                                        : 'border-line-strong'
                                 }`}
                                 placeholder="Re-enter your password"
                                 value={confirmPassword}
@@ -392,14 +392,14 @@ export function Register() {
                         </div>
 
                         <div>
-                            <label htmlFor="organization" className="block text-sm font-medium text-slate-700 mb-1.5">
-                                Organization name <span className="text-slate-400 font-normal">(optional)</span>
+                            <label htmlFor="organization" className="block text-sm font-medium text-body mb-1.5">
+                                Organization name <span className="text-faint font-normal">(optional)</span>
                             </label>
                             <input
                                 id="organization"
                                 name="organization"
                                 type="text"
-                                className="block w-full px-4 py-3 rounded-xl border border-slate-300 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-shadow"
+                                className="block w-full px-4 py-3 rounded-xl border border-line-strong text-heading placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-shadow"
                                 placeholder="Your gym or club name"
                                 value={organization}
                                 onChange={(e) => setOrganization(e.target.value)}
@@ -415,7 +415,7 @@ export function Register() {
                         <button
                             type="submit"
                             disabled={loading || !isPasswordValid || password !== confirmPassword || !dateOfBirth || ageBlocked}
-                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-brand-600 text-white font-semibold hover:bg-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-accent-600 text-white font-semibold hover:bg-accent-500 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
                         >
                             {loading ? (
                                 <Loader2 className="h-5 w-5 animate-spin" />
@@ -429,19 +429,19 @@ export function Register() {
                     </form>
 
                     {/* Sign In Link */}
-                    <p className="mt-6 text-center text-sm text-slate-600">
+                    <p className="mt-6 text-center text-sm text-subtle">
                         Already have an account?{' '}
-                        <Link to="/login" className="font-semibold text-brand-600 hover:text-brand-500">
+                        <Link to="/login" className="font-semibold text-accent-600 hover:text-accent-500">
                             Sign in
                         </Link>
                     </p>
 
                     {/* Footer */}
-                    <p className="mt-8 text-center text-xs text-slate-500">
+                    <p className="mt-8 text-center text-xs text-muted">
                         By creating an account, you agree to our{' '}
-                        <a href="https://twotreesapps-site.web.app/teamhub-terms.html" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">Terms of Service</a>
+                        <a href="https://twotreesapps-site.web.app/teamhub-terms.html" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline">Terms of Service</a>
                         {' '}and{' '}
-                        <a href="https://twotreesapps-site.web.app/teamhub-privacy.html" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline">Privacy Policy</a>
+                        <a href="https://twotreesapps-site.web.app/teamhub-privacy.html" target="_blank" rel="noopener noreferrer" className="text-accent-600 hover:underline">Privacy Policy</a>
                     </p>
                 </div>
             </div>

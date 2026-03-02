@@ -41,27 +41,27 @@ export function NotificationSettings({ onBack }: NotificationSettingsProps) {
 
     return (
         <div className="flex flex-col h-full">
-            <div className="flex items-center gap-2 p-4 border-b border-slate-200">
-                <button onClick={onBack} className="p-1 hover:bg-slate-100 rounded-lg transition-colors">
-                    <ArrowLeft className="w-4 h-4 text-slate-500" />
+            <div className="flex items-center gap-2 p-4 border-b border-line">
+                <button onClick={onBack} className="p-1 hover:bg-surface-hover rounded-lg transition-colors">
+                    <ArrowLeft className="w-4 h-4 text-muted" />
                 </button>
-                <h3 className="font-semibold text-slate-900">Notification Preferences</h3>
+                <h3 className="font-semibold text-heading">Notification Preferences</h3>
             </div>
 
             <div className="flex-1 overflow-y-auto p-2">
-                <p className="text-xs text-slate-500 px-2 pb-2">Choose which features show badges and appear in your feed.</p>
+                <p className="text-xs text-muted px-2 pb-2">Choose which features show badges and appear in your feed.</p>
                 {NOTIFICATION_FEATURES.map(({ key, label, description, icon: Icon }) => (
                     <div
                         key={key}
-                        className="flex items-center justify-between p-2.5 rounded-lg hover:bg-slate-50 transition-colors"
+                        className="flex items-center justify-between p-2.5 rounded-lg hover:bg-surface-hover transition-colors"
                     >
                         <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
-                                <Icon className="w-4 h-4 text-slate-600" />
+                            <div className="w-8 h-8 rounded-lg bg-surface-hover flex items-center justify-center flex-shrink-0">
+                                <Icon className="w-4 h-4 text-subtle" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-sm font-medium text-slate-900">{label}</p>
-                                <p className="text-xs text-slate-500 truncate">{description}</p>
+                                <p className="text-sm font-medium text-heading">{label}</p>
+                                <p className="text-xs text-muted truncate">{description}</p>
                             </div>
                         </div>
                         <button
@@ -70,11 +70,11 @@ export function NotificationSettings({ onBack }: NotificationSettingsProps) {
                             aria-label={`${label} notifications`}
                             onClick={() => toggleFeature(key)}
                             className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                                isEnabled(key) ? 'bg-brand-600' : 'bg-slate-200'
+                                isEnabled(key) ? 'bg-accent-600' : 'bg-surface-active'
                             }`}
                         >
                             <span
-                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                     isEnabled(key) ? 'translate-x-4' : 'translate-x-0'
                                 }`}
                             />

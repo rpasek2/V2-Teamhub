@@ -195,11 +195,11 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
     if (!gymnastLevel) {
         return (
             <div className="flex flex-col items-center justify-center text-center py-12">
-                <div className="rounded-full bg-slate-100 p-4">
-                    <Sparkles className="h-8 w-8 text-slate-400" />
+                <div className="rounded-full bg-surface-hover p-4">
+                    <Sparkles className="h-8 w-8 text-faint" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">No level assigned</h3>
-                <p className="mt-2 text-sm text-slate-500">
+                <h3 className="mt-4 text-lg font-semibold text-heading">No level assigned</h3>
+                <p className="mt-2 text-sm text-muted">
                     Assign a level to this gymnast to view their skills.
                 </p>
             </div>
@@ -216,8 +216,8 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
                         onClick={() => setSelectedEvent(event.id)}
                         className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                             selectedEvent === event.id
-                                ? 'bg-brand-500 text-white'
-                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                ? 'bg-accent-500 text-white'
+                                : 'bg-surface-hover text-subtle hover:bg-surface-active'
                         }`}
                     >
                         {event.fullName}
@@ -228,15 +228,15 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
             {/* Loading State */}
             {loading ? (
                 <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+                    <Loader2 className="h-8 w-8 animate-spin text-accent-500" />
                 </div>
             ) : skills.length === 0 ? (
-                <div className="rounded-lg border-2 border-dashed border-slate-200 p-12 text-center">
-                    <Sparkles className="mx-auto h-12 w-12 text-slate-400" />
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                <div className="rounded-lg border-2 border-dashed border-line p-12 text-center">
+                    <Sparkles className="mx-auto h-12 w-12 text-faint" />
+                    <h3 className="mt-4 text-lg font-semibold text-heading">
                         No skills defined
                     </h3>
-                    <p className="mt-2 text-sm text-slate-500">
+                    <p className="mt-2 text-sm text-muted">
                         No skills have been added for {events.find(e => e.id === selectedEvent)?.fullName || selectedEvent} at {gymnastLevel} yet.
                     </p>
                 </div>
@@ -246,13 +246,13 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
                     <div className="card p-4">
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                                <MessageSquare className="h-4 w-4 text-slate-400" />
-                                <h4 className="text-sm font-medium text-slate-700">Coach Notes</h4>
+                                <MessageSquare className="h-4 w-4 text-faint" />
+                                <h4 className="text-sm font-medium text-body">Coach Notes</h4>
                             </div>
                             {isStaff && !isEditingComment && (
                                 <button
                                     onClick={startEditingComment}
-                                    className="flex items-center gap-1 text-xs font-medium text-brand-600 hover:text-brand-700"
+                                    className="flex items-center gap-1 text-xs font-medium text-accent-600 hover:text-accent-700"
                                 >
                                     <Edit3 className="h-3 w-3" />
                                     {eventComment?.comment ? 'Edit' : 'Add'}
@@ -265,21 +265,21 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
                                 <textarea
                                     value={editingCommentText}
                                     onChange={(e) => setEditingCommentText(e.target.value)}
-                                    className="w-full min-h-[80px] rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none"
+                                    className="w-full min-h-[80px] rounded-lg border border-line-strong bg-surface text-heading px-3 py-2 text-sm placeholder:text-faint focus:border-accent-500 focus:ring-1 focus:ring-accent-500 resize-none"
                                     placeholder={`Add notes about progress on ${events.find(e => e.id === selectedEvent)?.fullName || selectedEvent}...`}
                                     autoFocus
                                 />
                                 <div className="flex items-center gap-2 justify-end">
                                     <button
                                         onClick={cancelEditingComment}
-                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100"
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-subtle hover:bg-surface-hover"
                                     >
                                         <X className="h-4 w-4" />
                                         Cancel
                                     </button>
                                     <button
                                         onClick={saveComment}
-                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium bg-brand-500 text-white hover:bg-brand-600"
+                                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent-500 text-white hover:bg-accent-600"
                                     >
                                         <Check className="h-4 w-4" />
                                         Save
@@ -287,7 +287,7 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
                                 </div>
                             </div>
                         ) : (
-                            <p className={`text-sm ${eventComment?.comment ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                            <p className={`text-sm ${eventComment?.comment ? 'text-body' : 'text-faint italic'}`}>
                                 {eventComment?.comment || 'No notes yet for this event.'}
                             </p>
                         )}
@@ -316,16 +316,16 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
 
                     {/* Skills List */}
                     <div className="card overflow-hidden">
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-line">
                             {skillsWithStatus.map((skill) => {
                                 const config = SKILL_STATUS_CONFIG[skill.status];
                                 return (
                                     <div
                                         key={skill.id}
-                                        className="flex items-center justify-between px-4 py-3 hover:bg-slate-50 transition-colors"
+                                        className="flex items-center justify-between px-4 py-3 hover:bg-surface-hover transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className="text-sm font-medium text-slate-900">
+                                            <span className="text-sm font-medium text-heading">
                                                 {skill.skill_name}
                                             </span>
                                         </div>
@@ -344,7 +344,7 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
                     </div>
 
                     {/* Footer */}
-                    <p className="text-xs text-slate-500 text-center">
+                    <p className="text-xs text-muted text-center">
                         {skills.length} skill{skills.length !== 1 ? 's' : ''} for {events.find(e => e.id === selectedEvent)?.fullName || selectedEvent}
                     </p>
                 </>

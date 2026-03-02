@@ -21,7 +21,7 @@ export function StationCard({ station, onEdit, readOnly = false, className }: St
                 'rounded-xl border p-4',
                 colors.bg,
                 colors.border,
-                !readOnly && onEdit && 'cursor-pointer hover:border-mint-500/50 transition-all',
+                !readOnly && onEdit && 'cursor-pointer hover:border-accent-500/50 transition-all',
                 className
             )}
         >
@@ -31,11 +31,11 @@ export function StationCard({ station, onEdit, readOnly = false, className }: St
                     <h3 className={clsx('font-semibold', colors.text)}>
                         {label}
                     </h3>
-                    <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded">
+                    <span className="text-xs text-muted bg-surface-hover px-2 py-0.5 rounded">
                         {station.level}
                     </span>
                 </div>
-                <span className="text-sm text-slate-500">
+                <span className="text-sm text-muted">
                     {station.stations.length} station{station.stations.length !== 1 ? 's' : ''}
                 </span>
             </div>
@@ -43,19 +43,19 @@ export function StationCard({ station, onEdit, readOnly = false, className }: St
             {/* Stations */}
             <div className="space-y-3">
                 {station.stations.map((mainStation, idx) => (
-                    <div key={mainStation.id} className="bg-slate-50 rounded-lg p-3">
+                    <div key={mainStation.id} className="bg-surface-alt rounded-lg p-3">
                         <div className="flex items-start gap-2">
                             <span className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-xs font-medium text-white">
                                 {idx + 1}
                             </span>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm text-slate-900 whitespace-pre-wrap">
+                                <p className="text-sm text-heading whitespace-pre-wrap">
                                     {mainStation.content || 'Empty station'}
                                 </p>
                                 {mainStation.side_stations && mainStation.side_stations.length > 0 && (
-                                    <div className="mt-2 pl-3 border-l-2 border-slate-200 space-y-1">
+                                    <div className="mt-2 pl-3 border-l-2 border-line space-y-1">
                                         {mainStation.side_stations.map((side, sIdx) => (
-                                            <p key={side.id} className="text-xs text-slate-500">
+                                            <p key={side.id} className="text-xs text-muted">
                                                 {sIdx + 1}. {side.content}
                                             </p>
                                         ))}
@@ -132,10 +132,10 @@ export function StationEditor({ stations, onChange, className }: StationEditorPr
     return (
         <div className={clsx('space-y-4', className)}>
             {stations.map((station, idx) => (
-                <div key={station.id} className="bg-white rounded-lg p-4 border border-slate-200">
+                <div key={station.id} className="bg-surface rounded-lg p-4 border border-line">
                     <div className="flex items-start gap-3">
                         <div className="flex flex-col items-center gap-1">
-                            <GripVertical className="w-4 h-4 text-slate-500" />
+                            <GripVertical className="w-4 h-4 text-muted" />
                             <span className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-xs font-medium text-white">
                                 {idx + 1}
                             </span>
@@ -151,10 +151,10 @@ export function StationEditor({ stations, onChange, className }: StationEditorPr
 
                             {/* Side Stations */}
                             {station.side_stations.length > 0 && (
-                                <div className="mt-3 pl-4 border-l-2 border-slate-200 space-y-2">
+                                <div className="mt-3 pl-4 border-l-2 border-line space-y-2">
                                     {station.side_stations.map((side, sIdx) => (
                                         <div key={side.id} className="flex items-center gap-2">
-                                            <span className="text-xs text-slate-500 flex-shrink-0">
+                                            <span className="text-xs text-muted flex-shrink-0">
                                                 {sIdx + 1}.
                                             </span>
                                             <input
@@ -167,7 +167,7 @@ export function StationEditor({ stations, onChange, className }: StationEditorPr
                                             <button
                                                 type="button"
                                                 onClick={() => removeSideStation(idx, sIdx)}
-                                                className="p-1 text-slate-500 hover:text-error-400 transition-colors"
+                                                className="p-1 text-muted hover:text-error-400 transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -179,7 +179,7 @@ export function StationEditor({ stations, onChange, className }: StationEditorPr
                             <button
                                 type="button"
                                 onClick={() => addSideStation(idx)}
-                                className="mt-2 text-xs text-slate-500 hover:text-mint-600 transition-colors flex items-center gap-1"
+                                className="mt-2 text-xs text-muted hover:text-accent-600 transition-colors flex items-center gap-1"
                             >
                                 <Plus className="w-3 h-3" />
                                 Add side station
@@ -188,7 +188,7 @@ export function StationEditor({ stations, onChange, className }: StationEditorPr
                         <button
                             type="button"
                             onClick={() => removeStation(idx)}
-                            className="p-1.5 text-slate-500 hover:text-error-400 hover:bg-error-500/10 rounded transition-colors"
+                            className="p-1.5 text-muted hover:text-error-400 hover:bg-error-500/10 rounded transition-colors"
                         >
                             <Trash2 className="w-4 h-4" />
                         </button>
@@ -199,7 +199,7 @@ export function StationEditor({ stations, onChange, className }: StationEditorPr
             <button
                 type="button"
                 onClick={addStation}
-                className="w-full py-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:text-mint-600 hover:border-mint-500/50 transition-colors flex items-center justify-center gap-2"
+                className="w-full py-3 border-2 border-dashed border-line-strong rounded-lg text-muted hover:text-accent-600 hover:border-accent-500/50 transition-colors flex items-center justify-center gap-2"
             >
                 <Plus className="w-4 h-4" />
                 Add Station
@@ -224,12 +224,12 @@ export function StationGrid({
     if (stations.length === 0) {
         return (
             <div className="text-center py-12 px-4">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
-                    <svg className="w-7 h-7 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-surface-hover flex items-center justify-center">
+                    <svg className="w-7 h-7 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2-2v-2z" />
                     </svg>
                 </div>
-                <p className="text-slate-500">{emptyMessage}</p>
+                <p className="text-muted">{emptyMessage}</p>
             </div>
         );
     }

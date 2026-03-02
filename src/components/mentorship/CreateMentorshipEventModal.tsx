@@ -87,7 +87,7 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
             <form onSubmit={handleSubmit} className="space-y-4">
                 {/* Title */}
                 <div>
-                    <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-1">
+                    <label htmlFor="title" className="block text-sm font-medium text-body mb-1">
                         Event Title *
                     </label>
                     <input
@@ -96,14 +96,14 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="e.g., Holiday Gift Exchange"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                         required
                     />
                 </div>
 
                 {/* Description */}
                 <div>
-                    <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">
+                    <label htmlFor="description" className="block text-sm font-medium text-body mb-1">
                         Description
                     </label>
                     <textarea
@@ -112,13 +112,13 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                         onChange={(e) => setDescription(e.target.value)}
                         rows={3}
                         placeholder="Event details..."
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent resize-none"
+                        className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent resize-none"
                     />
                 </div>
 
                 {/* Date */}
                 <div>
-                    <label htmlFor="eventDate" className="block text-sm font-medium text-slate-700 mb-1">
+                    <label htmlFor="eventDate" className="block text-sm font-medium text-body mb-1">
                         Date *
                     </label>
                     <input
@@ -126,7 +126,7 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                         id="eventDate"
                         value={eventDate}
                         onChange={(e) => setEventDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                         required
                     />
                 </div>
@@ -134,7 +134,7 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                 {/* Time */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label htmlFor="startTime" className="block text-sm font-medium text-slate-700 mb-1">
+                        <label htmlFor="startTime" className="block text-sm font-medium text-body mb-1">
                             Start Time
                         </label>
                         <input
@@ -142,11 +142,11 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                             id="startTime"
                             value={startTime}
                             onChange={(e) => setStartTime(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                         />
                     </div>
                     <div>
-                        <label htmlFor="endTime" className="block text-sm font-medium text-slate-700 mb-1">
+                        <label htmlFor="endTime" className="block text-sm font-medium text-body mb-1">
                             End Time
                         </label>
                         <input
@@ -154,14 +154,14 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                             id="endTime"
                             value={endTime}
                             onChange={(e) => setEndTime(e.target.value)}
-                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                         />
                     </div>
                 </div>
 
                 {/* Location */}
                 <div>
-                    <label htmlFor="location" className="block text-sm font-medium text-slate-700 mb-1">
+                    <label htmlFor="location" className="block text-sm font-medium text-body mb-1">
                         Location
                     </label>
                     <input
@@ -170,20 +170,20 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                         placeholder="e.g., Main Lobby"
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
                     />
                 </div>
 
                 {/* Calendar Info */}
-                <div className="flex items-start gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl">
+                <div className="flex items-start gap-3 p-3 bg-pink-500/10 border border-pink-500/20 rounded-xl">
                     <CalendarDays className="h-4 w-4 text-pink-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-xs text-pink-700">
+                    <p className="text-xs text-pink-600">
                         This event will also appear on the hub calendar.
                     </p>
                 </div>
 
                 {error && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600">
                         {error}
                     </div>
                 )}
@@ -193,14 +193,14 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
+                        className="px-4 py-2 text-sm font-medium text-body bg-surface border border-line-strong rounded-lg hover:bg-surface-hover"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading || !title.trim() || !eventDate}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-accent-600 rounded-lg hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
                         Add Event

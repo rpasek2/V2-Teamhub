@@ -81,7 +81,7 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
             case 'urgent': return 'text-red-600 bg-red-50';
             case 'high': return 'text-orange-600 bg-orange-50';
             case 'medium': return 'text-amber-600 bg-amber-50';
-            case 'low': return 'text-slate-600 bg-slate-50';
+            case 'low': return 'text-subtle bg-surface-alt';
         }
     };
 
@@ -89,7 +89,7 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
         switch (status) {
             case 'completed': return <CheckCircle2 className="w-4 h-4 text-green-500" />;
             case 'in_progress': return <Clock className="w-4 h-4 text-blue-500" />;
-            case 'pending': return <Circle className="w-4 h-4 text-slate-400" />;
+            case 'pending': return <Circle className="w-4 h-4 text-faint" />;
         }
     };
 
@@ -196,8 +196,8 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
 
             {/* Bulk Actions Bar */}
             {selectedTasks.size > 0 && (
-                <div className="flex items-center justify-between gap-4 p-3 bg-mint-50 border border-mint-200 rounded-lg">
-                    <span className="text-sm text-mint-700 font-medium">
+                <div className="flex items-center justify-between gap-4 p-3 bg-accent-50 border border-accent-200 rounded-lg">
+                    <span className="text-sm text-accent-700 font-medium">
                         {selectedTasks.size} task{selectedTasks.size !== 1 ? 's' : ''} selected
                     </span>
                     <div className="flex items-center gap-2">
@@ -220,30 +220,30 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
             )}
 
             {/* Tasks Table */}
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="bg-surface rounded-xl border border-line overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[700px]">
                         <thead>
-                            <tr className="border-b border-slate-200 bg-slate-50">
+                            <tr className="border-b border-line bg-surface">
                                 <th className="w-10 p-4">
                                     <input
                                         type="checkbox"
                                         checked={sortedTasks.length > 0 && sortedTasks.every(t => selectedTasks.has(t.id))}
                                         onChange={(e) => e.target.checked ? selectAllVisible() : clearSelection()}
-                                        className="rounded border-slate-300 text-mint-600 focus:ring-mint-500"
+                                        className="rounded border-line-strong text-accent-600 focus:ring-accent-500"
                                     />
                                 </th>
-                                <th className="text-left p-4 font-semibold text-slate-700">Task</th>
-                                <th className="text-left p-4 font-semibold text-slate-700">Assigned To</th>
-                                <th className="text-left p-4 font-semibold text-slate-700">Due Date</th>
-                                <th className="text-left p-4 font-semibold text-slate-700">Priority</th>
-                                <th className="text-left p-4 font-semibold text-slate-700">Status</th>
+                                <th className="text-left p-4 font-semibold text-body">Task</th>
+                                <th className="text-left p-4 font-semibold text-body">Assigned To</th>
+                                <th className="text-left p-4 font-semibold text-body">Due Date</th>
+                                <th className="text-left p-4 font-semibold text-body">Priority</th>
+                                <th className="text-left p-4 font-semibold text-body">Status</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-line">
                             {sortedTasks.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="p-8 text-center text-slate-500">
+                                    <td colSpan={6} className="p-8 text-center text-muted">
                                         No tasks found for the selected filters.
                                     </td>
                                 </tr>
@@ -258,29 +258,29 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
                                     return (
                                         <tr
                                             key={task.id}
-                                            className={`hover:bg-slate-50/50 ${isOverdue ? 'bg-red-50/50' : ''}`}
+                                            className={`hover:bg-surface-hover/50 ${isOverdue ? 'bg-red-50/50' : ''}`}
                                         >
                                             <td className="p-4">
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedTasks.has(task.id)}
                                                     onChange={() => toggleTaskSelection(task.id)}
-                                                    className="rounded border-slate-300 text-mint-600 focus:ring-mint-500"
+                                                    className="rounded border-line-strong text-accent-600 focus:ring-accent-500"
                                                 />
                                             </td>
                                             <td className="p-4">
                                                 <p className={`font-medium ${
-                                                    task.status === 'completed' ? 'text-slate-400 line-through' : 'text-slate-900'
+                                                    task.status === 'completed' ? 'text-faint line-through' : 'text-heading'
                                                 }`}>
                                                     {task.title}
                                                 </p>
                                                 {task.description && (
-                                                    <p className="text-sm text-slate-500 line-clamp-1">
+                                                    <p className="text-sm text-muted line-clamp-1">
                                                         {task.description}
                                                     </p>
                                                 )}
                                             </td>
-                                            <td className="p-4 text-sm text-slate-700">
+                                            <td className="p-4 text-sm text-body">
                                                 {task.staffName}
                                             </td>
                                             <td className="p-4">
@@ -290,13 +290,13 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
                                                             ? 'text-red-600 font-medium'
                                                             : isDueToday
                                                             ? 'text-amber-600 font-medium'
-                                                            : 'text-slate-600'
+                                                            : 'text-subtle'
                                                     }`}>
                                                         {isOverdue && <AlertCircle className="w-3.5 h-3.5" />}
                                                         {format(parseISO(task.due_date), 'MMM d, yyyy')}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-sm text-slate-400">No due date</span>
+                                                    <span className="text-sm text-faint">No due date</span>
                                                 )}
                                             </td>
                                             <td className="p-4">
@@ -307,7 +307,7 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
                                             <td className="p-4">
                                                 <span className="flex items-center gap-1.5 text-sm">
                                                     {getStatusIcon(task.status)}
-                                                    <span className="text-slate-600">
+                                                    <span className="text-subtle">
                                                         {getStatusLabel(task.status)}
                                                     </span>
                                                 </span>
@@ -322,9 +322,9 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
             </div>
 
             {/* Summary */}
-            <div className="flex items-center gap-4 text-xs text-slate-500">
+            <div className="flex items-center gap-4 text-xs text-muted">
                 <span>Total: {sortedTasks.length} task{sortedTasks.length !== 1 ? 's' : ''}</span>
-                <span className="text-slate-300">|</span>
+                <span className="text-faint">|</span>
                 <span>Overdue: {sortedTasks.filter(t => t.due_date && isPast(parseISO(t.due_date)) && !isToday(parseISO(t.due_date)) && t.status !== 'completed').length}</span>
             </div>
 

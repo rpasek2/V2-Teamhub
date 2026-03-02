@@ -18,11 +18,11 @@ export function FileList({ files }: FileListProps) {
     };
 
     const getFileColor = (mimeType: string) => {
-        if (mimeType.startsWith('image/')) return 'text-blue-500 bg-blue-50';
-        if (mimeType.includes('pdf')) return 'text-red-500 bg-red-50';
-        if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return 'text-emerald-500 bg-emerald-50';
-        if (mimeType.includes('document') || mimeType.includes('word')) return 'text-blue-600 bg-blue-50';
-        return 'text-slate-500 bg-slate-50';
+        if (mimeType.startsWith('image/')) return 'text-blue-500 bg-blue-500/10';
+        if (mimeType.includes('pdf')) return 'text-red-500 bg-red-500/10';
+        if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || mimeType.includes('csv')) return 'text-emerald-500 bg-emerald-500/10';
+        if (mimeType.includes('document') || mimeType.includes('word')) return 'text-blue-600 bg-blue-500/10';
+        return 'text-muted bg-surface-alt';
     };
 
     const formatFileSize = (bytes: number) => {
@@ -37,8 +37,8 @@ export function FileList({ files }: FileListProps) {
     };
 
     return (
-        <div className="rounded-xl border border-slate-200 bg-slate-50/50 overflow-hidden">
-            <div className="divide-y divide-slate-100">
+        <div className="rounded-xl border border-line bg-surface-alt/50 overflow-hidden">
+            <div className="divide-y divide-line">
                 {files.map((file, index) => {
                     const Icon = getFileIcon(file.mimeType);
                     const colorClass = getFileColor(file.mimeType);
@@ -51,20 +51,20 @@ export function FileList({ files }: FileListProps) {
                             target="_blank"
                             rel="noopener noreferrer"
                             download={file.name}
-                            className="flex items-center gap-3 px-4 py-3 hover:bg-slate-100 transition-colors group"
+                            className="flex items-center gap-3 px-4 py-3 hover:bg-surface-hover transition-colors group"
                         >
                             <div className={`flex-shrink-0 w-10 h-10 rounded-lg ${colorClass} flex items-center justify-center`}>
                                 <Icon className="h-5 w-5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-slate-900 truncate">{file.name}</p>
-                                <p className="text-xs text-slate-500">
+                                <p className="text-sm font-medium text-heading truncate">{file.name}</p>
+                                <p className="text-xs text-muted">
                                     {extension && <span className="uppercase">{extension} • </span>}
                                     {formatFileSize(file.size)}
                                 </p>
                             </div>
                             <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Download className="h-5 w-5 text-slate-400" />
+                                <Download className="h-5 w-5 text-faint" />
                             </div>
                         </a>
                     );

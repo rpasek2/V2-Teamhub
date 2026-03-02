@@ -371,39 +371,39 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
         if (!isFullscreen) return null;
 
         return createPortal(
-            <div className="fixed inset-0 z-50 bg-white flex flex-col">
+            <div className="fixed inset-0 z-50 bg-surface flex flex-col">
                 {/* Fullscreen Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-slate-50">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-line bg-surface">
                     <div className="flex items-center gap-4">
                         <button
                             onClick={goToPreviousDay}
-                            className="p-2 rounded-lg hover:bg-slate-200 text-slate-600"
+                            className="p-2 rounded-lg hover:bg-surface-active text-subtle"
                         >
                             <ChevronLeft className="w-5 h-5" />
                         </button>
                         <div className="text-center">
-                            <h1 className="text-2xl font-bold text-slate-900">
+                            <h1 className="text-2xl font-bold text-heading">
                                 {DAYS_OF_WEEK[selectedDayOfWeek]} Rotations
                             </h1>
                         </div>
                         <button
                             onClick={goToNextDay}
-                            className="p-2 rounded-lg hover:bg-slate-200 text-slate-600"
+                            className="p-2 rounded-lg hover:bg-surface-active text-subtle"
                         >
                             <ChevronRight className="w-5 h-5" />
                         </button>
                     </div>
                     <div className="flex items-center gap-3">
                         {/* Day quick-select in fullscreen */}
-                        <div className="hidden sm:flex bg-slate-100 rounded-lg p-1">
+                        <div className="hidden sm:flex bg-surface-hover rounded-lg p-1">
                             {DAYS_OF_WEEK.map((day, index) => (
                                 <button
                                     key={day}
                                     onClick={() => setSelectedDayOfWeek(index)}
                                     className={`px-3 py-1.5 text-sm font-medium rounded-md ${
                                         selectedDayOfWeek === index
-                                            ? 'bg-white text-brand-700 shadow-sm'
-                                            : 'text-slate-600 hover:text-slate-900'
+                                            ? 'bg-surface text-accent-700 shadow-sm'
+                                            : 'text-subtle hover:text-heading'
                                     }`}
                                 >
                                     {day.slice(0, 3)}
@@ -413,7 +413,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                         {canManage && hasCustomizations && (
                             <button
                                 onClick={handleResetColumns}
-                                className="flex items-center gap-2 px-3 py-2 bg-amber-100 hover:bg-amber-200 rounded-lg text-amber-700 font-medium"
+                                className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 hover:bg-amber-500/15 rounded-lg text-amber-600 font-medium"
                                 title="Reset column customizations"
                             >
                                 <RotateCcw className="w-4 h-4" />
@@ -422,7 +422,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                         )}
                         <button
                             onClick={() => setIsFullscreen(false)}
-                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-700 font-medium"
+                            className="flex items-center gap-2 px-4 py-2 bg-surface-hover hover:bg-surface-active rounded-lg text-body font-medium"
                         >
                             <Minimize2 className="w-4 h-4" />
                             <span className="hidden sm:inline">Exit Fullscreen</span>
@@ -435,9 +435,9 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                     {activeLevelsForDay.length === 0 ? (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center">
-                                <Grid3X3 className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                                <h3 className="text-xl font-medium text-slate-900 mb-2">No practice scheduled</h3>
-                                <p className="text-slate-500">
+                                <Grid3X3 className="w-16 h-16 text-faint mx-auto mb-4" />
+                                <h3 className="text-xl font-medium text-heading mb-2">No practice scheduled</h3>
+                                <p className="text-muted">
                                     {DAYS_OF_WEEK[selectedDayOfWeek]} has no practice times set.
                                 </p>
                             </div>
@@ -466,7 +466,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                             </div>
 
                             {/* Event Palette Sidebar - Fullscreen */}
-                            <div className="w-40 flex-shrink-0 border-l border-slate-200 bg-slate-50 p-4 overflow-y-auto">
+                            <div className="w-40 flex-shrink-0 border-l border-line bg-surface-alt p-4 overflow-y-auto">
                                 <EventPalette
                                     events={rotationEvents}
                                     selectedEvent={selectedEvent}
@@ -483,7 +483,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                 </div>
 
                 {/* ESC hint */}
-                <div className="absolute bottom-4 left-4 text-xs text-slate-400">
+                <div className="absolute bottom-4 left-4 text-xs text-faint">
                     Press ESC to exit fullscreen
                 </div>
             </div>,
@@ -494,7 +494,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
             </div>
         );
     }
@@ -503,15 +503,15 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
         <div className="space-y-6">
             {/* Day of Week Selector */}
             <div className="flex items-center justify-center gap-4">
-                <div className="inline-flex bg-slate-100 rounded-lg p-1">
+                <div className="inline-flex bg-surface-hover rounded-lg p-1">
                     {DAYS_OF_WEEK.map((day, index) => (
                         <button
                             key={day}
                             onClick={() => setSelectedDayOfWeek(index)}
                             className={`px-4 py-2 text-sm font-medium rounded-md ${
                                 selectedDayOfWeek === index
-                                    ? 'bg-white text-brand-700 shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-white/50'
+                                    ? 'bg-surface text-accent-700 shadow-sm'
+                                    : 'text-subtle hover:text-heading hover:bg-surface/50'
                             }`}
                         >
                             {day.slice(0, 3)}
@@ -521,7 +521,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                 {canManage && hasCustomizations && (
                     <button
                         onClick={handleResetColumns}
-                        className="flex items-center gap-2 px-3 py-2 bg-amber-100 hover:bg-amber-200 rounded-lg text-amber-700 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 hover:bg-amber-500/15 rounded-lg text-amber-600 transition-colors"
                         title="Reset column customizations"
                     >
                         <RotateCcw className="w-4 h-4" />
@@ -530,7 +530,7 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
                 )}
                 <button
                     onClick={() => setIsFullscreen(true)}
-                    className="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-slate-600 hover:text-slate-900 transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 bg-surface-hover hover:bg-surface-active rounded-lg text-subtle hover:text-heading transition-colors"
                     title="Fullscreen view"
                 >
                     <Maximize2 className="w-4 h-4" />
@@ -540,10 +540,10 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
 
             {/* Day Title */}
             <div className="text-center">
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-heading">
                     {DAYS_OF_WEEK[selectedDayOfWeek]} Rotations
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-muted">
                     {canManage ? 'Set up the rotation schedule for every' : 'Rotation schedule for every'} {DAYS_OF_WEEK[selectedDayOfWeek]}
                 </p>
             </div>
@@ -551,9 +551,9 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
             {/* Main content with floating sidebar */}
             {activeLevelsForDay.length === 0 ? (
                 <div className="card p-12 text-center">
-                    <Grid3X3 className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-900 mb-2">No practice scheduled</h3>
-                    <p className="text-slate-500">
+                    <Grid3X3 className="w-12 h-12 text-faint mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-heading mb-2">No practice scheduled</h3>
+                    <p className="text-muted">
                         {DAYS_OF_WEEK[selectedDayOfWeek]} has no practice times set.
                         {canManage && ' Add practice times in the Weekly Schedule tab.'}
                     </p>

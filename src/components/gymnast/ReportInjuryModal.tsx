@@ -167,21 +167,21 @@ export function ReportInjuryModal({
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-xl transition-all">
+                <div className="relative w-full max-w-lg transform rounded-xl bg-surface shadow-xl transition-all">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-line px-6 py-4">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
                                 <AlertTriangle className="h-5 w-5 text-red-600" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-semibold text-slate-900">Report Injury</h2>
-                                <p className="text-sm text-slate-500">{gymnastName}</p>
+                                <h2 className="text-lg font-semibold text-heading">Report Injury</h2>
+                                <p className="text-sm text-muted">{gymnastName}</p>
                             </div>
                         </div>
                         <button
                             onClick={onClose}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                            className="rounded-lg p-2 text-faint hover:bg-surface-hover hover:text-subtle"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -191,11 +191,11 @@ export function ReportInjuryModal({
                     <form onSubmit={handleSubmit} className="p-6 space-y-4">
                         {/* Reported By */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Reported By *
                             </label>
                             {loadingStaff ? (
-                                <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
+                                <div className="mt-1 flex items-center gap-2 text-sm text-muted">
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                     Loading staff...
                                 </div>
@@ -204,7 +204,7 @@ export function ReportInjuryModal({
                                     value={reportedBy}
                                     onChange={(e) => setReportedBy(e.target.value)}
                                     required
-                                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                    className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                 >
                                     <option value="">Select staff member...</option>
                                     {staffMembers.map((staff) => (
@@ -219,7 +219,7 @@ export function ReportInjuryModal({
                         {/* Date & Time */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700">
+                                <label className="block text-sm font-medium text-body">
                                     Date *
                                 </label>
                                 <input
@@ -227,11 +227,11 @@ export function ReportInjuryModal({
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
                                     required
-                                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                    className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700">
+                                <label className="block text-sm font-medium text-body">
                                     Time *
                                 </label>
                                 <input
@@ -239,21 +239,21 @@ export function ReportInjuryModal({
                                     value={time}
                                     onChange={(e) => setTime(e.target.value)}
                                     required
-                                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                    className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                 />
                             </div>
                         </div>
 
                         {/* Location */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Location *
                             </label>
                             <select
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value as 'competition' | 'practice' | 'other')}
                                 required
-                                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             >
                                 <option value="practice">Practice</option>
                                 <option value="competition">Competition</option>
@@ -264,7 +264,7 @@ export function ReportInjuryModal({
                         {/* Location Details (shown for competition or other) */}
                         {(location === 'competition' || location === 'other') && (
                             <div>
-                                <label className="block text-sm font-medium text-slate-700">
+                                <label className="block text-sm font-medium text-body">
                                     {location === 'competition' ? 'Competition Name' : 'Location Details'}
                                 </label>
                                 <input
@@ -272,7 +272,7 @@ export function ReportInjuryModal({
                                     value={locationDetails}
                                     onChange={(e) => setLocationDetails(e.target.value)}
                                     placeholder={location === 'competition' ? 'e.g., State Championships' : 'e.g., At home, Open gym'}
-                                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                    className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                 />
                             </div>
                         )}
@@ -280,7 +280,7 @@ export function ReportInjuryModal({
                         {/* Body Part & Severity */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700">
+                                <label className="block text-sm font-medium text-body">
                                     Body Part Affected
                                 </label>
                                 <input
@@ -288,17 +288,17 @@ export function ReportInjuryModal({
                                     value={bodyPart}
                                     onChange={(e) => setBodyPart(e.target.value)}
                                     placeholder="e.g., Left ankle, Right wrist"
-                                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                    className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700">
+                                <label className="block text-sm font-medium text-body">
                                     Severity
                                 </label>
                                 <select
                                     value={severity}
                                     onChange={(e) => setSeverity(e.target.value as 'minor' | 'moderate' | 'severe')}
-                                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                    className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                 >
                                     <option value="minor">Minor</option>
                                     <option value="moderate">Moderate</option>
@@ -309,7 +309,7 @@ export function ReportInjuryModal({
 
                         {/* Description */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Injury Description *
                             </label>
                             <textarea
@@ -318,13 +318,13 @@ export function ReportInjuryModal({
                                 required
                                 rows={3}
                                 placeholder="Describe what happened and how the injury occurred..."
-                                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             />
                         </div>
 
                         {/* Response */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Response / Treatment *
                             </label>
                             <textarea
@@ -333,13 +333,13 @@ export function ReportInjuryModal({
                                 required
                                 rows={2}
                                 placeholder="What was done in response? (e.g., ice applied, rest, sent to ER, parent called)"
-                                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             />
                         </div>
 
                         {/* Follow Up */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Follow-Up Notes
                             </label>
                             <textarea
@@ -347,7 +347,7 @@ export function ReportInjuryModal({
                                 onChange={(e) => setFollowUp(e.target.value)}
                                 rows={2}
                                 placeholder="Any follow-up actions needed or additional notes..."
-                                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             />
                         </div>
 
@@ -359,11 +359,11 @@ export function ReportInjuryModal({
                         )}
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-line">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                                className="rounded-lg px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                             >
                                 Cancel
                             </button>

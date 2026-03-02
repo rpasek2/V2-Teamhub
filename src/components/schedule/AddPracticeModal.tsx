@@ -170,12 +170,12 @@ export function AddPracticeModal({
             <div className="card p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-slate-900">
+                    <h2 className="text-xl font-bold text-heading">
                         {editingSchedule ? 'Edit Practice Time' : 'Add Practice Time'}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -184,7 +184,7 @@ export function AddPracticeModal({
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Group Type Toggle */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             Group Type
                         </label>
                         <div className="flex gap-2">
@@ -193,8 +193,8 @@ export function AddPracticeModal({
                                 onClick={() => setIsExternalGroup(false)}
                                 className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                     !isExternalGroup
-                                        ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
-                                        : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                        ? 'bg-accent-500/15 text-accent-600 border-2 border-accent-500/30'
+                                        : 'bg-surface-hover text-subtle border-2 border-transparent hover:bg-surface-active'
                                 }`}
                             >
                                 Roster Level
@@ -204,14 +204,14 @@ export function AddPracticeModal({
                                 onClick={() => setIsExternalGroup(true)}
                                 className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                     isExternalGroup
-                                        ? 'bg-purple-100 text-purple-700 border-2 border-purple-300'
-                                        : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                        ? 'bg-purple-500/15 text-purple-600 border-2 border-purple-500/30'
+                                        : 'bg-surface-hover text-subtle border-2 border-transparent hover:bg-surface-active'
                                 }`}
                             >
                                 External Group
                             </button>
                         </div>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-muted mt-1">
                             {isExternalGroup
                                 ? 'Add groups not in this hub (e.g., Preteam, Boys, Xcel)'
                                 : 'Select a level from your hub roster'}
@@ -221,7 +221,7 @@ export function AddPracticeModal({
                     {/* Level Selection or Custom Group Name */}
                     {isExternalGroup ? (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            <label className="block text-sm font-medium text-body mb-1">
                                 Group Name *
                             </label>
                             <input
@@ -239,13 +239,13 @@ export function AddPracticeModal({
                                     ))}
                                 </datalist>
                             )}
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="text-xs text-muted mt-1">
                                 This group will appear on the rotation schedule but not in your roster
                             </p>
                         </div>
                     ) : (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            <label className="block text-sm font-medium text-body mb-1">
                                 Level *
                             </label>
                             <select
@@ -265,7 +265,7 @@ export function AddPracticeModal({
 
                     {/* Schedule Group */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                        <label className="block text-sm font-medium text-body mb-1">
                             Schedule Group
                         </label>
                         <div className="flex gap-2">
@@ -276,22 +276,22 @@ export function AddPracticeModal({
                                     onClick={() => setScheduleGroup(group)}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                                         scheduleGroup === group
-                                            ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-300'
-                                            : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                            ? 'bg-indigo-500/15 text-indigo-600 border-2 border-indigo-500/30'
+                                            : 'bg-surface-hover text-subtle border-2 border-transparent hover:bg-surface-active'
                                     }`}
                                 >
                                     Group {group}
                                 </button>
                             ))}
                         </div>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-xs text-muted mt-1">
                             Use groups for levels with different practice schedules (e.g., A = Mon/Wed, B = Tue/Thu)
                         </p>
                     </div>
 
                     {/* Group Label (optional) */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                        <label className="block text-sm font-medium text-body mb-1">
                             Group Label (optional)
                         </label>
                         <input
@@ -305,7 +305,7 @@ export function AddPracticeModal({
 
                     {/* Days of Week */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             {editingSchedule ? 'Day of Week *' : 'Days of Week *'}
                         </label>
                         <div className="flex flex-wrap gap-2">
@@ -316,8 +316,8 @@ export function AddPracticeModal({
                                     onClick={() => toggleDay(index)}
                                     className={`w-12 h-10 rounded-lg text-sm font-medium transition-colors ${
                                         selectedDays.includes(index)
-                                            ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
-                                            : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                            ? 'bg-accent-500/15 text-accent-600 border-2 border-accent-500/30'
+                                            : 'bg-surface-hover text-subtle border-2 border-transparent hover:bg-surface-active'
                                     }`}
                                 >
                                     {day}
@@ -325,7 +325,7 @@ export function AddPracticeModal({
                             ))}
                         </div>
                         {!editingSchedule && (
-                            <p className="text-xs text-slate-500 mt-1">
+                            <p className="text-xs text-muted mt-1">
                                 Select multiple days to add the same practice time
                             </p>
                         )}
@@ -334,7 +334,7 @@ export function AddPracticeModal({
                     {/* Time Range */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            <label className="block text-sm font-medium text-body mb-1">
                                 Start Time *
                             </label>
                             <input
@@ -346,7 +346,7 @@ export function AddPracticeModal({
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            <label className="block text-sm font-medium text-body mb-1">
                                 End Time *
                             </label>
                             <input
@@ -361,7 +361,7 @@ export function AddPracticeModal({
 
                     {/* Error Message */}
                     {error && (
-                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                        <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600">
                             {error}
                         </div>
                     )}

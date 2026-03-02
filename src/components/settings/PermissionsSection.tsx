@@ -139,36 +139,36 @@ export function PermissionsSection({ permissions, setPermissions }: PermissionsS
             }
         >
             {message && (
-                <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {message.text}
                 </div>
             )}
 
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
+                <table className="min-w-full divide-y divide-line">
                     <thead>
                         <tr>
-                            <th className="px-6 py-3 bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                            <th className="px-6 py-3 bg-surface text-left text-xs font-medium text-muted uppercase tracking-wider">
                                 Feature
                             </th>
                             {ROLES.map(role => (
-                                <th key={role} className="px-6 py-3 bg-slate-50 text-left text-xs font-medium text-slate-500 uppercase tracking-wider">
+                                <th key={role} className="px-6 py-3 bg-surface text-left text-xs font-medium text-muted uppercase tracking-wider">
                                     {role}
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-slate-200">
+                    <tbody className="bg-surface divide-y divide-line">
                         {FEATURES.map(feature => {
                             const enabled = isFeatureEnabled(feature);
                             return (
                                 <tr key={feature} className={enabled ? '' : 'opacity-40'}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900 capitalize">
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-heading capitalize">
                                         {FEATURE_LABELS[feature] || feature}
-                                        {!enabled && <span className="ml-2 text-xs text-slate-400 normal-case">(disabled)</span>}
+                                        {!enabled && <span className="ml-2 text-xs text-faint normal-case">(disabled)</span>}
                                     </td>
                                     {ROLES.map(role => (
-                                        <td key={role} className="px-6 py-4 whitespace-nowrap text-sm text-slate-400">
+                                        <td key={role} className="px-6 py-4 whitespace-nowrap text-sm text-faint">
                                             <select
                                                 value={permissions[feature]?.[role as keyof RolePermissions] || 'none'}
                                                 onChange={(e) => handlePermissionChange(feature, role, e.target.value as PermissionScope)}

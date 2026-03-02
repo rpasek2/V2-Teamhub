@@ -103,6 +103,7 @@ export interface HubSettings {
     seasonConfig?: SeasonConfig;
     skillEvents?: SkillEventsConfig;
     qualifyingScores?: QualifyingScoresConfig;
+    accentColor?: string;
 }
 
 export interface Hub {
@@ -692,11 +693,11 @@ export interface GymnastEventComment {
 }
 
 export const SKILL_STATUS_CONFIG: Record<SkillStatus, { label: string; icon: string; color: string; bgColor: string }> = {
-    none: { label: 'Not Started', icon: '', color: 'text-slate-300', bgColor: 'bg-slate-50' },
-    learning: { label: 'Learning', icon: '◐', color: 'text-amber-500', bgColor: 'bg-amber-50' },
-    achieved: { label: 'Achieved', icon: '✓', color: 'text-green-500', bgColor: 'bg-green-50' },
-    mastered: { label: 'Mastered', icon: '★', color: 'text-yellow-500', bgColor: 'bg-yellow-50' },
-    injured: { label: 'Injured', icon: '⚠', color: 'text-red-500', bgColor: 'bg-red-50' }
+    none: { label: 'Not Started', icon: '', color: 'text-faint', bgColor: 'bg-surface-hover' },
+    learning: { label: 'Learning', icon: '◐', color: 'text-amber-500', bgColor: 'bg-amber-500/10' },
+    achieved: { label: 'Achieved', icon: '✓', color: 'text-green-500', bgColor: 'bg-green-500/10' },
+    mastered: { label: 'Mastered', icon: '★', color: 'text-yellow-500', bgColor: 'bg-yellow-500/10' },
+    injured: { label: 'Injured', icon: '⚠', color: 'text-red-500', bgColor: 'bg-red-500/10' }
 };
 
 // ============================================
@@ -723,13 +724,13 @@ export const ASSIGNMENT_EVENT_LABELS: Record<AssignmentEventType, string> = {
 };
 
 export const ASSIGNMENT_EVENT_COLORS: Record<AssignmentEventType, { bg: string; border: string; text: string }> = {
-    vault: { bg: 'bg-emerald-100', border: 'border-emerald-300', text: 'text-emerald-700' },
-    bars: { bg: 'bg-sky-100', border: 'border-sky-300', text: 'text-sky-700' },
-    beam: { bg: 'bg-pink-100', border: 'border-pink-300', text: 'text-pink-700' },
-    floor: { bg: 'bg-amber-100', border: 'border-amber-300', text: 'text-amber-700' },
-    strength: { bg: 'bg-red-100', border: 'border-red-300', text: 'text-red-700' },
-    flexibility: { bg: 'bg-violet-100', border: 'border-violet-300', text: 'text-violet-700' },
-    conditioning: { bg: 'bg-cyan-100', border: 'border-cyan-300', text: 'text-cyan-700' }
+    vault: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-600' },
+    bars: { bg: 'bg-sky-500/10', border: 'border-sky-500/30', text: 'text-sky-600' },
+    beam: { bg: 'bg-pink-500/10', border: 'border-pink-500/30', text: 'text-pink-600' },
+    floor: { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-600' },
+    strength: { bg: 'bg-red-500/10', border: 'border-red-500/30', text: 'text-red-600' },
+    flexibility: { bg: 'bg-violet-500/10', border: 'border-violet-500/30', text: 'text-violet-600' },
+    conditioning: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-600' }
 };
 
 // Completed items tracking: { "vault": [0, 2, 4], "bars": [1, 3] }

@@ -87,12 +87,12 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
 
     if (photos.length === 0) {
         return (
-            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center mx-auto">
+            <div className="text-center py-16 bg-surface rounded-2xl shadow-sm border border-line">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 flex items-center justify-center mx-auto">
                     <Image className="h-8 w-8 text-purple-400" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">No photos yet</h3>
-                <p className="mt-1 text-sm text-slate-500">Photos from posts will appear here</p>
+                <h3 className="mt-4 text-lg font-semibold text-heading">No photos yet</h3>
+                <p className="mt-1 text-sm text-muted">Photos from posts will appear here</p>
             </div>
         );
     }
@@ -105,7 +105,7 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
                     <button
                         key={`${photo.postId}-${index}`}
                         onClick={() => setSelectedPhoto(index)}
-                        className="group relative aspect-square rounded-xl overflow-hidden bg-slate-100 hover:ring-2 hover:ring-brand-500 hover:ring-offset-2 transition-all"
+                        className="group relative aspect-square rounded-xl overflow-hidden bg-surface-hover hover:ring-2 hover:ring-accent-500 hover:ring-offset-2 transition-all"
                     >
                         <img
                             src={photo.url}
@@ -131,7 +131,7 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
                     {/* Close button */}
                     <button
                         onClick={() => setSelectedPhoto(null)}
-                        className="absolute top-4 right-4 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
+                        className="absolute top-4 right-4 p-2 rounded-full bg-surface/10 text-white hover:bg-surface/20 transition-colors z-10"
                     >
                         <X className="h-6 w-6" />
                     </button>
@@ -139,7 +139,7 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
                     {/* Download button */}
                     <button
                         onClick={() => handleDownload(photos[selectedPhoto].url)}
-                        className="absolute top-4 right-16 p-2 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors z-10"
+                        className="absolute top-4 right-16 p-2 rounded-full bg-surface/10 text-white hover:bg-surface/20 transition-colors z-10"
                         title="Download"
                     >
                         <Download className="h-6 w-6" />
@@ -149,7 +149,7 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
                     {selectedPhoto > 0 && (
                         <button
                             onClick={handlePrevious}
-                            className="absolute left-4 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                            className="absolute left-4 p-3 rounded-full bg-surface/10 text-white hover:bg-surface/20 transition-colors"
                         >
                             <ChevronLeft className="h-8 w-8" />
                         </button>
@@ -157,7 +157,7 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
                     {selectedPhoto < photos.length - 1 && (
                         <button
                             onClick={handleNext}
-                            className="absolute right-4 p-3 rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+                            className="absolute right-4 p-3 rounded-full bg-surface/10 text-white hover:bg-surface/20 transition-colors"
                         >
                             <ChevronRight className="h-8 w-8" />
                         </button>
@@ -187,7 +187,7 @@ export function GroupPhotos({ posts }: GroupPhotosProps) {
                     </div>
 
                     {/* Counter */}
-                    <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-white/10 text-white text-sm">
+                    <div className="absolute top-4 left-4 px-3 py-1.5 rounded-full bg-surface/10 text-white text-sm">
                         {selectedPhoto + 1} / {photos.length}
                     </div>
 

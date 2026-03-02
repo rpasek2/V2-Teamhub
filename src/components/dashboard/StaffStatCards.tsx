@@ -60,10 +60,10 @@ export function StaffStatCards({ stats, loadingStats, enabledTabs }: StaffStatCa
                 >
                     <div className="flex items-center justify-between mb-3">
                         <span className="stat-label">{item.name}</span>
-                        <item.icon className="h-5 w-5 text-slate-500" />
+                        <item.icon className="h-5 w-5 text-muted" />
                     </div>
-                    <p className="stat-value text-mint-600">{item.value}</p>
-                    <p className="text-sm text-slate-500 mt-1 truncate">{item.subtitle}</p>
+                    <p className="stat-value text-accent-600">{item.value}</p>
+                    <p className="text-sm text-muted mt-1 truncate">{item.subtitle}</p>
                 </div>
             ))}
         </div>

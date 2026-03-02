@@ -140,7 +140,7 @@ export function PollDisplay({ postId, question, options, settings }: PollDisplay
 
     if (loading) {
         return (
-            <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-4">
+            <div className="rounded-xl border border-purple-500/20 bg-purple-500/10 p-4">
                 <div className="flex items-center justify-center py-4">
                     <Loader2 className="h-5 w-5 animate-spin text-purple-500" />
                 </div>
@@ -149,14 +149,14 @@ export function PollDisplay({ postId, question, options, settings }: PollDisplay
     }
 
     return (
-        <div className="rounded-xl border border-purple-200 bg-purple-50/50 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 bg-purple-100 border-b border-purple-200">
+        <div className="rounded-xl border border-purple-500/20 bg-purple-500/10 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 bg-purple-500/15 border-b border-purple-500/20">
                 <BarChart3 className="h-4 w-4 text-purple-600" />
-                <span className="text-sm font-semibold text-purple-700">Poll</span>
+                <span className="text-sm font-semibold text-purple-600">Poll</span>
                 <span className="text-xs text-purple-500 ml-auto">{totalVotes} vote{totalVotes !== 1 ? 's' : ''}</span>
             </div>
             <div className="p-4">
-                <p className="font-medium text-slate-900 mb-4">{question}</p>
+                <p className="font-medium text-heading mb-4">{question}</p>
 
                 <div className="space-y-2">
                     {options.map((option, index) => {
@@ -171,15 +171,15 @@ export function PollDisplay({ postId, question, options, settings }: PollDisplay
                                 disabled={!canVote || voting}
                                 className={`w-full text-left relative overflow-hidden rounded-lg border transition-all ${
                                     isSelected
-                                        ? 'border-purple-400 bg-purple-100'
-                                        : 'border-slate-200 bg-white hover:border-purple-300'
+                                        ? 'border-purple-400 bg-purple-500/10'
+                                        : 'border-line bg-surface hover:border-purple-300'
                                 } ${!canVote ? 'cursor-default' : 'cursor-pointer'}`}
                             >
                                 {/* Progress bar background */}
                                 {showResults && (
                                     <div
                                         className={`absolute inset-y-0 left-0 transition-all ${
-                                            isSelected ? 'bg-purple-200' : 'bg-slate-100'
+                                            isSelected ? 'bg-purple-500/15' : 'bg-surface-hover'
                                         }`}
                                         style={{ width: `${percentage}%` }}
                                     />
@@ -190,16 +190,16 @@ export function PollDisplay({ postId, question, options, settings }: PollDisplay
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                                             isSelected
                                                 ? 'border-purple-500 bg-purple-500'
-                                                : 'border-slate-300'
+                                                : 'border-line-strong'
                                         }`}>
                                             {isSelected && <Check className="h-3 w-3 text-white" />}
                                         </div>
-                                        <span className={`text-sm ${isSelected ? 'font-medium text-purple-900' : 'text-slate-700'}`}>
+                                        <span className={`text-sm ${isSelected ? 'font-medium text-purple-600' : 'text-body'}`}>
                                             {option}
                                         </span>
                                     </div>
                                     {showResults && (
-                                        <span className={`text-sm font-medium ${isSelected ? 'text-purple-700' : 'text-slate-500'}`}>
+                                        <span className={`text-sm font-medium ${isSelected ? 'text-purple-600' : 'text-muted'}`}>
                                             {percentage}%
                                         </span>
                                     )}
@@ -212,10 +212,10 @@ export function PollDisplay({ postId, question, options, settings }: PollDisplay
                 {/* Settings info */}
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-purple-600">
                     {settings.multipleChoice && (
-                        <span className="px-2 py-0.5 bg-purple-100 rounded-full">Multiple choice</span>
+                        <span className="px-2 py-0.5 bg-purple-500/15 rounded-full">Multiple choice</span>
                     )}
                     {!settings.allowChangeVote && hasVoted && (
-                        <span className="px-2 py-0.5 bg-purple-100 rounded-full">Vote cannot be changed</span>
+                        <span className="px-2 py-0.5 bg-purple-500/15 rounded-full">Vote cannot be changed</span>
                     )}
                 </div>
             </div>

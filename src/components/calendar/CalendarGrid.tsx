@@ -67,9 +67,9 @@ export function CalendarGrid({
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
             {/* Day Headers */}
-            <div className="grid grid-cols-7 border-b border-slate-200 bg-slate-50">
+            <div className="grid grid-cols-7 border-b border-line bg-surface">
                 {(isMobile ? ['S', 'M', 'T', 'W', 'T', 'F', 'S'] : ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']).map((day, idx) => (
-                    <div key={idx} className="py-2 sm:py-3 text-center text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                    <div key={idx} className="py-2 sm:py-3 text-center text-xs font-semibold text-muted uppercase tracking-wide">
                         {day}
                     </div>
                 ))}
@@ -94,10 +94,10 @@ export function CalendarGrid({
                             key={day.toString()}
                             onClick={() => onDayClick(day)}
                             className={cn(
-                                "min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border-b border-r border-slate-200 transition-colors relative overflow-hidden",
-                                isCurrentMonth ? 'bg-white' : 'bg-slate-50',
-                                (canAddEvents || isMobile) && 'cursor-pointer hover:bg-slate-100',
-                                isSelected && 'bg-mint-100 ring-2 ring-inset ring-mint-500',
+                                "min-h-[60px] sm:min-h-[120px] p-1 sm:p-2 border-b border-r border-line transition-colors relative overflow-hidden",
+                                isCurrentMonth ? 'bg-surface' : 'bg-surface-alt',
+                                (canAddEvents || isMobile) && 'cursor-pointer hover:bg-surface-hover',
+                                isSelected && 'bg-accent-100 ring-2 ring-inset ring-accent-500',
                                 idx % 7 === 0 && 'border-l-0',
                                 holiday && !isSelected && holiday.bgColor
                             )}
@@ -116,12 +116,12 @@ export function CalendarGrid({
                                         className={cn(
                                             "flex h-6 w-6 sm:h-7 sm:w-7 items-center justify-center rounded-full text-xs sm:text-sm font-medium",
                                             isCurrentDay
-                                                ? 'bg-mint-500 text-white'
+                                                ? 'bg-accent-500 text-white'
                                                 : holiday
                                                     ? holiday.textColor
                                                     : isCurrentMonth
-                                                        ? 'text-slate-900'
-                                                        : 'text-slate-400'
+                                                        ? 'text-heading'
+                                                        : 'text-faint'
                                         )}
                                     >
                                         {format(day, 'd')}
@@ -145,7 +145,7 @@ export function CalendarGrid({
                                             />
                                         ))}
                                         {dayEvents.length > 3 && (
-                                            <span className="text-[10px] text-slate-400 ml-0.5">+{dayEvents.length - 3}</span>
+                                            <span className="text-[10px] text-faint ml-0.5">+{dayEvents.length - 3}</span>
                                         )}
                                     </div>
                                 )}
@@ -163,7 +163,7 @@ export function CalendarGrid({
                                 {!isMobile && dayEvents.length > 3 && (
                                     <span className={cn(
                                         "text-xs font-medium",
-                                        holiday ? holiday.textColor : "text-slate-500"
+                                        holiday ? holiday.textColor : "text-muted"
                                     )}>
                                         +{dayEvents.length - 3}
                                     </span>
@@ -176,7 +176,7 @@ export function CalendarGrid({
                                     {dayBirthdays.slice(0, 2).map((birthday) => (
                                         <div
                                             key={birthday.id}
-                                            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-pink-50 text-pink-700 truncate"
+                                            className="flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] sm:text-xs font-medium bg-pink-500/10 text-pink-600 truncate"
                                             title={`${birthday.name}'s Birthday`}
                                         >
                                             <span>{'🎂'}</span>
@@ -184,7 +184,7 @@ export function CalendarGrid({
                                         </div>
                                     ))}
                                     {dayBirthdays.length > 2 && (
-                                        <div className="text-[10px] text-pink-600 px-1.5">
+                                        <div className="text-[10px] text-pink-500 px-1.5">
                                             +{dayBirthdays.length - 2} more
                                         </div>
                                     )}
@@ -204,7 +204,7 @@ export function CalendarGrid({
                                                     onEventClick(event);
                                                 }}
                                                 className={cn(
-                                                    "w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate transition-all hover:ring-2 hover:ring-mint-400/50",
+                                                    "w-full text-left px-2 py-1 rounded-md text-xs font-medium truncate transition-all hover:ring-2 hover:ring-accent-400/50",
                                                     colors.bg,
                                                     colors.text
                                                 )}
@@ -223,13 +223,13 @@ export function CalendarGrid({
 
             {/* Mobile: Selected Day Events Panel */}
             {isMobile && selectedDayForMobile && (
-                <div className="border-t border-slate-200 bg-white">
+                <div className="border-t border-line bg-surface">
                     <div className={cn(
-                        "px-4 py-3 flex items-center justify-between border-b border-slate-200",
+                        "px-4 py-3 flex items-center justify-between border-b border-line",
                         getHolidayForDay(selectedDayForMobile)?.bgColor
                     )}>
                         <div>
-                            <h3 className="font-semibold text-slate-900 flex items-center gap-2">
+                            <h3 className="font-semibold text-heading flex items-center gap-2">
                                 {format(selectedDayForMobile, 'EEEE, MMMM d')}
                                 {getHolidayForDay(selectedDayForMobile) && (
                                     <span className="text-lg">{getHolidayForDay(selectedDayForMobile)?.emoji}</span>
@@ -243,7 +243,7 @@ export function CalendarGrid({
                                     {getHolidayForDay(selectedDayForMobile)?.name}
                                 </p>
                             ) : (
-                                <p className="text-xs text-slate-500">
+                                <p className="text-xs text-muted">
                                     {getEventsForDay(selectedDayForMobile).length} event{getEventsForDay(selectedDayForMobile).length !== 1 ? 's' : ''}
                                 </p>
                             )}
@@ -252,7 +252,7 @@ export function CalendarGrid({
                             {canAddEvents && (
                                 <button
                                     onClick={onMobileAddEvent}
-                                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-mint-500 text-white text-xs font-medium"
+                                    className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-accent-500 text-white text-xs font-medium"
                                 >
                                     <Plus className="h-3.5 w-3.5" />
                                     Add
@@ -260,7 +260,7 @@ export function CalendarGrid({
                             )}
                             <button
                                 onClick={onCloseMobilePanel}
-                                className="p-1.5 text-slate-400 hover:text-slate-900"
+                                className="p-1.5 text-faint hover:text-heading"
                             >
                                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -271,29 +271,29 @@ export function CalendarGrid({
                     <div className="max-h-48 overflow-y-auto">
                         {/* Birthdays for selected day */}
                         {getBirthdaysForDay(selectedDayForMobile).length > 0 && (
-                            <div className="px-4 py-2 bg-pink-50 border-b border-pink-100">
+                            <div className="px-4 py-2 bg-pink-500/10 border-b border-pink-500/20">
                                 {getBirthdaysForDay(selectedDayForMobile).map((birthday) => (
                                     <div key={birthday.id} className="flex items-center gap-2 py-1">
                                         <span className="text-lg">{'🎂'}</span>
-                                        <span className="text-sm font-medium text-pink-700">{birthday.name}'s Birthday</span>
+                                        <span className="text-sm font-medium text-pink-600">{birthday.name}'s Birthday</span>
                                     </div>
                                 ))}
                             </div>
                         )}
                         {getEventsForDay(selectedDayForMobile).length > 0 ? (
-                            <div className="divide-y divide-slate-200">
+                            <div className="divide-y divide-line">
                                 {getEventsForDay(selectedDayForMobile).map((event) => {
                                     const colors = getEventColors(event.type);
                                     return (
                                         <button
                                             key={event.id}
                                             onClick={() => onEventClick(event)}
-                                            className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-slate-50 active:bg-slate-100 transition-colors"
+                                            className="w-full px-4 py-3 flex items-start gap-3 text-left hover:bg-surface-hover active:bg-surface-hover transition-colors"
                                         >
                                             <div className={cn("w-1 h-full min-h-[40px] rounded-full flex-shrink-0", colors.dot)} />
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-slate-900 text-sm truncate">{event.title}</p>
-                                                <div className="flex items-center gap-2 mt-1 text-xs text-slate-500">
+                                                <p className="font-medium text-heading text-sm truncate">{event.title}</p>
+                                                <div className="flex items-center gap-2 mt-1 text-xs text-muted">
                                                     <Clock className="h-3 w-3" />
                                                     <span>{event.is_all_day ? 'All Day' : format(parseISO(event.start_time), 'h:mm a')}</span>
                                                     {event.location && (
@@ -317,11 +317,11 @@ export function CalendarGrid({
                             </div>
                         ) : (
                             <div className="px-4 py-8 text-center">
-                                <p className="text-sm text-slate-500">No events scheduled</p>
+                                <p className="text-sm text-muted">No events scheduled</p>
                                 {canAddEvents && (
                                     <button
                                         onClick={onMobileAddEvent}
-                                        className="mt-2 text-sm text-mint-600 font-medium"
+                                        className="mt-2 text-sm text-accent-600 font-medium"
                                     >
                                         Add an event
                                     </button>

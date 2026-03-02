@@ -165,11 +165,11 @@ export function Staff() {
 
     const getRoleBadgeColor = (role: string) => {
         switch (role) {
-            case 'owner': return 'bg-amber-100 text-amber-700';
-            case 'director': return 'bg-purple-100 text-purple-700';
-            case 'admin': return 'bg-blue-100 text-blue-700';
-            case 'coach': return 'bg-green-100 text-green-700';
-            default: return 'bg-slate-100 text-slate-600';
+            case 'owner': return 'bg-amber-500/10 text-amber-600';
+            case 'director': return 'bg-purple-500/10 text-purple-600';
+            case 'admin': return 'bg-blue-500/10 text-blue-600';
+            case 'coach': return 'bg-green-500/10 text-green-600';
+            default: return 'bg-surface-hover text-subtle';
         }
     };
 
@@ -180,25 +180,25 @@ export function Staff() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-teal-100 rounded-lg">
+                    <div className="p-2 bg-teal-500/10 rounded-lg">
                         <Users className="w-6 h-6 text-teal-600" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Staff</h1>
-                        <p className="text-sm text-slate-500">{staffMembers.length} staff members</p>
+                        <h1 className="text-2xl font-bold text-heading">Staff</h1>
+                        <p className="text-sm text-muted">{staffMembers.length} staff members</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                     {/* View Toggle - only for managers (staff only) */}
                     {canManage && !isParentView && (
-                        <div className="flex bg-slate-100 rounded-lg p-1">
+                        <div className="flex bg-surface-hover rounded-lg p-1">
                             <button
                                 onClick={() => setActiveTab('individual')}
                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                                     activeTab === 'individual'
-                                        ? 'bg-white text-slate-900 shadow-sm'
-                                        : 'text-slate-600 hover:text-slate-900'
+                                        ? 'bg-surface text-heading shadow-sm'
+                                        : 'text-subtle hover:text-heading'
                                 }`}
                             >
                                 <LayoutGrid className="w-4 h-4" />
@@ -208,8 +208,8 @@ export function Staff() {
                                 onClick={() => setActiveTab('team')}
                                 className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
                                     activeTab === 'team'
-                                        ? 'bg-white text-slate-900 shadow-sm'
-                                        : 'text-slate-600 hover:text-slate-900'
+                                        ? 'bg-surface text-heading shadow-sm'
+                                        : 'text-subtle hover:text-heading'
                                 }`}
                             >
                                 <UsersRound className="w-4 h-4" />
@@ -246,7 +246,7 @@ export function Staff() {
                     <div className="flex flex-col sm:flex-row gap-4">
                         {/* Search */}
                         <div className="relative flex-1">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
                             <input
                                 type="text"
                                 placeholder="Search staff..."
@@ -264,8 +264,8 @@ export function Staff() {
                                     onClick={() => setRoleFilter(role)}
                                     className={`px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-colors ${
                                         roleFilter === role
-                                            ? 'bg-mint-500 text-white'
-                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            ? 'bg-accent-500 text-white'
+                                            : 'bg-surface-hover text-subtle hover:bg-surface-active'
                                     }`}
                                 >
                                     {role === 'all' ? 'All' : role.charAt(0).toUpperCase() + role.slice(1) + 's'}
@@ -277,13 +277,13 @@ export function Staff() {
                     {/* Staff List */}
                     {loading ? (
                         <div className="flex items-center justify-center h-64">
-                            <Loader2 className="w-8 h-8 text-mint-500 animate-spin" />
+                            <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
                         </div>
                     ) : filteredStaff.length === 0 ? (
                         <div className="text-center py-12">
-                            <Users className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-slate-900 mb-2">No staff members found</h3>
-                            <p className="text-slate-500">
+                            <Users className="w-12 h-12 text-faint mx-auto mb-4" />
+                            <h3 className="text-lg font-medium text-heading mb-2">No staff members found</h3>
+                            <p className="text-muted">
                                 {searchQuery || roleFilter !== 'all'
                                     ? 'Try adjusting your search or filters'
                                     : 'Add staff profiles to get started'}

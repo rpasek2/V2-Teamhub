@@ -193,14 +193,14 @@ export function GymnastProfileTab({
     return (
         <>
             {/* Basic Information Card */}
-            <div className="card overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                    <User className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-sm font-semibold text-slate-900">Basic Information</h3>
+            <div className="card overflow-hidden bg-surface-alt">
+                <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                    <User className="h-4 w-4 text-muted" />
+                    <h3 className="text-sm font-semibold text-heading">Basic Information</h3>
                     {canEditProfile && editSection !== 'basic' && (
                         <button
                             onClick={() => startEdit('basic')}
-                            className="ml-auto p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                            className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                             title="Edit basic information"
                         >
                             <Pencil className="h-3.5 w-3.5" />
@@ -211,7 +211,7 @@ export function GymnastProfileTab({
                             <button
                                 onClick={cancelEdit}
                                 disabled={saving}
-                                className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                className="p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                                 title="Cancel"
                             >
                                 <X className="h-3.5 w-3.5" />
@@ -219,7 +219,7 @@ export function GymnastProfileTab({
                             <button
                                 onClick={saveSection}
                                 disabled={saving}
-                                className="p-1.5 rounded-md text-brand-600 hover:text-brand-700 hover:bg-brand-50 transition-colors"
+                                className="p-1.5 rounded-md text-accent-600 hover:text-accent-700 hover:bg-accent-50 transition-colors"
                                 title="Save"
                             >
                                 {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
@@ -232,40 +232,40 @@ export function GymnastProfileTab({
                         <div className="space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">First Name</label>
+                                    <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">First Name</label>
                                     <input
                                         type="text"
                                         value={formState.firstName}
                                         onChange={(e) => setField('firstName', e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                        className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Last Name</label>
+                                    <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Last Name</label>
                                     <input
                                         type="text"
                                         value={formState.lastName}
                                         onChange={(e) => setField('lastName', e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                        className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                     />
                                 </div>
                             </div>
                             <div className="grid grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Date of Birth</label>
+                                    <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Date of Birth</label>
                                     <input
                                         type="date"
                                         value={formState.dob}
                                         onChange={(e) => setField('dob', e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                        className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Gender</label>
+                                    <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Gender</label>
                                     <select
                                         value={formState.gender}
                                         onChange={(e) => setField('gender', e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                        className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                     >
                                         <option value="">Select...</option>
                                         <option value="Male">Male</option>
@@ -273,11 +273,11 @@ export function GymnastProfileTab({
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Level</label>
+                                    <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Level</label>
                                     <select
                                         value={formState.level}
                                         onChange={(e) => setField('level', e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                        className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                     >
                                         <option value="">Select...</option>
                                         {levels.map((lvl) => (
@@ -295,17 +295,17 @@ export function GymnastProfileTab({
                                         <User className="h-4 w-4 text-indigo-600" />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Full Name</p>
-                                        <p className="text-sm font-semibold text-slate-900 mt-0.5">{gymnast.first_name} {gymnast.last_name}</p>
+                                        <p className="text-xs font-medium text-muted uppercase tracking-wide">Full Name</p>
+                                        <p className="text-sm font-semibold text-heading mt-0.5">{gymnast.first_name} {gymnast.last_name}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
-                                    <div className="h-9 w-9 rounded-lg bg-brand-50 flex items-center justify-center flex-shrink-0">
-                                        <Award className="h-4 w-4 text-brand-600" />
+                                    <div className="h-9 w-9 rounded-lg bg-accent-50 flex items-center justify-center flex-shrink-0">
+                                        <Award className="h-4 w-4 text-accent-600" />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Level</p>
-                                        <p className="text-sm font-semibold text-slate-900 mt-0.5">{gymnast.level || 'Not assigned'}</p>
+                                        <p className="text-xs font-medium text-muted uppercase tracking-wide">Level</p>
+                                        <p className="text-sm font-semibold text-heading mt-0.5">{gymnast.level || 'Not assigned'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -315,9 +315,9 @@ export function GymnastProfileTab({
                                         <Calendar className="h-4 w-4 text-purple-600" />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Date of Birth</p>
-                                        <p className="text-sm font-semibold text-slate-900 mt-0.5">{formatDate(gymnast.date_of_birth)}</p>
-                                        <p className="text-xs text-slate-500">{calculateAge(gymnast.date_of_birth)} years old</p>
+                                        <p className="text-xs font-medium text-muted uppercase tracking-wide">Date of Birth</p>
+                                        <p className="text-sm font-semibold text-heading mt-0.5">{formatDate(gymnast.date_of_birth)}</p>
+                                        <p className="text-xs text-muted">{calculateAge(gymnast.date_of_birth)} years old</p>
                                     </div>
                                 </div>
                                 <div className="flex items-start gap-3">
@@ -325,8 +325,8 @@ export function GymnastProfileTab({
                                         <User className="h-4 w-4 text-pink-600" />
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Gender</p>
-                                        <p className="text-sm font-semibold text-slate-900 mt-0.5">{gymnast.gender || 'Not specified'}</p>
+                                        <p className="text-xs font-medium text-muted uppercase tracking-wide">Gender</p>
+                                        <p className="text-sm font-semibold text-heading mt-0.5">{gymnast.gender || 'Not specified'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -336,17 +336,17 @@ export function GymnastProfileTab({
             </div>
 
             {/* Membership Card */}
-            <div className="card overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                    <CreditCard className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-sm font-semibold text-slate-900">Membership</h3>
+            <div className="card overflow-hidden bg-surface-alt">
+                <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                    <CreditCard className="h-4 w-4 text-muted" />
+                    <h3 className="text-sm font-semibold text-heading">Membership</h3>
                     {canEditProfile && editSection !== 'membership' && (
-                        <button onClick={() => startEdit('membership')} className="ml-auto p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Edit membership"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => startEdit('membership')} className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Edit membership"><Pencil className="h-3.5 w-3.5" /></button>
                     )}
                     {editSection === 'membership' && (
                         <div className="flex items-center gap-1 ml-auto">
-                            <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
-                            <button onClick={saveSection} disabled={saving} className="p-1.5 rounded-md text-brand-600 hover:text-brand-700 hover:bg-brand-50 transition-colors" title="Save">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
+                            <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
+                            <button onClick={saveSection} disabled={saving} className="p-1.5 rounded-md text-accent-600 hover:text-accent-700 hover:bg-accent-50 transition-colors" title="Save">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
                         </div>
                     )}
                 </div>
@@ -354,8 +354,8 @@ export function GymnastProfileTab({
                     {editSection === 'membership' ? (
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">ID Type</label>
-                                <select value={formState.memberIdType} onChange={(e) => setField('memberIdType', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">ID Type</label>
+                                <select value={formState.memberIdType} onChange={(e) => setField('memberIdType', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500">
                                     <option value="">Select...</option>
                                     <option value="USAG">USAG</option>
                                     <option value="AAU">AAU</option>
@@ -363,8 +363,8 @@ export function GymnastProfileTab({
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Member ID</label>
-                                <input type="text" value={formState.memberId} onChange={(e) => setField('memberId', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm font-mono focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="Enter member ID" />
+                                <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Member ID</label>
+                                <input type="text" value={formState.memberId} onChange={(e) => setField('memberId', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm font-mono focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="Enter member ID" />
                             </div>
                         </div>
                     ) : (
@@ -373,8 +373,8 @@ export function GymnastProfileTab({
                                 <CreditCard className="h-4 w-4 text-emerald-600" />
                             </div>
                             <div className="min-w-0">
-                                <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{gymnast.member_id_type || 'Member ID'}</p>
-                                <p className="text-sm font-mono font-semibold text-slate-900 mt-0.5">{gymnast.member_id || 'Not assigned'}</p>
+                                <p className="text-xs font-medium text-muted uppercase tracking-wide">{gymnast.member_id_type || 'Member ID'}</p>
+                                <p className="text-sm font-mono font-semibold text-heading mt-0.5">{gymnast.member_id || 'Not assigned'}</p>
                             </div>
                         </div>
                     )}
@@ -382,17 +382,17 @@ export function GymnastProfileTab({
             </div>
 
             {/* Apparel Sizes Card */}
-            <div className="card overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                    <Shirt className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-sm font-semibold text-slate-900">Apparel Sizes</h3>
+            <div className="card overflow-hidden bg-surface-alt">
+                <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                    <Shirt className="h-4 w-4 text-muted" />
+                    <h3 className="text-sm font-semibold text-heading">Apparel Sizes</h3>
                     {canEditProfile && editSection !== 'apparel' && (
-                        <button onClick={() => startEdit('apparel')} className="ml-auto p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Edit apparel sizes"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => startEdit('apparel')} className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Edit apparel sizes"><Pencil className="h-3.5 w-3.5" /></button>
                     )}
                     {editSection === 'apparel' && (
                         <div className="flex items-center gap-1 ml-auto">
-                            <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
-                            <button onClick={saveSection} disabled={saving} className="p-1.5 rounded-md text-brand-600 hover:text-brand-700 hover:bg-brand-50 transition-colors" title="Save">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
+                            <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
+                            <button onClick={saveSection} disabled={saving} className="p-1.5 rounded-md text-accent-600 hover:text-accent-700 hover:bg-accent-50 transition-colors" title="Save">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
                         </div>
                     )}
                 </div>
@@ -400,16 +400,16 @@ export function GymnastProfileTab({
                     {editSection === 'apparel' ? (
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">T-Shirt Size</label>
-                                <select value={formState.tshirtSize} onChange={(e) => setField('tshirtSize', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">T-Shirt Size</label>
+                                <select value={formState.tshirtSize} onChange={(e) => setField('tshirtSize', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500">
                                     <option value="">Select...</option>
                                     <optgroup label="Youth Sizes"><option value="YXS">YXS (Youth XS)</option><option value="YS">YS (Youth S)</option><option value="YM">YM (Youth M)</option><option value="YL">YL (Youth L)</option><option value="YXL">YXL (Youth XL)</option></optgroup>
                                     <optgroup label="Adult Sizes"><option value="AXS">AXS (Adult XS)</option><option value="AS">AS (Adult S)</option><option value="AM">AM (Adult M)</option><option value="AL">AL (Adult L)</option><option value="AXL">AXL (Adult XL)</option><option value="AXXL">AXXL (Adult XXL)</option></optgroup>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Leotard Size</label>
-                                <select value={formState.leoSize} onChange={(e) => setField('leoSize', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500">
+                                <label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Leotard Size</label>
+                                <select value={formState.leoSize} onChange={(e) => setField('leoSize', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500">
                                     <option value="">Select...</option>
                                     <optgroup label="Child Sizes"><option value="CXXS">CXXS</option><option value="CXS">CXS</option><option value="CS">CS</option><option value="CM">CM</option><option value="CL">CL</option><option value="CXL">CXL</option></optgroup>
                                     <optgroup label="Adult Sizes"><option value="AXS">AXS</option><option value="AS">AS</option><option value="AM">AM</option><option value="AL">AL</option><option value="AXL">AXL</option><option value="AXXL">AXXL</option><option value="A3XL">A3XL</option><option value="A4XL">A4XL</option></optgroup>
@@ -421,15 +421,15 @@ export function GymnastProfileTab({
                             <div className="flex items-center gap-3">
                                 <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0"><Shirt className="h-4 w-4 text-blue-600" /></div>
                                 <div className="min-w-0">
-                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">T-Shirt</p>
-                                    {gymnast.tshirt_size ? (<span className="inline-flex mt-1 px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-700 text-sm font-semibold">{gymnast.tshirt_size}</span>) : (<p className="text-sm text-slate-500 mt-0.5">Not set</p>)}
+                                    <p className="text-xs font-medium text-muted uppercase tracking-wide">T-Shirt</p>
+                                    {gymnast.tshirt_size ? (<span className="inline-flex mt-1 px-2.5 py-0.5 rounded-md bg-blue-100 text-blue-700 text-sm font-semibold">{gymnast.tshirt_size}</span>) : (<p className="text-sm text-muted mt-0.5">Not set</p>)}
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="h-9 w-9 rounded-lg bg-pink-50 flex items-center justify-center flex-shrink-0"><Shirt className="h-4 w-4 text-pink-600" /></div>
                                 <div className="min-w-0">
-                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Leotard</p>
-                                    {gymnast.leo_size ? (<span className="inline-flex mt-1 px-2.5 py-0.5 rounded-md bg-pink-100 text-pink-700 text-sm font-semibold">{gymnast.leo_size}</span>) : (<p className="text-sm text-slate-500 mt-0.5">Not set</p>)}
+                                    <p className="text-xs font-medium text-muted uppercase tracking-wide">Leotard</p>
+                                    {gymnast.leo_size ? (<span className="inline-flex mt-1 px-2.5 py-0.5 rounded-md bg-pink-100 text-pink-700 text-sm font-semibold">{gymnast.leo_size}</span>) : (<p className="text-sm text-muted mt-0.5">Not set</p>)}
                                 </div>
                             </div>
                         </div>
@@ -438,17 +438,17 @@ export function GymnastProfileTab({
             </div>
 
             {/* Floor Music Card */}
-            <div className="card overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                    <Music className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-sm font-semibold text-slate-900">Floor Music</h3>
+            <div className="card overflow-hidden bg-surface-alt">
+                <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                    <Music className="h-4 w-4 text-muted" />
+                    <h3 className="text-sm font-semibold text-heading">Floor Music</h3>
                     {canManageFloorMusic && (
                         <div className="flex items-center gap-1 ml-auto">
-                            <button onClick={() => floorMusicInputRef.current?.click()} disabled={uploadingMusic} className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title={gymnast.floor_music_url ? "Replace floor music" : "Upload floor music"} aria-label={gymnast.floor_music_url ? "Replace floor music" : "Upload floor music"}>
+                            <button onClick={() => floorMusicInputRef.current?.click()} disabled={uploadingMusic} className="p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title={gymnast.floor_music_url ? "Replace floor music" : "Upload floor music"} aria-label={gymnast.floor_music_url ? "Replace floor music" : "Upload floor music"}>
                                 {uploadingMusic ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
                             </button>
                             {gymnast.floor_music_url && (
-                                <button onClick={handleRemoveFloorMusic} disabled={uploadingMusic} className="p-1.5 rounded-md text-slate-400 hover:text-error-600 hover:bg-error-50 transition-colors" title="Remove floor music" aria-label="Remove floor music">
+                                <button onClick={handleRemoveFloorMusic} disabled={uploadingMusic} className="p-1.5 rounded-md text-faint hover:text-error-600 hover:bg-error-50 transition-colors" title="Remove floor music" aria-label="Remove floor music">
                                     <Trash2 className="h-3.5 w-3.5" />
                                 </button>
                             )}
@@ -462,33 +462,33 @@ export function GymnastProfileTab({
                         <div className="space-y-3">
                             <div className="flex items-center gap-3">
                                 <div className="h-9 w-9 rounded-lg bg-purple-50 flex items-center justify-center flex-shrink-0"><Music className="h-4 w-4 text-purple-600" /></div>
-                                <div className="min-w-0 flex-1"><p className="text-sm font-medium text-slate-900 truncate">{gymnast.floor_music_name || 'Floor Music'}</p></div>
-                                <a href={gymnast.floor_music_url} download={gymnast.floor_music_name || 'floor-music'} className="p-1.5 rounded-md text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors" title="Download"><Download className="h-4 w-4" /></a>
+                                <div className="min-w-0 flex-1"><p className="text-sm font-medium text-heading truncate">{gymnast.floor_music_name || 'Floor Music'}</p></div>
+                                <a href={gymnast.floor_music_url} download={gymnast.floor_music_name || 'floor-music'} className="p-1.5 rounded-md text-faint hover:text-accent-600 hover:bg-accent-50 transition-colors" title="Download"><Download className="h-4 w-4" /></a>
                             </div>
                             <audio controls src={gymnast.floor_music_url} className="w-full h-10" preload="metadata" />
                         </div>
                     ) : (
                         <div className="text-center py-2">
-                            <Music className="h-8 w-8 text-slate-300 mx-auto mb-2" />
-                            <p className="text-sm text-slate-500">No floor music uploaded</p>
-                            {canManageFloorMusic && (<button onClick={() => floorMusicInputRef.current?.click()} disabled={uploadingMusic} className="mt-2 text-sm text-brand-600 hover:text-brand-700 font-medium">Upload audio file</button>)}
+                            <Music className="h-8 w-8 text-faint mx-auto mb-2" />
+                            <p className="text-sm text-muted">No floor music uploaded</p>
+                            {canManageFloorMusic && (<button onClick={() => floorMusicInputRef.current?.click()} disabled={uploadingMusic} className="mt-2 text-sm text-accent-600 hover:text-accent-700 font-medium">Upload audio file</button>)}
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Guardians Card */}
-            <div className="card overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                    <User className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-sm font-semibold text-slate-900">Parents / Guardians</h3>
+            <div className="card overflow-hidden bg-surface-alt">
+                <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                    <User className="h-4 w-4 text-muted" />
+                    <h3 className="text-sm font-semibold text-heading">Parents / Guardians</h3>
                     {canEditProfile && editSection !== 'guardians' && (
-                        <button onClick={() => startEdit('guardians')} className="ml-auto p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Edit parents / guardians"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => startEdit('guardians')} className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Edit parents / guardians"><Pencil className="h-3.5 w-3.5" /></button>
                     )}
                     {editSection === 'guardians' && (
                         <div className="flex items-center gap-1 ml-auto">
-                            <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
-                            <button onClick={saveSection} disabled={saving} className="p-1.5 rounded-md text-brand-600 hover:text-brand-700 hover:bg-brand-50 transition-colors" title="Save">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
+                            <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
+                            <button onClick={saveSection} disabled={saving} className="p-1.5 rounded-md text-accent-600 hover:text-accent-700 hover:bg-accent-50 transition-colors" title="Save">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
                         </div>
                     )}
                 </div>
@@ -496,68 +496,68 @@ export function GymnastProfileTab({
                     {editSection === 'guardians' ? (
                         <div className="space-y-6">
                             <div>
-                                <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-100 text-brand-700 text-xs font-semibold">Primary</span></div>
+                                <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-accent-100 text-accent-700 text-xs font-semibold">Primary</span></div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">First Name</label><input type="text" value={formState.g1FirstName} onChange={(e) => setField('g1FirstName', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Last Name</label><input type="text" value={formState.g1LastName} onChange={(e) => setField('g1LastName', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Email</label><input type="email" value={formState.g1Email} onChange={(e) => setField('g1Email', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Phone</label><input type="tel" value={formState.g1Phone} onChange={(e) => setField('g1Phone', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">First Name</label><input type="text" value={formState.g1FirstName} onChange={(e) => setField('g1FirstName', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Last Name</label><input type="text" value={formState.g1LastName} onChange={(e) => setField('g1LastName', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Email</label><input type="email" value={formState.g1Email} onChange={(e) => setField('g1Email', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Phone</label><input type="tel" value={formState.g1Phone} onChange={(e) => setField('g1Phone', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" /></div>
                                 </div>
                             </div>
-                            <div className="pt-4 border-t border-slate-200">
-                                <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold">Secondary</span></div>
+                            <div className="pt-4 border-t border-line">
+                                <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-hover text-subtle text-xs font-semibold">Secondary</span></div>
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">First Name</label><input type="text" value={formState.g2FirstName} onChange={(e) => setField('g2FirstName', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Last Name</label><input type="text" value={formState.g2LastName} onChange={(e) => setField('g2LastName', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Email</label><input type="email" value={formState.g2Email} onChange={(e) => setField('g2Email', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Phone</label><input type="tel" value={formState.g2Phone} onChange={(e) => setField('g2Phone', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">First Name</label><input type="text" value={formState.g2FirstName} onChange={(e) => setField('g2FirstName', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Last Name</label><input type="text" value={formState.g2LastName} onChange={(e) => setField('g2LastName', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Email</label><input type="email" value={formState.g2Email} onChange={(e) => setField('g2Email', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Phone</label><input type="tel" value={formState.g2Phone} onChange={(e) => setField('g2Phone', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" /></div>
                                 </div>
                             </div>
                         </div>
                     ) : (hasGuardian1 || hasGuardian2) ? (
-                        <div className="divide-y divide-slate-100 -mx-4 -mb-4">
+                        <div className="divide-y divide-line -mx-4 -mb-4">
                             {hasGuardian1 && (
                                 <div className="p-4">
-                                    <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-brand-100 text-brand-700 text-xs font-semibold">Primary</span></div>
+                                    <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-accent-100 text-accent-700 text-xs font-semibold">Primary</span></div>
                                     <div className="space-y-2.5">
-                                        <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-slate-500" /></div><p className="text-sm font-semibold text-slate-900">{gymnast.guardian_1?.first_name} {gymnast.guardian_1?.last_name}</p></div>
-                                        {gymnast.guardian_1?.email && (<div className="flex items-center gap-3 pl-11"><Mail className="h-4 w-4 text-slate-400 flex-shrink-0" /><a href={`mailto:${gymnast.guardian_1.email}`} className="text-sm text-brand-600 hover:text-brand-700 hover:underline">{gymnast.guardian_1.email}</a></div>)}
-                                        {gymnast.guardian_1?.phone && (<div className="flex items-center gap-3 pl-11"><Phone className="h-4 w-4 text-slate-400 flex-shrink-0" /><a href={`tel:${gymnast.guardian_1.phone}`} className="text-sm text-brand-600 hover:text-brand-700 hover:underline">{gymnast.guardian_1.phone}</a></div>)}
+                                        <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-surface-hover flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-muted" /></div><p className="text-sm font-semibold text-heading">{gymnast.guardian_1?.first_name} {gymnast.guardian_1?.last_name}</p></div>
+                                        {gymnast.guardian_1?.email && (<div className="flex items-center gap-3 pl-11"><Mail className="h-4 w-4 text-faint flex-shrink-0" /><a href={`mailto:${gymnast.guardian_1.email}`} className="text-sm text-accent-600 hover:text-accent-700 hover:underline">{gymnast.guardian_1.email}</a></div>)}
+                                        {gymnast.guardian_1?.phone && (<div className="flex items-center gap-3 pl-11"><Phone className="h-4 w-4 text-faint flex-shrink-0" /><a href={`tel:${gymnast.guardian_1.phone}`} className="text-sm text-accent-600 hover:text-accent-700 hover:underline">{gymnast.guardian_1.phone}</a></div>)}
                                     </div>
                                 </div>
                             )}
                             {hasGuardian2 && (
                                 <div className="p-4">
-                                    <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold">Secondary</span></div>
+                                    <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-hover text-subtle text-xs font-semibold">Secondary</span></div>
                                     <div className="space-y-2.5">
-                                        <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-slate-500" /></div><p className="text-sm font-semibold text-slate-900">{gymnast.guardian_2?.first_name} {gymnast.guardian_2?.last_name}</p></div>
-                                        {gymnast.guardian_2?.email && (<div className="flex items-center gap-3 pl-11"><Mail className="h-4 w-4 text-slate-400 flex-shrink-0" /><a href={`mailto:${gymnast.guardian_2.email}`} className="text-sm text-brand-600 hover:text-brand-700 hover:underline">{gymnast.guardian_2.email}</a></div>)}
-                                        {gymnast.guardian_2?.phone && (<div className="flex items-center gap-3 pl-11"><Phone className="h-4 w-4 text-slate-400 flex-shrink-0" /><a href={`tel:${gymnast.guardian_2.phone}`} className="text-sm text-brand-600 hover:text-brand-700 hover:underline">{gymnast.guardian_2.phone}</a></div>)}
+                                        <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-surface-hover flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-muted" /></div><p className="text-sm font-semibold text-heading">{gymnast.guardian_2?.first_name} {gymnast.guardian_2?.last_name}</p></div>
+                                        {gymnast.guardian_2?.email && (<div className="flex items-center gap-3 pl-11"><Mail className="h-4 w-4 text-faint flex-shrink-0" /><a href={`mailto:${gymnast.guardian_2.email}`} className="text-sm text-accent-600 hover:text-accent-700 hover:underline">{gymnast.guardian_2.email}</a></div>)}
+                                        {gymnast.guardian_2?.phone && (<div className="flex items-center gap-3 pl-11"><Phone className="h-4 w-4 text-faint flex-shrink-0" /><a href={`tel:${gymnast.guardian_2.phone}`} className="text-sm text-accent-600 hover:text-accent-700 hover:underline">{gymnast.guardian_2.phone}</a></div>)}
                                     </div>
                                 </div>
                             )}
                         </div>
                     ) : (
                         <div className="text-center py-4">
-                            <p className="text-sm text-slate-500">No parents / guardians added</p>
-                            {canEditProfile && (<button onClick={() => startEdit('guardians')} className="mt-2 text-sm text-brand-600 hover:text-brand-700 font-medium">Add parent / guardian</button>)}
+                            <p className="text-sm text-muted">No parents / guardians added</p>
+                            {canEditProfile && (<button onClick={() => startEdit('guardians')} className="mt-2 text-sm text-accent-600 hover:text-accent-700 font-medium">Add parent / guardian</button>)}
                         </div>
                     )}
                 </div>
             </div>
 
             {/* Emergency Contacts Card */}
-            <div className="card overflow-hidden">
-                <div className="flex items-center gap-2 px-4 py-3 bg-slate-50 border-b border-slate-200">
-                    <Phone className="h-4 w-4 text-slate-500" />
-                    <h3 className="text-sm font-semibold text-slate-900">Emergency Contacts</h3>
+            <div className="card overflow-hidden bg-surface-alt">
+                <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
+                    <Phone className="h-4 w-4 text-muted" />
+                    <h3 className="text-sm font-semibold text-heading">Emergency Contacts</h3>
                     {canEditProfile && editSection !== 'emergency' && (
-                        <button onClick={() => startEdit('emergency')} className="ml-auto p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Edit emergency contacts"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => startEdit('emergency')} className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Edit emergency contacts"><Pencil className="h-3.5 w-3.5" /></button>
                     )}
                     {editSection === 'emergency' && (
                         <div className="flex items-center gap-1 ml-auto">
-                            <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
-                            <button onClick={saveSection} disabled={saving} className="p-1.5 rounded-md text-brand-600 hover:text-brand-700 hover:bg-brand-50 transition-colors" title="Save">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
+                            <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
+                            <button onClick={saveSection} disabled={saving} className="p-1.5 rounded-md text-accent-600 hover:text-accent-700 hover:bg-accent-50 transition-colors" title="Save">{saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}</button>
                         </div>
                     )}
                 </div>
@@ -567,45 +567,45 @@ export function GymnastProfileTab({
                             <div>
                                 <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 text-xs font-semibold">Contact 1</span></div>
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Name</label><input type="text" value={formState.ec1Name} onChange={(e) => setField('ec1Name', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="Full name" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Phone</label><input type="tel" value={formState.ec1Phone} onChange={(e) => setField('ec1Phone', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="Phone number" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Relationship</label><input type="text" value={formState.ec1Relationship} onChange={(e) => setField('ec1Relationship', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="e.g., Grandmother" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Name</label><input type="text" value={formState.ec1Name} onChange={(e) => setField('ec1Name', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="Full name" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Phone</label><input type="tel" value={formState.ec1Phone} onChange={(e) => setField('ec1Phone', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="Phone number" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Relationship</label><input type="text" value={formState.ec1Relationship} onChange={(e) => setField('ec1Relationship', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="e.g., Grandmother" /></div>
                                 </div>
                             </div>
-                            <div className="pt-4 border-t border-slate-200">
-                                <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold">Contact 2</span></div>
+                            <div className="pt-4 border-t border-line">
+                                <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-hover text-subtle text-xs font-semibold">Contact 2</span></div>
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Name</label><input type="text" value={formState.ec2Name} onChange={(e) => setField('ec2Name', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="Full name" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Phone</label><input type="tel" value={formState.ec2Phone} onChange={(e) => setField('ec2Phone', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="Phone number" /></div>
-                                    <div><label className="block text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Relationship</label><input type="text" value={formState.ec2Relationship} onChange={(e) => setField('ec2Relationship', e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="e.g., Neighbor" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Name</label><input type="text" value={formState.ec2Name} onChange={(e) => setField('ec2Name', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="Full name" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Phone</label><input type="tel" value={formState.ec2Phone} onChange={(e) => setField('ec2Phone', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="Phone number" /></div>
+                                    <div><label className="block text-xs font-medium text-muted uppercase tracking-wide mb-1">Relationship</label><input type="text" value={formState.ec2Relationship} onChange={(e) => setField('ec2Relationship', e.target.value)} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="e.g., Neighbor" /></div>
                                 </div>
                             </div>
                         </div>
                     ) : (hasEmergencyContact1 || hasEmergencyContact2) ? (
-                        <div className="divide-y divide-slate-100 -mx-4 -mb-4">
+                        <div className="divide-y divide-line -mx-4 -mb-4">
                             {hasEmergencyContact1 && (
                                 <div className="p-4">
-                                    <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 text-xs font-semibold">Contact 1</span>{gymnast.emergency_contact_1?.relationship && (<span className="text-xs text-slate-500">({gymnast.emergency_contact_1.relationship})</span>)}</div>
+                                    <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-amber-100 text-amber-700 text-xs font-semibold">Contact 1</span>{gymnast.emergency_contact_1?.relationship && (<span className="text-xs text-muted">({gymnast.emergency_contact_1.relationship})</span>)}</div>
                                     <div className="space-y-2.5">
-                                        <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-amber-600" /></div><p className="text-sm font-semibold text-slate-900">{gymnast.emergency_contact_1?.name}</p></div>
-                                        {gymnast.emergency_contact_1?.phone && (<div className="flex items-center gap-3 pl-11"><Phone className="h-4 w-4 text-slate-400 flex-shrink-0" /><a href={`tel:${gymnast.emergency_contact_1.phone}`} className="text-sm text-brand-600 hover:text-brand-700 hover:underline">{gymnast.emergency_contact_1.phone}</a></div>)}
+                                        <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-amber-600" /></div><p className="text-sm font-semibold text-heading">{gymnast.emergency_contact_1?.name}</p></div>
+                                        {gymnast.emergency_contact_1?.phone && (<div className="flex items-center gap-3 pl-11"><Phone className="h-4 w-4 text-faint flex-shrink-0" /><a href={`tel:${gymnast.emergency_contact_1.phone}`} className="text-sm text-accent-600 hover:text-accent-700 hover:underline">{gymnast.emergency_contact_1.phone}</a></div>)}
                                     </div>
                                 </div>
                             )}
                             {hasEmergencyContact2 && (
                                 <div className="p-4">
-                                    <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-xs font-semibold">Contact 2</span>{gymnast.emergency_contact_2?.relationship && (<span className="text-xs text-slate-500">({gymnast.emergency_contact_2.relationship})</span>)}</div>
+                                    <div className="flex items-center gap-2 mb-3"><span className="inline-flex items-center px-2 py-0.5 rounded-md bg-surface-hover text-subtle text-xs font-semibold">Contact 2</span>{gymnast.emergency_contact_2?.relationship && (<span className="text-xs text-muted">({gymnast.emergency_contact_2.relationship})</span>)}</div>
                                     <div className="space-y-2.5">
-                                        <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-slate-500" /></div><p className="text-sm font-semibold text-slate-900">{gymnast.emergency_contact_2?.name}</p></div>
-                                        {gymnast.emergency_contact_2?.phone && (<div className="flex items-center gap-3 pl-11"><Phone className="h-4 w-4 text-slate-400 flex-shrink-0" /><a href={`tel:${gymnast.emergency_contact_2.phone}`} className="text-sm text-brand-600 hover:text-brand-700 hover:underline">{gymnast.emergency_contact_2.phone}</a></div>)}
+                                        <div className="flex items-center gap-3"><div className="h-8 w-8 rounded-full bg-surface-hover flex items-center justify-center flex-shrink-0"><User className="h-4 w-4 text-muted" /></div><p className="text-sm font-semibold text-heading">{gymnast.emergency_contact_2?.name}</p></div>
+                                        {gymnast.emergency_contact_2?.phone && (<div className="flex items-center gap-3 pl-11"><Phone className="h-4 w-4 text-faint flex-shrink-0" /><a href={`tel:${gymnast.emergency_contact_2.phone}`} className="text-sm text-accent-600 hover:text-accent-700 hover:underline">{gymnast.emergency_contact_2.phone}</a></div>)}
                                     </div>
                                 </div>
                             )}
                         </div>
                     ) : (
                         <div className="text-center py-4">
-                            <p className="text-sm text-slate-500">No emergency contacts added</p>
-                            {canEditProfile && (<button onClick={() => startEdit('emergency')} className="mt-2 text-sm text-brand-600 hover:text-brand-700 font-medium">Add emergency contact</button>)}
+                            <p className="text-sm text-muted">No emergency contacts added</p>
+                            {canEditProfile && (<button onClick={() => startEdit('emergency')} className="mt-2 text-sm text-accent-600 hover:text-accent-700 font-medium">Add emergency contact</button>)}
                         </div>
                     )}
                 </div>
@@ -630,29 +630,29 @@ export function GymnastProfileTab({
                 <div className="p-4">
                     {!canViewMedical ? (
                         <div className="text-center py-6">
-                            <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto"><Lock className="h-6 w-6 text-slate-400" /></div>
-                            <p className="text-sm font-medium text-slate-900 mt-3">Access Restricted</p>
-                            <p className="text-xs text-slate-500 mt-1">Medical information is only visible to coaches and the gymnast's guardians.</p>
+                            <div className="h-12 w-12 rounded-full bg-surface-hover flex items-center justify-center mx-auto"><Lock className="h-6 w-6 text-faint" /></div>
+                            <p className="text-sm font-medium text-heading mt-3">Access Restricted</p>
+                            <p className="text-xs text-muted mt-1">Medical information is only visible to coaches and the gymnast's guardians.</p>
                         </div>
                     ) : editSection === 'medical' ? (
                         <div className="space-y-4">
-                            <div><label className="block text-xs font-semibold text-error-600 uppercase tracking-wide mb-1">Allergies</label><textarea value={formState.allergies} onChange={(e) => setField('allergies', e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="List any allergies..." /></div>
-                            <div><label className="block text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Medications</label><textarea value={formState.medications} onChange={(e) => setField('medications', e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="List current medications..." /></div>
-                            <div><label className="block text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1">Conditions</label><textarea value={formState.conditions} onChange={(e) => setField('conditions', e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="List any medical conditions..." /></div>
-                            <div><label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Additional Notes</label><textarea value={formState.medicalNotes} onChange={(e) => setField('medicalNotes', e.target.value)} rows={2} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500" placeholder="Any additional medical notes..." /></div>
+                            <div><label className="block text-xs font-semibold text-error-600 uppercase tracking-wide mb-1">Allergies</label><textarea value={formState.allergies} onChange={(e) => setField('allergies', e.target.value)} rows={2} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="List any allergies..." /></div>
+                            <div><label className="block text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Medications</label><textarea value={formState.medications} onChange={(e) => setField('medications', e.target.value)} rows={2} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="List current medications..." /></div>
+                            <div><label className="block text-xs font-semibold text-amber-600 uppercase tracking-wide mb-1">Conditions</label><textarea value={formState.conditions} onChange={(e) => setField('conditions', e.target.value)} rows={2} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="List any medical conditions..." /></div>
+                            <div><label className="block text-xs font-semibold text-muted uppercase tracking-wide mb-1">Additional Notes</label><textarea value={formState.medicalNotes} onChange={(e) => setField('medicalNotes', e.target.value)} rows={2} className="w-full px-3 py-2 border border-line-strong rounded-md text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500" placeholder="Any additional medical notes..." /></div>
                         </div>
                     ) : hasMedicalInfo ? (
                         <div className="space-y-4">
-                            {gymnast.medical_info?.allergies && (<div className="flex items-start gap-3"><div className="h-8 w-8 rounded-lg bg-error-100 flex items-center justify-center flex-shrink-0"><AlertCircle className="h-4 w-4 text-error-600" /></div><div className="min-w-0"><p className="text-xs font-semibold text-error-600 uppercase tracking-wide">Allergies</p><p className="text-sm text-slate-700 mt-0.5">{gymnast.medical_info.allergies}</p></div></div>)}
-                            {gymnast.medical_info?.medications && (<div className="flex items-start gap-3"><div className="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0"><svg className="h-4 w-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg></div><div className="min-w-0"><p className="text-xs font-semibold text-orange-600 uppercase tracking-wide">Medications</p><p className="text-sm text-slate-700 mt-0.5">{gymnast.medical_info.medications}</p></div></div>)}
-                            {gymnast.medical_info?.conditions && (<div className="flex items-start gap-3"><div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0"><svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div><div className="min-w-0"><p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Conditions</p><p className="text-sm text-slate-700 mt-0.5">{gymnast.medical_info.conditions}</p></div></div>)}
-                            {gymnast.medical_info?.notes && (<div className="flex items-start gap-3"><div className="h-8 w-8 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0"><svg className="h-4 w-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></div><div className="min-w-0"><p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Additional Notes</p><p className="text-sm text-slate-700 mt-0.5">{gymnast.medical_info.notes}</p></div></div>)}
+                            {gymnast.medical_info?.allergies && (<div className="flex items-start gap-3"><div className="h-8 w-8 rounded-lg bg-error-100 flex items-center justify-center flex-shrink-0"><AlertCircle className="h-4 w-4 text-error-600" /></div><div className="min-w-0"><p className="text-xs font-semibold text-error-600 uppercase tracking-wide">Allergies</p><p className="text-sm text-body mt-0.5">{gymnast.medical_info.allergies}</p></div></div>)}
+                            {gymnast.medical_info?.medications && (<div className="flex items-start gap-3"><div className="h-8 w-8 rounded-lg bg-orange-100 flex items-center justify-center flex-shrink-0"><svg className="h-4 w-4 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg></div><div className="min-w-0"><p className="text-xs font-semibold text-orange-600 uppercase tracking-wide">Medications</p><p className="text-sm text-body mt-0.5">{gymnast.medical_info.medications}</p></div></div>)}
+                            {gymnast.medical_info?.conditions && (<div className="flex items-start gap-3"><div className="h-8 w-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0"><svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg></div><div className="min-w-0"><p className="text-xs font-semibold text-amber-600 uppercase tracking-wide">Conditions</p><p className="text-sm text-body mt-0.5">{gymnast.medical_info.conditions}</p></div></div>)}
+                            {gymnast.medical_info?.notes && (<div className="flex items-start gap-3"><div className="h-8 w-8 rounded-lg bg-surface-hover flex items-center justify-center flex-shrink-0"><svg className="h-4 w-4 text-muted" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg></div><div className="min-w-0"><p className="text-xs font-semibold text-muted uppercase tracking-wide">Additional Notes</p><p className="text-sm text-body mt-0.5">{gymnast.medical_info.notes}</p></div></div>)}
                         </div>
                     ) : (
                         <div className="text-center py-4">
                             <div className="h-10 w-10 rounded-full bg-success-100 flex items-center justify-center mx-auto"><svg className="h-5 w-5 text-success-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></div>
-                            <p className="text-sm text-slate-500 mt-2">No medical concerns reported</p>
-                            {canEditProfile && (<button onClick={() => startEdit('medical')} className="mt-2 text-sm text-brand-600 hover:text-brand-700 font-medium">Add medical info</button>)}
+                            <p className="text-sm text-muted mt-2">No medical concerns reported</p>
+                            {canEditProfile && (<button onClick={() => startEdit('medical')} className="mt-2 text-sm text-accent-600 hover:text-accent-700 font-medium">Add medical info</button>)}
                         </div>
                     )}
 
@@ -672,21 +672,21 @@ export function GymnastProfileTab({
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2">
                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${injury.status === 'active' ? 'bg-error-100 text-error-700' : injury.status === 'recovering' ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}>{injury.status.charAt(0).toUpperCase() + injury.status.slice(1)}</span>
-                                                        <span className="text-xs text-slate-500">{format(parseISO(injury.date), 'MMM d, yyyy')} at {injury.time}</span>
+                                                        <span className="text-xs text-muted">{format(parseISO(injury.date), 'MMM d, yyyy')} at {injury.time}</span>
                                                     </div>
-                                                    <div className="mt-1.5 flex items-center gap-2 text-xs text-slate-500">
+                                                    <div className="mt-1.5 flex items-center gap-2 text-xs text-muted">
                                                         <span className="capitalize">{injury.location}</span>
                                                         {injury.body_part && (<><span>•</span><span>{injury.body_part}</span></>)}
-                                                        {injury.severity && (<><span>•</span><span className={`capitalize ${injury.severity === 'severe' ? 'text-error-600 font-medium' : injury.severity === 'moderate' ? 'text-amber-600' : 'text-slate-500'}`}>{injury.severity}</span></>)}
+                                                        {injury.severity && (<><span>•</span><span className={`capitalize ${injury.severity === 'severe' ? 'text-error-600 font-medium' : injury.severity === 'moderate' ? 'text-amber-600' : 'text-muted'}`}>{injury.severity}</span></>)}
                                                     </div>
-                                                    <p className="mt-2 text-sm text-slate-700">{injury.description}</p>
-                                                    <div className="mt-2 text-xs text-slate-500"><span className="font-medium">Response:</span> {injury.response}</div>
-                                                    {injury.follow_up && (<div className="mt-1 text-xs text-slate-500"><span className="font-medium">Follow-up:</span> {injury.follow_up}</div>)}
+                                                    <p className="mt-2 text-sm text-body">{injury.description}</p>
+                                                    <div className="mt-2 text-xs text-muted"><span className="font-medium">Response:</span> {injury.response}</div>
+                                                    {injury.follow_up && (<div className="mt-1 text-xs text-muted"><span className="font-medium">Follow-up:</span> {injury.follow_up}</div>)}
                                                 </div>
                                                 {canReportInjury && (
                                                     <button
                                                         onClick={() => setSelectedInjuryForUpdate(injury)}
-                                                        className="ml-2 flex-shrink-0 rounded-md p-1.5 text-slate-400 hover:bg-white/60 hover:text-slate-600 transition-colors"
+                                                        className="ml-2 flex-shrink-0 rounded-md p-1.5 text-faint hover:bg-surface/60 hover:text-subtle transition-colors"
                                                         title="Add update"
                                                     >
                                                         <Pencil className="h-3.5 w-3.5" />
@@ -695,13 +695,13 @@ export function GymnastProfileTab({
                                             </div>
                                             {/* Updates Timeline */}
                                             {injury.updates && injury.updates.length > 0 && (
-                                                <div className="mt-3 pt-3 border-t border-slate-200/60 space-y-2">
-                                                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Updates</p>
+                                                <div className="mt-3 pt-3 border-t border-line/60 space-y-2">
+                                                    <p className="text-xs font-semibold text-muted uppercase tracking-wide">Updates</p>
                                                     {[...injury.updates].reverse().map((update) => (
                                                         <div key={update.id} className="flex gap-2 text-xs">
-                                                            <div className="flex-shrink-0 w-1 rounded-full bg-slate-300 mt-1" style={{ minHeight: '16px' }} />
+                                                            <div className="flex-shrink-0 w-1 rounded-full bg-surface-active mt-1" style={{ minHeight: '16px' }} />
                                                             <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-1.5 text-slate-400">
+                                                                <div className="flex items-center gap-1.5 text-faint">
                                                                     <span>{format(parseISO(update.updated_at), 'MMM d, yyyy h:mm a')}</span>
                                                                     {update.status_change && (
                                                                         <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium">
@@ -709,7 +709,7 @@ export function GymnastProfileTab({
                                                                         </span>
                                                                     )}
                                                                 </div>
-                                                                <p className="mt-0.5 text-slate-600">{update.note}</p>
+                                                                <p className="mt-0.5 text-subtle">{update.note}</p>
                                                             </div>
                                                         </div>
                                                     ))}

@@ -101,7 +101,7 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
 
     if (loading) {
         return (
-            <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-4">
+            <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 p-4">
                 <div className="flex items-center justify-center py-4">
                     <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
                 </div>
@@ -126,17 +126,17 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
     };
 
     return (
-        <div className="rounded-xl border border-blue-200 bg-blue-50/50 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 bg-blue-100 border-b border-blue-200">
+        <div className="rounded-xl border border-blue-500/20 bg-blue-500/10 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 bg-blue-500/15 border-b border-blue-500/20">
                 <CalendarCheck className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-semibold text-blue-700">RSVP</span>
+                <span className="text-sm font-semibold text-blue-600">RSVP</span>
             </div>
             <div className="p-4">
-                <p className="font-medium text-slate-900 text-lg">{title}</p>
+                <p className="font-medium text-heading text-lg">{title}</p>
 
                 {/* Event details */}
                 {(date || time || location) && (
-                    <div className="flex flex-wrap gap-4 mt-2 text-sm text-slate-600">
+                    <div className="flex flex-wrap gap-4 mt-2 text-sm text-subtle">
                         {date && (
                             <div className="flex items-center gap-1.5">
                                 <CalendarCheck className="h-4 w-4 text-blue-500" />
@@ -166,12 +166,12 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors ${
                             userStatus === 'going'
                                 ? 'bg-emerald-500 text-white'
-                                : 'bg-white border border-slate-200 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50'
+                                : 'bg-surface border border-line text-body hover:border-emerald-300 hover:bg-emerald-500/10'
                         }`}
                     >
                         <Check className="h-4 w-4" />
                         Going
-                        <span className={`text-xs ${userStatus === 'going' ? 'text-emerald-100' : 'text-slate-400'}`}>
+                        <span className={`text-xs ${userStatus === 'going' ? 'text-emerald-100' : 'text-faint'}`}>
                             ({goingCount})
                         </span>
                     </button>
@@ -181,12 +181,12 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors ${
                             userStatus === 'maybe'
                                 ? 'bg-amber-500 text-white'
-                                : 'bg-white border border-slate-200 text-slate-700 hover:border-amber-300 hover:bg-amber-50'
+                                : 'bg-surface border border-line text-body hover:border-amber-300 hover:bg-amber-500/10'
                         }`}
                     >
                         <HelpCircle className="h-4 w-4" />
                         Maybe
-                        <span className={`text-xs ${userStatus === 'maybe' ? 'text-amber-100' : 'text-slate-400'}`}>
+                        <span className={`text-xs ${userStatus === 'maybe' ? 'text-amber-100' : 'text-faint'}`}>
                             ({maybeCount})
                         </span>
                     </button>
@@ -196,12 +196,12 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
                         className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors ${
                             userStatus === 'not_going'
                                 ? 'bg-red-500 text-white'
-                                : 'bg-white border border-slate-200 text-slate-700 hover:border-red-300 hover:bg-red-50'
+                                : 'bg-surface border border-line text-body hover:border-red-300 hover:bg-red-500/10'
                         }`}
                     >
                         <X className="h-4 w-4" />
                         Can't Go
-                        <span className={`text-xs ${userStatus === 'not_going' ? 'text-red-100' : 'text-slate-400'}`}>
+                        <span className={`text-xs ${userStatus === 'not_going' ? 'text-red-100' : 'text-faint'}`}>
                             ({notGoingCount})
                         </span>
                     </button>
@@ -212,7 +212,7 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
                     <div className="mt-4">
                         <button
                             onClick={() => setShowAllResponses(!showAllResponses)}
-                            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                            className="text-sm text-blue-600 hover:text-blue-600 font-medium"
                         >
                             {showAllResponses ? 'Hide responses' : `See all ${responses.length} responses`}
                         </button>
@@ -226,7 +226,7 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
                                         </p>
                                         <div className="flex flex-wrap gap-2">
                                             {goingResponses.map((r) => (
-                                                <div key={r.id} className="flex items-center gap-1.5 px-2 py-1 bg-emerald-50 rounded-full text-xs text-emerald-700 border border-emerald-200">
+                                                <div key={r.id} className="flex items-center gap-1.5 px-2 py-1 bg-emerald-500/10 rounded-full text-xs text-emerald-600 border border-emerald-500/20">
                                                     {r.profiles?.avatar_url ? (
                                                         <img src={r.profiles.avatar_url} alt="" className="h-4 w-4 rounded-full" />
                                                     ) : (
@@ -245,7 +245,7 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
                                         </p>
                                         <div className="flex flex-wrap gap-2">
                                             {maybeResponses.map((r) => (
-                                                <div key={r.id} className="flex items-center gap-1.5 px-2 py-1 bg-amber-50 rounded-full text-xs text-amber-700 border border-amber-200">
+                                                <div key={r.id} className="flex items-center gap-1.5 px-2 py-1 bg-amber-500/10 rounded-full text-xs text-amber-600 border border-amber-500/20">
                                                     {r.profiles?.avatar_url ? (
                                                         <img src={r.profiles.avatar_url} alt="" className="h-4 w-4 rounded-full" />
                                                     ) : (
@@ -264,7 +264,7 @@ export function RsvpDisplay({ postId, title, date, time, location }: RsvpDisplay
                                         </p>
                                         <div className="flex flex-wrap gap-2">
                                             {notGoingResponses.map((r) => (
-                                                <div key={r.id} className="flex items-center gap-1.5 px-2 py-1 bg-red-50 rounded-full text-xs text-red-700 border border-red-200">
+                                                <div key={r.id} className="flex items-center gap-1.5 px-2 py-1 bg-red-500/10 rounded-full text-xs text-red-600 border border-red-500/20">
                                                     {r.profiles?.avatar_url ? (
                                                         <img src={r.profiles.avatar_url} alt="" className="h-4 w-4 rounded-full" />
                                                     ) : (

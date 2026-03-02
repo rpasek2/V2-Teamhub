@@ -160,18 +160,18 @@ export function CreateResourceModal({
             <div className="flex min-h-full items-center justify-center p-4">
                 {/* Backdrop */}
                 <div
-                    className="fixed inset-0 bg-slate-900/50 transition-opacity"
+                    className="fixed inset-0 bg-black/50 transition-opacity"
                     onClick={handleClose}
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-lg bg-white rounded-xl shadow-xl">
+                <div className="relative w-full max-w-lg bg-surface rounded-xl shadow-xl">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-slate-200">
-                        <h2 className="text-lg font-semibold text-slate-900">Add Resource</h2>
+                    <div className="flex items-center justify-between p-4 border-b border-line">
+                        <h2 className="text-lg font-semibold text-heading">Add Resource</h2>
                         <button
                             onClick={handleClose}
-                            className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                            className="p-1 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -189,7 +189,7 @@ export function CreateResourceModal({
 
                         {/* Resource Type Toggle */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Resource Type
                             </label>
                             <div className="flex gap-2">
@@ -198,8 +198,8 @@ export function CreateResourceModal({
                                     onClick={() => setResourceType('link')}
                                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border transition-colors ${
                                         resourceType === 'link'
-                                            ? 'bg-mint-100 border-mint-500 text-mint-700'
-                                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                            ? 'bg-accent-500/15 border-accent-500 text-accent-600'
+                                            : 'bg-surface border-line text-subtle hover:bg-surface-hover'
                                     }`}
                                 >
                                     <Link className="w-4 h-4" />
@@ -210,8 +210,8 @@ export function CreateResourceModal({
                                     onClick={() => setResourceType('file')}
                                     className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg border transition-colors ${
                                         resourceType === 'file'
-                                            ? 'bg-mint-100 border-mint-500 text-mint-700'
-                                            : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                                            ? 'bg-accent-500/15 border-accent-500 text-accent-600'
+                                            : 'bg-surface border-line text-subtle hover:bg-surface-hover'
                                     }`}
                                 >
                                     <Upload className="w-4 h-4" />
@@ -223,7 +223,7 @@ export function CreateResourceModal({
                         {/* Link URL or File Upload */}
                         {resourceType === 'link' ? (
                             <div>
-                                <label htmlFor="url" className="block text-sm font-medium text-slate-700 mb-1">
+                                <label htmlFor="url" className="block text-sm font-medium text-body mb-1">
                                     URL *
                                 </label>
                                 <input
@@ -238,7 +238,7 @@ export function CreateResourceModal({
                             </div>
                         ) : (
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label className="block text-sm font-medium text-body mb-1">
                                     File *
                                 </label>
                                 <input
@@ -249,13 +249,13 @@ export function CreateResourceModal({
                                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.mp4,.mov,.webm"
                                 />
                                 {selectedFile ? (
-                                    <div className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 bg-slate-50">
-                                        <FileText className="w-8 h-8 text-slate-400" />
+                                    <div className="flex items-center gap-3 p-3 rounded-lg border border-line bg-surface-alt">
+                                        <FileText className="w-8 h-8 text-faint" />
                                         <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-slate-900 truncate">
+                                            <p className="text-sm font-medium text-heading truncate">
                                                 {selectedFile.name}
                                             </p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-xs text-muted">
                                                 {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
                                             </p>
                                         </div>
@@ -265,7 +265,7 @@ export function CreateResourceModal({
                                                 setSelectedFile(null);
                                                 if (fileInputRef.current) fileInputRef.current.value = '';
                                             }}
-                                            className="p-1 text-slate-400 hover:text-slate-600"
+                                            className="p-1 text-faint hover:text-subtle"
                                         >
                                             <X className="w-4 h-4" />
                                         </button>
@@ -274,13 +274,13 @@ export function CreateResourceModal({
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="w-full p-6 border-2 border-dashed border-slate-200 rounded-lg hover:border-mint-500 hover:bg-mint-50/50 transition-colors"
+                                        className="w-full p-6 border-2 border-dashed border-line rounded-lg hover:border-accent-500 hover:bg-accent-500/5 transition-colors"
                                     >
-                                        <Upload className="w-8 h-8 mx-auto text-slate-400 mb-2" />
-                                        <p className="text-sm text-slate-600">
+                                        <Upload className="w-8 h-8 mx-auto text-faint mb-2" />
+                                        <p className="text-sm text-subtle">
                                             Click to upload or drag and drop
                                         </p>
-                                        <p className="text-xs text-slate-400 mt-1">
+                                        <p className="text-xs text-faint mt-1">
                                             PDF, DOC, Images, Videos up to 50MB
                                         </p>
                                     </button>
@@ -290,7 +290,7 @@ export function CreateResourceModal({
 
                         {/* Name */}
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
+                            <label htmlFor="name" className="block text-sm font-medium text-body mb-1">
                                 Name *
                             </label>
                             <input
@@ -306,8 +306,8 @@ export function CreateResourceModal({
 
                         {/* Description */}
                         <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">
-                                Description <span className="text-slate-400">(optional)</span>
+                            <label htmlFor="description" className="block text-sm font-medium text-body mb-1">
+                                Description <span className="text-faint">(optional)</span>
                             </label>
                             <textarea
                                 id="description"
@@ -321,8 +321,8 @@ export function CreateResourceModal({
 
                         {/* Category */}
                         <div>
-                            <label htmlFor="category" className="block text-sm font-medium text-slate-700 mb-1">
-                                Category <span className="text-slate-400">(optional)</span>
+                            <label htmlFor="category" className="block text-sm font-medium text-body mb-1">
+                                Category <span className="text-faint">(optional)</span>
                             </label>
                             {isAddingCategory ? (
                                 <div className="flex items-center gap-2">
@@ -381,7 +381,7 @@ export function CreateResourceModal({
                                     <button
                                         type="button"
                                         onClick={() => setIsAddingCategory(true)}
-                                        className="p-2 rounded-lg border border-slate-200 text-slate-500 hover:bg-slate-50 hover:text-slate-700 transition-colors"
+                                        className="p-2 rounded-lg border border-line text-muted hover:bg-surface-hover hover:text-body transition-colors"
                                         title="Add new category"
                                     >
                                         <Plus className="w-5 h-5" />

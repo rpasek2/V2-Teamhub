@@ -13,7 +13,7 @@ export function Schedule() {
     if (!isStaff) {
         return (
             <div className="flex items-center justify-center h-64">
-                <p className="text-slate-400">You don't have permission to view this page.</p>
+                <p className="text-faint">You don't have permission to view this page.</p>
             </div>
         );
     }
@@ -23,24 +23,24 @@ export function Schedule() {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-indigo-100 rounded-lg">
+                    <div className="p-2 bg-indigo-500/10 rounded-lg">
                         <Calendar className="w-6 h-6 text-indigo-600" />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Schedule</h1>
-                        <p className="text-sm text-slate-500">Manage practice times and daily rotations</p>
+                        <h1 className="text-2xl font-bold text-heading">Schedule</h1>
+                        <p className="text-sm text-muted">Manage practice times and daily rotations</p>
                     </div>
                 </div>
             </div>
 
             {/* Tab Navigation */}
-            <div className="flex bg-slate-100 rounded-lg p-1 w-fit">
+            <div className="flex bg-surface-hover rounded-lg p-1 w-fit">
                 <button
                     onClick={() => setActiveTab('weekly')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                         activeTab === 'weekly'
-                            ? 'bg-white text-slate-900 shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-surface text-heading shadow-sm'
+                            : 'text-subtle hover:text-heading'
                     }`}
                 >
                     <Calendar className="w-4 h-4" />
@@ -50,8 +50,8 @@ export function Schedule() {
                     onClick={() => setActiveTab('rotation')}
                     className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                         activeTab === 'rotation'
-                            ? 'bg-white text-slate-900 shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-surface text-heading shadow-sm'
+                            : 'text-subtle hover:text-heading'
                     }`}
                 >
                     <Grid3X3 className="w-4 h-4" />

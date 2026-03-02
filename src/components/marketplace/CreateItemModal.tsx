@@ -184,13 +184,13 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-2xl transform rounded-xl bg-white shadow-xl transition-all">
+                <div className="relative w-full max-w-2xl transform rounded-xl bg-surface shadow-xl transition-all">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
-                        <h2 className="text-lg font-semibold text-slate-900">List an Item</h2>
+                    <div className="flex items-center justify-between border-b border-line px-6 py-4">
+                        <h2 className="text-lg font-semibold text-heading">List an Item</h2>
                         <button
                             onClick={handleClose}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                            className="rounded-lg p-2 text-faint hover:bg-surface-hover hover:text-subtle"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -200,7 +200,7 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                     <form onSubmit={handleSubmit} className="p-6 space-y-6">
                         {/* Images */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Photos <span className="text-red-500">*</span>
                             </label>
                             <div className="grid grid-cols-5 gap-3">
@@ -215,7 +215,7 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                             <Trash2 className="h-5 w-5 text-white" />
                                         </button>
                                         {index === 0 && (
-                                            <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-brand-600 text-white text-xs font-medium">
+                                            <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-accent-600 text-white text-xs font-medium">
                                                 Main
                                             </span>
                                         )}
@@ -226,7 +226,7 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
                                         disabled={uploadingImages}
-                                        className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400 hover:border-brand-400 hover:text-brand-500 transition-colors disabled:opacity-50"
+                                        className="aspect-square rounded-lg border-2 border-dashed border-line-strong flex flex-col items-center justify-center text-faint hover:border-accent-400 hover:text-accent-500 transition-colors disabled:opacity-50"
                                     >
                                         {uploadingImages ? (
                                             <Loader2 className="h-6 w-6 animate-spin" />
@@ -239,7 +239,7 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                     </button>
                                 )}
                             </div>
-                            <p className="mt-2 text-xs text-slate-500">
+                            <p className="mt-2 text-xs text-muted">
                                 Add up to 5 photos (max {FILE_LIMITS.marketplaceImage.maxSizeLabel} each). First photo will be the main image.
                             </p>
                             <input
@@ -254,7 +254,7 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
 
                         {/* Title */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            <label className="block text-sm font-medium text-body mb-1">
                                 Title <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -262,14 +262,14 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 placeholder="e.g., GK Elite Pink Competition Leo"
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                 maxLength={100}
                             />
                         </div>
 
                         {/* Description */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            <label className="block text-sm font-medium text-body mb-1">
                                 Description <span className="text-red-500">*</span>
                             </label>
                             <textarea
@@ -277,18 +277,18 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                 onChange={(e) => setDescription(e.target.value)}
                                 placeholder="Describe your item, include any details about condition, sizing, etc."
                                 rows={4}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                             />
                         </div>
 
                         {/* Price */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            <label className="block text-sm font-medium text-body mb-1">
                                 Price <span className="text-red-500">*</span>
                             </label>
                             <div className="flex items-center gap-4">
                                 <div className="relative flex-1">
-                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                     <input
                                         type="number"
                                         value={price}
@@ -297,7 +297,7 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                         placeholder="0.00"
                                         min="0"
                                         step="0.01"
-                                        className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-slate-100 disabled:text-slate-400"
+                                        className="w-full pl-8 pr-3 py-2 rounded-lg border border-line-strong bg-surface text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500 disabled:bg-surface-hover disabled:text-faint"
                                     />
                                 </div>
                                 <label className="flex items-center gap-2 cursor-pointer">
@@ -308,9 +308,9 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                             setIsFree(e.target.checked);
                                             if (e.target.checked) setPrice('');
                                         }}
-                                        className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                        className="rounded border-line-strong text-accent-600 focus:ring-accent-500"
                                     />
-                                    <span className="text-sm text-slate-700">Free item</span>
+                                    <span className="text-sm text-body">Free item</span>
                                 </label>
                             </div>
                         </div>
@@ -318,13 +318,13 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                         {/* Category & Condition */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label className="block text-sm font-medium text-body mb-1">
                                     Category <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={category}
                                     onChange={(e) => setCategory(e.target.value as MarketplaceCategory)}
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                    className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                 >
                                     {Object.entries(MARKETPLACE_CATEGORIES).map(([key, { label }]) => (
                                         <option key={key} value={key}>
@@ -334,13 +334,13 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label className="block text-sm font-medium text-body mb-1">
                                     Condition <span className="text-red-500">*</span>
                                 </label>
                                 <select
                                     value={condition}
                                     onChange={(e) => setCondition(e.target.value as MarketplaceCondition)}
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                    className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                 >
                                     {Object.entries(MARKETPLACE_CONDITIONS).map(([key, label]) => (
                                         <option key={key} value={key}>
@@ -354,7 +354,7 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                         {/* Size & Brand */}
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label className="block text-sm font-medium text-body mb-1">
                                     Size
                                 </label>
                                 <input
@@ -362,11 +362,11 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                     value={size}
                                     onChange={(e) => setSize(e.target.value)}
                                     placeholder="e.g., CM, AS, 4-6"
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                    className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-1">
+                                <label className="block text-sm font-medium text-body mb-1">
                                     Brand
                                 </label>
                                 <input
@@ -374,14 +374,14 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                     value={brand}
                                     onChange={(e) => setBrand(e.target.value)}
                                     placeholder="e.g., GK Elite, Destira"
-                                    className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                    className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                 />
                             </div>
                         </div>
 
                         {/* Phone */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
+                            <label className="block text-sm font-medium text-body mb-1">
                                 Phone Number <span className="text-red-500">*</span>
                             </label>
                             <input
@@ -389,34 +389,34 @@ export function CreateItemModal({ isOpen, onClose, onItemCreated }: CreateItemMo
                                 value={phone}
                                 onChange={(e) => setPhone(e.target.value)}
                                 placeholder="(555) 123-4567"
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                             />
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-1 text-xs text-muted">
                                 Buyers outside your hub will see this number to contact you.
                             </p>
                         </div>
 
                         {/* Error */}
                         {error && (
-                            <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-red-800">
+                            <div className="flex items-start gap-2 rounded-lg bg-red-500/10 p-3 text-red-600">
                                 <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
                                 <p className="text-sm">{error}</p>
                             </div>
                         )}
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-line">
                             <button
                                 type="button"
                                 onClick={handleClose}
-                                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                                className="rounded-lg px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="inline-flex items-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                className="inline-flex items-center rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                             >
                                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 List Item

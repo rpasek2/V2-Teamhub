@@ -56,33 +56,33 @@ function getUSHolidays(year: number): Map<string, Holiday> {
         holidays.set(key, { name, emoji, bgColor, textColor });
     };
 
-    // Fixed date holidays - light theme compatible
-    addHoliday(new Date(year, 0, 1), "New Year's Day", String.fromCodePoint(0x1F389), 'bg-yellow-50', 'text-yellow-700');
-    addHoliday(new Date(year, 1, 14), "Valentine's Day", String.fromCodePoint(0x1F495), 'bg-pink-50', 'text-pink-700');
-    addHoliday(new Date(year, 2, 17), "St. Patrick's Day", String.fromCodePoint(0x2618, 0xFE0F), 'bg-emerald-50', 'text-emerald-700');
-    addHoliday(new Date(year, 6, 4), "Independence Day", String.fromCodePoint(0x1F1FA, 0x1F1F8), 'bg-blue-50', 'text-blue-700');
-    addHoliday(new Date(year, 9, 31), "Halloween", String.fromCodePoint(0x1F383), 'bg-orange-50', 'text-orange-700');
-    addHoliday(new Date(year, 10, 11), "Veterans Day", String.fromCodePoint(0x1F396, 0xFE0F), 'bg-red-50', 'text-red-700');
-    addHoliday(new Date(year, 11, 25), "Christmas Day", String.fromCodePoint(0x1F384), 'bg-red-50', 'text-red-700');
-    addHoliday(new Date(year, 11, 31), "New Year's Eve", String.fromCodePoint(0x1F973), 'bg-purple-50', 'text-purple-700');
-    addHoliday(new Date(year, 11, 24), "Christmas Eve", String.fromCodePoint(0x1F385), 'bg-red-50', 'text-red-700');
+    // Fixed date holidays
+    addHoliday(new Date(year, 0, 1), "New Year's Day", String.fromCodePoint(0x1F389), 'bg-yellow-500/10', 'text-yellow-600');
+    addHoliday(new Date(year, 1, 14), "Valentine's Day", String.fromCodePoint(0x1F495), 'bg-pink-500/10', 'text-pink-600');
+    addHoliday(new Date(year, 2, 17), "St. Patrick's Day", String.fromCodePoint(0x2618, 0xFE0F), 'bg-emerald-500/10', 'text-emerald-600');
+    addHoliday(new Date(year, 6, 4), "Independence Day", String.fromCodePoint(0x1F1FA, 0x1F1F8), 'bg-blue-500/10', 'text-blue-600');
+    addHoliday(new Date(year, 9, 31), "Halloween", String.fromCodePoint(0x1F383), 'bg-orange-500/10', 'text-orange-600');
+    addHoliday(new Date(year, 10, 11), "Veterans Day", String.fromCodePoint(0x1F396, 0xFE0F), 'bg-red-500/10', 'text-red-600');
+    addHoliday(new Date(year, 11, 25), "Christmas Day", String.fromCodePoint(0x1F384), 'bg-red-500/10', 'text-red-600');
+    addHoliday(new Date(year, 11, 31), "New Year's Eve", String.fromCodePoint(0x1F973), 'bg-purple-500/10', 'text-purple-600');
+    addHoliday(new Date(year, 11, 24), "Christmas Eve", String.fromCodePoint(0x1F385), 'bg-red-500/10', 'text-red-600');
 
     // Floating holidays
-    addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", String.fromCodePoint(0x270A, 0x1F3FF), 'bg-slate-100', 'text-slate-700');
-    addHoliday(getNthWeekdayOfMonth(year, 1, 1, 3), "Presidents' Day", String.fromCodePoint(0x1F3DB, 0xFE0F), 'bg-blue-50', 'text-blue-700');
-    addHoliday(getNthWeekdayOfMonth(year, 4, 0, 2), "Mother's Day", String.fromCodePoint(0x1F490), 'bg-pink-50', 'text-pink-700');
-    addHoliday(getLastWeekdayOfMonth(year, 4, 1), "Memorial Day", String.fromCodePoint(0x1F1FA, 0x1F1F8), 'bg-red-50', 'text-red-700');
-    addHoliday(getNthWeekdayOfMonth(year, 5, 0, 3), "Father's Day", String.fromCodePoint(0x1F454), 'bg-blue-50', 'text-blue-700');
-    addHoliday(getNthWeekdayOfMonth(year, 8, 1, 1), "Labor Day", String.fromCodePoint(0x2692, 0xFE0F), 'bg-amber-50', 'text-amber-700');
-    addHoliday(getNthWeekdayOfMonth(year, 9, 1, 2), "Columbus Day", String.fromCodePoint(0x1F9ED), 'bg-indigo-50', 'text-indigo-700');
-    addHoliday(getNthWeekdayOfMonth(year, 10, 4, 4), "Thanksgiving", String.fromCodePoint(0x1F983), 'bg-orange-50', 'text-orange-700');
+    addHoliday(getNthWeekdayOfMonth(year, 0, 1, 3), "MLK Jr. Day", String.fromCodePoint(0x270A, 0x1F3FF), 'bg-surface-hover', 'text-body');
+    addHoliday(getNthWeekdayOfMonth(year, 1, 1, 3), "Presidents' Day", String.fromCodePoint(0x1F3DB, 0xFE0F), 'bg-blue-500/10', 'text-blue-600');
+    addHoliday(getNthWeekdayOfMonth(year, 4, 0, 2), "Mother's Day", String.fromCodePoint(0x1F490), 'bg-pink-500/10', 'text-pink-600');
+    addHoliday(getLastWeekdayOfMonth(year, 4, 1), "Memorial Day", String.fromCodePoint(0x1F1FA, 0x1F1F8), 'bg-red-500/10', 'text-red-600');
+    addHoliday(getNthWeekdayOfMonth(year, 5, 0, 3), "Father's Day", String.fromCodePoint(0x1F454), 'bg-blue-500/10', 'text-blue-600');
+    addHoliday(getNthWeekdayOfMonth(year, 8, 1, 1), "Labor Day", String.fromCodePoint(0x2692, 0xFE0F), 'bg-amber-500/10', 'text-amber-600');
+    addHoliday(getNthWeekdayOfMonth(year, 9, 1, 2), "Columbus Day", String.fromCodePoint(0x1F9ED), 'bg-indigo-500/10', 'text-indigo-600');
+    addHoliday(getNthWeekdayOfMonth(year, 10, 4, 4), "Thanksgiving", String.fromCodePoint(0x1F983), 'bg-orange-500/10', 'text-orange-600');
 
     // Easter (calculated)
     const easter = getEasterSunday(year);
-    addHoliday(easter, "Easter Sunday", String.fromCodePoint(0x1F430), 'bg-pink-50', 'text-pink-700');
+    addHoliday(easter, "Easter Sunday", String.fromCodePoint(0x1F430), 'bg-pink-500/10', 'text-pink-600');
 
     // Juneteenth
-    addHoliday(new Date(year, 5, 19), "Juneteenth", String.fromCodePoint(0x270A, 0x1F3FF), 'bg-red-50', 'text-red-700');
+    addHoliday(new Date(year, 5, 19), "Juneteenth", String.fromCodePoint(0x270A, 0x1F3FF), 'bg-red-500/10', 'text-red-600');
 
     return holidays;
 }
@@ -96,16 +96,16 @@ for (let year = 2020; year <= 2035; year++) {
 }
 
 export const EVENT_TYPE_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-    practice: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-500' },
-    competition: { bg: 'bg-purple-100', text: 'text-purple-700', dot: 'bg-purple-500' },
-    mentorship: { bg: 'bg-pink-100', text: 'text-pink-700', dot: 'bg-pink-500' },
-    meeting: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-500' },
-    social: { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' },
-    private_lesson: { bg: 'bg-violet-100', text: 'text-violet-700', dot: 'bg-violet-500' },
-    camp: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-500' },
-    clinic: { bg: 'bg-indigo-100', text: 'text-indigo-700', dot: 'bg-indigo-500' },
-    fundraiser: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' },
-    other: { bg: 'bg-slate-100', text: 'text-slate-700', dot: 'bg-slate-500' }
+    practice: { bg: 'bg-blue-500/10', text: 'text-blue-600', dot: 'bg-blue-500' },
+    competition: { bg: 'bg-purple-500/10', text: 'text-purple-600', dot: 'bg-purple-500' },
+    mentorship: { bg: 'bg-pink-500/10', text: 'text-pink-600', dot: 'bg-pink-500' },
+    meeting: { bg: 'bg-amber-500/10', text: 'text-amber-600', dot: 'bg-amber-500' },
+    social: { bg: 'bg-green-500/10', text: 'text-green-600', dot: 'bg-green-500' },
+    private_lesson: { bg: 'bg-violet-500/10', text: 'text-violet-600', dot: 'bg-violet-500' },
+    camp: { bg: 'bg-emerald-500/10', text: 'text-emerald-600', dot: 'bg-emerald-500' },
+    clinic: { bg: 'bg-indigo-500/10', text: 'text-indigo-600', dot: 'bg-indigo-500' },
+    fundraiser: { bg: 'bg-orange-500/10', text: 'text-orange-600', dot: 'bg-orange-500' },
+    other: { bg: 'bg-surface-hover', text: 'text-body', dot: 'bg-surface-active' }
 };
 
 // Birthday type for calendar display

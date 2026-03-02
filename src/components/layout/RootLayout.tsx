@@ -32,13 +32,13 @@ export function RootLayout() {
     }, [user]);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-slate-50">
+        <div className="flex h-screen overflow-hidden bg-surface-alt">
             {/* Minimal Sidebar */}
-            <div className="flex h-full w-64 flex-col bg-white border-r border-slate-200">
-                <div className="flex flex-col justify-center h-16 px-6 border-b border-slate-200">
-                    <span className="text-xl font-bold text-brand-600">Teamhub</span>
+            <div className="flex h-full w-64 flex-col bg-surface border-r border-line">
+                <div className="flex flex-col justify-center h-16 px-6 border-b border-line">
+                    <span className="text-xl font-bold text-accent-600">Teamhub</span>
                     {organization && (
-                        <span className="text-xs text-slate-500 truncate">{organization}</span>
+                        <span className="text-xs text-muted truncate">{organization}</span>
                     )}
                 </div>
                 <div className="flex-1 overflow-y-auto py-4">
@@ -51,14 +51,14 @@ export function RootLayout() {
                                     to={item.href}
                                     className={clsx(
                                         isActive
-                                            ? 'bg-brand-50 text-brand-700'
-                                            : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900',
+                                            ? 'bg-accent-50 text-accent-700'
+                                            : 'text-body hover:bg-surface-hover hover:text-heading',
                                         'group flex items-center rounded-md px-3 py-2 text-sm font-medium'
                                     )}
                                 >
                                     <item.icon
                                         className={clsx(
-                                            isActive ? 'text-brand-700' : 'text-slate-400 group-hover:text-slate-500',
+                                            isActive ? 'text-accent-700' : 'text-faint group-hover:text-muted',
                                             'mr-3 h-5 w-5 flex-shrink-0'
                                         )}
                                         aria-hidden="true"
@@ -69,13 +69,13 @@ export function RootLayout() {
                         })}
                     </nav>
                 </div>
-                <div className="border-t border-slate-200 p-4">
+                <div className="border-t border-line p-4">
                     <button
                         onClick={() => signOut()}
-                        className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                        className="group flex w-full items-center rounded-md px-3 py-2 text-sm font-medium text-body hover:bg-surface-hover hover:text-heading"
                     >
                         <LogOut
-                            className="mr-3 h-5 w-5 flex-shrink-0 text-slate-400 group-hover:text-slate-500"
+                            className="mr-3 h-5 w-5 flex-shrink-0 text-faint group-hover:text-muted"
                             aria-hidden="true"
                         />
                         Sign out

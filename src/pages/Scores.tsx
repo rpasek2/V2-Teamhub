@@ -168,21 +168,21 @@ export function Scores() {
 
     return (
         <div className="h-full flex flex-col">
-            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
+            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-line bg-surface px-6 py-4 rounded-t-xl">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-bold text-slate-900">Scores</h1>
+                    <h1 className="text-2xl font-bold text-heading">Scores</h1>
                     <SeasonPicker
                         selectedSeasonId={selectedSeasonId}
                         onSeasonChange={handleSeasonChange}
                     />
                 </div>
-                <div className="flex bg-slate-100 rounded-lg p-1 w-fit">
+                <div className="flex bg-surface-hover rounded-lg p-1 w-fit">
                     <button
                         onClick={() => setViewMode('by-meet')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                             viewMode === 'by-meet'
-                                ? 'bg-white text-slate-900 shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-surface text-heading shadow-sm'
+                                : 'text-subtle hover:text-heading'
                         }`}
                     >
                         <Trophy className="w-4 h-4" />
@@ -192,8 +192,8 @@ export function Scores() {
                         onClick={() => setViewMode('metrics')}
                         className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                             viewMode === 'metrics'
-                                ? 'bg-white text-slate-900 shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-surface text-heading shadow-sm'
+                                : 'text-subtle hover:text-heading'
                         }`}
                     >
                         <TrendingUp className="w-4 h-4" />
@@ -212,13 +212,13 @@ export function Scores() {
                 {viewMode === 'metrics' ? (
                     <div className="space-y-6">
                         {/* Gender Tabs */}
-                        <div className="flex rounded-lg bg-slate-100 p-1 w-fit">
+                        <div className="flex rounded-lg bg-surface-hover p-1 w-fit">
                             <button
                                 onClick={() => setActiveGender('Female')}
                                 className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                                     activeGender === 'Female'
-                                        ? 'bg-white text-slate-900 shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-900'
+                                        ? 'bg-surface text-heading shadow-sm'
+                                        : 'text-muted hover:text-heading'
                                 }`}
                             >
                                 Women's
@@ -227,8 +227,8 @@ export function Scores() {
                                 onClick={() => setActiveGender('Male')}
                                 className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                                     activeGender === 'Male'
-                                        ? 'bg-white text-slate-900 shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-900'
+                                        ? 'bg-surface text-heading shadow-sm'
+                                        : 'text-muted hover:text-heading'
                                 }`}
                             >
                                 Men's
@@ -247,11 +247,11 @@ export function Scores() {
                             />
                         ) : (
                             <div className="flex flex-col items-center justify-center text-center py-16">
-                                <div className="rounded-full bg-slate-100 p-4">
-                                    <TrendingUp className="h-8 w-8 text-slate-400" />
+                                <div className="rounded-full bg-surface-hover p-4">
+                                    <TrendingUp className="h-8 w-8 text-faint" />
                                 </div>
-                                <h3 className="mt-4 text-lg font-semibold text-slate-900">Select a Season</h3>
-                                <p className="mt-2 text-sm text-slate-500">
+                                <h3 className="mt-4 text-lg font-semibold text-heading">Select a Season</h3>
+                                <p className="mt-2 text-sm text-muted">
                                     Choose a season above to view score metrics.
                                 </p>
                             </div>
@@ -259,15 +259,15 @@ export function Scores() {
                     </div>
                 ) : loading ? (
                     <div className="flex h-full items-center justify-center">
-                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent-500 border-t-transparent"></div>
                     </div>
                 ) : competitions.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center text-center">
-                        <div className="rounded-full bg-slate-100 p-4">
-                            <Trophy className="h-8 w-8 text-slate-400" />
+                        <div className="rounded-full bg-surface-hover p-4">
+                            <Trophy className="h-8 w-8 text-faint" />
                         </div>
-                        <h3 className="mt-4 text-lg font-semibold text-slate-900">No competitions yet</h3>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <h3 className="mt-4 text-lg font-semibold text-heading">No competitions yet</h3>
+                        <p className="mt-2 text-sm text-muted">
                             Scores will appear here once competitions are created.
                         </p>
                     </div>
@@ -282,7 +282,7 @@ export function Scores() {
                                         const comp = competitions.find(c => c.id === e.target.value);
                                         setSelectedCompetition(comp || null);
                                     }}
-                                    className="block w-full sm:w-80 appearance-none rounded-lg border border-slate-300 bg-white py-2.5 pl-4 pr-10 text-sm font-medium text-slate-900 shadow-sm focus:border-mint-500 focus:outline-none focus:ring-1 focus:ring-mint-500"
+                                    className="block w-full sm:w-80 appearance-none rounded-lg border border-line-strong bg-surface py-2.5 pl-4 pr-10 text-sm font-medium text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                 >
                                     {competitions.map((comp) => (
                                         <option key={comp.id} value={comp.id}>
@@ -290,18 +290,18 @@ export function Scores() {
                                         </option>
                                     ))}
                                 </select>
-                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-faint" />
                             </div>
 
                             {/* Gender Tabs */}
-                            <div className="flex rounded-lg bg-slate-100 p-1">
+                            <div className="flex rounded-lg bg-surface-hover p-1">
                                 <button
                                     onClick={() => setActiveGender('Female')}
                                     disabled={!hasGender('Female')}
                                     className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                                         activeGender === 'Female'
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-900'
+                                            ? 'bg-surface text-heading shadow-sm'
+                                            : 'text-muted hover:text-heading'
                                     } ${!hasGender('Female') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     Women's
@@ -311,8 +311,8 @@ export function Scores() {
                                     disabled={!hasGender('Male')}
                                     className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                                         activeGender === 'Male'
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-900'
+                                            ? 'bg-surface text-heading shadow-sm'
+                                            : 'text-muted hover:text-heading'
                                     } ${!hasGender('Male') ? 'opacity-50 cursor-not-allowed' : ''}`}
                                 >
                                     Men's

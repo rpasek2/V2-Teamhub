@@ -104,19 +104,19 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
             {/* Season Picker + View Toggle */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-slate-700">Season:</span>
+                    <span className="text-sm font-medium text-body">Season:</span>
                     <SeasonPicker
                         selectedSeasonId={selectedSeasonId}
                         onSeasonChange={handleSeasonChange}
                     />
                 </div>
-                <div className="flex bg-slate-100 rounded-lg p-1 w-fit">
+                <div className="flex bg-surface-hover rounded-lg p-1 w-fit">
                     <button
                         onClick={() => setViewMode('by-meet')}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                             viewMode === 'by-meet'
-                                ? 'bg-white text-slate-900 shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-surface text-heading shadow-sm'
+                                : 'text-subtle hover:text-heading'
                         }`}
                     >
                         <Trophy className="w-3.5 h-3.5" />
@@ -126,8 +126,8 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                         onClick={() => setViewMode('metrics')}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
                             viewMode === 'metrics'
-                                ? 'bg-white text-slate-900 shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900'
+                                ? 'bg-surface text-heading shadow-sm'
+                                : 'text-subtle hover:text-heading'
                         }`}
                     >
                         <TrendingUp className="w-3.5 h-3.5" />
@@ -139,25 +139,25 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
             {/* Loading State */}
             {loading ? (
                 <div className="flex items-center justify-center py-12">
-                    <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+                    <Loader2 className="h-8 w-8 animate-spin text-accent-500" />
                 </div>
             ) : !selectedSeasonId ? (
                 <div className="flex flex-col items-center justify-center text-center py-12">
-                    <div className="rounded-full bg-slate-100 p-4">
-                        <Calendar className="h-8 w-8 text-slate-400" />
+                    <div className="rounded-full bg-surface-hover p-4">
+                        <Calendar className="h-8 w-8 text-faint" />
                     </div>
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900">Select a Season</h3>
-                    <p className="mt-2 text-sm text-slate-500">
+                    <h3 className="mt-4 text-lg font-semibold text-heading">Select a Season</h3>
+                    <p className="mt-2 text-sm text-muted">
                         Choose a season above to view competition scores.
                     </p>
                 </div>
             ) : competitions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center text-center py-12">
-                    <div className="rounded-full bg-slate-100 p-4">
-                        <Trophy className="h-8 w-8 text-slate-400" />
+                    <div className="rounded-full bg-surface-hover p-4">
+                        <Trophy className="h-8 w-8 text-faint" />
                     </div>
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900">No Competitions</h3>
-                    <p className="mt-2 text-sm text-slate-500">
+                    <h3 className="mt-4 text-lg font-semibold text-heading">No Competitions</h3>
+                    <p className="mt-2 text-sm text-muted">
                         No competition scores found for this season.
                     </p>
                 </div>
@@ -174,16 +174,16 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                         return (
                             <div key={competition.id} className="card overflow-hidden">
                                 {/* Competition Header */}
-                                <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-50 to-orange-50 border-b border-amber-100">
+                                <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-b border-amber-500/20">
                                     <div className="flex items-center gap-3">
-                                        <div className="h-10 w-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                                        <div className="h-10 w-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
                                             <Trophy className="h-5 w-5 text-amber-600" />
                                         </div>
                                         <div>
-                                            <h3 className="text-sm font-semibold text-slate-900">
+                                            <h3 className="text-sm font-semibold text-heading">
                                                 {competition.name}
                                             </h3>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-xs text-muted">
                                                 {format(parseISO(competition.start_date), 'MMM d, yyyy')}
                                                 {competition.location && ` • ${competition.location}`}
                                             </p>
@@ -191,7 +191,7 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                                     </div>
                                     {allAround !== null && (
                                         <div className="text-right">
-                                            <p className="text-xs text-slate-500 uppercase tracking-wide">All-Around</p>
+                                            <p className="text-xs text-muted uppercase tracking-wide">All-Around</p>
                                             <div className="flex items-center justify-end gap-2">
                                                 <p className="text-lg font-bold text-amber-600">
                                                     {allAround.toFixed(3)}
@@ -215,7 +215,7 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                                 {/* Scores Grid */}
                                 <div className="p-4">
                                     {competition.scores.length === 0 ? (
-                                        <p className="text-sm text-slate-500 text-center py-4">
+                                        <p className="text-sm text-muted text-center py-4">
                                             No scores recorded yet
                                         </p>
                                     ) : (
@@ -229,12 +229,12 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                                                         key={event}
                                                         className={`rounded-lg p-3 ${
                                                             hasScore
-                                                                ? 'bg-white border border-slate-200'
-                                                                : 'bg-slate-50 border border-dashed border-slate-200'
+                                                                ? 'bg-surface border border-line'
+                                                                : 'bg-surface-alt border border-dashed border-line'
                                                         }`}
                                                     >
                                                         <div className="flex items-center justify-between mb-1">
-                                                            <span className="text-xs font-medium text-slate-500 uppercase">
+                                                            <span className="text-xs font-medium text-muted uppercase">
                                                                 {EVENT_LABELS[event]}
                                                             </span>
                                                             <div className="flex items-center gap-1">
@@ -254,12 +254,12 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                                                                 {scoreData?.placement && (
                                                                     <span className={`text-xs font-semibold px-1.5 py-0.5 rounded ${
                                                                         scoreData.placement === 1
-                                                                            ? 'bg-amber-100 text-amber-700'
+                                                                            ? 'bg-amber-500/15 text-amber-600'
                                                                             : scoreData.placement === 2
-                                                                            ? 'bg-slate-200 text-slate-700'
+                                                                            ? 'bg-surface-active text-body'
                                                                             : scoreData.placement === 3
-                                                                            ? 'bg-orange-100 text-orange-700'
-                                                                            : 'bg-slate-100 text-slate-600'
+                                                                            ? 'bg-orange-500/15 text-orange-600'
+                                                                            : 'bg-surface-hover text-subtle'
                                                                     }`}>
                                                                         {formatPlacement(scoreData.placement)}
                                                                     </span>
@@ -267,11 +267,11 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                                                             </div>
                                                         </div>
                                                         <p className={`text-lg font-semibold ${
-                                                            hasScore ? 'text-slate-900' : 'text-slate-300'
+                                                            hasScore ? 'text-heading' : 'text-faint'
                                                         }`}>
                                                             {hasScore ? scoreData.score?.toFixed(3) : '-'}
                                                         </p>
-                                                        <p className="text-xs text-slate-400 mt-0.5">
+                                                        <p className="text-xs text-faint mt-0.5">
                                                             {EVENT_FULL_NAMES[event]}
                                                         </p>
                                                     </div>
@@ -285,7 +285,7 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                     })}
 
                     {/* Summary Footer */}
-                    <p className="text-xs text-slate-500 text-center">
+                    <p className="text-xs text-muted text-center">
                         {competitions.length} competition{competitions.length !== 1 ? 's' : ''} this season
                     </p>
                 </div>

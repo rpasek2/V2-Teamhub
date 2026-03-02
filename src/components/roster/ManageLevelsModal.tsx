@@ -152,42 +152,42 @@ export function ManageLevelsModal({
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-            <div className="bg-white rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col">
+            <div className="bg-surface rounded-xl shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-line">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-brand-50 rounded-lg">
-                            <Users className="h-5 w-5 text-brand-600" />
+                        <div className="p-2 bg-accent-50 rounded-lg">
+                            <Users className="h-5 w-5 text-accent-600" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-slate-900">Manage Levels</h2>
-                            <p className="text-sm text-slate-500">Bulk assign levels to gymnasts</p>
+                            <h2 className="text-lg font-semibold text-heading">Manage Levels</h2>
+                            <p className="text-sm text-muted">Bulk assign levels to gymnasts</p>
                         </div>
                     </div>
                     <button
                         onClick={handleClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                     >
                         <X className="h-5 w-5" />
                     </button>
                 </div>
 
                 {/* Selection controls */}
-                <div className="px-6 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                <div className="px-6 py-3 bg-surface border-b border-line flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <span className="text-sm text-slate-600">
-                            <span className="font-medium text-slate-900">{selectedGymnasts.size}</span> selected
+                        <span className="text-sm text-subtle">
+                            <span className="font-medium text-heading">{selectedGymnasts.size}</span> selected
                         </span>
                         <button
                             onClick={selectAll}
-                            className="text-sm text-brand-600 hover:text-brand-700"
+                            className="text-sm text-accent-600 hover:text-accent-700"
                         >
                             Select all
                         </button>
                         {selectedGymnasts.size > 0 && (
                             <button
                                 onClick={clearSelection}
-                                className="text-sm text-slate-500 hover:text-slate-700"
+                                className="text-sm text-muted hover:text-body"
                             >
                                 Clear
                             </button>
@@ -199,14 +199,14 @@ export function ManageLevelsModal({
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                     {levels.length === 0 ? (
                         <div className="text-center py-8">
-                            <p className="text-slate-500 mb-2">No levels configured</p>
-                            <p className="text-sm text-slate-400">
+                            <p className="text-muted mb-2">No levels configured</p>
+                            <p className="text-sm text-faint">
                                 Add levels in Hub Settings before assigning gymnasts to them.
                             </p>
                         </div>
                     ) : orderedLevels.length === 0 ? (
                         <div className="text-center py-8">
-                            <p className="text-slate-500">No gymnasts in roster</p>
+                            <p className="text-muted">No gymnasts in roster</p>
                         </div>
                     ) : (
                         <div className="space-y-2">
@@ -218,10 +218,10 @@ export function ManageLevelsModal({
                                 const someSelected = gymnastsInLevel.some(g => selectedGymnasts.has(g.id));
 
                                 return (
-                                    <div key={level} className="border border-slate-200 rounded-lg overflow-hidden">
+                                    <div key={level} className="border border-line rounded-lg overflow-hidden">
                                         {/* Level header */}
                                         <div
-                                            className="flex items-center gap-3 px-4 py-3 bg-slate-50 cursor-pointer hover:bg-slate-100 transition-colors"
+                                            className="flex items-center gap-3 px-4 py-3 bg-surface cursor-pointer hover:bg-surface-hover transition-colors"
                                             onClick={() => toggleSection(level)}
                                         >
                                             <button
@@ -231,57 +231,57 @@ export function ManageLevelsModal({
                                                 }}
                                                 className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                                                     allSelected
-                                                        ? 'bg-brand-500 border-brand-500'
+                                                        ? 'bg-accent-500 border-accent-500'
                                                         : someSelected
-                                                        ? 'bg-brand-200 border-brand-500'
-                                                        : 'border-slate-300 hover:border-brand-500'
+                                                        ? 'bg-accent-200 border-accent-500'
+                                                        : 'border-line-strong hover:border-accent-500'
                                                 }`}
                                             >
                                                 {allSelected && <Check className="h-3 w-3 text-white" />}
                                                 {someSelected && !allSelected && (
-                                                    <div className="w-2 h-0.5 bg-brand-500 rounded" />
+                                                    <div className="w-2 h-0.5 bg-accent-500 rounded" />
                                                 )}
                                             </button>
 
                                             {isExpanded ? (
-                                                <ChevronDown className="h-4 w-4 text-slate-400" />
+                                                <ChevronDown className="h-4 w-4 text-faint" />
                                             ) : (
-                                                <ChevronRight className="h-4 w-4 text-slate-400" />
+                                                <ChevronRight className="h-4 w-4 text-faint" />
                                             )}
 
-                                            <span className={`font-medium ${level === 'No Level' ? 'text-amber-600' : 'text-slate-700'}`}>
+                                            <span className={`font-medium ${level === 'No Level' ? 'text-amber-600' : 'text-body'}`}>
                                                 {level}
                                             </span>
-                                            <span className="text-sm text-slate-400">
+                                            <span className="text-sm text-faint">
                                                 ({gymnastsInLevel.length} gymnast{gymnastsInLevel.length !== 1 ? 's' : ''})
                                             </span>
                                         </div>
 
                                         {/* Gymnasts in this level */}
                                         {isExpanded && (
-                                            <div className="divide-y divide-slate-100">
+                                            <div className="divide-y divide-line">
                                                 {gymnastsInLevel.map(gymnast => {
                                                     const isSelected = selectedGymnasts.has(gymnast.id);
                                                     return (
                                                         <div
                                                             key={gymnast.id}
-                                                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer"
+                                                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-surface-hover cursor-pointer"
                                                             onClick={() => toggleGymnast(gymnast.id)}
                                                         >
                                                             <div
                                                                 className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
                                                                     isSelected
-                                                                        ? 'bg-brand-500 border-brand-500'
-                                                                        : 'border-slate-300'
+                                                                        ? 'bg-accent-500 border-accent-500'
+                                                                        : 'border-line-strong'
                                                                 }`}
                                                             >
                                                                 {isSelected && <Check className="h-3 w-3 text-white" />}
                                                             </div>
-                                                            <span className="text-sm text-slate-700">
+                                                            <span className="text-sm text-body">
                                                                 {gymnast.first_name} {gymnast.last_name}
                                                             </span>
                                                             {gymnast.gymnast_id && (
-                                                                <span className="text-xs text-slate-400">
+                                                                <span className="text-xs text-faint">
                                                                     #{gymnast.gymnast_id}
                                                                 </span>
                                                             )}
@@ -298,9 +298,9 @@ export function ManageLevelsModal({
                 </div>
 
                 {/* Footer with level assignment */}
-                <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
+                <div className="px-6 py-4 border-t border-line bg-surface-alt">
                     <div className="flex items-center gap-4">
-                        <label className="text-sm font-medium text-slate-700">
+                        <label className="text-sm font-medium text-body">
                             Assign to:
                         </label>
                         <select

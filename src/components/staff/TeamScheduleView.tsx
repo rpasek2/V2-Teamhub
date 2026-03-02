@@ -12,13 +12,13 @@ interface TeamScheduleViewProps {
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_COLORS = [
-    'bg-slate-100', // Sun
+    'bg-surface-hover', // Sun
     'bg-blue-50',   // Mon
     'bg-green-50',  // Tue
     'bg-amber-50',  // Wed
     'bg-purple-50', // Thu
     'bg-pink-50',   // Fri
-    'bg-slate-100', // Sat
+    'bg-surface-hover', // Sat
 ];
 
 type RoleFilter = 'all' | 'owner' | 'director' | 'admin' | 'coach';
@@ -59,7 +59,7 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
             case 'director': return 'bg-purple-100 text-purple-700';
             case 'admin': return 'bg-blue-100 text-blue-700';
             case 'coach': return 'bg-green-100 text-green-700';
-            default: return 'bg-slate-100 text-slate-600';
+            default: return 'bg-surface-hover text-subtle';
         }
     };
 
@@ -122,7 +122,7 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
             <div className="flex flex-wrap items-center justify-between gap-4">
                 {/* Role Filter */}
                 <div className="flex items-center gap-2">
-                    <Filter className="w-4 h-4 text-slate-400" />
+                    <Filter className="w-4 h-4 text-faint" />
                     <select
                         value={roleFilter}
                         onChange={(e) => setRoleFilter(e.target.value as RoleFilter)}
@@ -147,34 +147,34 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
             </div>
 
             {/* Schedule Grid */}
-            <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <div className="bg-surface rounded-xl border border-line overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full min-w-[800px]">
                         <thead>
-                            <tr className="border-b border-slate-200">
-                                <th className="text-left p-4 font-semibold text-slate-700 bg-slate-50 w-48">
+                            <tr className="border-b border-line">
+                                <th className="text-left p-4 font-semibold text-body bg-surface w-48">
                                     Staff
                                 </th>
                                 {DAYS.map((day, index) => (
                                     <th
                                         key={day}
-                                        className={`text-center p-4 font-semibold text-slate-700 ${DAY_COLORS[index]}`}
+                                        className={`text-center p-4 font-semibold text-body ${DAY_COLORS[index]}`}
                                     >
                                         {day}
                                     </th>
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-line">
                             {filteredStaff.length === 0 ? (
                                 <tr>
-                                    <td colSpan={8} className="p-8 text-center text-slate-500">
+                                    <td colSpan={8} className="p-8 text-center text-muted">
                                         No staff members found for the selected filter.
                                     </td>
                                 </tr>
                             ) : (
                                 filteredStaff.map(staff => (
-                                    <tr key={staff.user_id} className="hover:bg-slate-50/50">
+                                    <tr key={staff.user_id} className="hover:bg-surface-hover/50">
                                         {/* Staff Info */}
                                         <td className="p-4">
                                             <div className="flex items-center gap-3">
@@ -185,14 +185,14 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
                                                         className="w-8 h-8 rounded-full object-cover"
                                                     />
                                                 ) : (
-                                                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                                                        <span className="text-slate-500 text-sm font-medium">
+                                                    <div className="w-8 h-8 rounded-full bg-surface-active flex items-center justify-center">
+                                                        <span className="text-muted text-sm font-medium">
                                                             {staff.profile?.full_name?.charAt(0) || '?'}
                                                         </span>
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <p className="font-medium text-slate-900 text-sm">
+                                                    <p className="font-medium text-heading text-sm">
                                                         {staff.profile?.full_name || 'Unknown'}
                                                     </p>
                                                     <span className={`inline-block px-1.5 py-0.5 rounded text-xs font-medium ${getRoleBadgeColor(staff.role)}`}>
@@ -216,17 +216,17 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
                                                         {daySchedules.map(schedule => (
                                                             <div
                                                                 key={schedule.id}
-                                                                className="group bg-white rounded px-2 py-1 text-xs border border-slate-200 shadow-sm relative"
+                                                                className="group bg-surface rounded px-2 py-1 text-xs border border-line shadow-sm relative"
                                                             >
-                                                                <p className="font-medium text-slate-700">
+                                                                <p className="font-medium text-body">
                                                                     {formatTime(schedule.start_time)} - {formatTime(schedule.end_time)}
                                                                 </p>
-                                                                <p className="text-slate-500 truncate pr-5" title={schedule.role_label}>
+                                                                <p className="text-muted truncate pr-5" title={schedule.role_label}>
                                                                     {schedule.role_label}
                                                                 </p>
                                                                 <button
                                                                     onClick={() => handleDeleteSchedule(schedule.id)}
-                                                                    className="absolute top-1 right-1 p-0.5 text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                    className="absolute top-1 right-1 p-0.5 text-faint hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                                                     title="Delete"
                                                                 >
                                                                     <Trash2 className="w-3 h-3" />
@@ -236,19 +236,19 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
 
                                                         {/* Inline Add Form */}
                                                         {cellEditing ? (
-                                                            <div className="bg-white rounded p-2 border border-brand-300 shadow-sm space-y-1.5">
+                                                            <div className="bg-surface rounded p-2 border border-accent-300 shadow-sm space-y-1.5">
                                                                 <div className="flex gap-1">
                                                                     <input
                                                                         type="time"
                                                                         value={addStartTime}
                                                                         onChange={(e) => setAddStartTime(e.target.value)}
-                                                                        className="w-full px-1 py-0.5 text-xs border border-slate-300 rounded focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                                        className="w-full px-1 py-0.5 text-xs border border-line-strong rounded focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                                                     />
                                                                     <input
                                                                         type="time"
                                                                         value={addEndTime}
                                                                         onChange={(e) => setAddEndTime(e.target.value)}
-                                                                        className="w-full px-1 py-0.5 text-xs border border-slate-300 rounded focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                                        className="w-full px-1 py-0.5 text-xs border border-line-strong rounded focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                                                     />
                                                                 </div>
                                                                 <input
@@ -256,7 +256,7 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
                                                                     value={addRoleLabel}
                                                                     onChange={(e) => setAddRoleLabel(e.target.value)}
                                                                     placeholder="Role/Activity"
-                                                                    className="w-full px-1.5 py-0.5 text-xs border border-slate-300 rounded focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                                    className="w-full px-1.5 py-0.5 text-xs border border-line-strong rounded focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                                                     autoFocus
                                                                     onKeyDown={(e) => {
                                                                         if (e.key === 'Enter' && addRoleLabel.trim()) handleAddSchedule();
@@ -266,14 +266,14 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
                                                                 <div className="flex justify-end gap-1">
                                                                     <button
                                                                         onClick={handleCancelEditing}
-                                                                        className="p-1 text-slate-400 hover:text-slate-600"
+                                                                        className="p-1 text-faint hover:text-subtle"
                                                                     >
                                                                         <X className="w-3.5 h-3.5" />
                                                                     </button>
                                                                     <button
                                                                         onClick={handleAddSchedule}
                                                                         disabled={saving || !addRoleLabel.trim()}
-                                                                        className="p-1 text-brand-500 hover:text-brand-700 disabled:opacity-50"
+                                                                        className="p-1 text-accent-500 hover:text-accent-700 disabled:opacity-50"
                                                                     >
                                                                         {saving ? (
                                                                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -286,7 +286,7 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
                                                         ) : (
                                                             <button
                                                                 onClick={() => handleStartEditing(staff.user_id, dayIndex)}
-                                                                className="w-full flex items-center justify-center gap-1 py-1 text-xs text-slate-400 hover:text-brand-600 hover:bg-white/60 rounded transition-colors"
+                                                                className="w-full flex items-center justify-center gap-1 py-1 text-xs text-faint hover:text-accent-600 hover:bg-surface/60 rounded transition-colors"
                                                             >
                                                                 <Plus className="w-3 h-3" />
                                                             </button>
@@ -304,9 +304,9 @@ export function TeamScheduleView({ hubId, staffData, onDataChanged }: TeamSchedu
             </div>
 
             {/* Legend */}
-            <div className="flex items-center gap-4 text-xs text-slate-500">
+            <div className="flex items-center gap-4 text-xs text-muted">
                 <span>Total staff: {filteredStaff.length}</span>
-                <span className="text-slate-300">|</span>
+                <span className="text-faint">|</span>
                 <span>Click + to add a time block, hover to delete</span>
             </div>
 

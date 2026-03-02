@@ -36,12 +36,12 @@ function BigGymnastInfo({
             </div>
 
             {/* Name */}
-            <div className="font-semibold text-slate-900 text-sm mt-1">
+            <div className="font-semibold text-heading text-sm mt-1">
                 {fullName}
             </div>
 
             {/* Level */}
-            <div className="text-xs text-slate-600">
+            <div className="text-xs text-subtle">
                 {gymnast.level}
             </div>
 
@@ -84,9 +84,9 @@ function LittleGymnastChip({
         : null;
 
     return (
-        <div className="bg-pink-50 border border-pink-200 rounded-lg p-2 text-center relative group">
+        <div className="bg-pink-500/10 border border-pink-500/20 rounded-lg p-2 text-center relative group">
             {/* Name with inline delete button */}
-            <div className="font-medium text-slate-900 text-xs flex items-center justify-center gap-1">
+            <div className="font-medium text-heading text-xs flex items-center justify-center gap-1">
                 <span>{fullName}</span>
                 {onDelete && (
                     <button
@@ -96,7 +96,7 @@ function LittleGymnastChip({
                                 onDelete();
                             }
                         }}
-                        className="flex-shrink-0 p-0.5 bg-pink-200 hover:bg-pink-300 rounded-full text-pink-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="flex-shrink-0 p-0.5 bg-pink-500/15 hover:bg-pink-500/25 rounded-full text-pink-600 opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Remove"
                     >
                         <X className="h-2.5 w-2.5" />
@@ -105,7 +105,7 @@ function LittleGymnastChip({
             </div>
 
             {/* Level */}
-            <div className="text-[10px] text-slate-600">
+            <div className="text-[10px] text-subtle">
                 {gymnast.level}
             </div>
 
@@ -134,9 +134,9 @@ export function PairingCard({ groupedPairing, onDeleteLittle, onDeleteGroup }: P
 
     return (
         <div
-            className="relative rounded-lg overflow-hidden shadow-sm hover:shadow transition-shadow border border-slate-200"
+            className="relative rounded-lg overflow-hidden shadow-sm hover:shadow transition-shadow border border-line"
             style={{
-                background: 'linear-gradient(to right, rgb(243, 232, 255), rgb(255, 255, 255), rgb(252, 231, 243))'
+                background: 'linear-gradient(to right, var(--th-surface-hover), var(--th-surface), var(--th-surface-hover))'
             }}
         >
             {/* Content */}
@@ -146,7 +146,7 @@ export function PairingCard({ groupedPairing, onDeleteLittle, onDeleteGroup }: P
                     <div className="absolute top-1 right-1 z-10">
                         <button
                             onClick={() => setShowMenu(!showMenu)}
-                            className="p-1 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded transition-colors"
+                            className="p-1 text-faint hover:text-subtle hover:bg-surface/50 rounded transition-colors"
                         >
                             <MoreVertical className="h-3.5 w-3.5" />
                         </button>
@@ -157,7 +157,7 @@ export function PairingCard({ groupedPairing, onDeleteLittle, onDeleteGroup }: P
                                     className="fixed inset-0 z-10"
                                     onClick={() => setShowMenu(false)}
                                 />
-                                <div className="absolute right-0 mt-1 z-20 w-36 bg-white rounded-lg shadow-lg border border-slate-200 py-1">
+                                <div className="absolute right-0 mt-1 z-20 w-36 bg-surface rounded-lg shadow-lg border border-line py-1">
                                     <button
                                         onClick={() => {
                                             setShowMenu(false);
@@ -165,7 +165,7 @@ export function PairingCard({ groupedPairing, onDeleteLittle, onDeleteGroup }: P
                                                 onDeleteGroup(groupedPairing.big_gymnast_id);
                                             }
                                         }}
-                                        className="w-full px-2 py-1.5 text-left text-xs text-red-600 hover:bg-red-50 flex items-center gap-1.5"
+                                        className="w-full px-2 py-1.5 text-left text-xs text-red-600 hover:bg-red-500/10 flex items-center gap-1.5"
                                     >
                                         <Trash2 className="h-3 w-3" />
                                         Delete All Pairings
@@ -221,8 +221,8 @@ export function PairingCard({ groupedPairing, onDeleteLittle, onDeleteGroup }: P
 
                 {/* Notes if present */}
                 {notes && (
-                    <div className="mt-2 pt-2 border-t border-slate-200/50">
-                        <p className="text-[10px] text-slate-500 line-clamp-1 text-center">{notes}</p>
+                    <div className="mt-2 pt-2 border-t border-line/50">
+                        <p className="text-[10px] text-muted line-clamp-1 text-center">{notes}</p>
                     </div>
                 )}
             </div>

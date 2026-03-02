@@ -47,7 +47,7 @@ const EVENT_COLORS: Record<string, string> = {
     rings: '#ec4899',   // pink
     pbars: '#3b82f6',   // blue
     highbar: '#ef4444', // red
-    all_around: '#0f172a', // slate-900
+    all_around: 'var(--th-text-heading)',
 };
 
 export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts, levels, genderGymnastIds }: ScoreMetricsProps) {
@@ -260,14 +260,14 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
     const TrendIcon = ({ trend }: { trend: 'up' | 'down' | 'stable' | null }) => {
         if (trend === 'up') return <TrendingUp className="w-3.5 h-3.5 text-emerald-500" />;
         if (trend === 'down') return <TrendingDown className="w-3.5 h-3.5 text-red-500" />;
-        if (trend === 'stable') return <Minus className="w-3.5 h-3.5 text-slate-400" />;
+        if (trend === 'stable') return <Minus className="w-3.5 h-3.5 text-faint" />;
         return null;
     };
 
     if (loading) {
         return (
             <div className="flex items-center justify-center py-16">
-                <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-accent-500" />
             </div>
         );
     }
@@ -275,11 +275,11 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
     if (chartData.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center text-center py-16">
-                <div className="rounded-full bg-slate-100 p-4">
-                    <TrendingUp className="h-8 w-8 text-slate-400" />
+                <div className="rounded-full bg-surface-hover p-4">
+                    <TrendingUp className="h-8 w-8 text-faint" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">No Score Data</h3>
-                <p className="mt-2 text-sm text-slate-500">
+                <h3 className="mt-4 text-lg font-semibold text-heading">No Score Data</h3>
+                <p className="mt-2 text-sm text-muted">
                     {isParent
                         ? 'No competition scores found for this gymnast in the selected season.'
                         : 'No competition scores found for this level in the selected season.'}
@@ -297,7 +297,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                         <select
                             value={selectedGymnastId || ''}
                             onChange={(e) => setSelectedGymnastId(e.target.value)}
-                            className="block appearance-none rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                            className="block appearance-none rounded-lg border border-line-strong bg-surface py-2 pl-3 pr-8 text-sm font-medium text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                         >
                             {linkedGymnasts.map(g => (
                                 <option key={g.id} value={g.id}>
@@ -305,7 +305,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                                 </option>
                             ))}
                         </select>
-                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
                     </div>
                 )}
 
@@ -314,45 +314,46 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                         <select
                             value={selectedLevel || ''}
                             onChange={(e) => setSelectedLevel(e.target.value)}
-                            className="block appearance-none rounded-lg border border-slate-300 bg-white py-2 pl-3 pr-8 text-sm font-medium text-slate-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                            className="block appearance-none rounded-lg border border-line-strong bg-surface py-2 pl-3 pr-8 text-sm font-medium text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                         >
                             {levels.map(level => (
                                 <option key={level} value={level}>{level}</option>
                             ))}
                         </select>
-                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                        <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
                     </div>
                 )}
             </div>
 
             {/* Chart */}
             <div className="card p-6">
-                <h3 className="text-sm font-semibold text-slate-900 mb-4">
+                <h3 className="text-sm font-semibold text-heading mb-4">
                     {isParent ? 'Score History' : 'Team Score History'}
                 </h3>
                 <div className="h-72" style={{ minWidth: 0 }}>
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>
                         <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--th-border)" />
                             <XAxis
                                 dataKey="date"
-                                tick={{ fontSize: 12, fill: '#64748b' }}
+                                tick={{ fontSize: 12, fill: 'var(--th-text-muted)' }}
                                 tickLine={false}
-                                axisLine={{ stroke: '#e2e8f0' }}
+                                axisLine={{ stroke: 'var(--th-border)' }}
                             />
                             <YAxis
-                                tick={{ fontSize: 12, fill: '#64748b' }}
+                                tick={{ fontSize: 12, fill: 'var(--th-text-muted)' }}
                                 tickLine={false}
-                                axisLine={{ stroke: '#e2e8f0' }}
+                                axisLine={{ stroke: 'var(--th-border)' }}
                                 domain={['auto', 'auto']}
                             />
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: '#fff',
-                                    border: '1px solid #e2e8f0',
+                                    backgroundColor: 'var(--th-surface)',
+                                    border: '1px solid var(--th-border)',
                                     borderRadius: '8px',
                                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                                     fontSize: '13px',
+                                    color: 'var(--th-text-body)',
                                 }}
                                 labelFormatter={(_, payload) => {
                                     if (payload && payload.length > 0) {
@@ -409,14 +410,14 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                             onClick={() => toggleEvent(event)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                                 isActive
-                                    ? 'bg-white shadow-sm'
-                                    : 'bg-slate-50 text-slate-400 border-slate-200'
+                                    ? 'bg-surface shadow-sm'
+                                    : 'bg-surface-alt text-faint border-line'
                             }`}
                             style={isActive ? { borderColor: color, color } : undefined}
                         >
                             <span
                                 className="w-2.5 h-2.5 rounded-full"
-                                style={{ backgroundColor: isActive ? color : '#cbd5e1' }}
+                                style={{ backgroundColor: isActive ? color : 'var(--th-border-strong)' }}
                             />
                             {label}
                         </button>
@@ -435,15 +436,15 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                     return (
                         <div key={event} className="card p-3">
                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs font-semibold text-slate-500 uppercase">{shortLabel}</span>
+                                <span className="text-xs font-semibold text-muted uppercase">{shortLabel}</span>
                                 <TrendIcon trend={stat.trend} />
                             </div>
-                            <p className="text-lg font-bold text-slate-900" title={label}>
+                            <p className="text-lg font-bold text-heading" title={label}>
                                 {stat.latest?.toFixed(3)}
                             </p>
-                            <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
-                                <span>High: <span className="font-medium text-slate-700">{stat.high?.toFixed(3)}</span></span>
-                                <span>Avg: <span className="font-medium text-slate-700">{stat.avg?.toFixed(3)}</span></span>
+                            <div className="mt-1 flex items-center gap-3 text-xs text-muted">
+                                <span>High: <span className="font-medium text-body">{stat.high?.toFixed(3)}</span></span>
+                                <span>Avg: <span className="font-medium text-body">{stat.avg?.toFixed(3)}</span></span>
                             </div>
                         </div>
                     );

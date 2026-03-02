@@ -221,12 +221,12 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
             />
 
             {/* Modal Content */}
-            <div className="relative z-[10000] w-full max-w-2xl rounded-lg bg-white p-6 shadow-xl">
+            <div className="relative z-[10000] w-full max-w-2xl rounded-lg bg-surface p-6 shadow-xl">
                 {/* Close Button */}
                 <div className="absolute top-4 right-4">
                     <button
                         type="button"
-                        className="rounded-md text-slate-400 hover:text-slate-500"
+                        className="rounded-md text-faint hover:text-muted"
                         onClick={onClose}
                     >
                         <span className="sr-only">Close</span>
@@ -235,7 +235,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-semibold text-slate-900 pr-8" id="modal-title">
+                <h3 className="text-lg font-semibold text-heading pr-8" id="modal-title">
                     Assign Gymnasts to Session
                 </h3>
 
@@ -251,20 +251,20 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                     )}
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-700">
+                        <label className="block text-sm font-medium text-body">
                             Select Gymnasts from Competition Roster
                         </label>
-                        <div className="mt-1.5 max-h-[400px] overflow-y-auto rounded-md border border-slate-300">
+                        <div className="mt-1.5 max-h-[400px] overflow-y-auto rounded-md border border-line-strong">
                             {roster.length > 0 ? (
-                                <div className="divide-y divide-slate-200">
+                                <div className="divide-y divide-line">
                                     {Object.entries(rosterByLevel).map(([level, gymnasts]) => (
                                         <div key={level}>
                                             {/* Level Header */}
-                                            <div className="flex items-center bg-slate-50">
+                                            <div className="flex items-center bg-surface-alt">
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleLevelCollapse(level)}
-                                                    className="flex items-center gap-1 px-3 py-2 text-slate-500 hover:text-slate-700"
+                                                    className="flex items-center gap-1 px-3 py-2 text-muted hover:text-body"
                                                 >
                                                     {collapsedLevels.has(level) ? (
                                                         <ChevronRight className="h-4 w-4" />
@@ -275,46 +275,46 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                                                 <button
                                                     type="button"
                                                     onClick={() => toggleLevel(level)}
-                                                    className="flex flex-1 items-center justify-between py-2 pr-3 text-left hover:bg-slate-100"
+                                                    className="flex flex-1 items-center justify-between py-2 pr-3 text-left hover:bg-surface-hover"
                                                 >
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-sm font-semibold text-slate-900">{level}</span>
-                                                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-600">
+                                                        <span className="text-sm font-semibold text-heading">{level}</span>
+                                                        <span className="rounded-full bg-surface-active px-2 py-0.5 text-xs font-medium text-subtle">
                                                             {gymnasts.length}
                                                         </span>
                                                     </div>
                                                     <div className={`flex h-4 w-4 items-center justify-center rounded border ${
                                                         isLevelFullySelected(level)
-                                                            ? 'border-brand-600 bg-brand-600'
+                                                            ? 'border-accent-600 bg-accent-600'
                                                             : isLevelPartiallySelected(level)
-                                                                ? 'border-brand-600 bg-brand-100'
-                                                                : 'border-slate-300'
+                                                                ? 'border-accent-600 bg-accent-100'
+                                                                : 'border-line-strong'
                                                     }`}>
                                                         {isLevelFullySelected(level) && (
                                                             <Check className="h-3 w-3 text-white" />
                                                         )}
                                                         {isLevelPartiallySelected(level) && (
-                                                            <div className="h-2 w-2 rounded-sm bg-brand-600" />
+                                                            <div className="h-2 w-2 rounded-sm bg-accent-600" />
                                                         )}
                                                     </div>
                                                 </button>
                                             </div>
                                             {/* Gymnasts List */}
                                             {!collapsedLevels.has(level) && (
-                                                <div className="divide-y divide-slate-100">
+                                                <div className="divide-y divide-line">
                                                     {gymnasts.map((gymnast) => (
                                                         <div
                                                             key={gymnast.gymnast_profile_id}
-                                                            className={`flex cursor-pointer items-center justify-between px-3 py-2 pl-10 hover:bg-slate-50 ${
-                                                                selectedGymnasts.includes(gymnast.gymnast_profile_id) ? 'bg-brand-50' : ''
+                                                            className={`flex cursor-pointer items-center justify-between px-3 py-2 pl-10 hover:bg-surface-hover ${
+                                                                selectedGymnasts.includes(gymnast.gymnast_profile_id) ? 'bg-accent-50' : ''
                                                             }`}
                                                             onClick={() => toggleGymnast(gymnast.gymnast_profile_id)}
                                                         >
-                                                            <span className="text-sm text-slate-900">
+                                                            <span className="text-sm text-heading">
                                                                 {gymnast.gymnast_profiles.first_name} {gymnast.gymnast_profiles.last_name}
                                                             </span>
                                                             {selectedGymnasts.includes(gymnast.gymnast_profile_id) && (
-                                                                <Check className="h-4 w-4 text-brand-600" />
+                                                                <Check className="h-4 w-4 text-accent-600" />
                                                             )}
                                                         </div>
                                                     ))}
@@ -324,17 +324,17 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                                     ))}
                                 </div>
                             ) : (
-                                <p className="px-3 py-4 text-sm text-slate-500 text-center">
+                                <p className="px-3 py-4 text-sm text-muted text-center">
                                     {roster.length === 0
                                         ? 'No gymnasts in competition roster.'
                                         : 'All gymnasts are already assigned to other sessions.'}
                                 </p>
                             )}
                         </div>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-muted">
                             {selectedGymnasts.length} selected
                             {assignedToOtherSessions.size > 0 && (
-                                <span className="ml-2 text-slate-400">
+                                <span className="ml-2 text-faint">
                                     ({assignedToOtherSessions.size} already in other sessions)
                                 </span>
                             )}
@@ -345,7 +345,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                     <div className="flex justify-end gap-3 pt-2">
                         <button
                             type="button"
-                            className="rounded-md px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                            className="rounded-md px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                             onClick={onClose}
                         >
                             Cancel
@@ -353,7 +353,7 @@ export function AssignSessionGymnastsModal({ isOpen, onClose, onGymnastsAssigned
                         <button
                             type="submit"
                             disabled={loading}
-                            className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50"
+                            className="inline-flex items-center rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 disabled:opacity-50"
                         >
                             {loading ? (
                                 <>

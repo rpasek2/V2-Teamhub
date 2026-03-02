@@ -104,7 +104,7 @@ export function MyBookingsTab() {
     if (loading) {
         return (
             <div className="flex items-center justify-center py-12">
-                <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
             </div>
         );
     }
@@ -119,8 +119,8 @@ export function MyBookingsTab() {
                         onClick={() => setFilter(f)}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                             filter === f
-                                ? 'bg-brand-100 text-brand-700'
-                                : 'text-slate-600 hover:bg-slate-100'
+                                ? 'bg-accent-500/10 text-accent-600'
+                                : 'text-subtle hover:bg-surface-hover'
                         }`}
                     >
                         {f.charAt(0).toUpperCase() + f.slice(1)}
@@ -131,11 +131,11 @@ export function MyBookingsTab() {
             {/* Bookings List */}
             {bookings.length === 0 ? (
                 <div className="card p-8 text-center">
-                    <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                        <Search className="w-6 h-6 text-slate-400" />
+                    <div className="w-12 h-12 rounded-full bg-surface-hover flex items-center justify-center mx-auto mb-3">
+                        <Search className="w-6 h-6 text-faint" />
                     </div>
-                    <h3 className="font-medium text-slate-900 mb-1">No bookings found</h3>
-                    <p className="text-sm text-slate-500">
+                    <h3 className="font-medium text-heading mb-1">No bookings found</h3>
+                    <p className="text-sm text-muted">
                         {filter === 'upcoming'
                             ? 'You have no upcoming lessons scheduled.'
                             : filter === 'past'
@@ -177,21 +177,21 @@ export function MyBookingsTab() {
                                     {/* Details */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 mb-1">
-                                            <p className="font-medium text-slate-900 truncate">
+                                            <p className="font-medium text-heading truncate">
                                                 {coach.full_name}
                                             </p>
                                             {isCancelled && (
-                                                <span className="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded">
+                                                <span className="px-1.5 py-0.5 bg-red-500/10 text-red-600 text-xs rounded">
                                                     Cancelled
                                                 </span>
                                             )}
                                             {isPast && !isCancelled && (
-                                                <span className="px-1.5 py-0.5 bg-slate-100 text-slate-600 text-xs rounded">
+                                                <span className="px-1.5 py-0.5 bg-surface-hover text-subtle text-xs rounded">
                                                     Completed
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-3 text-sm text-slate-500">
+                                        <div className="flex items-center gap-3 text-sm text-muted">
                                             <span className="flex items-center gap-1">
                                                 <User className="w-3.5 h-3.5" />
                                                 {gymnast.first_name}
@@ -205,12 +205,12 @@ export function MyBookingsTab() {
                                                 {formatTime(slot.start_time)}
                                             </span>
                                         </div>
-                                        <span className="inline-block mt-1.5 px-2 py-0.5 bg-brand-50 text-brand-700 text-xs rounded-full">
+                                        <span className="inline-block mt-1.5 px-2 py-0.5 bg-accent-500/10 text-accent-600 text-xs rounded-full">
                                             {EVENT_LABELS[booking.event] || booking.event}
                                         </span>
                                     </div>
 
-                                    <ChevronRight className="w-5 h-5 text-slate-400" />
+                                    <ChevronRight className="w-5 h-5 text-faint" />
                                 </div>
                             </button>
                         );

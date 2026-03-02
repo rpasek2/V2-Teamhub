@@ -17,12 +17,12 @@ export function ToggleSwitch({
     checked,
     onChange,
     icon: Icon,
-    iconBgColor = 'bg-slate-100',
-    iconColor = 'text-slate-600',
+    iconBgColor = 'bg-surface-hover',
+    iconColor = 'text-subtle',
     disabled = false,
 }: ToggleSwitchProps) {
     return (
-        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg border border-slate-200">
+        <div className="flex items-center justify-between p-4 bg-surface-alt rounded-lg border border-line">
             <div className="flex items-center gap-3">
                 {Icon && (
                     <div className={`p-2 ${iconBgColor} rounded-lg`}>
@@ -30,9 +30,9 @@ export function ToggleSwitch({
                     </div>
                 )}
                 <div>
-                    <p className="text-sm font-medium text-slate-900">{label}</p>
+                    <p className="text-sm font-medium text-heading">{label}</p>
                     {description && (
-                        <p className="text-xs text-slate-500">{description}</p>
+                        <p className="text-xs text-muted">{description}</p>
                     )}
                 </div>
             </div>
@@ -42,12 +42,12 @@ export function ToggleSwitch({
                 aria-checked={checked}
                 onClick={onChange}
                 disabled={disabled}
-                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                    checked ? 'bg-brand-600' : 'bg-slate-200'
+                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                    checked ? 'bg-accent-600' : 'bg-surface-active'
                 }`}
             >
                 <span
-                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                         checked ? 'translate-x-5' : 'translate-x-0'
                     }`}
                 />

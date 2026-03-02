@@ -224,7 +224,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
 
                 {/* Title */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Title *</label>
+                    <label className="block text-sm font-medium text-body mb-1">Title *</label>
                     <input
                         type="text"
                         value={title}
@@ -236,7 +236,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
 
                 {/* Body */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Message</label>
+                    <label className="block text-sm font-medium text-body mb-1">Message</label>
                     <textarea
                         value={body}
                         onChange={e => setBody(e.target.value)}
@@ -248,15 +248,15 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
 
                 {/* Type Toggle */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Type</label>
-                    <div className="flex bg-slate-100 rounded-lg p-1 w-fit">
+                    <label className="block text-sm font-medium text-body mb-2">Type</label>
+                    <div className="flex bg-surface-hover rounded-lg p-1 w-fit">
                         <button
                             type="button"
                             onClick={() => setType('announcement')}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                                 type === 'announcement'
-                                    ? 'bg-white text-slate-900 shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-surface text-heading shadow-sm'
+                                    : 'text-subtle hover:text-heading'
                             }`}
                         >
                             Announcement
@@ -266,8 +266,8 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                             onClick={() => setType('questionnaire')}
                             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
                                 type === 'questionnaire'
-                                    ? 'bg-white text-slate-900 shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900'
+                                    ? 'bg-surface text-heading shadow-sm'
+                                    : 'text-subtle hover:text-heading'
                             }`}
                         >
                             Questionnaire
@@ -277,7 +277,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
 
                 {/* Targeting */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Target Audience</label>
+                    <label className="block text-sm font-medium text-body mb-2">Target Audience</label>
                     <div className="space-y-3">
                         <div className="flex gap-4">
                             {(['all', 'roles', 'members'] as TargetMode[]).map(mode => (
@@ -287,9 +287,9 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                         name="targetMode"
                                         checked={targetMode === mode}
                                         onChange={() => setTargetMode(mode)}
-                                        className="text-brand-600 focus:ring-brand-500"
+                                        className="text-accent-600 focus:ring-accent-500"
                                     />
-                                    <span className="text-sm text-slate-700">
+                                    <span className="text-sm text-body">
                                         {mode === 'all' ? 'All Members' : mode === 'roles' ? 'By Role' : 'Specific Members'}
                                     </span>
                                 </label>
@@ -307,8 +307,8 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                             onClick={() => toggleRole(role.value)}
                                             className={`px-3 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                                                 selectedRoles.includes(role.value)
-                                                    ? 'bg-brand-50 border-brand-300 text-brand-700'
-                                                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                                                    ? 'bg-accent-50 border-accent-300 text-accent-700'
+                                                    : 'bg-surface border-line text-subtle hover:border-line-strong'
                                             }`}
                                         >
                                             {role.label}
@@ -319,7 +319,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                 {/* Level filter (only shown when roles selected) */}
                                 {levels.length > 0 && (
                                     <div>
-                                        <p className="text-xs text-slate-500 mb-1.5">Filter by level (optional)</p>
+                                        <p className="text-xs text-muted mb-1.5">Filter by level (optional)</p>
                                         <div className="flex flex-wrap gap-2">
                                             {levels.map(level => (
                                                 <button
@@ -329,7 +329,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                                     className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                                                         selectedLevels.includes(level)
                                                             ? 'bg-indigo-50 border-indigo-300 text-indigo-700'
-                                                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
+                                                            : 'bg-surface border-line text-subtle hover:border-line-strong'
                                                     }`}
                                                 >
                                                     {level}
@@ -351,35 +351,35 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                     className="input w-full text-sm"
                                     placeholder="Search members..."
                                 />
-                                <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                <div className="max-h-48 overflow-y-auto border border-line rounded-lg divide-y divide-line">
                                     {loadingMembers ? (
                                         <div className="flex items-center justify-center py-4">
-                                            <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                                            <Loader2 className="w-5 h-5 animate-spin text-faint" />
                                         </div>
                                     ) : filteredMembers.length === 0 ? (
-                                        <p className="text-sm text-slate-500 text-center py-4">No members found</p>
+                                        <p className="text-sm text-muted text-center py-4">No members found</p>
                                     ) : (
                                         filteredMembers.map(m => (
                                             <label
                                                 key={m.id}
-                                                className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-slate-50"
+                                                className="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-surface-hover"
                                             >
                                                 <input
                                                     type="checkbox"
                                                     checked={selectedMemberIds.includes(m.id)}
                                                     onChange={() => toggleMember(m.id)}
-                                                    className="text-brand-600 focus:ring-brand-500 rounded"
+                                                    className="text-accent-600 focus:ring-accent-500 rounded"
                                                 />
                                                 <div className="min-w-0">
-                                                    <p className="text-sm font-medium text-slate-900 truncate">{m.full_name}</p>
-                                                    <p className="text-xs text-slate-500 truncate">{m.email} &middot; {m.role}</p>
+                                                    <p className="text-sm font-medium text-heading truncate">{m.full_name}</p>
+                                                    <p className="text-xs text-muted truncate">{m.email} &middot; {m.role}</p>
                                                 </div>
                                             </label>
                                         ))
                                     )}
                                 </div>
                                 {selectedMemberIds.length > 0 && (
-                                    <p className="text-xs text-slate-500">{selectedMemberIds.length} member{selectedMemberIds.length !== 1 ? 's' : ''} selected</p>
+                                    <p className="text-xs text-muted">{selectedMemberIds.length} member{selectedMemberIds.length !== 1 ? 's' : ''} selected</p>
                                 )}
                             </div>
                         )}
@@ -389,11 +389,11 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                 {/* Links */}
                 <div>
                     <div className="flex items-center justify-between mb-2">
-                        <label className="text-sm font-medium text-slate-700">Links</label>
+                        <label className="text-sm font-medium text-body">Links</label>
                         <button
                             type="button"
                             onClick={addLink}
-                            className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 font-medium"
+                            className="flex items-center gap-1 text-xs text-accent-600 hover:text-accent-700 font-medium"
                         >
                             <Plus className="w-3.5 h-3.5" />
                             Add Link
@@ -403,7 +403,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                         <div className="space-y-2">
                             {links.map((link, idx) => (
                                 <div key={idx} className="flex items-center gap-2">
-                                    <LinkIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                                    <LinkIcon className="w-4 h-4 text-faint flex-shrink-0" />
                                     <input
                                         type="text"
                                         value={link.label}
@@ -421,7 +421,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                     <button
                                         type="button"
                                         onClick={() => removeLink(idx)}
-                                        className="p-1.5 text-slate-400 hover:text-error-600 rounded"
+                                        className="p-1.5 text-faint hover:text-error-600 rounded"
                                     >
                                         <Trash2 className="w-4 h-4" />
                                     </button>
@@ -435,11 +435,11 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                 {type === 'questionnaire' && (
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="text-sm font-medium text-slate-700">Questions</label>
+                            <label className="text-sm font-medium text-body">Questions</label>
                             <button
                                 type="button"
                                 onClick={addQuestion}
-                                className="flex items-center gap-1 text-xs text-brand-600 hover:text-brand-700 font-medium"
+                                className="flex items-center gap-1 text-xs text-accent-600 hover:text-accent-700 font-medium"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                                 Add Question
@@ -447,9 +447,9 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                         </div>
                         <div className="space-y-4">
                             {questions.map((q, qIdx) => (
-                                <div key={q.id} className="p-3 border border-slate-200 rounded-lg space-y-3">
+                                <div key={q.id} className="p-3 border border-line rounded-lg space-y-3">
                                     <div className="flex items-start gap-2">
-                                        <span className="text-xs font-medium text-slate-500 mt-2">{qIdx + 1}.</span>
+                                        <span className="text-xs font-medium text-muted mt-2">{qIdx + 1}.</span>
                                         <input
                                             type="text"
                                             value={q.question}
@@ -460,21 +460,21 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                         <button
                                             type="button"
                                             onClick={() => removeQuestion(qIdx)}
-                                            className="p-1.5 text-slate-400 hover:text-error-600 rounded"
+                                            className="p-1.5 text-faint hover:text-error-600 rounded"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
                                     </div>
 
                                     <div className="flex items-center gap-4 pl-5">
-                                        <div className="flex bg-slate-100 rounded-md p-0.5">
+                                        <div className="flex bg-surface-hover rounded-md p-0.5">
                                             <button
                                                 type="button"
                                                 onClick={() => updateQuestion(qIdx, { type: 'multiple_choice', options: q.options || ['', ''] })}
                                                 className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
                                                     q.type === 'multiple_choice'
-                                                        ? 'bg-white text-slate-900 shadow-sm'
-                                                        : 'text-slate-500'
+                                                        ? 'bg-surface text-heading shadow-sm'
+                                                        : 'text-muted'
                                                 }`}
                                             >
                                                 Multiple Choice
@@ -484,19 +484,19 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                                 onClick={() => updateQuestion(qIdx, { type: 'free_text', options: undefined })}
                                                 className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
                                                     q.type === 'free_text'
-                                                        ? 'bg-white text-slate-900 shadow-sm'
-                                                        : 'text-slate-500'
+                                                        ? 'bg-surface text-heading shadow-sm'
+                                                        : 'text-muted'
                                                 }`}
                                             >
                                                 Free Text
                                             </button>
                                         </div>
-                                        <label className="flex items-center gap-1.5 text-xs text-slate-600 cursor-pointer">
+                                        <label className="flex items-center gap-1.5 text-xs text-subtle cursor-pointer">
                                             <input
                                                 type="checkbox"
                                                 checked={q.required}
                                                 onChange={e => updateQuestion(qIdx, { required: e.target.checked })}
-                                                className="text-brand-600 focus:ring-brand-500 rounded"
+                                                className="text-accent-600 focus:ring-accent-500 rounded"
                                             />
                                             Required
                                         </label>
@@ -507,7 +507,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                         <div className="pl-5 space-y-1.5">
                                             {(q.options || []).map((opt, oIdx) => (
                                                 <div key={oIdx} className="flex items-center gap-2">
-                                                    <div className="w-3 h-3 rounded-full border-2 border-slate-300 flex-shrink-0" />
+                                                    <div className="w-3 h-3 rounded-full border-2 border-line-strong flex-shrink-0" />
                                                     <input
                                                         type="text"
                                                         value={opt}
@@ -519,7 +519,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                                         <button
                                                             type="button"
                                                             onClick={() => removeOption(qIdx, oIdx)}
-                                                            className="p-1 text-slate-400 hover:text-error-600"
+                                                            className="p-1 text-faint hover:text-error-600"
                                                         >
                                                             <Trash2 className="w-3.5 h-3.5" />
                                                         </button>
@@ -529,7 +529,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                             <button
                                                 type="button"
                                                 onClick={() => addOptionToQuestion(qIdx)}
-                                                className="text-xs text-brand-600 hover:text-brand-700 font-medium pl-5"
+                                                className="text-xs text-accent-600 hover:text-accent-700 font-medium pl-5"
                                             >
                                                 + Add Option
                                             </button>
@@ -538,7 +538,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                                 </div>
                             ))}
                             {questions.length === 0 && (
-                                <p className="text-sm text-slate-500 text-center py-4">
+                                <p className="text-sm text-muted text-center py-4">
                                     No questions yet. Click "Add Question" to get started.
                                 </p>
                             )}
@@ -548,7 +548,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
 
                 {/* Expiration */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">Expires (optional)</label>
+                    <label className="block text-sm font-medium text-body mb-1">Expires (optional)</label>
                     <input
                         type="datetime-local"
                         value={expiresAt}
@@ -558,7 +558,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                 </div>
 
                 {/* Actions */}
-                <div className="flex justify-end gap-3 pt-2 border-t border-slate-200">
+                <div className="flex justify-end gap-3 pt-2 border-t border-line">
                     <button
                         type="button"
                         onClick={handleClose}

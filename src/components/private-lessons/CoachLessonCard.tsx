@@ -59,27 +59,27 @@ export function CoachLessonCard({ profile, packages = [], onViewCalendar }: Coac
                     </div>
                 )}
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-900 truncate">{coachName}</h3>
+                    <h3 className="font-semibold text-heading truncate">{coachName}</h3>
                     {profile.bio && (
-                        <p className="text-sm text-slate-500 line-clamp-2 mt-1">{profile.bio}</p>
+                        <p className="text-sm text-muted line-clamp-2 mt-1">{profile.bio}</p>
                     )}
                 </div>
             </div>
 
             {/* Events */}
             <div className="mb-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Events</p>
+                <p className="text-xs font-semibold text-muted uppercase mb-2">Events</p>
                 <div className="flex flex-wrap gap-1.5">
                     {profile.events.slice(0, 4).map(evt => (
                         <span
                             key={evt}
-                            className="px-2 py-0.5 bg-brand-50 text-brand-700 text-xs rounded-full"
+                            className="px-2 py-0.5 bg-accent-500/10 text-accent-600 text-xs rounded-full"
                         >
                             {EVENT_LABELS[evt] || evt}
                         </span>
                     ))}
                     {profile.events.length > 4 && (
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-full">
+                        <span className="px-2 py-0.5 bg-surface-hover text-muted text-xs rounded-full">
                             +{profile.events.length - 4}
                         </span>
                     )}
@@ -88,18 +88,18 @@ export function CoachLessonCard({ profile, packages = [], onViewCalendar }: Coac
 
             {/* Levels */}
             <div className="mb-4">
-                <p className="text-xs font-semibold text-slate-500 uppercase mb-2">Levels</p>
+                <p className="text-xs font-semibold text-muted uppercase mb-2">Levels</p>
                 <div className="flex flex-wrap gap-1.5">
                     {profile.levels.slice(0, 4).map(level => (
                         <span
                             key={level}
-                            className="px-2 py-0.5 bg-indigo-50 text-indigo-700 text-xs rounded-full"
+                            className="px-2 py-0.5 bg-indigo-500/10 text-indigo-600 text-xs rounded-full"
                         >
                             {level}
                         </span>
                     ))}
                     {profile.levels.length > 4 && (
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-500 text-xs rounded-full">
+                        <span className="px-2 py-0.5 bg-surface-hover text-muted text-xs rounded-full">
                             +{profile.levels.length - 4}
                         </span>
                     )}
@@ -109,7 +109,7 @@ export function CoachLessonCard({ profile, packages = [], onViewCalendar }: Coac
             {/* Packages or Legacy Pricing */}
             {activePackages.length > 0 ? (
                 <div className="mb-4">
-                    <p className="text-xs font-semibold text-slate-500 uppercase mb-2 flex items-center gap-1">
+                    <p className="text-xs font-semibold text-muted uppercase mb-2 flex items-center gap-1">
                         <Package className="w-3 h-3" />
                         Lesson Options
                     </p>
@@ -117,13 +117,13 @@ export function CoachLessonCard({ profile, packages = [], onViewCalendar }: Coac
                         {activePackages.slice(0, 3).map(pkg => (
                             <div
                                 key={pkg.id}
-                                className="flex items-center justify-between py-2 px-3 bg-slate-50 rounded-lg"
+                                className="flex items-center justify-between py-2 px-3 bg-surface-alt rounded-lg"
                             >
                                 <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-slate-900 truncate">
+                                    <p className="text-sm font-medium text-heading truncate">
                                         {pkg.name}
                                     </p>
-                                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                                    <div className="flex items-center gap-2 text-xs text-muted">
                                         <span className="flex items-center gap-0.5">
                                             <Clock className="w-3 h-3" />
                                             {formatDuration(pkg.duration_minutes)}
@@ -134,46 +134,46 @@ export function CoachLessonCard({ profile, packages = [], onViewCalendar }: Coac
                                         </span>
                                     </div>
                                 </div>
-                                <p className="text-sm font-bold text-brand-600 ml-2">
+                                <p className="text-sm font-bold text-accent-600 ml-2">
                                     {formatCost(pkg.price)}
                                 </p>
                             </div>
                         ))}
                         {activePackages.length > 3 && (
-                            <p className="text-xs text-slate-500 text-center">
+                            <p className="text-xs text-muted text-center">
                                 +{activePackages.length - 3} more option{activePackages.length - 3 > 1 ? 's' : ''}
                             </p>
                         )}
                     </div>
                 </div>
             ) : (
-                <div className="grid grid-cols-3 gap-2 py-3 border-t border-b border-slate-100 mb-4">
+                <div className="grid grid-cols-3 gap-2 py-3 border-t border-b border-line mb-4">
                     <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                        <div className="flex items-center justify-center gap-1 text-faint mb-0.5">
                             <DollarSign className="w-3.5 h-3.5" />
                         </div>
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-heading">
                             {formatCost(profile.cost_per_lesson)}
                         </p>
-                        <p className="text-xs text-slate-500">per lesson</p>
+                        <p className="text-xs text-muted">per lesson</p>
                     </div>
-                    <div className="text-center border-x border-slate-100">
-                        <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                    <div className="text-center border-x border-line">
+                        <div className="flex items-center justify-center gap-1 text-faint mb-0.5">
                             <Clock className="w-3.5 h-3.5" />
                         </div>
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-heading">
                             {formatDuration(profile.lesson_duration_minutes)}
                         </p>
-                        <p className="text-xs text-slate-500">duration</p>
+                        <p className="text-xs text-muted">duration</p>
                     </div>
                     <div className="text-center">
-                        <div className="flex items-center justify-center gap-1 text-slate-400 mb-0.5">
+                        <div className="flex items-center justify-center gap-1 text-faint mb-0.5">
                             <Users className="w-3.5 h-3.5" />
                         </div>
-                        <p className="text-sm font-semibold text-slate-900">
+                        <p className="text-sm font-semibold text-heading">
                             {profile.max_gymnasts_per_slot}
                         </p>
-                        <p className="text-xs text-slate-500">max</p>
+                        <p className="text-xs text-muted">max</p>
                     </div>
                 </div>
             )}

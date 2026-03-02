@@ -18,7 +18,7 @@ const EVENT_TYPES = [
     { value: 'social', label: 'Social', icon: '🎉', color: 'bg-green-100 border-green-300 text-green-700' },
     { value: 'private_lesson', label: 'Private', icon: '👤', color: 'bg-violet-100 border-violet-300 text-violet-700' },
     { value: 'fundraiser', label: 'Fundraise', icon: '💰', color: 'bg-orange-100 border-orange-300 text-orange-700' },
-    { value: 'other', label: 'Other', icon: '📌', color: 'bg-slate-100 border-slate-300 text-slate-700' },
+    { value: 'other', label: 'Other', icon: '📌', color: 'bg-surface-hover border-line-strong text-body' },
 ] as const;
 
 // Types that are automatically considered "save the date" events
@@ -241,7 +241,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
         if (eventType) {
             return eventType.color.replace('border-', '').split(' ').filter(c => c.startsWith('bg-') || c.startsWith('text-')).join(' ');
         }
-        return 'bg-slate-100 text-slate-700';
+        return 'bg-surface-hover text-body';
     };
 
     const selectedType = EVENT_TYPES.find(t => t.value === editForm.type);
@@ -272,9 +272,9 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                            <Dialog.Panel className="relative transform overflow-hidden rounded-2xl bg-surface text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
                                 {/* Header */}
-                                <div className={`flex items-center justify-between px-6 py-4 ${isEditing ? (selectedType?.color.split(' ')[0] || 'bg-slate-100') : 'border-b border-slate-100'}`}>
+                                <div className={`flex items-center justify-between px-6 py-4 ${isEditing ? (selectedType?.color.split(' ')[0] || 'bg-surface-hover') : 'border-b border-line'}`}>
                                     <div className="flex items-center gap-3">
                                         {!isEditing && (
                                             <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium capitalize ${getEventTypeColor(event.type)}`}>
@@ -284,7 +284,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                         {isEditing && (
                                             <div className="flex items-center gap-3">
                                                 <span className="text-2xl">{selectedType?.icon}</span>
-                                                <span className="text-lg font-semibold text-slate-900">Edit Event</span>
+                                                <span className="text-lg font-semibold text-heading">Edit Event</span>
                                             </div>
                                         )}
                                     </div>
@@ -293,7 +293,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                             <>
                                                 <button
                                                     onClick={() => setIsEditing(true)}
-                                                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                                    className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                                                     title="Edit event"
                                                 >
                                                     <Pencil className="h-4 w-4" />
@@ -301,7 +301,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                 <button
                                                     onClick={handleDelete}
                                                     disabled={deleting}
-                                                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    className="p-2 text-faint hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                     title="Delete event"
                                                 >
                                                     {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
@@ -310,7 +310,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                         )}
                                         <button
                                             onClick={onClose}
-                                            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                            className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                                         >
                                             <X className="h-5 w-5" />
                                         </button>
@@ -323,7 +323,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                         <div className="space-y-5">
                                             {/* Event Type Selection */}
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <label className="block text-sm font-medium text-body mb-2">
                                                     Event Type
                                                 </label>
                                                 <div className="grid grid-cols-5 gap-1.5">
@@ -339,7 +339,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                             className={`flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg border-2 transition-all aspect-square ${
                                                                 editForm.type === type.value
                                                                     ? type.color + ' border-current shadow-sm'
-                                                                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                                                    : 'bg-surface border-line text-subtle hover:border-line-strong hover:bg-surface-hover'
                                                             }`}
                                                         >
                                                             <span className="text-lg leading-none">{type.icon}</span>
@@ -371,7 +371,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
 
                                             {/* Event Title */}
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <label className="block text-sm font-medium text-body mb-2">
                                                     Event Title
                                                 </label>
                                                 <input
@@ -380,14 +380,14 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                     maxLength={MAX_TITLE_LENGTH}
                                                     value={editForm.title}
                                                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                                                    className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm"
+                                                    className="block w-full rounded-lg border-0 py-2.5 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm"
                                                     placeholder="e.g., Team Practice, Parents Meeting..."
                                                 />
                                             </div>
 
                                             {/* Date & Time Section */}
-                                            <div className="bg-slate-50 rounded-xl p-4 space-y-4">
-                                                <div className="flex items-center gap-2 text-slate-700">
+                                            <div className="bg-surface-alt rounded-xl p-4 space-y-4">
+                                                <div className="flex items-center gap-2 text-body">
                                                     <CalendarIcon className="h-4 w-4" />
                                                     <span className="text-sm font-medium">Date & Time</span>
                                                 </div>
@@ -395,7 +395,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                 {/* Start */}
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div>
-                                                        <label className="block text-xs font-medium text-slate-500 mb-1">
+                                                        <label className="block text-xs font-medium text-muted mb-1">
                                                             Start Date
                                                         </label>
                                                         <input
@@ -403,11 +403,11 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                             required
                                                             value={editForm.startDate}
                                                             onChange={(e) => setEditForm({ ...editForm, startDate: e.target.value })}
-                                                            className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                                            className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-slate-500 mb-1">
+                                                        <label className="block text-xs font-medium text-muted mb-1">
                                                             Start Time
                                                         </label>
                                                         <input
@@ -415,7 +415,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                             required
                                                             value={editForm.startTime}
                                                             onChange={(e) => setEditForm({ ...editForm, startTime: e.target.value })}
-                                                            className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                                            className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                                         />
                                                     </div>
                                                 </div>
@@ -423,7 +423,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                 {/* End */}
                                                 <div className="grid grid-cols-2 gap-3">
                                                     <div>
-                                                        <label className="block text-xs font-medium text-slate-500 mb-1">
+                                                        <label className="block text-xs font-medium text-muted mb-1">
                                                             End Date
                                                         </label>
                                                         <input
@@ -431,11 +431,11 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                             required
                                                             value={editForm.endDate}
                                                             onChange={(e) => setEditForm({ ...editForm, endDate: e.target.value })}
-                                                            className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                                            className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                                         />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-xs font-medium text-slate-500 mb-1">
+                                                        <label className="block text-xs font-medium text-muted mb-1">
                                                             End Time
                                                         </label>
                                                         <input
@@ -443,7 +443,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                             required
                                                             value={editForm.endTime}
                                                             onChange={(e) => setEditForm({ ...editForm, endTime: e.target.value })}
-                                                            className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                                            className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                                         />
                                                     </div>
                                                 </div>
@@ -451,9 +451,9 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
 
                                             {/* Location */}
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <label className="block text-sm font-medium text-body mb-2">
                                                     <span className="flex items-center gap-2">
-                                                        <MapPin className="h-4 w-4 text-slate-400" />
+                                                        <MapPin className="h-4 w-4 text-faint" />
                                                         Location
                                                     </span>
                                                 </label>
@@ -462,18 +462,18 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                     maxLength={MAX_LOCATION_LENGTH}
                                                     value={editForm.location}
                                                     onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
-                                                    className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm"
+                                                    className="block w-full rounded-lg border-0 py-2.5 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm"
                                                     placeholder="e.g., Main Gym, Conference Room..."
                                                 />
                                             </div>
 
                                             {/* Description */}
                                             <div>
-                                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                                <label className="block text-sm font-medium text-body mb-2">
                                                     <span className="flex items-center gap-2">
-                                                        <AlignLeft className="h-4 w-4 text-slate-400" />
+                                                        <AlignLeft className="h-4 w-4 text-faint" />
                                                         Description
-                                                        <span className="text-slate-400 font-normal">(optional)</span>
+                                                        <span className="text-faint font-normal">(optional)</span>
                                                     </span>
                                                 </label>
                                                 <textarea
@@ -481,20 +481,20 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                     maxLength={MAX_DESCRIPTION_LENGTH}
                                                     value={editForm.description}
                                                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                                                    className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm resize-none"
+                                                    className="block w-full rounded-lg border-0 py-2.5 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm resize-none"
                                                     placeholder="Add any additional details about the event..."
                                                 />
                                             </div>
 
                                             {/* RSVP Toggle */}
-                                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                            <div className="flex items-center justify-between p-4 bg-surface-alt rounded-xl">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-white rounded-lg shadow-sm">
-                                                        <Users className="h-5 w-5 text-slate-600" />
+                                                    <div className="p-2 bg-surface rounded-lg shadow-sm">
+                                                        <Users className="h-5 w-5 text-subtle" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-medium text-slate-900">Enable RSVPs</p>
-                                                        <p className="text-xs text-slate-500">Allow members to respond to this event</p>
+                                                        <p className="text-sm font-medium text-heading">Enable RSVPs</p>
+                                                        <p className="text-xs text-muted">Allow members to respond to this event</p>
                                                     </div>
                                                 </div>
                                                 <button
@@ -502,12 +502,12 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                     role="switch"
                                                     aria-checked={editForm.rsvpEnabled}
                                                     onClick={() => setEditForm({ ...editForm, rsvpEnabled: !editForm.rsvpEnabled })}
-                                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                                        editForm.rsvpEnabled ? 'bg-brand-600' : 'bg-slate-200'
+                                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 ${
+                                                        editForm.rsvpEnabled ? 'bg-accent-600' : 'bg-surface-active'
                                                     }`}
                                                 >
                                                     <span
-                                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                                             editForm.rsvpEnabled ? 'translate-x-5' : 'translate-x-0'
                                                         }`}
                                                     />
@@ -515,14 +515,14 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                             </div>
 
                                             {/* Save the Date Toggle */}
-                                            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                                            <div className="flex items-center justify-between p-4 bg-surface-alt rounded-xl">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                                                    <div className="p-2 bg-surface rounded-lg shadow-sm">
                                                         <Star className="h-5 w-5 text-amber-500" />
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-medium text-slate-900">Save the Date</p>
-                                                        <p className="text-xs text-slate-500">Include in season's important events list</p>
+                                                        <p className="text-sm font-medium text-heading">Save the Date</p>
+                                                        <p className="text-xs text-muted">Include in season's important events list</p>
                                                     </div>
                                                 </div>
                                                 <button
@@ -531,19 +531,19 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                     aria-checked={editForm.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(editForm.type)}
                                                     onClick={() => setEditForm({ ...editForm, isSaveTheDate: !editForm.isSaveTheDate })}
                                                     disabled={SAVE_THE_DATE_TYPES.includes(editForm.type)}
-                                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                                        (editForm.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(editForm.type)) ? 'bg-amber-500' : 'bg-slate-200'
+                                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                        (editForm.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(editForm.type)) ? 'bg-amber-500' : 'bg-surface-active'
                                                     }`}
                                                 >
                                                     <span
-                                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                                             (editForm.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(editForm.type)) ? 'translate-x-5' : 'translate-x-0'
                                                         }`}
                                                     />
                                                 </button>
                                             </div>
                                             {SAVE_THE_DATE_TYPES.includes(editForm.type) && (
-                                                <p className="text-xs text-slate-500 -mt-3 ml-1">
+                                                <p className="text-xs text-muted -mt-3 ml-1">
                                                     Competitions, mentorship, and camp events are automatically included.
                                                 </p>
                                             )}
@@ -553,7 +553,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                 <button
                                                     type="button"
                                                     onClick={() => setIsEditing(false)}
-                                                    className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors"
+                                                    className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-body bg-surface border border-line-strong hover:bg-surface-hover transition-colors"
                                                 >
                                                     Cancel
                                                 </button>
@@ -561,7 +561,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                     type="button"
                                                     onClick={handleSaveEdit}
                                                     disabled={loading || !editForm.title.trim()}
-                                                    className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                                    className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-accent-600 hover:bg-accent-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                                                 >
                                                     {loading ? (
                                                         <>
@@ -577,30 +577,30 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                     ) : (
                                         /* View Mode */
                                         <>
-                                            <Dialog.Title as="h3" className="text-xl font-bold text-slate-900">
+                                            <Dialog.Title as="h3" className="text-xl font-bold text-heading">
                                                 {event.title}
                                             </Dialog.Title>
 
                                             <div className="mt-4 space-y-3">
-                                                <div className="flex items-center text-sm text-slate-600">
-                                                    <CalendarIcon className="mr-3 h-5 w-5 text-slate-400" />
+                                                <div className="flex items-center text-sm text-subtle">
+                                                    <CalendarIcon className="mr-3 h-5 w-5 text-faint" />
                                                     {format(parseISO(event.start_time), 'EEEE, MMMM d, yyyy')}
                                                 </div>
-                                                <div className="flex items-center text-sm text-slate-600">
-                                                    <Clock className="mr-3 h-5 w-5 text-slate-400" />
+                                                <div className="flex items-center text-sm text-subtle">
+                                                    <Clock className="mr-3 h-5 w-5 text-faint" />
                                                     {format(parseISO(event.start_time), 'h:mm a')} - {format(parseISO(event.end_time), 'h:mm a')}
                                                 </div>
                                                 {event.location && (
-                                                    <div className="flex items-center text-sm text-slate-600">
-                                                        <MapPin className="mr-3 h-5 w-5 text-slate-400" />
+                                                    <div className="flex items-center text-sm text-subtle">
+                                                        <MapPin className="mr-3 h-5 w-5 text-faint" />
                                                         {event.location}
                                                     </div>
                                                 )}
                                             </div>
 
                                             {event.description && (
-                                                <div className="mt-4 p-4 bg-slate-50 rounded-xl">
-                                                    <p className="text-sm text-slate-600">{event.description}</p>
+                                                <div className="mt-4 p-4 bg-surface-alt rounded-xl">
+                                                    <p className="text-sm text-subtle">{event.description}</p>
                                                 </div>
                                             )}
 
@@ -620,8 +620,8 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
 
                                             {event.rsvp_enabled && (
                                                 <>
-                                                    <div className="mt-6 pt-6 border-t border-slate-100">
-                                                        <h4 className="text-sm font-semibold text-slate-900 mb-3">Your RSVP</h4>
+                                                    <div className="mt-6 pt-6 border-t border-line">
+                                                        <h4 className="text-sm font-semibold text-heading mb-3">Your RSVP</h4>
                                                         <div className="flex gap-2">
                                                             <button
                                                                 onClick={() => handleRsvp('going')}
@@ -629,7 +629,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                                 className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
                                                                     rsvpStatus === 'going'
                                                                         ? 'bg-green-500 text-white shadow-sm'
-                                                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                                                        : 'bg-surface-hover text-body hover:bg-surface-active'
                                                                 }`}
                                                             >
                                                                 Going
@@ -640,7 +640,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                                 className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
                                                                     rsvpStatus === 'maybe'
                                                                         ? 'bg-amber-500 text-white shadow-sm'
-                                                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                                                        : 'bg-surface-hover text-body hover:bg-surface-active'
                                                                 }`}
                                                             >
                                                                 Maybe
@@ -651,7 +651,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                                 className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
                                                                     rsvpStatus === 'not_going'
                                                                         ? 'bg-red-500 text-white shadow-sm'
-                                                                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                                                                        : 'bg-surface-hover text-body hover:bg-surface-active'
                                                                 }`}
                                                             >
                                                                 Can't Go
@@ -659,9 +659,9 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                         </div>
                                                     </div>
 
-                                                    <div className="mt-6 pt-6 border-t border-slate-100">
-                                                        <h4 className="text-sm font-semibold text-slate-900 flex items-center mb-3">
-                                                            <Users className="mr-2 h-4 w-4 text-slate-400" />
+                                                    <div className="mt-6 pt-6 border-t border-line">
+                                                        <h4 className="text-sm font-semibold text-heading flex items-center mb-3">
+                                                            <Users className="mr-2 h-4 w-4 text-faint" />
                                                             Attendees ({attendees.length})
                                                         </h4>
                                                         <div className="max-h-32 overflow-y-auto">
@@ -680,7 +680,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                                     ))}
                                                                 </div>
                                                             ) : (
-                                                                <p className="text-sm text-slate-500 italic">No one has RSVP'd yet.</p>
+                                                                <p className="text-sm text-muted italic">No one has RSVP'd yet.</p>
                                                             )}
                                                         </div>
                                                     </div>

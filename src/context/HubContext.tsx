@@ -9,6 +9,7 @@ import {
     getPermissionScope as getPermissionScopeUtil,
     hasPermission as hasPermissionUtil,
 } from '../lib/permissions';
+import { applyAccentColor, resetAccentColor } from '../lib/accentColors';
 
 // Partial HubMember for context (just the fields we need)
 type HubMemberContext = Pick<FullHubMember, 'role' | 'permissions'>;
@@ -104,6 +105,16 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         fetchHubData();
     }, [fetchHubData]);
+
+    // Apply hub accent color when hub loads, reset on unmount
+    useEffect(() => {
+        if (hub?.settings?.accentColor) {
+            applyAccentColor(hub.settings.accentColor);
+        } else {
+            resetAccentColor();
+        }
+        return () => resetAccentColor();
+    }, [hub?.settings?.accentColor]);
 
     const refreshHub = useCallback(async () => {
         await fetchHubData(false);

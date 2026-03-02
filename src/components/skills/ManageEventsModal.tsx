@@ -157,20 +157,20 @@ export function ManageEventsModal({
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-2xl transition-all">
+                <div className="relative w-full max-w-lg transform rounded-xl bg-surface shadow-2xl transition-all">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-line px-6 py-4">
                         <div>
-                            <h2 className="text-lg font-semibold text-slate-900">
+                            <h2 className="text-lg font-semibold text-heading">
                                 Manage Events
                             </h2>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-muted">
                                 {gender === 'Female' ? 'Girls' : 'Boys'} - Skill Tracking Events
                             </p>
                         </div>
                         <button
                             onClick={onClose}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-500"
+                            className="rounded-lg p-2 text-faint hover:bg-surface-hover hover:text-muted"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -180,7 +180,7 @@ export function ManageEventsModal({
                     <div className="p-6">
                         {/* Error Message */}
                         {error && (
-                            <div className="mb-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-red-800">
+                            <div className="mb-4 flex items-start gap-2 rounded-lg bg-red-500/10 p-3 text-red-600">
                                 <AlertCircle className="h-5 w-5 flex-shrink-0" />
                                 <p className="text-sm">{error}</p>
                             </div>
@@ -189,20 +189,20 @@ export function ManageEventsModal({
                         {/* Current Events List */}
                         <div className="mb-4">
                             <div className="flex items-center justify-between mb-2">
-                                <label className="text-sm font-medium text-slate-700">
+                                <label className="text-sm font-medium text-body">
                                     Active Events ({localEvents.length})
                                 </label>
                                 <button
                                     onClick={handleResetToDefaults}
-                                    className="text-xs text-slate-500 hover:text-slate-700"
+                                    className="text-xs text-muted hover:text-body"
                                 >
                                     Reset to defaults
                                 </button>
                             </div>
 
                             {localEvents.length === 0 ? (
-                                <div className="rounded-lg border-2 border-dashed border-slate-200 p-8 text-center">
-                                    <p className="text-sm text-slate-500">
+                                <div className="rounded-lg border-2 border-dashed border-line p-8 text-center">
+                                    <p className="text-sm text-muted">
                                         No events configured. Add events below.
                                     </p>
                                 </div>
@@ -211,20 +211,20 @@ export function ManageEventsModal({
                                     {localEvents.map((event, index) => (
                                         <div
                                             key={event.id}
-                                            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                                            className="flex items-center gap-2 rounded-lg border border-line bg-surface p-2 hover:bg-surface-hover"
                                         >
-                                            <div className="flex flex-col items-center text-slate-400">
+                                            <div className="flex flex-col items-center text-faint">
                                                 <GripVertical className="h-5 w-5" />
                                             </div>
 
                                             {/* Event Badge */}
-                                            <div className="w-12 rounded bg-indigo-100 px-2 py-1 text-center text-xs font-semibold text-indigo-700">
+                                            <div className="w-12 rounded bg-indigo-500/10 px-2 py-1 text-center text-xs font-semibold text-indigo-600">
                                                 {event.label}
                                             </div>
 
                                             {/* Event Name */}
                                             <div className="flex-1 min-w-0">
-                                                <span className="text-sm font-medium text-slate-900 truncate">
+                                                <span className="text-sm font-medium text-heading truncate">
                                                     {event.fullName}
                                                 </span>
                                             </div>
@@ -234,7 +234,7 @@ export function ManageEventsModal({
                                                 <button
                                                     onClick={() => handleMoveEvent(event.id, 'up')}
                                                     disabled={index === 0}
-                                                    className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    className="rounded p-1 text-faint hover:bg-surface-hover hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
                                                     title="Move up"
                                                 >
                                                     <ChevronUp className="h-4 w-4" />
@@ -242,7 +242,7 @@ export function ManageEventsModal({
                                                 <button
                                                     onClick={() => handleMoveEvent(event.id, 'down')}
                                                     disabled={index === localEvents.length - 1}
-                                                    className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                    className="rounded p-1 text-faint hover:bg-surface-hover hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
                                                     title="Move down"
                                                 >
                                                     <ChevronDown className="h-4 w-4" />
@@ -252,7 +252,7 @@ export function ManageEventsModal({
                                             {/* Delete Button */}
                                             <button
                                                 onClick={() => handleRemoveEvent(event.id)}
-                                                className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                                                className="rounded p-1.5 text-faint hover:bg-red-500/10 hover:text-red-600"
                                                 title="Remove event"
                                             >
                                                 <Trash2 className="h-4 w-4" />
@@ -264,11 +264,11 @@ export function ManageEventsModal({
                         </div>
 
                         {/* Add Event Section */}
-                        <div className="border-t border-slate-200 pt-4">
+                        <div className="border-t border-line pt-4">
                             {!showAddMenu ? (
                                 <button
                                     onClick={() => setShowAddMenu(true)}
-                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 py-3 text-sm font-medium text-slate-600 hover:border-slate-400 hover:bg-slate-50"
+                                    className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-line-strong px-4 py-3 text-sm font-medium text-subtle hover:border-line-strong hover:bg-surface-hover"
                                 >
                                     <Plus className="h-4 w-4" />
                                     Add Event
@@ -278,7 +278,7 @@ export function ManageEventsModal({
                                     {/* Predefined Events */}
                                     {availablePredefinedEvents.length > 0 && (
                                         <div>
-                                            <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                            <label className="text-xs font-medium text-muted uppercase tracking-wide">
                                                 Predefined Events
                                             </label>
                                             <div className="mt-2 flex flex-wrap gap-2">
@@ -286,10 +286,10 @@ export function ManageEventsModal({
                                                     <button
                                                         key={event.id}
                                                         onClick={() => handleAddPredefinedEvent(event)}
-                                                        className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 hover:border-brand-300 hover:bg-brand-50"
+                                                        className="flex items-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-body hover:border-accent-300 hover:bg-accent-500/10"
                                                     >
                                                         <span className="font-medium">{event.label}</span>
-                                                        <span className="text-slate-500">{event.fullName}</span>
+                                                        <span className="text-muted">{event.fullName}</span>
                                                     </button>
                                                 ))}
                                             </div>
@@ -298,7 +298,7 @@ export function ManageEventsModal({
 
                                     {/* Custom Event */}
                                     <div>
-                                        <label className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+                                        <label className="text-xs font-medium text-muted uppercase tracking-wide">
                                             Custom Event
                                         </label>
                                         <div className="mt-2 flex gap-2">
@@ -307,7 +307,7 @@ export function ManageEventsModal({
                                                 value={customEventName}
                                                 onChange={(e) => setCustomEventName(e.target.value)}
                                                 placeholder="Event name (e.g., Dance)"
-                                                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                                className="flex-1 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-heading focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                             />
                                             <input
                                                 type="text"
@@ -315,12 +315,12 @@ export function ManageEventsModal({
                                                 onChange={(e) => setCustomEventLabel(e.target.value.toUpperCase().slice(0, 4))}
                                                 placeholder="Label"
                                                 maxLength={4}
-                                                className="w-20 rounded-lg border border-slate-300 px-3 py-2 text-sm text-center focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                                className="w-20 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-heading text-center focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                             />
                                             <button
                                                 onClick={handleAddCustomEvent}
                                                 disabled={!customEventName.trim()}
-                                                className="rounded-lg bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                                className="rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                                             >
                                                 <Check className="h-4 w-4" />
                                             </button>
@@ -333,7 +333,7 @@ export function ManageEventsModal({
                                             setCustomEventName('');
                                             setCustomEventLabel('');
                                         }}
-                                        className="text-sm text-slate-500 hover:text-slate-700"
+                                        className="text-sm text-muted hover:text-body"
                                     >
                                         Cancel
                                     </button>
@@ -341,23 +341,23 @@ export function ManageEventsModal({
                             )}
                         </div>
 
-                        <p className="mt-4 text-xs text-slate-500">
+                        <p className="mt-4 text-xs text-muted">
                             Changes will affect which events appear in the Skills tab. Existing skill data is preserved.
                         </p>
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                    <div className="flex justify-end gap-3 border-t border-line px-6 py-4">
                         <button
                             onClick={onClose}
-                            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                            className="rounded-lg bg-surface-hover px-4 py-2 text-sm font-medium text-body hover:bg-surface-active"
                         >
                             Cancel
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={saving || localEvents.length === 0}
-                            className="rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                            className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                         >
                             {saving ? 'Saving...' : 'Save Changes'}
                         </button>

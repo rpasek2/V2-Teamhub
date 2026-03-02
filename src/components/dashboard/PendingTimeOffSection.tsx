@@ -25,8 +25,8 @@ function getTimeOffTypeColor(type: string) {
         case 'vacation': return 'bg-blue-100 text-blue-700';
         case 'sick': return 'bg-red-100 text-red-700';
         case 'personal': return 'bg-purple-100 text-purple-700';
-        case 'other': return 'bg-slate-100 text-slate-700';
-        default: return 'bg-slate-100 text-slate-700';
+        case 'other': return 'bg-surface-hover text-body';
+        default: return 'bg-surface-hover text-body';
     }
 }
 
@@ -39,12 +39,12 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
         <div className="mb-8">
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-slate-900">Pending Time Off Requests</h2>
+                    <h2 className="text-lg font-semibold text-heading">Pending Time Off Requests</h2>
                     <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
                         {pendingTimeOff.length}
                     </span>
                 </div>
-                <Link to="staff" className="text-sm text-brand-600 hover:text-brand-700">
+                <Link to="staff" className="text-sm text-accent-600 hover:text-accent-700">
                     View Staff
                 </Link>
             </div>
@@ -56,14 +56,14 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
                     >
                         <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3">
-                                <div className="p-2 bg-white rounded-lg border border-amber-200">
+                                <div className="p-2 bg-surface rounded-lg border border-amber-200">
                                     <Clock className="w-5 h-5 text-amber-600" />
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2 flex-wrap">
                                         <button
                                             onClick={() => navigate(`staff/${request.staff_user_id}`)}
-                                            className="font-medium text-slate-900 hover:text-brand-600 transition-colors"
+                                            className="font-medium text-heading hover:text-accent-600 transition-colors"
                                         >
                                             {request.staff_name}
                                         </button>
@@ -74,7 +74,7 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
                                             {request.type.charAt(0).toUpperCase() + request.type.slice(1)}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-slate-700 mt-0.5">
+                                    <p className="text-sm text-body mt-0.5">
                                         {format(parseISO(request.start_date), 'MMM d')}
                                         {request.start_date !== request.end_date && (
                                             <> - {format(parseISO(request.end_date), 'MMM d, yyyy')}</>
@@ -84,9 +84,9 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
                                         )}
                                     </p>
                                     {request.notes && (
-                                        <p className="text-sm text-slate-500 mt-1">{request.notes}</p>
+                                        <p className="text-sm text-muted mt-1">{request.notes}</p>
                                     )}
-                                    <p className="text-xs text-slate-400 mt-1">
+                                    <p className="text-xs text-faint mt-1">
                                         Requested {format(parseISO(request.created_at), 'MMM d')}
                                     </p>
                                 </div>

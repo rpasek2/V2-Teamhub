@@ -89,8 +89,8 @@ export function ParentDashboardSections({
             {assignmentProgress.length > 0 && isTabEnabled('assignments', enabledTabs) && (
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-slate-900">Today's Assignments</h2>
-                        <Link to="assignments" className="text-sm text-brand-600 hover:text-brand-700">
+                        <h2 className="text-lg font-semibold text-heading">Today's Assignments</h2>
+                        <Link to="assignments" className="text-sm text-accent-600 hover:text-accent-700">
                             View All
                         </Link>
                     </div>
@@ -104,25 +104,25 @@ export function ParentDashboardSections({
                                     className="card p-3"
                                 >
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm font-medium text-slate-700">{getEventLabel(item.event)}</span>
+                                        <span className="text-sm font-medium text-body">{getEventLabel(item.event)}</span>
                                         <span className={clsx(
                                             "text-xs font-semibold",
-                                            isComplete ? "text-green-600" : "text-slate-500"
+                                            isComplete ? "text-green-600" : "text-muted"
                                         )}>
                                             {item.completedItems}/{item.totalItems}
                                         </span>
                                     </div>
-                                    <div className="w-full bg-slate-200 rounded-full h-2">
+                                    <div className="w-full bg-surface-active rounded-full h-2">
                                         <div
                                             className={clsx(
                                                 "h-2 rounded-full transition-all",
-                                                isComplete ? "bg-green-500" : "bg-brand-500"
+                                                isComplete ? "bg-green-500" : "bg-accent-500"
                                             )}
                                             style={{ width: `${percentage}%` }}
                                         />
                                     </div>
                                     {linkedGymnastCount > 1 && (
-                                        <p className="text-xs text-slate-500 mt-1">{item.gymnastName}</p>
+                                        <p className="text-xs text-muted mt-1">{item.gymnastName}</p>
                                     )}
                                 </div>
                             );
@@ -135,13 +135,13 @@ export function ParentDashboardSections({
             {recentScores.length > 0 && isTabEnabled('scores', enabledTabs) && (
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-slate-900">Recent Scores</h2>
-                        <Link to="scores" className="text-sm text-brand-600 hover:text-brand-700">
+                        <h2 className="text-lg font-semibold text-heading">Recent Scores</h2>
+                        <Link to="scores" className="text-sm text-accent-600 hover:text-accent-700">
                             View All
                         </Link>
                     </div>
                     <div className="card">
-                        <ul className="divide-y divide-slate-100">
+                        <ul className="divide-y divide-line">
                             {recentScores.map((score) => (
                                 <li key={score.id} className="px-4 py-3 flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -149,19 +149,19 @@ export function ParentDashboardSections({
                                             <Trophy className="h-4 w-4 text-amber-600" />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-medium text-slate-700">
+                                            <p className="text-sm font-medium text-body">
                                                 {getEventLabel(score.event)} - {score.competitionName}
                                             </p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-xs text-muted">
                                                 {linkedGymnastCount > 1 ? `${score.gymnastName} · ` : ''}
                                                 {format(parseISO(score.date), 'MMM d')}
                                             </p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-lg font-semibold text-slate-900">{score.score}</p>
+                                        <p className="text-lg font-semibold text-heading">{score.score}</p>
                                         {score.placement && (
-                                            <p className="text-xs text-slate-500">#{score.placement}</p>
+                                            <p className="text-xs text-muted">#{score.placement}</p>
                                         )}
                                     </div>
                                 </li>
@@ -175,13 +175,13 @@ export function ParentDashboardSections({
             {recentSkillChanges.length > 0 && isTabEnabled('skills', enabledTabs) && (
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-slate-900">Skill Updates</h2>
-                        <Link to="skills" className="text-sm text-brand-600 hover:text-brand-700">
+                        <h2 className="text-lg font-semibold text-heading">Skill Updates</h2>
+                        <Link to="skills" className="text-sm text-accent-600 hover:text-accent-700">
                             View All
                         </Link>
                     </div>
                     <div className="card">
-                        <ul className="divide-y divide-slate-100">
+                        <ul className="divide-y divide-line">
                             {recentSkillChanges.map((skill) => {
                                 const statusConfig = SKILL_STATUS_CONFIG[skill.status];
                                 return (
@@ -191,10 +191,10 @@ export function ParentDashboardSections({
                                                 <Sparkles className="h-4 w-4 text-purple-600" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-slate-700">
+                                                <p className="text-sm font-medium text-body">
                                                     {skill.skillName}
                                                 </p>
-                                                <p className="text-xs text-slate-500">
+                                                <p className="text-xs text-muted">
                                                     {linkedGymnastCount > 1 ? `${skill.gymnastName} · ` : ''}
                                                     {getEventLabel(skill.event)} · {format(parseISO(skill.updatedAt), 'MMM d')}
                                                 </p>
@@ -220,32 +220,32 @@ export function ParentDashboardSections({
                 {/* Recent Group Posts */}
                 {recentGroupPosts.length > 0 && isTabEnabled('groups', enabledTabs) && (
                     <div className="card">
-                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-slate-900">Group Posts</h2>
-                            <Link to="groups" className="text-sm text-brand-600 hover:text-brand-700">
+                        <div className="px-6 py-4 border-b border-line flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-heading">Group Posts</h2>
+                            <Link to="groups" className="text-sm text-accent-600 hover:text-accent-700">
                                 View All
                             </Link>
                         </div>
-                        <ul className="divide-y divide-slate-100">
+                        <ul className="divide-y divide-line">
                             {recentGroupPosts.map((post) => (
                                 <li key={post.id}>
                                     <Link
                                         to={`groups/${post.groupId}?post=${post.id}`}
-                                        className="block px-4 py-3 hover:bg-slate-50 transition-colors"
+                                        className="block px-4 py-3 hover:bg-surface-hover transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50">
-                                                <MessageSquare className="h-4 w-4 text-brand-600" />
+                                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-50">
+                                                <MessageSquare className="h-4 w-4 text-accent-600" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-slate-700 truncate">
+                                                <p className="text-sm font-medium text-body truncate">
                                                     {post.authorName} in {post.groupName}
                                                 </p>
-                                                <p className="text-xs text-slate-500 line-clamp-1">
+                                                <p className="text-xs text-muted line-clamp-1">
                                                     {post.content}
                                                 </p>
                                             </div>
-                                            <span className="text-xs text-slate-400 flex-shrink-0">
+                                            <span className="text-xs text-faint flex-shrink-0">
                                                 {format(parseISO(post.createdAt), 'MMM d')}
                                             </span>
                                         </div>
@@ -259,32 +259,32 @@ export function ParentDashboardSections({
                 {/* Recent Marketplace Items */}
                 {recentMarketplaceItems.length > 0 && isTabEnabled('marketplace', enabledTabs) && (
                     <div className="card">
-                        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-slate-900">New in Marketplace</h2>
-                            <Link to="marketplace" className="text-sm text-brand-600 hover:text-brand-700">
+                        <div className="px-6 py-4 border-b border-line flex items-center justify-between">
+                            <h2 className="text-lg font-semibold text-heading">New in Marketplace</h2>
+                            <Link to="marketplace" className="text-sm text-accent-600 hover:text-accent-700">
                                 View All
                             </Link>
                         </div>
-                        <ul className="divide-y divide-slate-100">
+                        <ul className="divide-y divide-line">
                             {recentMarketplaceItems.map((item) => (
                                 <li key={item.id}>
                                     <Link
                                         to={`marketplace?item=${item.id}`}
-                                        className="block px-4 py-3 hover:bg-slate-50 transition-colors"
+                                        className="block px-4 py-3 hover:bg-surface-hover transition-colors"
                                     >
                                         <div className="flex items-center gap-3">
                                             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50">
                                                 <ShoppingBag className="h-4 w-4 text-emerald-600" />
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-medium text-slate-700 truncate">
+                                                <p className="text-sm font-medium text-body truncate">
                                                     {item.title}
                                                 </p>
-                                                <p className="text-xs text-slate-500">
+                                                <p className="text-xs text-muted">
                                                     {item.category} · {item.sellerName}
                                                 </p>
                                             </div>
-                                            <span className="text-sm font-semibold text-slate-900">
+                                            <span className="text-sm font-semibold text-heading">
                                                 ${item.price}
                                             </span>
                                         </div>

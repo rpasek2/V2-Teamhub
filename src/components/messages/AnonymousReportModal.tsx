@@ -56,18 +56,18 @@ export function AnonymousReportModal({ isOpen, onClose, hubId, ownerName }: Anon
                 className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm"
                 onClick={handleClose}
             />
-            <div className="relative w-full max-w-md bg-white rounded-xl shadow-2xl border border-slate-200">
+            <div className="relative w-full max-w-md bg-surface rounded-xl shadow-2xl border border-line">
                 {/* Header */}
-                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                <div className="flex items-center justify-between border-b border-line px-6 py-4">
                     <div className="flex items-center gap-3">
                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
                             <ShieldAlert className="h-5 w-5 text-purple-600" />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900">Anonymous Report</h3>
+                        <h3 className="text-lg font-semibold text-heading">Anonymous Report</h3>
                     </div>
                     <button
                         onClick={handleClose}
-                        className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-900"
+                        className="rounded-full p-1 text-faint hover:bg-surface-hover hover:text-heading"
                     >
                         <X className="h-5 w-5" />
                     </button>
@@ -80,8 +80,8 @@ export function AnonymousReportModal({ isOpen, onClose, hubId, ownerName }: Anon
                             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
                                 <Check className="h-6 w-6 text-green-600" />
                             </div>
-                            <h4 className="text-lg font-medium text-slate-900 mb-2">Report Submitted</h4>
-                            <p className="text-sm text-slate-600 mb-6">
+                            <h4 className="text-lg font-medium text-heading mb-2">Report Submitted</h4>
+                            <p className="text-sm text-subtle mb-6">
                                 Your anonymous report has been sent to {ownerName}.
                                 Since this is anonymous, you won't receive a direct response.
                             </p>
@@ -121,7 +121,7 @@ export function AnonymousReportModal({ isOpen, onClose, hubId, ownerName }: Anon
 
                             {/* Message Input */}
                             <div className="mb-4">
-                                <label htmlFor="report-message" className="block text-sm font-medium text-slate-700 mb-2">
+                                <label htmlFor="report-message" className="block text-sm font-medium text-body mb-2">
                                     Your Message
                                 </label>
                                 <textarea

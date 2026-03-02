@@ -212,7 +212,7 @@ export function HubSelection() {
     if (loading) {
         return (
             <div className="flex h-64 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-accent-600" />
             </div>
         );
     }
@@ -221,13 +221,13 @@ export function HubSelection() {
         <div className="max-w-4xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-2xl font-bold text-slate-900">My Hubs</h1>
-                    <p className="mt-1 text-slate-600">Select a hub to manage or create a new one.</p>
+                    <h1 className="text-2xl font-bold text-heading">My Hubs</h1>
+                    <p className="mt-1 text-subtle">Select a hub to manage or create a new one.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setIsJoinModalOpen(true)}
-                        className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
+                        className="inline-flex items-center rounded-md border border-line-strong bg-surface px-4 py-2 text-sm font-semibold text-body shadow-sm hover:bg-surface-hover focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-strong"
                     >
                         <Ticket className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
                         Join Hub
@@ -235,7 +235,7 @@ export function HubSelection() {
                     {canCreateHub && (
                         <button
                             onClick={() => setIsCreateModalOpen(true)}
-                            className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                            className="inline-flex items-center rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600"
                         >
                             <Plus className="-ml-0.5 mr-2 h-4 w-4" aria-hidden="true" />
                             Create Hub
@@ -249,7 +249,7 @@ export function HubSelection() {
                 <div className="mb-4">
                     <button
                         onClick={() => setShowHidden(!showHidden)}
-                        className="inline-flex items-center text-sm text-slate-500 hover:text-slate-700"
+                        className="inline-flex items-center text-sm text-muted hover:text-body"
                     >
                         {showHidden ? (
                             <>
@@ -267,12 +267,12 @@ export function HubSelection() {
             )}
 
             {visibleHubs.length === 0 ? (
-                <div className="text-center py-16 px-6 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50">
-                    <div className="mx-auto w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                        <LayoutDashboard className="h-8 w-8 text-slate-400" />
+                <div className="text-center py-16 px-6 rounded-xl border-2 border-dashed border-line bg-surface-alt">
+                    <div className="mx-auto w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center mb-4">
+                        <LayoutDashboard className="h-8 w-8 text-faint" />
                     </div>
-                    <h3 className="text-lg font-semibold text-slate-900 mb-2">No hubs yet</h3>
-                    <p className="text-slate-500 max-w-sm mx-auto">
+                    <h3 className="text-lg font-semibold text-heading mb-2">No hubs yet</h3>
+                    <p className="text-muted max-w-sm mx-auto">
                         {canCreateHub
                             ? 'Create a new hub or join an existing one to get started. Your hubs will appear here.'
                             : 'Join a hub using an invite code to get started. Your hubs will appear here.'}
@@ -287,11 +287,11 @@ export function HubSelection() {
                     // Get sport-specific color classes
                     const getSportColorClasses = (color: string) => {
                         const colorMap: Record<string, { badge: string; icon: string }> = {
-                            purple: { badge: 'bg-purple-100 text-purple-700', icon: 'text-purple-500' },
-                            pink: { badge: 'bg-pink-100 text-pink-700', icon: 'text-pink-500' },
-                            red: { badge: 'bg-red-100 text-red-700', icon: 'text-red-500' },
-                            blue: { badge: 'bg-blue-100 text-blue-700', icon: 'text-blue-500' },
-                            amber: { badge: 'bg-amber-100 text-amber-700', icon: 'text-amber-500' }
+                            purple: { badge: 'bg-purple-500/10 text-purple-600', icon: 'text-purple-500' },
+                            pink: { badge: 'bg-pink-500/10 text-pink-600', icon: 'text-pink-500' },
+                            red: { badge: 'bg-red-500/10 text-red-600', icon: 'text-red-500' },
+                            blue: { badge: 'bg-blue-500/10 text-blue-600', icon: 'text-blue-500' },
+                            amber: { badge: 'bg-amber-500/10 text-amber-600', icon: 'text-amber-500' }
                         };
                         return colorMap[color] || colorMap.purple;
                     };
@@ -302,7 +302,7 @@ export function HubSelection() {
                     return (
                         <div
                             key={hub.id}
-                            className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border bg-white p-6 shadow-sm transition-all hover:shadow-md ${hub.is_hidden ? 'border-slate-300 opacity-60' : 'border-slate-200 hover:border-brand-200'
+                            className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border bg-surface p-6 shadow-sm transition-all hover:shadow-md ${hub.is_hidden ? 'border-line-strong opacity-60' : 'border-line hover:border-accent-200'
                                 }`}
                         >
                             {/* 3-dot menu */}
@@ -313,13 +313,13 @@ export function HubSelection() {
                                         e.stopPropagation();
                                         setOpenMenuId(openMenuId === hub.id ? null : hub.id);
                                     }}
-                                    className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                                    className="p-1 rounded-md text-faint hover:text-subtle hover:bg-surface-hover"
                                 >
                                     <MoreVertical className="h-5 w-5" />
                                 </button>
 
                                 {openMenuId === hub.id && (
-                                    <div className="absolute right-0 mt-1 w-48 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 z-10">
+                                    <div className="absolute right-0 mt-1 w-48 rounded-md bg-surface shadow-lg ring-1 ring-black ring-opacity-5 z-10">
                                         <div className="py-1">
                                             <button
                                                 onClick={(e) => {
@@ -327,16 +327,16 @@ export function HubSelection() {
                                                     e.stopPropagation();
                                                     handleToggleHide(hub);
                                                 }}
-                                                className="flex w-full items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                                                className="flex w-full items-center px-4 py-2 text-sm text-body hover:bg-surface-hover"
                                             >
                                                 {hub.is_hidden ? (
                                                     <>
-                                                        <Eye className="mr-3 h-4 w-4 text-slate-400" />
+                                                        <Eye className="mr-3 h-4 w-4 text-faint" />
                                                         Show Hub
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <EyeOff className="mr-3 h-4 w-4 text-slate-400" />
+                                                        <EyeOff className="mr-3 h-4 w-4 text-faint" />
                                                         Hide Hub
                                                     </>
                                                 )}
@@ -349,9 +349,9 @@ export function HubSelection() {
                                                         e.stopPropagation();
                                                         handleLeaveHub(hub);
                                                     }}
-                                                    className="flex w-full items-center px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"
+                                                    className="flex w-full items-center px-4 py-2 text-sm text-body hover:bg-surface-hover"
                                                 >
-                                                    <LogOut className="mr-3 h-4 w-4 text-slate-400" />
+                                                    <LogOut className="mr-3 h-4 w-4 text-faint" />
                                                     Leave Hub
                                                 </button>
                                             )}
@@ -363,7 +363,7 @@ export function HubSelection() {
                                                         e.stopPropagation();
                                                         handleDeleteHub(hub);
                                                     }}
-                                                    className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                                                    className="flex w-full items-center px-4 py-2 text-sm text-red-600 hover:bg-red-500/10"
                                                 >
                                                     <Trash2 className="mr-3 h-4 w-4" />
                                                     Delete Hub
@@ -377,7 +377,7 @@ export function HubSelection() {
                             <Link to={`/hub/${hub.id}`} className="flex flex-col flex-1">
                                 <div>
                                     <div className="flex items-start justify-between pr-8">
-                                        <h3 className="text-lg font-semibold text-slate-900 group-hover:text-brand-600">
+                                        <h3 className="text-lg font-semibold text-heading group-hover:text-accent-600">
                                             {hub.name}
                                         </h3>
                                         <SportIcon className={`h-5 w-5 ${sportColors.icon}`} />
@@ -386,21 +386,21 @@ export function HubSelection() {
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${sportColors.badge}`}>
                                             {sportConfig.name}
                                         </span>
-                                        <span className="text-xs text-slate-500 capitalize">{hub.role}</span>
+                                        <span className="text-xs text-muted capitalize">{hub.role}</span>
                                         {hub.is_hidden && (
-                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-500">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-surface-hover text-muted">
                                                 Hidden
                                             </span>
                                         )}
                                     </div>
                                     {hub.owner_organization && (
-                                        <div className="mt-2 flex items-center gap-1.5 text-xs text-slate-500">
+                                        <div className="mt-2 flex items-center gap-1.5 text-xs text-muted">
                                             <Building2 className="h-3.5 w-3.5" />
                                             <span>{hub.owner_organization}</span>
                                         </div>
                                     )}
                                 </div>
-                                <div className="mt-4 flex items-center text-sm font-medium text-brand-600">
+                                <div className="mt-4 flex items-center text-sm font-medium text-accent-600">
                                     Enter Hub
                                     <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
                                 </div>

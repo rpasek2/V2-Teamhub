@@ -127,29 +127,29 @@ export function AssignmentDetailModal({
                 {/* Header */}
                 <div className="flex items-start justify-between gap-4 mb-6">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center text-indigo-600 text-xl font-semibold border border-indigo-200">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-indigo-500/10 to-violet-500/10 flex items-center justify-center text-indigo-600 text-xl font-semibold border border-indigo-500/20">
                             {gymnastName.charAt(0).toUpperCase()}
                         </div>
                         <div>
-                            <h2 className="text-xl font-semibold text-slate-900">{gymnastName}</h2>
-                            <p className="text-sm text-slate-500">
+                            <h2 className="text-xl font-semibold text-heading">{gymnastName}</h2>
+                            <p className="text-sm text-muted">
                                 {gymnastLevel} • {format(new Date(assignment.date + 'T00:00:00'), 'EEE, MMM d, yyyy')}
                             </p>
                         </div>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"
+                        className="p-1.5 text-muted hover:text-heading hover:bg-surface-hover rounded transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
                 </div>
 
                 {/* Progress */}
-                <div className="mb-6 p-4 bg-slate-50 rounded-xl">
+                <div className="mb-6 p-4 bg-surface-alt rounded-xl">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500">Progress</span>
-                        <span className="text-sm font-bold text-mint-600">
+                        <span className="text-sm font-medium text-muted">Progress</span>
+                        <span className="text-sm font-bold text-accent-600">
                             {progress.completed}/{progress.total}
                         </span>
                     </div>
@@ -183,7 +183,7 @@ export function AssignmentDetailModal({
                         })}
 
                         <div>
-                            <label className="block text-sm font-medium text-slate-400 mb-2">
+                            <label className="block text-sm font-medium text-faint mb-2">
                                 Notes
                             </label>
                             <textarea
@@ -219,14 +219,14 @@ export function AssignmentDetailModal({
 
                 {/* Notes (view mode) */}
                 {!isEditing && assignment.notes && (
-                    <div className="mt-6 pt-6 border-t border-slate-200">
-                        <h3 className="text-sm font-medium text-slate-500 mb-2">Notes</h3>
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap">{assignment.notes}</p>
+                    <div className="mt-6 pt-6 border-t border-line">
+                        <h3 className="text-sm font-medium text-muted mb-2">Notes</h3>
+                        <p className="text-sm text-body whitespace-pre-wrap">{assignment.notes}</p>
                     </div>
                 )}
 
                 {/* Actions */}
-                <div className="flex items-center justify-between mt-6 pt-6 border-t border-slate-200">
+                <div className="flex items-center justify-between mt-6 pt-6 border-t border-line">
                     {canEdit && !isEditing && (
                         <button
                             onClick={handleDelete}

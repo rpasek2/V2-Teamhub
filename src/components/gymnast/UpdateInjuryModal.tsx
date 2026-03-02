@@ -156,21 +156,21 @@ export function UpdateInjuryModal({
                     onClick={onClose}
                 />
 
-                <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-xl transition-all">
+                <div className="relative w-full max-w-lg transform rounded-xl bg-surface shadow-xl transition-all">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-line px-6 py-4">
                         <div className="flex items-center gap-3">
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
                                 <ClipboardEdit className="h-5 w-5 text-amber-600" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-semibold text-slate-900">Update Injury Report</h2>
-                                <p className="text-sm text-slate-500">{gymnastName}</p>
+                                <h2 className="text-lg font-semibold text-heading">Update Injury Report</h2>
+                                <p className="text-sm text-muted">{gymnastName}</p>
                             </div>
                         </div>
                         <button
                             onClick={onClose}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                            className="rounded-lg p-2 text-faint hover:bg-surface-hover hover:text-subtle"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -179,18 +179,18 @@ export function UpdateInjuryModal({
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="p-6 space-y-4">
                         {/* Injury summary */}
-                        <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
-                            <div className="font-medium text-slate-700">{injury.body_part || 'Injury'} — {injury.date}</div>
+                        <div className="rounded-lg bg-surface-alt p-3 text-sm text-subtle">
+                            <div className="font-medium text-body">{injury.body_part || 'Injury'} — {injury.date}</div>
                             <p className="mt-1 line-clamp-2">{injury.description}</p>
                         </div>
 
                         {/* Updated By */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Updated By *
                             </label>
                             {loadingStaff ? (
-                                <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
+                                <div className="mt-1 flex items-center gap-2 text-sm text-muted">
                                     <Loader2 className="h-4 w-4 animate-spin" />
                                     Loading staff...
                                 </div>
@@ -199,7 +199,7 @@ export function UpdateInjuryModal({
                                     value={updatedBy}
                                     onChange={(e) => setUpdatedBy(e.target.value)}
                                     required
-                                    className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                    className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                                 >
                                     <option value="">Select staff member...</option>
                                     {staffMembers.map((staff) => (
@@ -213,13 +213,13 @@ export function UpdateInjuryModal({
 
                         {/* Status */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Status
                             </label>
                             <select
                                 value={status}
                                 onChange={(e) => setStatus(e.target.value as 'active' | 'recovering' | 'resolved')}
-                                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             >
                                 <option value="active">Active</option>
                                 <option value="recovering">Recovering</option>
@@ -234,7 +234,7 @@ export function UpdateInjuryModal({
 
                         {/* Note */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Update Note *
                             </label>
                             <textarea
@@ -243,7 +243,7 @@ export function UpdateInjuryModal({
                                 required
                                 rows={3}
                                 placeholder="e.g., Doctor cleared for light activity, continue physical therapy twice a week..."
-                                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             />
                         </div>
 
@@ -255,18 +255,18 @@ export function UpdateInjuryModal({
                         )}
 
                         {/* Actions */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-line">
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                                className="rounded-lg px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
                                 disabled={saving || !note.trim()}
-                                className="inline-flex items-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                className="inline-flex items-center rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                             >
                                 {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save Update

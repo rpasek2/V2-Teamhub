@@ -74,7 +74,7 @@ export function GoalsSection({ gymnastProfileId, readOnly = false }: GoalsSectio
     if (loading) {
         return (
             <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 text-brand-500 animate-spin" />
+                <Loader2 className="w-6 h-6 text-accent-500 animate-spin" />
             </div>
         );
     }
@@ -88,7 +88,7 @@ export function GoalsSection({ gymnastProfileId, readOnly = false }: GoalsSectio
             {!readOnly && (
                 <button
                     onClick={() => setShowAddModal(true)}
-                    className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 transition-colors"
+                    className="flex items-center gap-2 text-sm text-accent-600 hover:text-accent-700 transition-colors"
                 >
                     <Plus className="w-4 h-4" />
                     Add Goal
@@ -126,8 +126,8 @@ export function GoalsSection({ gymnastProfileId, readOnly = false }: GoalsSectio
 
             {/* Completed Goals */}
             {completedGoals.length > 0 && (
-                <div className="pt-4 border-t border-slate-200">
-                    <h4 className="text-sm font-medium text-slate-500 mb-3">
+                <div className="pt-4 border-t border-line">
+                    <h4 className="text-sm font-medium text-muted mb-3">
                         Completed ({completedGoals.length})
                     </h4>
                     <div className="space-y-2">
@@ -151,14 +151,14 @@ export function GoalsSection({ gymnastProfileId, readOnly = false }: GoalsSectio
             {/* Empty State */}
             {goals.length === 0 && (
                 <div className="text-center py-8">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
-                        <Target className="w-6 h-6 text-slate-400" />
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-hover flex items-center justify-center">
+                        <Target className="w-6 h-6 text-faint" />
                     </div>
-                    <p className="text-slate-500 text-sm">No goals set yet</p>
+                    <p className="text-muted text-sm">No goals set yet</p>
                     {!readOnly && (
                         <button
                             onClick={() => setShowAddModal(true)}
-                            className="mt-3 text-sm text-brand-600 hover:text-brand-700"
+                            className="mt-3 text-sm text-accent-600 hover:text-accent-700"
                         >
                             Add your first goal
                         </button>
@@ -237,7 +237,7 @@ function getEventBadgeColor(event: string): string {
     if (eventLower === 'conditioning') return 'bg-lime-100 text-lime-700';
     if (eventLower === 'mental') return 'bg-cyan-100 text-cyan-700';
     if (eventLower === 'competition') return 'bg-rose-100 text-rose-700';
-    return 'bg-slate-100 text-slate-600';
+    return 'bg-surface-hover text-subtle';
 }
 
 function GoalItem({
@@ -272,7 +272,7 @@ function GoalItem({
                 ? 'border-success-500/30 bg-success-50'
                 : isOverdue
                     ? 'border-error-200 bg-error-50/50'
-                    : 'border-slate-200 bg-white'
+                    : 'border-line bg-surface'
         }`}>
             <div className="flex items-start gap-3 p-3">
                 {/* Checkbox */}
@@ -282,7 +282,7 @@ function GoalItem({
                         className={`flex-shrink-0 w-5 h-5 mt-0.5 rounded border-2 flex items-center justify-center transition-colors ${
                             isCompleted
                                 ? 'bg-success-500 border-success-500'
-                                : 'border-slate-300 hover:border-brand-500'
+                                : 'border-line-strong hover:border-accent-500'
                         }`}
                     >
                         {isCompleted && <Check className="w-3 h-3 text-white" />}
@@ -298,11 +298,11 @@ function GoalItem({
                         >
                             {(subgoals.length > 0 || goal.description) && (
                                 isExpanded
-                                    ? <ChevronDown className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
-                                    : <ChevronRight className="w-4 h-4 text-slate-400 flex-shrink-0 mt-0.5" />
+                                    ? <ChevronDown className="w-4 h-4 text-faint flex-shrink-0 mt-0.5" />
+                                    : <ChevronRight className="w-4 h-4 text-faint flex-shrink-0 mt-0.5" />
                             )}
                             <div className="min-w-0 flex-1">
-                                <span className={`font-medium ${isCompleted ? 'text-slate-500 line-through' : 'text-slate-900'}`}>
+                                <span className={`font-medium ${isCompleted ? 'text-muted line-through' : 'text-heading'}`}>
                                     {goal.title}
                                 </span>
 
@@ -316,12 +316,12 @@ function GoalItem({
                                     {targetDate && (
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium ${
                                             isCompleted
-                                                ? 'bg-slate-100 text-slate-500'
+                                                ? 'bg-surface-hover text-muted'
                                                 : isOverdue
                                                     ? 'bg-error-100 text-error-700'
                                                     : isDueSoon
                                                         ? 'bg-amber-100 text-amber-700'
-                                                        : 'bg-slate-100 text-slate-600'
+                                                        : 'bg-surface-hover text-subtle'
                                         }`}>
                                             <Calendar className="w-3 h-3" />
                                             {format(targetDate, 'MMM d, yyyy')}
@@ -335,7 +335,7 @@ function GoalItem({
                         {!readOnly && !isCompleted && (
                             <button
                                 onClick={onDelete}
-                                className="p-1 text-slate-400 hover:text-error-500 transition-colors flex-shrink-0"
+                                className="p-1 text-faint hover:text-error-500 transition-colors flex-shrink-0"
                             >
                                 <Trash2 className="w-4 h-4" />
                             </button>
@@ -346,13 +346,13 @@ function GoalItem({
                     {subgoals.length > 0 && (
                         <div className="mt-2">
                             <div className="flex items-center gap-2">
-                                <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                <div className="flex-1 h-1.5 bg-surface-active rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full rounded-full transition-all ${isCompleted ? 'bg-success-500' : 'bg-brand-500'}`}
+                                        className={`h-full rounded-full transition-all ${isCompleted ? 'bg-success-500' : 'bg-accent-500'}`}
                                         style={{ width: `${(completedSubgoals / subgoals.length) * 100}%` }}
                                     />
                                 </div>
-                                <span className="text-xs text-slate-500">
+                                <span className="text-xs text-muted">
                                     {completedSubgoals}/{subgoals.length}
                                 </span>
                             </div>
@@ -373,7 +373,7 @@ function GoalItem({
                 <div className="px-3 pb-3 pl-11 space-y-3">
                     {/* Description */}
                     {goal.description && (
-                        <p className="text-sm text-slate-600 italic border-l-2 border-slate-200 pl-3">
+                        <p className="text-sm text-subtle italic border-l-2 border-line pl-3">
                             {goal.description}
                         </p>
                     )}
@@ -381,7 +381,7 @@ function GoalItem({
                     {/* Milestones/Subgoals */}
                     {subgoals.length > 0 && (
                         <div className="space-y-2">
-                            <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Milestones</p>
+                            <p className="text-xs font-medium text-muted uppercase tracking-wide">Milestones</p>
                             {subgoals.map(subgoal => {
                                 const subgoalDate = subgoal.target_date ? new Date(subgoal.target_date) : null;
                                 const subgoalOverdue = subgoalDate && !subgoal.completed_at && isPast(subgoalDate) && !isToday(subgoalDate);
@@ -394,23 +394,23 @@ function GoalItem({
                                                 className={`flex-shrink-0 w-4 h-4 mt-0.5 rounded border flex items-center justify-center transition-colors ${
                                                     subgoal.completed_at
                                                         ? 'bg-success-500 border-success-500'
-                                                        : 'border-slate-300 hover:border-brand-500'
+                                                        : 'border-line-strong hover:border-accent-500'
                                                 }`}
                                             >
                                                 {subgoal.completed_at && <Check className="w-2.5 h-2.5 text-white" />}
                                             </button>
                                         )}
                                         <div className="flex-1 min-w-0">
-                                            <span className={`text-sm ${subgoal.completed_at ? 'text-slate-500 line-through' : 'text-slate-700'}`}>
+                                            <span className={`text-sm ${subgoal.completed_at ? 'text-muted line-through' : 'text-body'}`}>
                                                 {subgoal.title}
                                             </span>
                                             {subgoalDate && (
                                                 <span className={`ml-2 text-xs ${
                                                     subgoal.completed_at
-                                                        ? 'text-slate-400'
+                                                        ? 'text-faint'
                                                         : subgoalOverdue
                                                             ? 'text-error-600'
-                                                            : 'text-slate-400'
+                                                            : 'text-faint'
                                                 }`}>
                                                     {format(subgoalDate, 'MMM d')}
                                                     {subgoalOverdue && ' (overdue)'}
@@ -420,7 +420,7 @@ function GoalItem({
                                         {!readOnly && !subgoal.completed_at && (
                                             <button
                                                 onClick={() => onDeleteSubgoal(subgoal.id)}
-                                                className="opacity-0 group-hover:opacity-100 p-0.5 text-slate-400 hover:text-error-500 transition-all flex-shrink-0"
+                                                className="opacity-0 group-hover:opacity-100 p-0.5 text-faint hover:text-error-500 transition-all flex-shrink-0"
                                             >
                                                 <Trash2 className="w-3 h-3" />
                                             </button>
@@ -450,13 +450,13 @@ function GoalItem({
                                 <button
                                     onClick={onSaveSubgoal}
                                     disabled={creatingSubgoal || !newSubgoalTitle?.trim()}
-                                    className="text-xs text-brand-600 hover:text-brand-700"
+                                    className="text-xs text-accent-600 hover:text-accent-700"
                                 >
                                     {creatingSubgoal ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Add'}
                                 </button>
                                 <button
                                     onClick={onCancelSubgoal}
-                                    className="text-xs text-slate-500 hover:text-slate-400"
+                                    className="text-xs text-muted hover:text-faint"
                                 >
                                     Cancel
                                 </button>
@@ -464,7 +464,7 @@ function GoalItem({
                         ) : (
                             <button
                                 onClick={onAddSubgoal}
-                                className="flex items-center gap-1 text-xs text-slate-500 hover:text-brand-600 transition-colors"
+                                className="flex items-center gap-1 text-xs text-muted hover:text-accent-600 transition-colors"
                             >
                                 <Plus className="w-3 h-3" />
                                 Add milestone

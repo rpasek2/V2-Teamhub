@@ -57,8 +57,8 @@ export function Resources() {
             {/* Header */}
             <div className="sm:flex sm:items-center sm:justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-semibold text-slate-900">Resources</h1>
-                    <p className="mt-1 text-sm text-slate-500">
+                    <h1 className="text-2xl font-semibold text-heading">Resources</h1>
+                    <p className="mt-1 text-sm text-muted">
                         Helpful documents, guides, and links for your team
                     </p>
                 </div>
@@ -87,7 +87,7 @@ export function Resources() {
             <div className="flex flex-col sm:flex-row gap-4 mb-6">
                 {/* Search */}
                 <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
                     <input
                         type="text"
                         value={searchQuery}
@@ -104,8 +104,8 @@ export function Resources() {
                             onClick={() => setSelectedCategory(null)}
                             className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                                 selectedCategory === null
-                                    ? 'bg-mint-100 text-mint-700'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    ? 'bg-accent-500/10 text-accent-600'
+                                    : 'bg-surface-hover text-subtle hover:bg-surface-active'
                             }`}
                         >
                             All
@@ -116,8 +116,8 @@ export function Resources() {
                                 onClick={() => setSelectedCategory(cat.name)}
                                 className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                                     selectedCategory === cat.name
-                                        ? 'bg-mint-100 text-mint-700'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-accent-500/10 text-accent-600'
+                                        : 'bg-surface-hover text-subtle hover:bg-surface-active'
                                 }`}
                             >
                                 {cat.name}
@@ -130,7 +130,7 @@ export function Resources() {
             {/* Content */}
             {loading ? (
                 <div className="flex items-center justify-center py-16">
-                    <Loader2 className="w-8 h-8 text-mint-500 animate-spin" />
+                    <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
                 </div>
             ) : filteredResources.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -145,13 +145,13 @@ export function Resources() {
                 </div>
             ) : (
                 <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-                        <FolderOpen className="w-8 h-8 text-slate-400" />
+                    <div className="w-16 h-16 rounded-full bg-surface-hover flex items-center justify-center mb-4">
+                        <FolderOpen className="w-8 h-8 text-faint" />
                     </div>
                     {searchQuery || selectedCategory ? (
                         <>
-                            <h3 className="text-lg font-medium text-slate-900 mb-1">No resources found</h3>
-                            <p className="text-slate-500 mb-4">
+                            <h3 className="text-lg font-medium text-heading mb-1">No resources found</h3>
+                            <p className="text-muted mb-4">
                                 Try adjusting your search or filter criteria
                             </p>
                             <button
@@ -166,8 +166,8 @@ export function Resources() {
                         </>
                     ) : (
                         <>
-                            <h3 className="text-lg font-medium text-slate-900 mb-1">No resources yet</h3>
-                            <p className="text-slate-500 mb-4">
+                            <h3 className="text-lg font-medium text-heading mb-1">No resources yet</h3>
+                            <p className="text-muted mb-4">
                                 {isStaff
                                     ? 'Add helpful documents, links, and guides for your team.'
                                     : 'Resources will appear here once they are added.'}

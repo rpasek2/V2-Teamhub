@@ -64,22 +64,22 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                 ref={modalRef}
                 tabIndex={-1}
                 className={clsx(
-                    "relative w-full transform rounded-xl bg-white shadow-xl transition-all animate-scale-in",
-                    "border border-slate-200",
+                    "relative w-full transform rounded-xl bg-surface shadow-xl transition-all animate-scale-in",
+                    "border border-line",
                     "max-h-[90vh] flex flex-col",
                     sizeClasses[size]
                 )}
             >
                 {/* Header */}
                 {title && (
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 flex-shrink-0">
-                        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+                    <div className="flex items-center justify-between border-b border-line px-6 py-4 flex-shrink-0">
+                        <h3 className="text-lg font-semibold text-heading">{title}</h3>
                         <button
                             onClick={onClose}
                             className={clsx(
-                                "rounded-lg p-2 text-slate-400 transition-all duration-150",
-                                "hover:bg-slate-100 hover:text-slate-900",
-                                "focus:outline-none focus:ring-2 focus:ring-mint-500/50"
+                                "rounded-lg p-2 text-faint transition-all duration-150",
+                                "hover:bg-surface-hover hover:text-heading",
+                                "focus:outline-none focus:ring-2 focus:ring-accent-500/50"
                             )}
                         >
                             <X className="h-5 w-5" />

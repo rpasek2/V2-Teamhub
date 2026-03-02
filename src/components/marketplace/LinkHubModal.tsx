@@ -124,21 +124,21 @@ export function LinkHubModal({ isOpen, onClose, onLinkRequested, existingLinkIds
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-md rounded-xl bg-white shadow-xl">
+                <div className="relative w-full max-w-md rounded-xl bg-surface shadow-xl">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-line px-6 py-4">
                         <div className="flex items-center gap-3">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10">
                                 <Link2 className="h-5 w-5 text-purple-600" />
                             </div>
                             <div>
-                                <h2 className="text-lg font-semibold text-slate-900">Link Marketplace</h2>
-                                <p className="text-sm text-slate-500">Share items with another hub</p>
+                                <h2 className="text-lg font-semibold text-heading">Link Marketplace</h2>
+                                <p className="text-sm text-muted">Share items with another hub</p>
                             </div>
                         </div>
                         <button
                             onClick={handleClose}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                            className="rounded-lg p-2 text-faint hover:bg-surface-hover hover:text-subtle"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -147,28 +147,28 @@ export function LinkHubModal({ isOpen, onClose, onLinkRequested, existingLinkIds
                     {/* Content */}
                     <div className="px-6 py-4">
                         {error && (
-                            <div className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
+                            <div className="mb-4 rounded-lg bg-red-500/10 p-3 text-sm text-red-600">
                                 {error}
                             </div>
                         )}
 
                         {loading ? (
                             <div className="flex items-center justify-center py-8">
-                                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                                <Loader2 className="h-6 w-6 animate-spin text-faint" />
                             </div>
                         ) : otherHubs.length === 0 ? (
                             <div className="text-center py-8">
-                                <Building2 className="mx-auto h-10 w-10 text-slate-300" />
-                                <p className="mt-3 text-sm text-slate-500">
+                                <Building2 className="mx-auto h-10 w-10 text-faint" />
+                                <p className="mt-3 text-sm text-muted">
                                     You don't own any other hubs to link with.
                                 </p>
-                                <p className="mt-1 text-xs text-slate-400">
+                                <p className="mt-1 text-xs text-faint">
                                     You can only link marketplaces between hubs you own.
                                 </p>
                             </div>
                         ) : (
                             <>
-                                <p className="text-sm text-slate-600 mb-4">
+                                <p className="text-sm text-subtle mb-4">
                                     Select one of your other hubs to share marketplace items with.
                                     The other hub's owner will need to approve the link.
                                 </p>
@@ -176,13 +176,13 @@ export function LinkHubModal({ isOpen, onClose, onLinkRequested, existingLinkIds
                                 {/* Search */}
                                 {otherHubs.length > 3 && (
                                     <div className="relative mb-4">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                         <input
                                             type="text"
                                             placeholder="Search hubs..."
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-slate-300 text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                                            className="w-full pl-9 pr-4 py-2 rounded-lg border border-line-strong bg-surface text-heading text-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                                         />
                                     </div>
                                 )}
@@ -195,32 +195,32 @@ export function LinkHubModal({ isOpen, onClose, onLinkRequested, existingLinkIds
                                             onClick={() => setSelectedHubId(otherHub.id)}
                                             className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
                                                 selectedHubId === otherHub.id
-                                                    ? 'border-purple-500 bg-purple-50'
-                                                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                                                    ? 'border-purple-500 bg-purple-500/10'
+                                                    : 'border-line hover:border-line-strong hover:bg-surface-hover'
                                             }`}
                                         >
                                             <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
                                                 selectedHubId === otherHub.id
-                                                    ? 'bg-purple-100'
-                                                    : 'bg-slate-100'
+                                                    ? 'bg-purple-500/10'
+                                                    : 'bg-surface-hover'
                                             }`}>
                                                 <Building2 className={`h-5 w-5 ${
                                                     selectedHubId === otherHub.id
                                                         ? 'text-purple-600'
-                                                        : 'text-slate-500'
+                                                        : 'text-muted'
                                                 }`} />
                                             </div>
                                             <span className={`font-medium ${
                                                 selectedHubId === otherHub.id
-                                                    ? 'text-purple-900'
-                                                    : 'text-slate-900'
+                                                    ? 'text-purple-600'
+                                                    : 'text-heading'
                                             }`}>
                                                 {otherHub.name}
                                             </span>
                                         </button>
                                     ))}
                                     {filteredHubs.length === 0 && searchQuery && (
-                                        <p className="text-center py-4 text-sm text-slate-500">
+                                        <p className="text-center py-4 text-sm text-muted">
                                             No hubs match "{searchQuery}"
                                         </p>
                                     )}
@@ -231,10 +231,10 @@ export function LinkHubModal({ isOpen, onClose, onLinkRequested, existingLinkIds
 
                     {/* Footer */}
                     {otherHubs.length > 0 && (
-                        <div className="flex justify-end gap-3 border-t border-slate-200 px-6 py-4">
+                        <div className="flex justify-end gap-3 border-t border-line px-6 py-4">
                             <button
                                 onClick={handleClose}
-                                className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                                className="rounded-lg px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                             >
                                 Cancel
                             </button>

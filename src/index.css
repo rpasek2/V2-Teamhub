@@ -4,14 +4,87 @@
 @import "tailwindcss";
 
 /* ============================================
-   THE DIGITAL GYM DESIGN SYSTEM - LIGHT MODE
+   THE DIGITAL GYM DESIGN SYSTEM
    "Calm, focused, and professional"
    ============================================ */
+
+/* ========== RUNTIME THEME TOKENS ========== */
+/* These CSS custom properties swap at runtime for dark mode and accent colors */
+:root {
+  /* Surface / background */
+  --th-surface:           #ffffff;
+  --th-surface-alt:       #f8fafc;
+  --th-surface-hover:     #f1f5f9;
+  --th-surface-active:    #e2e8f0;
+  /* Text */
+  --th-text-heading:      #0f172a;
+  --th-text-body:         #334155;
+  --th-text-subtle:       #475569;
+  --th-text-muted:        #64748b;
+  --th-text-faint:        #94a3b8;
+  /* Borders */
+  --th-border:            #e2e8f0;
+  --th-border-strong:     #cbd5e1;
+  /* Misc */
+  --th-ring-offset:       #ffffff;
+  --th-input-bg:          #ffffff;
+  /* Accent color (default: mint) */
+  --th-accent-50:         #ecfdf5;
+  --th-accent-100:        #d1fae5;
+  --th-accent-200:        #a7f3d0;
+  --th-accent-300:        #6ee7b7;
+  --th-accent-400:        #34d399;
+  --th-accent-500:        #10b981;
+  --th-accent-600:        #059669;
+  --th-accent-700:        #047857;
+  --th-accent-800:        #065f46;
+  --th-accent-900:        #064e3b;
+}
+
+html.dark {
+  --th-surface:           #1e293b;
+  --th-surface-alt:       #0f172a;
+  --th-surface-hover:     #334155;
+  --th-surface-active:    #475569;
+  --th-text-heading:      #f1f5f9;
+  --th-text-body:         #cbd5e1;
+  --th-text-subtle:       #94a3b8;
+  --th-text-muted:        #94a3b8;
+  --th-text-faint:        #64748b;
+  --th-border:            #334155;
+  --th-border-strong:     #475569;
+  --th-ring-offset:       #1e293b;
+  --th-input-bg:          #1e293b;
+}
 
 @theme {
   /* ========== TYPOGRAPHY ========== */
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
   --font-mono: 'SF Mono', 'Roboto Mono', ui-monospace, monospace;
+
+  /* ========== SEMANTIC TOKENS (runtime-swappable) ========== */
+  --color-surface:        var(--th-surface);
+  --color-surface-alt:    var(--th-surface-alt);
+  --color-surface-hover:  var(--th-surface-hover);
+  --color-surface-active: var(--th-surface-active);
+  --color-heading:        var(--th-text-heading);
+  --color-body:           var(--th-text-body);
+  --color-subtle:         var(--th-text-subtle);
+  --color-muted:          var(--th-text-muted);
+  --color-faint:          var(--th-text-faint);
+  --color-line:           var(--th-border);
+  --color-line-strong:    var(--th-border-strong);
+  /* Accent palette (overridden per-hub) */
+  --color-accent-50:      var(--th-accent-50);
+  --color-accent-100:     var(--th-accent-100);
+  --color-accent-200:     var(--th-accent-200);
+  --color-accent-300:     var(--th-accent-300);
+  --color-accent-400:     var(--th-accent-400);
+  --color-accent-500:     var(--th-accent-500);
+  --color-accent-600:     var(--th-accent-600);
+  --color-accent-700:     var(--th-accent-700);
+  --color-accent-800:     var(--th-accent-800);
+  --color-accent-900:     var(--th-accent-900);
 
   /* ========== PRIMARY: CARBON SLATE ========== */
   /* Deep, cool charcoal - easier on eyes than pure black */
@@ -120,12 +193,12 @@
   }
 
   body {
-    @apply bg-slate-50 text-slate-700 antialiased;
+    @apply bg-surface-alt text-body antialiased;
   }
 
   /* Headings */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-semibold tracking-tight text-slate-900;
+    @apply font-semibold tracking-tight text-heading;
   }
 
   /* Tabular figures for numbers */
@@ -133,14 +206,15 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* Focus styles - mint accent */
+  /* Focus styles - accent color */
   :focus-visible {
-    @apply outline-none ring-2 ring-mint-500/50 ring-offset-2 ring-offset-white;
+    outline: none;
+    box-shadow: 0 0 0 2px var(--th-ring-offset), 0 0 0 4px var(--th-accent-500);
   }
 
   /* Selection */
   ::selection {
-    @apply bg-mint-500/30 text-slate-900;
+    @apply bg-accent-500/30 text-heading;
   }
 }
 
@@ -148,7 +222,7 @@
 @layer utilities {
   /* Subtle gradient backgrounds */
   .bg-gradient-slate {
-    background: linear-gradient(180deg, var(--color-slate-50) 0%, var(--color-white, #ffffff) 100%);
+    background: linear-gradient(180deg, var(--th-surface-alt) 0%, var(--th-surface) 100%);
   }
 
   /* Glow effects */
@@ -162,7 +236,7 @@
 
   /* Glass effect for cards */
   .glass {
-    background: rgba(255, 255, 255, 0.8);
+    background: color-mix(in srgb, var(--th-surface) 80%, transparent);
     backdrop-filter: blur(12px);
   }
 
@@ -225,32 +299,32 @@
 
 /* ========== COMPONENT STYLES ========== */
 @layer components {
-  /* Primary Button - Electric Mint */
+  /* Primary Button - Accent Color */
   .btn-primary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           bg-mint-500 text-white font-medium
+           bg-accent-500 text-white font-medium
            rounded-lg shadow-sm
-           hover:bg-mint-600
-           active:bg-mint-700
+           hover:bg-accent-600
+           active:bg-accent-700
            transition-all duration-150;
   }
 
   /* Secondary Button - Outlined */
   .btn-secondary {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2.5
-           bg-transparent border border-slate-300
-           text-slate-700 font-medium
+           bg-transparent border border-line-strong
+           text-body font-medium
            rounded-lg
-           hover:bg-slate-100 hover:border-slate-400 hover:text-slate-900
+           hover:bg-surface-hover hover:border-faint hover:text-heading
            transition-all duration-150;
   }
 
   /* Ghost Button */
   .btn-ghost {
     @apply inline-flex items-center justify-center gap-2 px-4 py-2
-           text-slate-600 font-medium
+           text-subtle font-medium
            rounded-lg
-           hover:bg-slate-100 hover:text-slate-900
+           hover:bg-surface-hover hover:text-heading
            transition-all duration-150;
   }
 
@@ -266,36 +340,36 @@
   /* Icon Button */
   .btn-icon {
     @apply inline-flex items-center justify-center p-2
-           text-slate-500 rounded-lg
-           hover:bg-slate-100 hover:text-slate-900
+           text-muted rounded-lg
+           hover:bg-surface-hover hover:text-heading
            transition-all duration-150;
   }
 
-  /* Cards - Rounded Geometry, Light backgrounds */
+  /* Cards - Rounded Geometry */
   .card {
-    @apply bg-white rounded-xl border border-slate-200 shadow-sm;
+    @apply bg-surface-alt rounded-xl border border-line shadow-sm;
   }
 
   .card-elevated {
-    @apply bg-white rounded-xl shadow-lg border border-slate-200;
+    @apply bg-surface-alt rounded-xl shadow-lg border border-line;
   }
 
   .card-glass {
-    @apply rounded-xl border border-slate-200/50 shadow-lg;
-    background: rgba(255, 255, 255, 0.8);
+    @apply rounded-xl border border-line/50 shadow-lg;
+    background: color-mix(in srgb, var(--th-surface) 80%, transparent);
     backdrop-filter: blur(12px);
   }
 
   /* Inputs */
   .input {
-    @apply w-full px-4 py-2.5 bg-white border border-slate-300 rounded-lg
-           text-slate-900 placeholder:text-slate-400
-           focus:border-mint-500 focus:ring-2 focus:ring-mint-500/20
+    @apply w-full px-4 py-2.5 bg-surface border border-line-strong rounded-lg
+           text-heading placeholder:text-faint
+           focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20
            transition-all duration-150;
   }
 
   .input-label {
-    @apply block text-sm font-medium text-slate-700 mb-1.5;
+    @apply block text-sm font-medium text-body mb-1.5;
   }
 
   /* Status Pills/Badges */
@@ -307,7 +381,7 @@
   .badge-mint {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-mint-100 text-mint-700 border border-mint-300;
+           bg-accent-100 text-accent-700 border border-accent-300;
   }
 
   .badge-indigo {
@@ -319,13 +393,13 @@
   .badge-slate {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-slate-100 text-slate-700 border border-slate-300;
+           bg-surface-hover text-body border border-line-strong;
   }
 
   .badge-success {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-mint-100 text-mint-700 border border-mint-300;
+           bg-accent-100 text-accent-700 border border-accent-300;
   }
 
   .badge-error {
@@ -338,7 +412,7 @@
   .skill-incomplete {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-transparent text-slate-400 border border-slate-300;
+           bg-transparent text-faint border border-line-strong;
   }
 
   .skill-learning {
@@ -350,32 +424,32 @@
   .skill-mastered {
     @apply inline-flex items-center gap-1 px-2.5 py-1
            text-xs font-medium rounded-full
-           bg-mint-100 text-mint-700 border border-mint-300;
+           bg-accent-100 text-accent-700 border border-accent-300;
   }
 
   /* Navigation items */
   .nav-item {
     @apply flex items-center gap-3 px-3 py-2.5 rounded-lg
-           text-slate-600 font-medium text-sm
-           hover:bg-slate-100 hover:text-slate-900
+           text-subtle font-medium text-sm
+           hover:bg-surface-hover hover:text-heading
            transition-all duration-150;
   }
 
   .nav-item-active {
-    @apply bg-slate-100 text-slate-900;
+    @apply bg-surface-hover text-heading;
   }
 
   /* Stat blocks - for scores */
   .stat-block {
-    @apply bg-white rounded-xl p-5 border border-slate-200 shadow-sm;
+    @apply bg-surface rounded-xl p-5 border border-line shadow-sm;
   }
 
   .stat-value {
-    @apply text-4xl font-bold tracking-tight tabular-nums text-slate-900;
+    @apply text-4xl font-bold tracking-tight tabular-nums text-heading;
   }
 
   .stat-label {
-    @apply text-sm text-slate-500;
+    @apply text-sm text-muted;
   }
 
   /* Tables */
@@ -385,29 +459,29 @@
 
   .table-compact th {
     @apply px-4 py-3 text-left font-medium text-xs uppercase tracking-wider
-           text-slate-500 bg-slate-50 border-b border-slate-200;
+           text-muted bg-surface-alt border-b border-line;
   }
 
   .table-compact td {
-    @apply px-4 py-3 border-b border-slate-200;
+    @apply px-4 py-3 border-b border-line;
   }
 
   .table-compact tr:hover td {
-    @apply bg-slate-50;
+    @apply bg-surface-alt;
   }
 
   /* Score display - tabular nums aligned */
   .score-display {
-    @apply font-mono tabular-nums text-slate-900;
+    @apply font-mono tabular-nums text-heading;
   }
 
   /* Progress bars */
   .progress-bar {
-    @apply h-2 bg-slate-200 rounded-full overflow-hidden;
+    @apply h-2 bg-surface-active rounded-full overflow-hidden;
   }
 
   .progress-bar-fill {
-    @apply h-full bg-gradient-to-r from-mint-500 to-mint-400 rounded-full
+    @apply h-full bg-gradient-to-r from-accent-500 to-accent-400 rounded-full
            transition-all duration-500 ease-out;
   }
 
@@ -427,18 +501,18 @@
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-slate-300);
+  background: var(--th-border-strong);
   border-radius: 4px;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-slate-400);
+  background: var(--th-text-faint);
 }
 
 /* Firefox */
 .sidebar-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: var(--color-slate-300) transparent;
+  scrollbar-color: var(--th-border-strong) transparent;
 }
 
 /* Hidden scrollbar */
@@ -459,14 +533,14 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-slate-50);
+  background: var(--th-surface-alt);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-slate-300);
+  background: var(--th-border-strong);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-slate-400);
+  background: var(--th-text-faint);
 }

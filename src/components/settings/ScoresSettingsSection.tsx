@@ -112,36 +112,36 @@ export function ScoresSettingsSection() {
             {message && (
                 <div className={`mb-4 p-4 rounded-md ${
                     message.type === 'success'
-                        ? 'bg-green-50 text-green-800 border border-green-200'
-                        : 'bg-red-50 text-red-800 border border-red-200'
+                        ? 'bg-green-500/10 text-green-600 border border-green-500/20'
+                        : 'bg-red-500/10 text-red-600 border border-red-500/20'
                 }`}>
                     {message.text}
                 </div>
             )}
 
             {levels.length === 0 ? (
-                <div className="text-center py-8 text-slate-500">
-                    <Trophy className="mx-auto h-8 w-8 text-slate-400 mb-2" />
+                <div className="text-center py-8 text-muted">
+                    <Trophy className="mx-auto h-8 w-8 text-faint mb-2" />
                     <p>No levels configured yet.</p>
                     <p className="text-sm mt-1">Add levels in the Levels section above first.</p>
                 </div>
             ) : (
                 <>
                     <div className="mb-6">
-                        <h4 className="text-sm font-medium text-slate-900 mb-2">Qualifying Scores</h4>
-                        <p className="text-xs text-slate-500 mb-4">
+                        <h4 className="text-sm font-medium text-heading mb-2">Qualifying Scores</h4>
+                        <p className="text-xs text-muted mb-4">
                             Set minimum scores required to qualify for State, Regional, and National competitions.
                             Badges will appear on scores that meet these thresholds.
                         </p>
 
                         {/* Gender Toggle */}
-                        <div className="flex rounded-lg bg-slate-100 p-1 mb-4 w-fit">
+                        <div className="flex rounded-lg bg-surface-hover p-1 mb-4 w-fit">
                             <button
                                 onClick={() => setActiveGender('Female')}
                                 className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                                     activeGender === 'Female'
-                                        ? 'bg-white text-slate-900 shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-900'
+                                        ? 'bg-surface text-heading shadow-sm'
+                                        : 'text-muted hover:text-heading'
                                 }`}
                             >
                                 Women's
@@ -150,8 +150,8 @@ export function ScoresSettingsSection() {
                                 onClick={() => setActiveGender('Male')}
                                 className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                                     activeGender === 'Male'
-                                        ? 'bg-white text-slate-900 shadow-sm'
-                                        : 'text-slate-500 hover:text-slate-900'
+                                        ? 'bg-surface text-heading shadow-sm'
+                                        : 'text-muted hover:text-heading'
                                 }`}
                             >
                                 Men's
@@ -160,7 +160,7 @@ export function ScoresSettingsSection() {
 
                         {/* Level Selector */}
                         <div className="mb-4">
-                            <label className="block text-xs font-medium text-slate-600 mb-1">
+                            <label className="block text-xs font-medium text-subtle mb-1">
                                 Level
                             </label>
                             <select
@@ -176,10 +176,10 @@ export function ScoresSettingsSection() {
 
                         {/* Scores Table */}
                         <div className="overflow-x-auto">
-                            <table className="min-w-full border border-slate-200 rounded-lg overflow-hidden">
+                            <table className="min-w-full border border-line rounded-lg overflow-hidden">
                                 <thead>
-                                    <tr className="bg-slate-50">
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase w-40">
+                                    <tr className="bg-surface">
+                                        <th className="px-4 py-3 text-left text-xs font-semibold text-muted uppercase w-40">
                                             Score Type
                                         </th>
                                         <th className="px-4 py-3 text-center text-xs font-semibold uppercase">
@@ -199,14 +199,14 @@ export function ScoresSettingsSection() {
                                                 <Medal className="h-3 w-3" />
                                                 National
                                             </div>
-                                            <span className="text-xs font-normal text-slate-400">(optional)</span>
+                                            <span className="text-xs font-normal text-faint">(optional)</span>
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-200">
+                                <tbody className="divide-y divide-line">
                                     {/* All-Around Row */}
-                                    <tr className="bg-brand-50">
-                                        <td className="px-4 py-3 text-sm font-semibold text-brand-700">
+                                    <tr className="bg-accent-500/10">
+                                        <td className="px-4 py-3 text-sm font-semibold text-accent-600">
                                             All-Around (AA)
                                         </td>
                                         <td className="px-4 py-2 text-center">
@@ -246,9 +246,9 @@ export function ScoresSettingsSection() {
 
                                     {/* Individual Event Score Row */}
                                     <tr>
-                                        <td className="px-4 py-3 text-sm font-medium text-slate-700">
+                                        <td className="px-4 py-3 text-sm font-medium text-body">
                                             Individual Event (IES)
-                                            <p className="text-xs text-slate-400 font-normal mt-0.5">
+                                            <p className="text-xs text-faint font-normal mt-0.5">
                                                 Applies to all events
                                             </p>
                                         </td>
@@ -291,9 +291,9 @@ export function ScoresSettingsSection() {
                         </div>
 
                         {/* Legend */}
-                        <div className="mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                            <p className="text-xs font-medium text-slate-700 mb-2">How qualifying badges work:</p>
-                            <ul className="text-xs text-slate-500 space-y-1">
+                        <div className="mt-4 p-3 bg-surface-alt rounded-lg border border-line">
+                            <p className="text-xs font-medium text-body mb-2">How qualifying badges work:</p>
+                            <ul className="text-xs text-muted space-y-1">
                                 <li className="flex items-center gap-2">
                                     <Award className="h-3 w-3 text-blue-600" />
                                     <strong className="text-blue-600">State</strong> badges appear at regular season meets

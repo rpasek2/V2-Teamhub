@@ -213,20 +213,20 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
     };
 
     return (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
             {/* Header */}
             <div className="px-5 pt-5">
                 <div className="flex items-start gap-3">
                     <div className="flex-shrink-0">
                         {post.profiles?.avatar_url ? (
                             <img
-                                className="h-11 w-11 rounded-full ring-2 ring-white"
+                                className="h-11 w-11 rounded-full ring-2 ring-surface"
                                 src={post.profiles.avatar_url}
                                 alt=""
                                 loading="lazy"
                             />
                         ) : (
-                            <div className="h-11 w-11 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center ring-2 ring-white">
+                            <div className="h-11 w-11 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center ring-2 ring-surface">
                                 <span className="text-white font-semibold text-sm">
                                     {post.profiles?.full_name?.charAt(0) || 'U'}
                                 </span>
@@ -235,17 +235,17 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                     </div>
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                            <p className="text-sm font-semibold text-slate-900">
+                            <p className="text-sm font-semibold text-heading">
                                 {post.profiles?.full_name || 'Unknown User'}
                             </p>
                             {isPinned && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-100 to-orange-100 text-amber-700 text-xs font-medium shadow-sm">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-500/10 to-orange-500/10 text-amber-600 text-xs font-medium shadow-sm">
                                     <Pin className="h-3 w-3" />
                                     Pinned
                                 </span>
                             )}
                         </div>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-muted">
                             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                         </p>
                     </div>
@@ -253,7 +253,7 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                         <div className="relative">
                             <button
                                 onClick={() => setShowMenu(!showMenu)}
-                                className="p-1.5 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                                className="p-1.5 rounded-full text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                             >
                                 <MoreHorizontal className="h-5 w-5" />
                             </button>
@@ -263,7 +263,7 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                                         className="fixed inset-0 z-10"
                                         onClick={() => setShowMenu(false)}
                                     />
-                                    <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-20">
+                                    <div className="absolute right-0 mt-1 w-44 bg-surface rounded-xl shadow-xl border border-line py-1.5 z-20">
                                         {canPin && (
                                             <button
                                                 onClick={async () => {
@@ -281,11 +281,11 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                                                         console.error('Error toggling pin:', err);
                                                     }
                                                 }}
-                                                className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5"
+                                                className="w-full px-4 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2.5"
                                             >
                                                 {isPinned ? (
                                                     <>
-                                                        <PinOff className="h-4 w-4 text-slate-500" />
+                                                        <PinOff className="h-4 w-4 text-muted" />
                                                         Unpin Post
                                                     </>
                                                 ) : (
@@ -298,13 +298,13 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                                         )}
                                         {canDelete && (
                                             <>
-                                                {canPin && <div className="my-1 border-t border-slate-100" />}
+                                                {canPin && <div className="my-1 border-t border-line" />}
                                                 <button
                                                     onClick={() => {
                                                         setShowMenu(false);
                                                         onDelete();
                                                     }}
-                                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5"
+                                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-500/10 flex items-center gap-2.5"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
                                                     Delete Post
@@ -322,7 +322,7 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
             {/* Content */}
             <div className="px-5 py-4 space-y-4">
                 {/* Text content */}
-                <p className="text-slate-800 whitespace-pre-wrap leading-relaxed">{post.content}</p>
+                <p className="text-heading whitespace-pre-wrap leading-relaxed">{post.content}</p>
 
                 {/* Image Gallery */}
                 {allImageUrls.length > 0 && (
@@ -379,7 +379,7 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 bg-gradient-to-b from-slate-50/80 to-slate-100/50 border-t border-slate-100">
+            <div className="px-5 py-3 bg-gradient-to-b from-surface-alt/80 to-surface-hover/50 border-t border-line">
                 <div className="flex items-center justify-between">
                     {/* Reactions */}
                     <div className="flex items-center gap-0.5">
@@ -387,8 +387,8 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                             onClick={() => handleReaction('like')}
                             className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
                                 userReaction === 'like'
-                                    ? 'bg-blue-100 text-blue-600 shadow-sm'
-                                    : 'hover:bg-slate-100 text-slate-400 hover:text-blue-600'
+                                    ? 'bg-blue-500/10 text-blue-600 shadow-sm'
+                                    : 'hover:bg-surface-hover text-faint hover:text-blue-600'
                             }`}
                             title="Like"
                         >
@@ -399,8 +399,8 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                             onClick={() => handleReaction('heart')}
                             className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
                                 userReaction === 'heart'
-                                    ? 'bg-pink-100 text-pink-500 shadow-sm'
-                                    : 'hover:bg-slate-100 text-slate-400 hover:text-pink-500'
+                                    ? 'bg-pink-500/10 text-pink-500 shadow-sm'
+                                    : 'hover:bg-surface-hover text-faint hover:text-pink-500'
                             }`}
                             title="Love"
                         >
@@ -411,8 +411,8 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                             onClick={() => handleReaction('celebrate')}
                             className={`group flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all ${
                                 userReaction === 'celebrate'
-                                    ? 'bg-amber-100 text-amber-600 shadow-sm'
-                                    : 'hover:bg-slate-100 text-slate-400 hover:text-amber-600'
+                                    ? 'bg-amber-500/10 text-amber-600 shadow-sm'
+                                    : 'hover:bg-surface-hover text-faint hover:text-amber-600'
                             }`}
                             title="Celebrate"
                         >
@@ -426,8 +426,8 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                         onClick={fetchComments}
                         className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all ${
                             showComments
-                                ? 'bg-brand-100 text-brand-600 shadow-sm'
-                                : 'text-slate-500 hover:bg-slate-100 hover:text-brand-600'
+                                ? 'bg-accent-500/15 text-accent-600 shadow-sm'
+                                : 'text-muted hover:bg-surface-hover hover:text-accent-600'
                         }`}
                     >
                         <MessageSquare className="h-[18px] w-[18px]" />
@@ -438,10 +438,10 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
 
             {/* Comments Section */}
             {showComments && (
-                <div className="px-5 pb-5 border-t border-slate-100">
+                <div className="px-5 pb-5 border-t border-line">
                     <div className="space-y-4 pt-4">
                         {comments.length === 0 ? (
-                            <p className="text-sm text-slate-500 text-center py-2">No comments yet. Be the first!</p>
+                            <p className="text-sm text-muted text-center py-2">No comments yet. Be the first!</p>
                         ) : (
                             comments.map((comment) => (
                                 <div key={comment.id} className="flex gap-3">
@@ -454,27 +454,27 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                                                 loading="lazy"
                                             />
                                         ) : (
-                                            <div className="h-8 w-8 rounded-full bg-slate-200 flex items-center justify-center">
-                                                <User className="h-4 w-4 text-slate-500" />
+                                            <div className="h-8 w-8 rounded-full bg-surface-active flex items-center justify-center">
+                                                <User className="h-4 w-4 text-muted" />
                                             </div>
                                         )}
                                     </div>
                                     <div className="flex-1">
-                                        <div className="bg-slate-100 rounded-2xl px-4 py-2.5">
+                                        <div className="bg-surface-hover rounded-2xl px-4 py-2.5">
                                             <div className="flex items-center justify-between gap-2">
-                                                <span className="text-xs font-semibold text-slate-900">
+                                                <span className="text-xs font-semibold text-heading">
                                                     {comment.profiles?.full_name || 'Unknown'}
                                                 </span>
-                                                <span className="text-xs text-slate-400">
+                                                <span className="text-xs text-faint">
                                                     {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-slate-700 mt-0.5">{comment.content}</p>
+                                            <p className="text-sm text-body mt-0.5">{comment.content}</p>
                                         </div>
                                         {(isAdmin || comment.user_id === currentUserId) && (
                                             <button
                                                 onClick={() => handleDeleteComment(comment.id)}
-                                                className="text-xs text-slate-400 hover:text-red-500 mt-1 ml-4"
+                                                className="text-xs text-faint hover:text-red-500 mt-1 ml-4"
                                             >
                                                 Delete
                                             </button>
@@ -491,12 +491,12 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                                 value={newComment}
                                 onChange={(e) => setNewComment(e.target.value)}
                                 placeholder="Write a comment..."
-                                className="flex-1 rounded-full border border-slate-200 px-4 py-2 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-shadow"
+                                className="flex-1 rounded-full border border-line bg-surface px-4 py-2 text-sm text-heading shadow-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-shadow"
                             />
                             <button
                                 type="submit"
                                 disabled={submittingComment || !newComment.trim()}
-                                className="px-5 py-2 rounded-full bg-brand-600 text-white text-sm font-medium hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                                className="px-5 py-2 rounded-full bg-accent-600 text-white text-sm font-medium hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                             >
                                 Post
                             </button>

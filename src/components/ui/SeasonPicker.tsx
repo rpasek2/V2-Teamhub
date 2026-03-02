@@ -70,7 +70,7 @@ export function SeasonPicker({
 
     if (loading || seasons.length === 0) {
         return (
-            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-400 ${className}`}>
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-faint ${className}`}>
                 <Calendar className="h-4 w-4" />
                 <span>Loading...</span>
             </div>
@@ -82,44 +82,44 @@ export function SeasonPicker({
             <button
                 type="button"
                 onClick={() => setIsOpen(!isOpen)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-body bg-surface border border-line rounded-lg hover:bg-surface-hover hover:border-line-strong transition-colors"
             >
-                <Calendar className="h-4 w-4 text-slate-400" />
+                <Calendar className="h-4 w-4 text-faint" />
                 <span>{selectedSeason?.name || 'Select Season'}</span>
                 {selectedSeason?.is_current && (
-                    <span className="ml-1 px-1.5 py-0.5 text-xs font-medium bg-brand-100 text-brand-700 rounded">
+                    <span className="ml-1 px-1.5 py-0.5 text-xs font-medium bg-accent-100 text-accent-700 rounded">
                         Current
                     </span>
                 )}
-                <ChevronDown className={`h-4 w-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-4 w-4 text-faint transition-transform ${isOpen ? 'rotate-180' : ''}`} />
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 z-50 mt-1 w-56 bg-white rounded-lg border border-slate-200 shadow-lg overflow-hidden">
+                <div className="absolute right-0 z-50 mt-1 w-56 bg-surface rounded-lg border border-line shadow-lg overflow-hidden">
                     <div className="py-1">
                         {seasons.map((season) => (
                             <button
                                 key={season.id}
                                 type="button"
                                 onClick={() => handleSelect(season)}
-                                className={`w-full px-4 py-2 text-left flex items-center justify-between hover:bg-slate-50 transition-colors ${
-                                    season.id === selectedSeasonId ? 'bg-brand-50' : ''
+                                className={`w-full px-4 py-2 text-left flex items-center justify-between hover:bg-surface-hover transition-colors ${
+                                    season.id === selectedSeasonId ? 'bg-accent-50' : ''
                                 }`}
                             >
                                 <div className="flex items-center gap-2">
                                     <span className={`text-sm font-medium ${
-                                        season.id === selectedSeasonId ? 'text-brand-700' : 'text-slate-900'
+                                        season.id === selectedSeasonId ? 'text-accent-700' : 'text-heading'
                                     }`}>
                                         {season.name}
                                     </span>
                                     {season.is_current && (
-                                        <span className="px-1.5 py-0.5 text-xs font-medium bg-brand-100 text-brand-700 rounded">
+                                        <span className="px-1.5 py-0.5 text-xs font-medium bg-accent-100 text-accent-700 rounded">
                                             Current
                                         </span>
                                     )}
                                 </div>
                                 {season.id === selectedSeasonId && (
-                                    <Check className="h-4 w-4 text-brand-600" />
+                                    <Check className="h-4 w-4 text-accent-600" />
                                 )}
                             </button>
                         ))}

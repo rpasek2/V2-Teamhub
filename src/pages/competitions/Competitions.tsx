@@ -122,9 +122,9 @@ export function Competitions() {
 
     return (
         <div className="h-full flex flex-col">
-            <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
+            <header className="flex items-center justify-between border-b border-line bg-surface px-6 py-4 rounded-t-xl">
                 <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-bold text-slate-900">Competitions</h1>
+                    <h1 className="text-2xl font-bold text-heading">Competitions</h1>
                     <SeasonPicker
                         selectedSeasonId={selectedSeasonId}
                         onSeasonChange={handleSeasonChange}
@@ -144,7 +144,7 @@ export function Competitions() {
             <main className="flex-1 overflow-y-auto p-6">
                 {loading ? (
                     <div className="flex h-full items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-brand-500" />
+                        <Loader2 className="h-8 w-8 animate-spin text-accent-500" />
                     </div>
                 ) : competitions.length > 0 ? (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -158,16 +158,16 @@ export function Competitions() {
                                 key={comp.id}
                                 className={`group relative flex flex-col overflow-hidden rounded-xl border shadow-sm transition-all ${
                                     isPast
-                                        ? 'border-slate-200 bg-slate-50 opacity-70'
+                                        ? 'border-line bg-surface-alt opacity-70'
                                         : isActive
-                                            ? 'border-green-300 bg-white hover:shadow-md hover:border-green-400 ring-2 ring-green-100'
-                                            : 'border-slate-200 bg-white hover:shadow-md hover:border-brand-300'
+                                            ? 'border-green-300 bg-surface hover:shadow-md hover:border-green-400 ring-2 ring-green-100'
+                                            : 'border-line bg-surface hover:shadow-md hover:border-accent-300'
                                 }`}
                             >
                                 {/* Delete confirmation overlay */}
                                 {confirmDeleteId === comp.id && (
-                                    <div className="absolute inset-0 z-10 bg-white/95 flex flex-col items-center justify-center p-4">
-                                        <p className="text-sm font-medium text-slate-900 text-center mb-4">
+                                    <div className="absolute inset-0 z-10 bg-surface/95 flex flex-col items-center justify-center p-4">
+                                        <p className="text-sm font-medium text-heading text-center mb-4">
                                             Delete "{comp.name}"?
                                         </p>
                                         <div className="flex gap-2">
@@ -201,7 +201,7 @@ export function Competitions() {
                                     <div className="flex items-center justify-between">
                                         <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
                                             isPast
-                                                ? 'bg-slate-200 text-slate-400'
+                                                ? 'bg-surface-active text-faint'
                                                 : isActive
                                                     ? 'bg-green-100 text-green-600'
                                                     : 'bg-amber-100 text-amber-600 group-hover:bg-amber-200'
@@ -211,7 +211,7 @@ export function Competitions() {
                                         <div className="flex items-center gap-2">
                                             {/* Status badge */}
                                             {isPast && (
-                                                <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-xs font-medium text-slate-500">
+                                                <span className="inline-flex items-center rounded-full bg-surface-active px-2 py-0.5 text-xs font-medium text-muted">
                                                     Completed
                                                 </span>
                                             )}
@@ -222,7 +222,7 @@ export function Competitions() {
                                                 </span>
                                             )}
                                             <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                                                isPast ? 'bg-slate-100 text-slate-500' : 'bg-slate-100 text-slate-600'
+                                                isPast ? 'bg-surface-hover text-muted' : 'bg-surface-hover text-subtle'
                                             }`}>
                                                 {comp.competition_gymnasts?.[0]?.count || 0} Gymnasts
                                             </span>
@@ -230,21 +230,21 @@ export function Competitions() {
                                     </div>
                                     <h3 className={`mt-4 text-lg font-semibold ${
                                         isPast
-                                            ? 'text-slate-500'
+                                            ? 'text-muted'
                                             : isActive
-                                                ? 'text-slate-900 group-hover:text-green-600'
-                                                : 'text-slate-900 group-hover:text-brand-600'
+                                                ? 'text-heading group-hover:text-green-600'
+                                                : 'text-heading group-hover:text-accent-600'
                                     }`}>
                                         {comp.name}
                                     </h3>
                                     <div className="mt-4 space-y-2">
-                                        <div className={`flex items-center text-sm ${isPast ? 'text-slate-400' : 'text-slate-500'}`}>
-                                            <Calendar className={`mr-2 h-4 w-4 ${isPast ? 'text-slate-300' : 'text-slate-400'}`} />
+                                        <div className={`flex items-center text-sm ${isPast ? 'text-faint' : 'text-muted'}`}>
+                                            <Calendar className={`mr-2 h-4 w-4 ${isPast ? 'text-faint' : 'text-faint'}`} />
                                             {format(parseISO(comp.start_date), 'MMM d')} - {format(parseISO(comp.end_date), 'MMM d, yyyy')}
                                         </div>
                                         {comp.location && (
-                                            <div className={`flex items-center text-sm ${isPast ? 'text-slate-400' : 'text-slate-500'}`}>
-                                                <MapPin className={`mr-2 h-4 w-4 ${isPast ? 'text-slate-300' : 'text-slate-400'}`} />
+                                            <div className={`flex items-center text-sm ${isPast ? 'text-faint' : 'text-muted'}`}>
+                                                <MapPin className={`mr-2 h-4 w-4 ${isPast ? 'text-faint' : 'text-faint'}`} />
                                                 <span>{comp.location}</span>
                                             </div>
                                         )}
@@ -257,17 +257,17 @@ export function Competitions() {
                                         href={getGoogleMapsUrl(comp.location)}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="mx-6 mb-4 -mt-2 flex items-center text-xs text-brand-600 hover:text-brand-700 transition-colors"
+                                        className="mx-6 mb-4 -mt-2 flex items-center text-xs text-accent-600 hover:text-accent-700 transition-colors"
                                     >
                                         <ExternalLink className="mr-1 h-3 w-3" />
                                         Open in Google Maps
                                     </a>
                                 )}
 
-                                <div className="mt-auto border-t border-slate-200 bg-slate-50 px-6 py-3 flex items-center justify-between">
+                                <div className="mt-auto border-t border-line bg-surface-alt px-6 py-3 flex items-center justify-between">
                                     <Link
                                         to={`/hub/${hub?.id}/competitions/${comp.id}`}
-                                        className="text-sm font-medium text-brand-600 hover:text-brand-700"
+                                        className="text-sm font-medium text-accent-600 hover:text-accent-700"
                                     >
                                         View Details &rarr;
                                     </Link>
@@ -278,7 +278,7 @@ export function Competitions() {
                                                 e.stopPropagation();
                                                 setConfirmDeleteId(comp.id);
                                             }}
-                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            className="p-1.5 text-faint hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                                             title="Delete competition"
                                         >
                                             <Trash2 className="w-4 h-4" />
@@ -291,11 +291,11 @@ export function Competitions() {
                     </div>
                 ) : (
                     <div className="flex h-full flex-col items-center justify-center text-center">
-                        <div className="rounded-full bg-slate-100 p-4">
-                            <Trophy className="h-8 w-8 text-slate-400" />
+                        <div className="rounded-full bg-surface-hover p-4">
+                            <Trophy className="h-8 w-8 text-faint" />
                         </div>
-                        <h3 className="mt-4 text-lg font-semibold text-slate-900">No competitions yet</h3>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <h3 className="mt-4 text-lg font-semibold text-heading">No competitions yet</h3>
+                        <p className="mt-2 text-sm text-muted">
                             {isStaff
                                 ? 'Get started by creating your first competition.'
                                 : 'Competitions will appear here once they are created.'}

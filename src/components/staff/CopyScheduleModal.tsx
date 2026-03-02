@@ -89,7 +89,7 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
             case 'director': return 'bg-purple-100 text-purple-700';
             case 'admin': return 'bg-blue-100 text-blue-700';
             case 'coach': return 'bg-green-100 text-green-700';
-            default: return 'bg-slate-100 text-slate-600';
+            default: return 'bg-surface-hover text-subtle';
         }
     };
 
@@ -105,16 +105,16 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-lg bg-white rounded-xl shadow-xl">
+                <div className="relative w-full max-w-lg bg-surface rounded-xl shadow-xl">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-slate-200">
+                    <div className="flex items-center justify-between p-4 border-b border-line">
                         <div className="flex items-center gap-2">
-                            <Copy className="w-5 h-5 text-mint-600" />
-                            <h2 className="text-lg font-semibold text-slate-900">Copy Schedule</h2>
+                            <Copy className="w-5 h-5 text-accent-600" />
+                            <h2 className="text-lg font-semibold text-heading">Copy Schedule</h2>
                         </div>
                         <button
                             onClick={onClose}
-                            className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                            className="p-1 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -124,7 +124,7 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
                     <form onSubmit={handleSubmit} className="p-4 space-y-4">
                         {/* Source Selection */}
                         <div>
-                            <label htmlFor="source" className="block text-sm font-medium text-slate-700 mb-1">
+                            <label htmlFor="source" className="block text-sm font-medium text-body mb-1">
                                 Copy from *
                             </label>
                             <select
@@ -148,24 +148,24 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
 
                         {/* Schedule Preview */}
                         {sourceStaff && (
-                            <div className="bg-slate-50 rounded-lg p-3">
-                                <p className="text-sm font-medium text-slate-700 mb-2">Schedule Preview:</p>
+                            <div className="bg-surface-alt rounded-lg p-3">
+                                <p className="text-sm font-medium text-body mb-2">Schedule Preview:</p>
                                 {sourceStaff.schedules.length === 0 ? (
-                                    <p className="text-sm text-slate-500 italic">No schedule blocks to copy</p>
+                                    <p className="text-sm text-muted italic">No schedule blocks to copy</p>
                                 ) : (
                                     <div className="space-y-1">
                                         {schedulesByDay.filter(d => d.blocks.length > 0).map(({ day, blocks }) => (
                                             <div key={day} className="flex items-start gap-2 text-sm">
-                                                <span className="w-10 font-medium text-slate-600">{day}:</span>
+                                                <span className="w-10 font-medium text-subtle">{day}:</span>
                                                 <div className="flex flex-wrap gap-1">
                                                     {blocks.map(block => (
                                                         <span
                                                             key={block.id}
-                                                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-white rounded border border-slate-200 text-xs"
+                                                            className="inline-flex items-center gap-1 px-2 py-0.5 bg-surface rounded border border-line text-xs"
                                                         >
                                                             <Clock className="w-3 h-3 text-teal-500" />
                                                             {formatTime(block.start_time)} - {formatTime(block.end_time)}
-                                                            <span className="text-slate-500">({block.role_label})</span>
+                                                            <span className="text-muted">({block.role_label})</span>
                                                         </span>
                                                     ))}
                                                 </div>
@@ -179,7 +179,7 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
                         {/* Target Selection */}
                         {sourceUserId && (
                             <div>
-                                <label className="block text-sm font-medium text-slate-700 mb-2">
+                                <label className="block text-sm font-medium text-body mb-2">
                                     Apply to *
                                 </label>
 
@@ -188,34 +188,34 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
                                     <button
                                         type="button"
                                         onClick={selectAllTargets}
-                                        className="px-3 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                                        className="px-3 py-1 text-xs font-medium rounded-full bg-surface-hover text-body hover:bg-surface-active transition-colors"
                                     >
                                         Select All
                                     </button>
                                     <button
                                         type="button"
                                         onClick={clearTargets}
-                                        className="px-3 py-1 text-xs font-medium rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+                                        className="px-3 py-1 text-xs font-medium rounded-full bg-surface-hover text-muted hover:bg-surface-active transition-colors"
                                     >
                                         Clear
                                     </button>
                                 </div>
 
                                 {/* Target Staff List */}
-                                <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                <div className="max-h-40 overflow-y-auto border border-line rounded-lg divide-y divide-line">
                                     {targetStaffOptions.map(staff => (
                                         <label
                                             key={staff.user_id}
                                             className={`flex items-center gap-3 p-3 cursor-pointer transition-colors ${
                                                 selectedTargets.has(staff.user_id)
-                                                    ? 'bg-mint-50'
-                                                    : 'hover:bg-slate-50'
+                                                    ? 'bg-accent-50'
+                                                    : 'hover:bg-surface-hover'
                                             }`}
                                         >
                                             <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                                                 selectedTargets.has(staff.user_id)
-                                                    ? 'bg-mint-500 border-mint-500'
-                                                    : 'border-slate-300'
+                                                    ? 'bg-accent-500 border-accent-500'
+                                                    : 'border-line-strong'
                                             }`}>
                                                 {selectedTargets.has(staff.user_id) && (
                                                     <Check className="w-3.5 h-3.5 text-white" />
@@ -228,11 +228,11 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
                                                 className="sr-only"
                                             />
                                             <div className="flex-1 min-w-0">
-                                                <p className="font-medium text-slate-900 text-sm">
+                                                <p className="font-medium text-heading text-sm">
                                                     {staff.profile?.full_name || 'Unknown'}
                                                 </p>
                                                 {staff.schedules.length > 0 && (
-                                                    <p className="text-xs text-slate-500">
+                                                    <p className="text-xs text-muted">
                                                         Has {staff.schedules.length} existing schedule block{staff.schedules.length !== 1 ? 's' : ''}
                                                     </p>
                                                 )}
@@ -245,7 +245,7 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
                                 </div>
 
                                 {selectedTargets.size > 0 && (
-                                    <p className="text-xs text-mint-600 mt-2">
+                                    <p className="text-xs text-accent-600 mt-2">
                                         {selectedTargets.size} staff member{selectedTargets.size !== 1 ? 's' : ''} selected
                                     </p>
                                 )}
@@ -255,34 +255,34 @@ export function CopyScheduleModal({ isOpen, onClose, hubId, staffData, onSchedul
                         {/* Mode Selection */}
                         {sourceUserId && selectedTargets.size > 0 && (
                             <div className="space-y-2">
-                                <label className="block text-sm font-medium text-slate-700">
+                                <label className="block text-sm font-medium text-body">
                                     Copy Mode
                                 </label>
                                 <div className="space-y-2">
-                                    <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <label className="flex items-start gap-3 p-3 rounded-lg border border-line cursor-pointer hover:bg-surface-hover transition-colors">
                                         <input
                                             type="radio"
                                             name="mode"
                                             checked={replaceMode}
                                             onChange={() => setReplaceMode(true)}
-                                            className="mt-0.5 text-mint-600 focus:ring-mint-500"
+                                            className="mt-0.5 text-accent-600 focus:ring-accent-500"
                                         />
                                         <div>
-                                            <p className="font-medium text-slate-900 text-sm">Replace existing schedules</p>
-                                            <p className="text-xs text-slate-500">Delete current schedules and replace with new ones</p>
+                                            <p className="font-medium text-heading text-sm">Replace existing schedules</p>
+                                            <p className="text-xs text-muted">Delete current schedules and replace with new ones</p>
                                         </div>
                                     </label>
-                                    <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 cursor-pointer hover:bg-slate-50 transition-colors">
+                                    <label className="flex items-start gap-3 p-3 rounded-lg border border-line cursor-pointer hover:bg-surface-hover transition-colors">
                                         <input
                                             type="radio"
                                             name="mode"
                                             checked={!replaceMode}
                                             onChange={() => setReplaceMode(false)}
-                                            className="mt-0.5 text-mint-600 focus:ring-mint-500"
+                                            className="mt-0.5 text-accent-600 focus:ring-accent-500"
                                         />
                                         <div>
-                                            <p className="font-medium text-slate-900 text-sm">Merge with existing schedules</p>
-                                            <p className="text-xs text-slate-500">Add new schedule blocks without removing existing ones</p>
+                                            <p className="font-medium text-heading text-sm">Merge with existing schedules</p>
+                                            <p className="text-xs text-muted">Add new schedule blocks without removing existing ones</p>
                                         </div>
                                     </label>
                                 </div>

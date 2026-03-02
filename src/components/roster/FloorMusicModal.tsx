@@ -104,44 +104,44 @@ export function FloorMusicModal({ isOpen, onClose, hubId, levels }: FloorMusicMo
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
             <div className="card p-0 max-w-2xl w-full mx-4 max-h-[80vh] flex flex-col" onClick={e => e.stopPropagation()}>
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-line">
                     <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-lg bg-purple-50 flex items-center justify-center">
                             <Music className="h-5 w-5 text-purple-600" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-semibold text-slate-900">All Floor Music</h2>
-                            <p className="text-sm text-slate-500">{gymnasts.length} gymnast{gymnasts.length !== 1 ? 's' : ''} with floor music</p>
+                            <h2 className="text-lg font-semibold text-heading">All Floor Music</h2>
+                            <p className="text-sm text-muted">{gymnasts.length} gymnast{gymnasts.length !== 1 ? 's' : ''} with floor music</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors">
+                    <button onClick={onClose} className="p-2 rounded-lg text-faint hover:text-subtle hover:bg-surface-hover transition-colors">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
 
                 {/* Search */}
-                <div className="px-6 py-3 border-b border-slate-200">
+                <div className="px-6 py-3 border-b border-line">
                     <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                         <input
                             type="text"
                             placeholder="Search by name..."
                             value={searchTerm}
                             onChange={e => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                            className="w-full pl-9 pr-4 py-2 border border-line-strong rounded-lg text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                         />
                     </div>
                 </div>
 
                 {/* Level Filter */}
                 {levelsWithMusic.length > 1 && (
-                    <div className="px-6 py-2 border-b border-slate-200 flex items-center gap-2 flex-wrap">
+                    <div className="px-6 py-2 border-b border-line flex items-center gap-2 flex-wrap">
                         <button
                             onClick={() => setSelectedLevel(null)}
                             className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                                 selectedLevel === null
-                                    ? 'bg-brand-500 text-white'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    ? 'bg-accent-500 text-white'
+                                    : 'bg-surface-hover text-subtle hover:bg-surface-active'
                             }`}
                         >
                             All
@@ -152,8 +152,8 @@ export function FloorMusicModal({ isOpen, onClose, hubId, levels }: FloorMusicMo
                                 onClick={() => setSelectedLevel(selectedLevel === level ? null : level)}
                                 className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                                     selectedLevel === level
-                                        ? 'bg-brand-500 text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-accent-500 text-white'
+                                        : 'bg-surface-hover text-subtle hover:bg-surface-active'
                                 }`}
                             >
                                 {level}
@@ -165,49 +165,49 @@ export function FloorMusicModal({ isOpen, onClose, hubId, levels }: FloorMusicMo
                 {/* Content */}
                 <div className="flex-1 overflow-y-auto p-6">
                     {loading ? (
-                        <div className="text-center py-8 text-slate-500">Loading...</div>
+                        <div className="text-center py-8 text-muted">Loading...</div>
                     ) : Object.keys(groupedByLevel).length === 0 ? (
                         <div className="text-center py-8">
-                            <Music className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                            <p className="text-slate-500">
+                            <Music className="h-12 w-12 text-faint mx-auto mb-3" />
+                            <p className="text-muted">
                                 {searchTerm || selectedLevel ? 'No results found' : 'No floor music uploaded yet'}
                             </p>
                         </div>
                     ) : (
                         <div className="space-y-4">
                             {Object.entries(groupedByLevel).map(([level, levelGymnasts]) => (
-                                <div key={level} className="border border-slate-200 rounded-lg overflow-hidden">
+                                <div key={level} className="border border-line rounded-lg overflow-hidden">
                                     <button
                                         onClick={() => toggleLevel(level)}
-                                        className="w-full flex items-center justify-between px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors"
+                                        className="w-full flex items-center justify-between px-4 py-2.5 bg-surface-alt hover:bg-surface-hover transition-colors"
                                     >
                                         <div className="flex items-center gap-2">
                                             {collapsedLevels.has(level) ? (
-                                                <ChevronRight className="h-4 w-4 text-slate-400" />
+                                                <ChevronRight className="h-4 w-4 text-faint" />
                                             ) : (
-                                                <ChevronDown className="h-4 w-4 text-slate-400" />
+                                                <ChevronDown className="h-4 w-4 text-faint" />
                                             )}
-                                            <span className="text-sm font-semibold text-slate-900">{level}</span>
-                                            <span className="text-xs text-slate-500">({levelGymnasts.length})</span>
+                                            <span className="text-sm font-semibold text-heading">{level}</span>
+                                            <span className="text-xs text-muted">({levelGymnasts.length})</span>
                                         </div>
                                     </button>
                                     {!collapsedLevels.has(level) && (
-                                        <div className="divide-y divide-slate-100">
+                                        <div className="divide-y divide-line">
                                             {levelGymnasts.map(g => (
                                                 <div key={g.id} className="px-4 py-3">
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <div className="min-w-0 flex-1">
-                                                            <p className="text-sm font-medium text-slate-900">
+                                                            <p className="text-sm font-medium text-heading">
                                                                 {g.first_name} {g.last_name}
                                                             </p>
-                                                            <p className="text-xs text-slate-500 truncate">
+                                                            <p className="text-xs text-muted truncate">
                                                                 {g.floor_music_name || 'Floor Music'}
                                                             </p>
                                                         </div>
                                                         <a
                                                             href={g.floor_music_url}
                                                             download={g.floor_music_name || `${g.first_name}-${g.last_name}-floor-music`}
-                                                            className="p-1.5 rounded-md text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors flex-shrink-0"
+                                                            className="p-1.5 rounded-md text-faint hover:text-accent-600 hover:bg-accent-50 transition-colors flex-shrink-0"
                                                             title="Download"
                                                         >
                                                             <Download className="h-4 w-4" />

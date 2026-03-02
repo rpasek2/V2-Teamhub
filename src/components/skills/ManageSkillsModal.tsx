@@ -169,20 +169,20 @@ export function ManageSkillsModal({
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-lg transform rounded-xl bg-white shadow-2xl transition-all">
+                <div className="relative w-full max-w-lg transform rounded-xl bg-surface shadow-2xl transition-all">
                     {/* Header */}
-                    <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+                    <div className="flex items-center justify-between border-b border-line px-6 py-4">
                         <div>
-                            <h2 className="text-lg font-semibold text-slate-900">
+                            <h2 className="text-lg font-semibold text-heading">
                                 Manage Skills
                             </h2>
-                            <p className="text-sm text-slate-500">
+                            <p className="text-sm text-muted">
                                 {level} - {eventName}
                             </p>
                         </div>
                         <button
                             onClick={onClose}
-                            className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-500"
+                            className="rounded-lg p-2 text-faint hover:bg-surface-hover hover:text-muted"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -192,7 +192,7 @@ export function ManageSkillsModal({
                     <div className="p-6">
                         {/* Error Message */}
                         {error && (
-                            <div className="mb-4 flex items-start gap-2 rounded-lg bg-red-50 p-3 text-red-800">
+                            <div className="mb-4 flex items-start gap-2 rounded-lg bg-red-500/10 p-3 text-red-600">
                                 <AlertCircle className="h-5 w-5 flex-shrink-0" />
                                 <p className="text-sm">{error}</p>
                             </div>
@@ -206,12 +206,12 @@ export function ManageSkillsModal({
                                 onChange={(e) => setNewSkillName(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleAddSkill()}
                                 placeholder="Enter skill name..."
-                                className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                className="flex-1 rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-heading focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             />
                             <button
                                 onClick={handleAddSkill}
                                 disabled={!newSkillName.trim() || saving}
-                                className="flex items-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                className="flex items-center gap-1.5 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                             >
                                 <Plus className="h-4 w-4" />
                                 Add
@@ -220,8 +220,8 @@ export function ManageSkillsModal({
 
                         {/* Skills List */}
                         {localSkills.length === 0 ? (
-                            <div className="rounded-lg border-2 border-dashed border-slate-200 p-8 text-center">
-                                <p className="text-sm text-slate-500">
+                            <div className="rounded-lg border-2 border-dashed border-line p-8 text-center">
+                                <p className="text-sm text-muted">
                                     No skills defined yet. Add your first skill above.
                                 </p>
                             </div>
@@ -230,10 +230,10 @@ export function ManageSkillsModal({
                                 {localSkills.map((skill, index) => (
                                     <div
                                         key={skill.id}
-                                        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white p-2 hover:bg-slate-50"
+                                        className="flex items-center gap-2 rounded-lg border border-line bg-surface p-2 hover:bg-surface-hover"
                                     >
                                         {/* Drag Handle / Order indicator */}
-                                        <div className="flex flex-col items-center text-slate-400">
+                                        <div className="flex flex-col items-center text-faint">
                                             <GripVertical className="h-5 w-5" />
                                         </div>
 
@@ -250,12 +250,12 @@ export function ManageSkillsModal({
                                                         if (e.key === 'Escape') setEditingId(null);
                                                     }}
                                                     autoFocus
-                                                    className="w-full rounded border border-brand-300 px-2 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                                    className="w-full rounded border border-accent-300 bg-surface px-2 py-1 text-sm text-heading focus:outline-none focus:ring-1 focus:ring-accent-500"
                                                 />
                                             ) : (
                                                 <button
                                                     onClick={() => startEditing(skill)}
-                                                    className="w-full text-left text-sm font-medium text-slate-900 hover:text-brand-600 truncate"
+                                                    className="w-full text-left text-sm font-medium text-heading hover:text-accent-600 truncate"
                                                 >
                                                     {skill.skill_name}
                                                 </button>
@@ -267,7 +267,7 @@ export function ManageSkillsModal({
                                             <button
                                                 onClick={() => handleMoveSkill(skill.id, 'up')}
                                                 disabled={index === 0}
-                                                className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                className="rounded p-1 text-faint hover:bg-surface-hover hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
                                                 title="Move up"
                                             >
                                                 <ChevronUp className="h-4 w-4" />
@@ -275,7 +275,7 @@ export function ManageSkillsModal({
                                             <button
                                                 onClick={() => handleMoveSkill(skill.id, 'down')}
                                                 disabled={index === localSkills.length - 1}
-                                                className="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                                className="rounded p-1 text-faint hover:bg-surface-hover hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
                                                 title="Move down"
                                             >
                                                 <ChevronDown className="h-4 w-4" />
@@ -285,7 +285,7 @@ export function ManageSkillsModal({
                                         {/* Delete Button */}
                                         <button
                                             onClick={() => handleDeleteSkill(skill.id)}
-                                            className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                                            className="rounded p-1.5 text-faint hover:bg-red-500/10 hover:text-red-600"
                                             title="Delete skill"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -295,16 +295,16 @@ export function ManageSkillsModal({
                             </div>
                         )}
 
-                        <p className="mt-4 text-xs text-slate-500">
+                        <p className="mt-4 text-xs text-muted">
                             Click on a skill name to edit it. Use arrows to reorder skills.
                         </p>
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end border-t border-slate-200 px-6 py-4">
+                    <div className="flex justify-end border-t border-line px-6 py-4">
                         <button
                             onClick={onClose}
-                            className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
+                            className="rounded-lg bg-surface-hover px-4 py-2 text-sm font-medium text-body hover:bg-surface-active"
                         >
                             Done
                         </button>

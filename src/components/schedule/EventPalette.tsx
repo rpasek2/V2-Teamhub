@@ -50,7 +50,7 @@ export function EventPalette({
         return (
             <div className={compact ? '' : 'card p-3'}>
                 {!compact && (
-                    <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                    <h3 className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">
                         Events
                     </h3>
                 )}
@@ -75,7 +75,7 @@ export function EventPalette({
                                             e.stopPropagation();
                                             setEditingEvent(event);
                                         }}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/30 transition-opacity"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-surface/30 transition-opacity"
                                         title="Edit color"
                                     >
                                         <Pencil className="w-3 h-3" />
@@ -86,13 +86,13 @@ export function EventPalette({
                     })}
 
                     {events.length === 0 && (
-                        <p className="text-xs text-slate-400 text-center py-2">No events</p>
+                        <p className="text-xs text-faint text-center py-2">No events</p>
                     )}
 
                     {canManage && (
                         <button
                             onClick={onAddCustom}
-                            className="w-full px-3 py-2 rounded-lg text-sm font-medium border-2 border-dashed border-slate-300 text-slate-500 hover:border-brand-400 hover:text-brand-600 hover:bg-brand-50 transition-colors flex items-center justify-center gap-1"
+                            className="w-full px-3 py-2 rounded-lg text-sm font-medium border-2 border-dashed border-line-strong text-muted hover:border-accent-400 hover:text-accent-600 hover:bg-accent-500/10 transition-colors flex items-center justify-center gap-1"
                         >
                             <Plus className="w-4 h-4" />
                             Custom
@@ -101,7 +101,7 @@ export function EventPalette({
                 </div>
 
                 {selectedEvent && (
-                    <p className="text-xs text-slate-500 mt-3 text-center">
+                    <p className="text-xs text-muted mt-3 text-center">
                         Click & drag on grid
                     </p>
                 )}
@@ -125,10 +125,10 @@ export function EventPalette({
     return (
         <div className="card p-4">
             <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-slate-700">
+                <h3 className="text-sm font-medium text-body">
                     Events
                     {selectedEvent && (
-                        <span className="text-slate-400 font-normal ml-2">
+                        <span className="text-faint font-normal ml-2">
                             — Click on grid to place
                         </span>
                     )}
@@ -136,7 +136,7 @@ export function EventPalette({
                 {canManage && (
                     <button
                         onClick={onAddCustom}
-                        className="text-sm text-brand-600 hover:text-brand-700 font-medium flex items-center gap-1"
+                        className="text-sm text-accent-600 hover:text-accent-700 font-medium flex items-center gap-1"
                     >
                         <Plus className="w-4 h-4" />
                         Custom Event
@@ -164,7 +164,7 @@ export function EventPalette({
                                         e.stopPropagation();
                                         setEditingEvent(event);
                                     }}
-                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-white/30 transition-opacity"
+                                    className="absolute right-1 top-1/2 -translate-y-1/2 p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-surface/30 transition-opacity"
                                     title="Edit color"
                                 >
                                     <Pencil className="w-3 h-3" />
@@ -175,12 +175,12 @@ export function EventPalette({
                 })}
 
                 {events.length === 0 && (
-                    <p className="text-sm text-slate-400">No events configured</p>
+                    <p className="text-sm text-faint">No events configured</p>
                 )}
             </div>
 
             {selectedEvent && (
-                <p className="text-xs text-slate-500 mt-3">
+                <p className="text-xs text-muted mt-3">
                     Click and drag on the grid below to create a "{selectedEvent.name}" rotation block.
                     Click this event again to deselect.
                 </p>

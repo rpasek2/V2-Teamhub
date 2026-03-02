@@ -33,7 +33,7 @@ export function ChannelsSection({ hubId }: ChannelsSectionProps) {
             description="Manage hub-wide channels that all members can access"
         >
             {message && (
-                <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                <div className={`mb-4 p-4 rounded-md ${message.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {message.text}
                 </div>
             )}
@@ -41,7 +41,7 @@ export function ChannelsSection({ hubId }: ChannelsSectionProps) {
             {/* Add new channel input */}
             <div className="flex gap-2 mb-4">
                 <div className="relative flex-1">
-                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                    <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-faint">
                         <Hash className="h-4 w-4" />
                     </span>
                     <input
@@ -73,29 +73,29 @@ export function ChannelsSection({ hubId }: ChannelsSectionProps) {
             {/* Channels list */}
             {loadingChannels ? (
                 <div className="text-center py-6">
-                    <Loader2 className="animate-spin h-6 w-6 text-slate-400 mx-auto" />
+                    <Loader2 className="animate-spin h-6 w-6 text-faint mx-auto" />
                 </div>
             ) : channels.length === 0 ? (
-                <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
-                    <Hash className="mx-auto h-8 w-8 text-slate-400" />
-                    <p className="mt-2 text-sm text-slate-500">No channels yet.</p>
-                    <p className="text-xs text-slate-400">Add a channel above to get started.</p>
+                <div className="text-center py-6 bg-surface-alt rounded-lg border-2 border-dashed border-line">
+                    <Hash className="mx-auto h-8 w-8 text-faint" />
+                    <p className="mt-2 text-sm text-muted">No channels yet.</p>
+                    <p className="text-xs text-faint">Add a channel above to get started.</p>
                 </div>
             ) : (
                 <ul className="space-y-2">
                     {channels.map((channel) => (
                         <li
                             key={channel.id}
-                            className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-slate-200"
+                            className="flex items-center justify-between bg-surface rounded-lg px-4 py-3 border border-line"
                         >
                             <div className="flex items-center">
-                                <Hash className="h-4 w-4 text-slate-400 mr-2" />
-                                <span className="text-sm font-medium text-slate-900">{channel.name}</span>
+                                <Hash className="h-4 w-4 text-faint mr-2" />
+                                <span className="text-sm font-medium text-heading">{channel.name}</span>
                             </div>
                             <button
                                 type="button"
                                 onClick={() => handleDeleteChannel(channel.id, channel.name)}
-                                className="p-1 text-slate-400 hover:text-red-600"
+                                className="p-1 text-faint hover:text-red-600"
                                 title="Delete channel"
                             >
                                 <Trash2 className="h-4 w-4" />

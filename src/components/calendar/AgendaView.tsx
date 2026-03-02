@@ -40,19 +40,19 @@ export function AgendaView({
     const isLoading = agendaMode === 'upcoming' ? loading : loadingSaveTheDates;
 
     return (
-        <div className="flex-1 overflow-y-auto bg-slate-50">
+        <div className="flex-1 overflow-y-auto bg-surface-alt">
             <div className="max-w-3xl mx-auto px-4 py-6 sm:px-6">
                 {/* Agenda Mode Toggle */}
                 <div className="flex items-center justify-between mb-6">
-                    <div className="flex rounded-lg bg-white border border-slate-200 p-1 shadow-sm">
+                    <div className="flex rounded-lg bg-surface border border-line p-1 shadow-sm">
                         <button
                             type="button"
                             onClick={() => onAgendaModeChange('upcoming')}
                             className={cn(
                                 "px-4 py-2 rounded-md text-sm font-medium transition-all",
                                 agendaMode === 'upcoming'
-                                    ? 'bg-mint-500 text-white shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    ? 'bg-accent-500 text-white shadow-sm'
+                                    : 'text-subtle hover:text-heading hover:bg-surface-hover'
                             )}
                         >
                             Upcoming
@@ -63,15 +63,15 @@ export function AgendaView({
                             className={cn(
                                 "px-4 py-2 rounded-md text-sm font-medium transition-all",
                                 agendaMode === 'save_the_dates'
-                                    ? 'bg-mint-500 text-white shadow-sm'
-                                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                                    ? 'bg-accent-500 text-white shadow-sm'
+                                    : 'text-subtle hover:text-heading hover:bg-surface-hover'
                             )}
                         >
                             Save the Dates
                         </button>
                     </div>
                     {agendaMode === 'save_the_dates' && currentSeason && (
-                        <span className="text-sm text-slate-500">
+                        <span className="text-sm text-muted">
                             {currentSeason.name}
                         </span>
                     )}
@@ -80,8 +80,8 @@ export function AgendaView({
                 {/* Event List */}
                 {isLoading ? (
                     <div className="text-center py-12">
-                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-mint-500 border-r-transparent"></div>
-                        <p className="mt-4 text-sm text-slate-500">Loading events...</p>
+                        <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-accent-500 border-r-transparent"></div>
+                        <p className="mt-4 text-sm text-muted">Loading events...</p>
                     </div>
                 ) : displayEvents.length > 0 ? (
                     <div className="space-y-4">
@@ -91,7 +91,7 @@ export function AgendaView({
                                 <div
                                     key={event.id}
                                     onClick={() => onEventClick(event)}
-                                    className="group flex gap-4 rounded-xl border border-slate-200 p-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-all cursor-pointer bg-white"
+                                    className="group flex gap-4 rounded-xl border border-line p-4 shadow-sm hover:shadow-md hover:border-line-strong transition-all cursor-pointer bg-surface"
                                 >
                                     {/* Date Badge */}
                                     <div className="flex-shrink-0 text-center">
@@ -111,7 +111,7 @@ export function AgendaView({
                                     {/* Event Details */}
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-start justify-between gap-2">
-                                            <h3 className="text-base font-semibold text-slate-900 group-hover:text-mint-600 transition-colors">
+                                            <h3 className="text-base font-semibold text-heading group-hover:text-accent-600 transition-colors">
                                                 {event.title}
                                             </h3>
                                             <span className={cn(
@@ -123,7 +123,7 @@ export function AgendaView({
                                             </span>
                                         </div>
 
-                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-slate-500">
+                                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
                                             <span className="flex items-center gap-1">
                                                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -142,7 +142,7 @@ export function AgendaView({
                                         </div>
 
                                         {event.description && (
-                                            <p className="mt-2 text-sm text-slate-500 line-clamp-2">
+                                            <p className="mt-2 text-sm text-muted line-clamp-2">
                                                 {event.description}
                                             </p>
                                         )}
@@ -153,13 +153,13 @@ export function AgendaView({
                     </div>
                 ) : (
                     <div className="text-center py-16">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 mb-4">
-                            <CalendarIcon className="h-8 w-8 text-slate-400" />
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-surface-hover mb-4">
+                            <CalendarIcon className="h-8 w-8 text-faint" />
                         </div>
-                        <h3 className="text-lg font-semibold text-slate-900">
+                        <h3 className="text-lg font-semibold text-heading">
                             {agendaMode === 'save_the_dates' ? 'No save the dates' : 'No events'}
                         </h3>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <p className="mt-1 text-sm text-muted">
                             {agendaMode === 'save_the_dates'
                                 ? (!currentSeason
                                     ? 'No current season is set. Please set a current season in Settings.'

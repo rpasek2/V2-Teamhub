@@ -136,11 +136,11 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
             <div className="fixed inset-0 bg-black bg-opacity-50" onClick={onClose}></div>
 
             {/* Modal Content */}
-            <div className="relative z-[10000] w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+            <div className="relative z-[10000] w-full max-w-lg rounded-lg bg-surface p-6 shadow-xl">
                 <div className="absolute top-4 right-4">
                     <button
                         type="button"
-                        className="rounded-md text-gray-400 hover:text-gray-500"
+                        className="rounded-md text-faint hover:text-subtle"
                         onClick={onClose}
                     >
                         <span className="sr-only">Close</span>
@@ -149,28 +149,28 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                 </div>
 
                 <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand-100">
-                        <Users className="h-6 w-6 text-brand-600" />
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-accent-500/15">
+                        <Users className="h-6 w-6 text-accent-600" />
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-lg font-medium text-gray-900" id="modal-title">
+                        <h3 className="text-lg font-medium text-heading" id="modal-title">
                             Create New Group
                         </h3>
-                        <p className="mt-1 text-sm text-gray-500">
+                        <p className="mt-1 text-sm text-muted">
                             Create a space for your team to communicate and share updates.
                         </p>
                     </div>
                 </div>
 
                 {error && (
-                    <div className="mt-4 rounded-md bg-red-50 p-4">
-                        <p className="text-sm font-medium text-red-800">{error}</p>
+                    <div className="mt-4 rounded-md bg-red-500/10 p-4">
+                        <p className="text-sm font-medium text-red-600">{error}</p>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="mt-6 space-y-4">
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="name" className="block text-sm font-medium text-body">
                             Group Name
                         </label>
                         <input
@@ -178,7 +178,7 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                             name="name"
                             id="name"
                             required
-                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                            className="mt-1 block w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g., Level 4 Parents"
@@ -186,14 +186,14 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                     </div>
 
                     <div>
-                        <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                        <label htmlFor="description" className="block text-sm font-medium text-body">
                             Description
                         </label>
                         <textarea
                             id="description"
                             name="description"
                             rows={3}
-                            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                            className="mt-1 block w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="What is this group for?"
@@ -203,11 +203,11 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                     {/* Auto-assign Levels */}
                     {levels.length > 0 && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Auto-Assign to Levels
-                                <span className="ml-1 font-normal text-gray-500">(Optional)</span>
+                                <span className="ml-1 font-normal text-muted">(Optional)</span>
                             </label>
-                            <p className="text-xs text-gray-500 mb-3">
+                            <p className="text-xs text-muted mb-3">
                                 Parents of gymnasts in the selected levels will be automatically added to this group.
                             </p>
                             <div className="flex flex-wrap gap-2">
@@ -218,8 +218,8 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                                         onClick={() => toggleLevel(level)}
                                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
                                             selectedLevels.has(level)
-                                                ? 'bg-brand-600 text-white'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                                ? 'bg-accent-600 text-white'
+                                                : 'bg-surface-hover text-body hover:bg-surface-active'
                                         }`}
                                     >
                                         {selectedLevels.has(level) && (
@@ -230,7 +230,7 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                                 ))}
                             </div>
                             {selectedLevels.size > 0 && (
-                                <p className="mt-2 text-xs text-brand-600">
+                                <p className="mt-2 text-xs text-accent-600">
                                     {selectedLevels.size} level{selectedLevels.size !== 1 ? 's' : ''} selected
                                 </p>
                             )}
@@ -240,7 +240,7 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                     <div className="flex justify-end gap-3 pt-4">
                         <button
                             type="button"
-                            className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            className="rounded-md border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                             onClick={onClose}
                         >
                             Cancel
@@ -248,7 +248,7 @@ export function CreateGroupModal({ isOpen, onClose, onGroupCreated }: CreateGrou
                         <button
                             type="submit"
                             disabled={loading}
-                            className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                            className="inline-flex items-center rounded-md bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                         >
                             {loading ? (
                                 <>

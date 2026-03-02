@@ -58,7 +58,7 @@ export function ImageGallery({ urls }: ImageGalleryProps) {
                     <button
                         key={url}
                         onClick={() => openLightbox(index)}
-                        className={`relative ${getImageClass(index)} bg-slate-100 overflow-hidden group`}
+                        className={`relative ${getImageClass(index)} bg-surface-hover overflow-hidden group`}
                     >
                         <img
                             src={url}
@@ -82,7 +82,7 @@ export function ImageGallery({ urls }: ImageGalleryProps) {
                     {/* Close button */}
                     <button
                         onClick={closeLightbox}
-                        className="absolute top-4 right-4 p-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+                        className="absolute top-4 right-4 p-2 text-white/80 hover:text-white rounded-full hover:bg-surface/10 transition-colors"
                     >
                         <X className="h-8 w-8" />
                     </button>
@@ -96,7 +96,7 @@ export function ImageGallery({ urls }: ImageGalleryProps) {
                     {urls.length > 1 && (
                         <button
                             onClick={goToPrevious}
-                            className="absolute left-4 p-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+                            className="absolute left-4 p-2 text-white/80 hover:text-white rounded-full hover:bg-surface/10 transition-colors"
                         >
                             <ChevronLeft className="h-10 w-10" />
                         </button>
@@ -114,7 +114,7 @@ export function ImageGallery({ urls }: ImageGalleryProps) {
                     {urls.length > 1 && (
                         <button
                             onClick={goToNext}
-                            className="absolute right-4 p-2 text-white/80 hover:text-white rounded-full hover:bg-white/10 transition-colors"
+                            className="absolute right-4 p-2 text-white/80 hover:text-white rounded-full hover:bg-surface/10 transition-colors"
                         >
                             <ChevronRight className="h-10 w-10" />
                         </button>

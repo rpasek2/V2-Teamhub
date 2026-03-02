@@ -233,11 +233,11 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                         <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
                             <Trophy className="w-5 h-5 text-white" />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-900">Create Competition</h2>
+                        <h2 className="text-xl font-bold text-heading">Create Competition</h2>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -253,7 +253,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
 
                     {/* Competition Name */}
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">
+                        <label htmlFor="name" className="block text-sm font-medium text-body mb-1">
                             Competition Name *
                         </label>
                         <input
@@ -270,7 +270,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                     {/* Dates */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label htmlFor="startDate" className="block text-sm font-medium text-slate-700 mb-1">
+                            <label htmlFor="startDate" className="block text-sm font-medium text-body mb-1">
                                 Start Date *
                             </label>
                             <input
@@ -283,7 +283,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                             />
                         </div>
                         <div>
-                            <label htmlFor="endDate" className="block text-sm font-medium text-slate-700 mb-1">
+                            <label htmlFor="endDate" className="block text-sm font-medium text-body mb-1">
                                 End Date *
                             </label>
                             <input
@@ -299,7 +299,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
 
                     {/* Location */}
                     <div>
-                        <label htmlFor="location" className="block text-sm font-medium text-slate-700 mb-1">
+                        <label htmlFor="location" className="block text-sm font-medium text-body mb-1">
                             Location
                         </label>
                         <AddressAutocomplete
@@ -312,85 +312,85 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
 
                     {/* Championship Type */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             Meet Type
                         </label>
                         <div className="space-y-2">
-                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-brand-300 transition-colors">
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-accent-300 transition-colors">
                                 <input
                                     type="radio"
                                     name="championshipType"
                                     checked={championshipType === null}
                                     onChange={() => setChampionshipType(null)}
-                                    className="mt-0.5 h-4 w-4 text-brand-600 border-slate-300 focus:ring-brand-500"
+                                    className="mt-0.5 h-4 w-4 text-accent-600 border-line-strong focus:ring-accent-500"
                                 />
                                 <div className="flex-1">
-                                    <span className="text-sm font-medium text-slate-900">Regular Meet</span>
-                                    <p className="text-xs text-slate-500 mt-0.5">Scores can qualify for State</p>
+                                    <span className="text-sm font-medium text-heading">Regular Meet</span>
+                                    <p className="text-xs text-muted mt-0.5">Scores can qualify for State</p>
                                 </div>
                             </label>
-                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-blue-300 transition-colors">
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-blue-300 transition-colors">
                                 <input
                                     type="radio"
                                     name="championshipType"
                                     checked={championshipType === 'state'}
                                     onChange={() => setChampionshipType('state')}
-                                    className="mt-0.5 h-4 w-4 text-blue-600 border-slate-300 focus:ring-blue-500"
+                                    className="mt-0.5 h-4 w-4 text-blue-600 border-line-strong focus:ring-blue-500"
                                 />
                                 <div className="flex-1 flex items-center gap-2">
                                     <div>
-                                        <span className="text-sm font-medium text-slate-900">State Championship</span>
-                                        <p className="text-xs text-slate-500 mt-0.5">Scores can qualify for Regionals</p>
+                                        <span className="text-sm font-medium text-heading">State Championship</span>
+                                        <p className="text-xs text-muted mt-0.5">Scores can qualify for Regionals</p>
                                     </div>
                                     <Award className="h-4 w-4 text-blue-600 ml-auto" />
                                 </div>
                             </label>
-                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-amber-300 transition-colors">
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-amber-300 transition-colors">
                                 <input
                                     type="radio"
                                     name="championshipType"
                                     checked={championshipType === 'regional'}
                                     onChange={() => setChampionshipType('regional')}
-                                    className="mt-0.5 h-4 w-4 text-amber-600 border-slate-300 focus:ring-amber-500"
+                                    className="mt-0.5 h-4 w-4 text-amber-600 border-line-strong focus:ring-amber-500"
                                 />
                                 <div className="flex-1 flex items-center gap-2">
                                     <div>
-                                        <span className="text-sm font-medium text-slate-900">Regional Championship</span>
-                                        <p className="text-xs text-slate-500 mt-0.5">Scores can qualify for Nationals</p>
+                                        <span className="text-sm font-medium text-heading">Regional Championship</span>
+                                        <p className="text-xs text-muted mt-0.5">Scores can qualify for Nationals</p>
                                     </div>
                                     <Trophy className="h-4 w-4 text-amber-600 ml-auto" />
                                 </div>
                             </label>
-                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-purple-300 transition-colors">
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-purple-300 transition-colors">
                                 <input
                                     type="radio"
                                     name="championshipType"
                                     checked={championshipType === 'national'}
                                     onChange={() => setChampionshipType('national')}
-                                    className="mt-0.5 h-4 w-4 text-purple-600 border-slate-300 focus:ring-purple-500"
+                                    className="mt-0.5 h-4 w-4 text-purple-600 border-line-strong focus:ring-purple-500"
                                 />
                                 <div className="flex-1 flex items-center gap-2">
                                     <div>
-                                        <span className="text-sm font-medium text-slate-900">National Championship</span>
-                                        <p className="text-xs text-slate-500 mt-0.5">No qualification badges shown</p>
+                                        <span className="text-sm font-medium text-heading">National Championship</span>
+                                        <p className="text-xs text-muted mt-0.5">No qualification badges shown</p>
                                     </div>
                                     <Medal className="h-4 w-4 text-purple-600 ml-auto" />
                                 </div>
                             </label>
-                            <label className="flex items-start gap-3 p-3 rounded-lg border border-slate-200 bg-white cursor-pointer hover:border-slate-400 transition-colors">
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-line-strong transition-colors">
                                 <input
                                     type="radio"
                                     name="championshipType"
                                     checked={championshipType === 'unsanctioned'}
                                     onChange={() => setChampionshipType('unsanctioned')}
-                                    className="mt-0.5 h-4 w-4 text-slate-600 border-slate-300 focus:ring-slate-500"
+                                    className="mt-0.5 h-4 w-4 text-subtle border-line-strong focus:ring-line-strong"
                                 />
                                 <div className="flex-1 flex items-center gap-2">
                                     <div>
-                                        <span className="text-sm font-medium text-slate-900">Invitational / Non-Sanctioned</span>
-                                        <p className="text-xs text-slate-500 mt-0.5">Scores don't count toward qualifying</p>
+                                        <span className="text-sm font-medium text-heading">Invitational / Non-Sanctioned</span>
+                                        <p className="text-xs text-muted mt-0.5">Scores don't count toward qualifying</p>
                                     </div>
-                                    <CalendarOff className="h-4 w-4 text-slate-400 ml-auto" />
+                                    <CalendarOff className="h-4 w-4 text-faint ml-auto" />
                                 </div>
                             </label>
                         </div>
@@ -399,22 +399,22 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                     {/* Gymnast Selection */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Select Gymnasts
                             </label>
                             <div className="flex gap-2">
                                 <button
                                     type="button"
                                     onClick={selectAll}
-                                    className="text-xs text-brand-600 hover:text-brand-700 font-medium"
+                                    className="text-xs text-accent-600 hover:text-accent-700 font-medium"
                                 >
                                     Select All
                                 </button>
-                                <span className="text-slate-300">|</span>
+                                <span className="text-faint">|</span>
                                 <button
                                     type="button"
                                     onClick={selectNone}
-                                    className="text-xs text-slate-500 hover:text-slate-700 font-medium"
+                                    className="text-xs text-muted hover:text-body font-medium"
                                 >
                                     Clear
                                 </button>
@@ -436,14 +436,14 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                                             onClick={() => toggleLevelSelection(level)}
                                             className={`px-2.5 py-1 text-xs font-medium rounded-full border transition-colors ${
                                                 isFullySelected
-                                                    ? 'bg-brand-100 border-brand-300 text-brand-700'
+                                                    ? 'bg-accent-100 border-accent-300 text-accent-700'
                                                     : selectedCount > 0
-                                                    ? 'bg-brand-50 border-brand-200 text-brand-600'
-                                                    : 'bg-white border-slate-200 text-slate-600 hover:border-brand-300 hover:text-brand-600'
+                                                    ? 'bg-accent-50 border-accent-200 text-accent-600'
+                                                    : 'bg-surface border-line text-subtle hover:border-accent-300 hover:text-accent-600'
                                             }`}
                                         >
                                             {level}
-                                            <span className="ml-1 text-slate-400">
+                                            <span className="ml-1 text-faint">
                                                 ({selectedCount}/{count})
                                             </span>
                                         </button>
@@ -452,41 +452,41 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                             </div>
                         )}
 
-                        <div className="max-h-[300px] overflow-y-auto rounded-lg border border-slate-200 bg-slate-50">
+                        <div className="max-h-[300px] overflow-y-auto rounded-lg border border-line bg-surface-alt">
                             {gymnasts.length > 0 ? (
-                                <div className="divide-y divide-slate-200">
+                                <div className="divide-y divide-line">
                                     {gymnasts.map((gymnast) => (
                                         <div
                                             key={gymnast.id}
-                                            className={`flex cursor-pointer items-center justify-between p-3 hover:bg-white transition-colors ${
-                                                selectedGymnasts.includes(gymnast.id) ? 'bg-brand-50' : ''
+                                            className={`flex cursor-pointer items-center justify-between p-3 hover:bg-surface transition-colors ${
+                                                selectedGymnasts.includes(gymnast.id) ? 'bg-accent-50' : ''
                                             }`}
                                             onClick={() => toggleGymnast(gymnast.id)}
                                         >
                                             <div className="flex items-center gap-2">
-                                                <span className="text-sm font-medium text-slate-900">
+                                                <span className="text-sm font-medium text-heading">
                                                     {gymnast.first_name} {gymnast.last_name}
                                                 </span>
                                                 {gymnast.level && (
-                                                    <span className="px-2 py-0.5 text-xs bg-slate-200 text-slate-600 rounded-full">
+                                                    <span className="px-2 py-0.5 text-xs bg-surface-active text-subtle rounded-full">
                                                         {gymnast.level}
                                                     </span>
                                                 )}
                                             </div>
                                             {selectedGymnasts.includes(gymnast.id) && (
-                                                <Check className="w-4 h-4 text-brand-600" />
+                                                <Check className="w-4 h-4 text-accent-600" />
                                             )}
                                         </div>
                                     ))}
                                 </div>
                             ) : (
                                 <div className="p-4 text-center">
-                                    <p className="text-sm text-slate-500">No gymnasts found in roster.</p>
-                                    <p className="text-xs text-slate-400 mt-1">Add gymnasts to your hub's roster first.</p>
+                                    <p className="text-sm text-muted">No gymnasts found in roster.</p>
+                                    <p className="text-xs text-faint mt-1">Add gymnasts to your hub's roster first.</p>
                                 </div>
                             )}
                         </div>
-                        <p className="mt-1.5 text-xs text-slate-500">
+                        <p className="mt-1.5 text-xs text-muted">
                             {selectedGymnasts.length} of {gymnasts.length} selected
                         </p>
                     </div>

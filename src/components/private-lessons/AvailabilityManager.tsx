@@ -222,7 +222,7 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
     if (loading) {
         return (
             <div className="card p-8 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
             </div>
         );
     }
@@ -231,7 +231,7 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
         <div className="space-y-6">
             {/* Error Message */}
             {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600">
                     {error}
                 </div>
             )}
@@ -240,26 +240,26 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
             <div className="card">
                 <button
                     onClick={() => setRecurringExpanded(!recurringExpanded)}
-                    className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                    className="w-full p-4 flex items-center justify-between hover:bg-surface-hover transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
                             <Clock className="w-4 h-4 text-blue-600" />
                         </div>
                         <div className="text-left">
-                            <h3 className="font-semibold text-slate-900">Weekly Recurring</h3>
-                            <p className="text-sm text-slate-500">{recurring.length} time slots</p>
+                            <h3 className="font-semibold text-heading">Weekly Recurring</h3>
+                            <p className="text-sm text-muted">{recurring.length} time slots</p>
                         </div>
                     </div>
                     {recurringExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-slate-400" />
+                        <ChevronUp className="w-5 h-5 text-faint" />
                     ) : (
-                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                        <ChevronDown className="w-5 h-5 text-faint" />
                     )}
                 </button>
 
                 {recurringExpanded && (
-                    <div className="border-t border-slate-200 p-4">
+                    <div className="border-t border-line p-4">
                         {/* Existing slots grouped by day */}
                         {recurring.length > 0 ? (
                             <div className="space-y-3 mb-4">
@@ -269,19 +269,19 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
 
                                     return (
                                         <div key={dayIndex}>
-                                            <p className="text-xs font-semibold text-slate-500 uppercase mb-2">{day}</p>
+                                            <p className="text-xs font-semibold text-muted uppercase mb-2">{day}</p>
                                             <div className="space-y-2">
                                                 {daySlots.map(slot => (
                                                     <div
                                                         key={slot.id}
-                                                        className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                                                        className="flex items-center justify-between p-3 bg-surface-alt rounded-lg"
                                                     >
-                                                        <span className="text-sm font-medium text-slate-700">
+                                                        <span className="text-sm font-medium text-body">
                                                             {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                                                         </span>
                                                         <button
                                                             onClick={() => deleteRecurringSlot(slot.id)}
-                                                            className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+                                                            className="p-1.5 text-faint hover:text-red-500 transition-colors"
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
@@ -293,12 +293,12 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
                                 })}
                             </div>
                         ) : (
-                            <p className="text-sm text-slate-500 mb-4">No recurring availability set</p>
+                            <p className="text-sm text-muted mb-4">No recurring availability set</p>
                         )}
 
                         {/* Add New Recurring Form */}
                         {showAddRecurring ? (
-                            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
                                 <div className="grid grid-cols-3 gap-3 mb-3">
                                     <select
                                         value={newDayOfWeek}
@@ -341,7 +341,7 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
                         ) : (
                             <button
                                 onClick={() => setShowAddRecurring(true)}
-                                className="w-full p-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+                                className="w-full p-3 border-2 border-dashed border-line-strong rounded-lg text-muted hover:border-blue-400 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
                             >
                                 <Plus className="w-4 h-4" />
                                 Add Weekly Time Slot
@@ -355,45 +355,45 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
             <div className="card">
                 <button
                     onClick={() => setOneOffExpanded(!oneOffExpanded)}
-                    className="w-full p-4 flex items-center justify-between hover:bg-slate-50 transition-colors"
+                    className="w-full p-4 flex items-center justify-between hover:bg-surface-hover transition-colors"
                 >
                     <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                        <div className="h-8 w-8 rounded-lg bg-violet-500/10 flex items-center justify-center">
                             <Calendar className="w-4 h-4 text-violet-600" />
                         </div>
                         <div className="text-left">
-                            <h3 className="font-semibold text-slate-900">One-Off Slots</h3>
-                            <p className="text-sm text-slate-500">{oneOffSlots.length} upcoming slots</p>
+                            <h3 className="font-semibold text-heading">One-Off Slots</h3>
+                            <p className="text-sm text-muted">{oneOffSlots.length} upcoming slots</p>
                         </div>
                     </div>
                     {oneOffExpanded ? (
-                        <ChevronUp className="w-5 h-5 text-slate-400" />
+                        <ChevronUp className="w-5 h-5 text-faint" />
                     ) : (
-                        <ChevronDown className="w-5 h-5 text-slate-400" />
+                        <ChevronDown className="w-5 h-5 text-faint" />
                     )}
                 </button>
 
                 {oneOffExpanded && (
-                    <div className="border-t border-slate-200 p-4">
+                    <div className="border-t border-line p-4">
                         {/* Existing one-off slots */}
                         {oneOffSlots.length > 0 ? (
                             <div className="space-y-2 mb-4">
                                 {oneOffSlots.map(slot => (
                                     <div
                                         key={slot.id}
-                                        className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
+                                        className="flex items-center justify-between p-3 bg-surface-alt rounded-lg"
                                     >
                                         <div>
-                                            <p className="text-sm font-medium text-slate-900">
+                                            <p className="text-sm font-medium text-heading">
                                                 {format(parseISO(slot.slot_date), 'EEE, MMM d, yyyy')}
                                             </p>
-                                            <p className="text-xs text-slate-500">
+                                            <p className="text-xs text-muted">
                                                 {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                                                 {slot.status !== 'available' && (
                                                     <span className={`ml-2 px-1.5 py-0.5 rounded text-xs ${
                                                         slot.status === 'booked'
-                                                            ? 'bg-green-100 text-green-700'
-                                                            : 'bg-amber-100 text-amber-700'
+                                                            ? 'bg-green-500/10 text-green-600'
+                                                            : 'bg-amber-500/10 text-amber-600'
                                                     }`}>
                                                         {slot.status}
                                                     </span>
@@ -403,7 +403,7 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
                                         {slot.status === 'available' && (
                                             <button
                                                 onClick={() => deleteOneOffSlot(slot.id)}
-                                                className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"
+                                                className="p-1.5 text-faint hover:text-red-500 transition-colors"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>
@@ -412,12 +412,12 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
                                 ))}
                             </div>
                         ) : (
-                            <p className="text-sm text-slate-500 mb-4">No one-off slots scheduled</p>
+                            <p className="text-sm text-muted mb-4">No one-off slots scheduled</p>
                         )}
 
                         {/* Add New One-Off Form */}
                         {showAddOneOff ? (
-                            <div className="p-4 bg-violet-50 rounded-lg border border-violet-200">
+                            <div className="p-4 bg-violet-500/10 rounded-lg border border-violet-500/20">
                                 <div className="grid grid-cols-3 gap-3 mb-3">
                                     <input
                                         type="date"
@@ -458,7 +458,7 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
                         ) : (
                             <button
                                 onClick={() => setShowAddOneOff(true)}
-                                className="w-full p-3 border-2 border-dashed border-slate-300 rounded-lg text-slate-500 hover:border-violet-400 hover:text-violet-600 transition-colors flex items-center justify-center gap-2"
+                                className="w-full p-3 border-2 border-dashed border-line-strong rounded-lg text-muted hover:border-violet-400 hover:text-violet-600 transition-colors flex items-center justify-center gap-2"
                             >
                                 <Plus className="w-4 h-4" />
                                 Add One-Off Slot

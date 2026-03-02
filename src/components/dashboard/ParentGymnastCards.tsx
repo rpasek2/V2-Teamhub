@@ -17,7 +17,7 @@ export function ParentGymnastCards({ linkedGymnastInfo }: ParentGymnastCardsProp
 
     return (
         <div className="mb-8">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">
+            <h2 className="text-lg font-semibold text-heading mb-4">
                 {linkedGymnastInfo.length === 1 ? 'Your Gymnast' : 'Your Gymnasts'}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -30,19 +30,19 @@ export function ParentGymnastCards({ linkedGymnastInfo }: ParentGymnastCardsProp
                         {/* Gymnast Name & Level */}
                         <div className="flex items-start justify-between mb-3">
                             <div>
-                                <h3 className="font-semibold text-slate-900">
+                                <h3 className="font-semibold text-heading">
                                     {gymnast.first_name} {gymnast.last_name}
                                 </h3>
-                                <p className="text-sm text-slate-600">{gymnast.level}</p>
+                                <p className="text-sm text-subtle">{gymnast.level}</p>
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50">
-                                <User className="h-5 w-5 text-brand-600" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-50">
+                                <User className="h-5 w-5 text-accent-600" />
                             </div>
                         </div>
 
                         {/* Birthday */}
                         {gymnast.date_of_birth && (
-                            <div className="flex items-center gap-2 text-sm text-slate-600 mb-2">
+                            <div className="flex items-center gap-2 text-sm text-subtle mb-2">
                                 <Cake className="h-4 w-4 text-purple-500" />
                                 <span>Birthday: {format(parseISO(gymnast.date_of_birth), 'MMMM d')}</span>
                             </div>
@@ -52,9 +52,9 @@ export function ParentGymnastCards({ linkedGymnastInfo }: ParentGymnastCardsProp
                         {gymnast.nextCompetition && (
                             <div className="flex items-center gap-2 text-sm mb-2">
                                 <Trophy className="h-4 w-4 text-amber-500" />
-                                <span className="text-slate-700">
+                                <span className="text-body">
                                     <span className="font-medium">{gymnast.nextCompetition.name}</span>
-                                    <span className="text-slate-500"> · {format(parseISO(gymnast.nextCompetition.start_date), 'MMM d')}</span>
+                                    <span className="text-muted"> · {format(parseISO(gymnast.nextCompetition.start_date), 'MMM d')}</span>
                                 </span>
                             </div>
                         )}
@@ -65,14 +65,14 @@ export function ParentGymnastCards({ linkedGymnastInfo }: ParentGymnastCardsProp
                                 {gymnast.mentorshipPairing.role === 'big' ? (
                                     <>
                                         <Star className="h-4 w-4 text-purple-500" />
-                                        <span className="text-slate-700">
+                                        <span className="text-body">
                                             Big to <span className="font-medium">{gymnast.mentorshipPairing.little_name}</span>
                                         </span>
                                     </>
                                 ) : (
                                     <>
                                         <Heart className="h-4 w-4 text-pink-500" />
-                                        <span className="text-slate-700">
+                                        <span className="text-body">
                                             Little to <span className="font-medium">{gymnast.mentorshipPairing.big_name}</span>
                                         </span>
                                     </>
@@ -82,7 +82,7 @@ export function ParentGymnastCards({ linkedGymnastInfo }: ParentGymnastCardsProp
 
                         {/* Empty state if no extra info */}
                         {!gymnast.nextCompetition && !gymnast.mentorshipPairing && !gymnast.date_of_birth && (
-                            <p className="text-sm text-slate-400 italic">No upcoming events</p>
+                            <p className="text-sm text-faint italic">No upcoming events</p>
                         )}
                     </Link>
                 ))}

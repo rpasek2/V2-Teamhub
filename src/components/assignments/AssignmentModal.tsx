@@ -263,21 +263,21 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
-            <div className="bg-white rounded-xl border border-slate-200 w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="bg-surface rounded-xl border border-line w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Compact Header with all controls */}
-                <div className="p-4 border-b border-slate-200 space-y-3">
+                <div className="p-4 border-b border-line space-y-3">
                     {/* Top row: Title + Mode Toggle + Close */}
                     <div className="flex items-center justify-between gap-4">
-                        <h2 className="text-lg font-semibold text-slate-900">New Assignment</h2>
+                        <h2 className="text-lg font-semibold text-heading">New Assignment</h2>
 
                         {/* Mode Toggle - compact */}
-                        <div className="flex space-x-1 rounded-lg bg-slate-100 p-1">
+                        <div className="flex space-x-1 rounded-lg bg-surface-hover p-1">
                             <button
                                 onClick={() => setMode('checklist')}
                                 className={`flex items-center gap-1.5 rounded-md py-1.5 px-3 text-sm font-medium transition-all ${
                                     mode === 'checklist'
-                                        ? 'bg-white text-slate-900 shadow'
-                                        : 'text-slate-500 hover:text-slate-900'
+                                        ? 'bg-surface text-heading shadow'
+                                        : 'text-muted hover:text-heading'
                                 }`}
                             >
                                 <ClipboardList className="w-4 h-4" />
@@ -287,8 +287,8 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                 onClick={() => setMode('stations')}
                                 className={`flex items-center gap-1.5 rounded-md py-1.5 px-3 text-sm font-medium transition-all ${
                                     mode === 'stations'
-                                        ? 'bg-amber-100 text-amber-600 shadow'
-                                        : 'text-slate-500 hover:text-slate-900'
+                                        ? 'bg-amber-500/15 text-amber-600 shadow'
+                                        : 'text-muted hover:text-heading'
                                 }`}
                             >
                                 <LayoutGrid className="w-4 h-4" />
@@ -298,7 +298,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
 
                         <button
                             onClick={onClose}
-                            className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-2 text-muted hover:text-heading hover:bg-surface-hover rounded-lg transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -308,7 +308,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                     <div className="flex items-center gap-4 flex-wrap">
                         {/* Date - compact */}
                         <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-slate-400" />
+                            <Calendar className="w-4 h-4 text-faint" />
                             <input
                                 type="date"
                                 value={dateString}
@@ -322,7 +322,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                             />
                         </div>
 
-                        <div className="h-6 w-px bg-slate-200" />
+                        <div className="h-6 w-px bg-surface-active" />
 
                         {/* Event chips - compact */}
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -335,7 +335,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                         className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                                             selectedEvent === event
                                                 ? `${colors.bg} ${colors.text} border ${colors.border}`
-                                                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                                : 'bg-surface-hover text-muted hover:bg-surface-active'
                                         }`}
                                     >
                                         {ASSIGNMENT_EVENT_LABELS[event]}
@@ -347,9 +347,9 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                         {/* Templates dropdown - if available */}
                         {templates.length > 0 && (
                             <>
-                                <div className="h-6 w-px bg-slate-200" />
+                                <div className="h-6 w-px bg-surface-active" />
                                 <div className="flex items-center gap-1.5">
-                                    <span className="text-xs text-slate-500">Template:</span>
+                                    <span className="text-xs text-muted">Template:</span>
                                     <select
                                         onChange={(e) => {
                                             const template = templates.find(t => t.id === e.target.value);
@@ -383,10 +383,10 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                     {mode === 'checklist' && (
                         <div className="grid md:grid-cols-2 gap-4">
                             {/* Gymnast Selection */}
-                            <div className="bg-slate-50 rounded-lg p-4">
+                            <div className="bg-surface-alt rounded-lg p-4">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <Users className="w-4 h-4 text-mint-600" />
-                                    <span className="font-medium text-slate-900 text-sm">Select Gymnasts</span>
+                                    <Users className="w-4 h-4 text-accent-600" />
+                                    <span className="font-medium text-heading text-sm">Select Gymnasts</span>
                                     {selectedGymnasts.length > 0 && (
                                         <span className="badge-mint text-xs">{selectedGymnasts.length}</span>
                                     )}
@@ -395,7 +395,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                 {/* Search and Filter */}
                                 <div className="flex gap-2 mb-3">
                                     <div className="relative flex-1">
-                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
                                         <input
                                             type="text"
                                             value={searchTerm}
@@ -420,11 +420,11 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
 
                                 {/* Quick Actions */}
                                 <div className="flex gap-2 mb-3 text-xs">
-                                    <button onClick={selectAll} className="text-mint-600 hover:text-mint-700">
+                                    <button onClick={selectAll} className="text-accent-600 hover:text-accent-700">
                                         Select All ({filteredGymnasts.length})
                                     </button>
-                                    <span className="text-slate-300">|</span>
-                                    <button onClick={clearSelection} className="text-slate-500 hover:text-slate-700">
+                                    <span className="text-faint">|</span>
+                                    <button onClick={clearSelection} className="text-muted hover:text-body">
                                         Clear
                                     </button>
                                 </div>
@@ -433,10 +433,10 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                 <div className="max-h-[300px] overflow-y-auto space-y-1.5">
                                     {loadingGymnasts ? (
                                         <div className="flex items-center justify-center py-6">
-                                            <Loader2 className="w-5 h-5 text-mint-600 animate-spin" />
+                                            <Loader2 className="w-5 h-5 text-accent-600 animate-spin" />
                                         </div>
                                     ) : filteredGymnasts.length === 0 ? (
-                                        <p className="text-center py-6 text-slate-500 text-sm">No gymnasts found</p>
+                                        <p className="text-center py-6 text-muted text-sm">No gymnasts found</p>
                                     ) : (
                                         filteredGymnasts.map(gymnast => {
                                             const isSelected = selectedGymnasts.includes(gymnast.id);
@@ -446,8 +446,8 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                                     key={gymnast.id}
                                                     className={`flex items-center gap-2.5 p-2 rounded-lg cursor-pointer transition-all ${
                                                         isSelected
-                                                            ? 'bg-mint-100 border border-mint-200'
-                                                            : 'bg-white border border-slate-200 hover:border-slate-300'
+                                                            ? 'bg-accent-500/15 border border-accent-500/20'
+                                                            : 'bg-surface border border-line hover:border-line-strong'
                                                     }`}
                                                 >
                                                     <input
@@ -457,17 +457,17 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                                         className="sr-only"
                                                     />
                                                     <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                                                        isSelected ? 'bg-mint-500 border-mint-500' : 'border-slate-300'
+                                                        isSelected ? 'bg-accent-500 border-accent-500' : 'border-line-strong'
                                                     }`}>
                                                         {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
                                                     </div>
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-sm text-slate-900 truncate">
+                                                        <p className="text-sm text-heading truncate">
                                                             {gymnast.first_name} {gymnast.last_name}
                                                         </p>
                                                     </div>
                                                     {hasAssignment && (
-                                                        <span className="text-[10px] px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded">Has</span>
+                                                        <span className="text-[10px] px-1.5 py-0.5 bg-indigo-500/10 text-indigo-600 rounded">Has</span>
                                                     )}
                                                 </label>
                                             );
@@ -477,8 +477,8 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                             </div>
 
                             {/* Exercise Input */}
-                            <div className="bg-slate-50 rounded-lg p-4">
-                                <label className="block text-sm font-medium text-slate-500 mb-2">
+                            <div className="bg-surface-alt rounded-lg p-4">
+                                <label className="block text-sm font-medium text-muted mb-2">
                                     Exercises (one per line)
                                 </label>
                                 <textarea
@@ -495,25 +495,25 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                     {mode === 'stations' && (
                         <div className="grid md:grid-cols-2 gap-4">
                             {/* Level Selection */}
-                            <div className="bg-slate-50 rounded-lg p-4">
+                            <div className="bg-surface-alt rounded-lg p-4">
                                 <div className="flex items-center gap-2 mb-3">
                                     <LayoutGrid className="w-4 h-4 text-amber-600" />
-                                    <span className="font-medium text-slate-900 text-sm">Select Levels</span>
+                                    <span className="font-medium text-heading text-sm">Select Levels</span>
                                     {selectedLevels.length > 0 && (
                                         <span className="badge-mint text-xs">{selectedLevels.length}</span>
                                     )}
                                 </div>
 
                                 {levels.length === 0 ? (
-                                    <p className="text-slate-500 text-sm">No levels configured.</p>
+                                    <p className="text-muted text-sm">No levels configured.</p>
                                 ) : (
                                     <>
                                         <div className="flex gap-2 mb-3 text-xs">
-                                            <button onClick={selectAllLevels} className="text-amber-600 hover:text-amber-700">
+                                            <button onClick={selectAllLevels} className="text-amber-600 hover:text-amber-600">
                                                 Select All ({levels.length})
                                             </button>
-                                            <span className="text-slate-300">|</span>
-                                            <button onClick={clearLevelSelection} className="text-slate-500 hover:text-slate-700">
+                                            <span className="text-faint">|</span>
+                                            <button onClick={clearLevelSelection} className="text-muted hover:text-body">
                                                 Clear
                                             </button>
                                         </div>
@@ -525,8 +525,8 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                                         key={level}
                                                         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer transition-all ${
                                                             isSelected
-                                                                ? 'bg-amber-100 border-2 border-amber-400/50'
-                                                                : 'bg-white border-2 border-slate-200 hover:border-slate-300'
+                                                                ? 'bg-amber-500/15 border-2 border-amber-400/50'
+                                                                : 'bg-surface border-2 border-line hover:border-line-strong'
                                                         }`}
                                                     >
                                                         <input
@@ -536,11 +536,11 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                                             className="sr-only"
                                                         />
                                                         <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                                                            isSelected ? 'bg-amber-500 border-amber-500' : 'border-slate-300'
+                                                            isSelected ? 'bg-amber-500 border-amber-500' : 'border-line-strong'
                                                         }`}>
                                                             {isSelected && <Check className="w-2.5 h-2.5 text-white" />}
                                                         </div>
-                                                        <span className={isSelected ? 'text-amber-600' : 'text-slate-700'}>{level}</span>
+                                                        <span className={isSelected ? 'text-amber-600' : 'text-body'}>{level}</span>
                                                     </label>
                                                 );
                                             })}
@@ -550,12 +550,12 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                             </div>
 
                             {/* Station Builder */}
-                            <div className="bg-slate-50 rounded-lg p-4">
+                            <div className="bg-surface-alt rounded-lg p-4">
                                 <div className="flex items-center justify-between mb-3">
-                                    <span className="font-medium text-slate-900 text-sm">Stations ({mainStations.length})</span>
+                                    <span className="font-medium text-heading text-sm">Stations ({mainStations.length})</span>
                                     <button
                                         onClick={addMainStation}
-                                        className="text-sm text-mint-600 hover:text-mint-700 flex items-center gap-1"
+                                        className="text-sm text-accent-600 hover:text-accent-700 flex items-center gap-1"
                                     >
                                         <Plus className="w-3.5 h-3.5" />
                                         Add
@@ -578,7 +578,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                                 {mainStations.length > 1 && (
                                                     <button
                                                         onClick={() => removeMainStation(station.id)}
-                                                        className="p-1 text-slate-400 hover:text-error-400"
+                                                        className="p-1 text-faint hover:text-error-400"
                                                     >
                                                         <X className="w-3.5 h-3.5" />
                                                     </button>
@@ -594,13 +594,13 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                             />
 
                                             {/* Side Stations */}
-                                            <div className="border-t border-slate-200 pt-2">
+                                            <div className="border-t border-line pt-2">
                                                 <div className="flex items-center justify-between mb-1.5">
-                                                    <span className="text-[10px] text-slate-500">Side Stations</span>
+                                                    <span className="text-[10px] text-muted">Side Stations</span>
                                                     {station.side_stations.length < 3 && (
                                                         <button
                                                             onClick={() => addSideStation(station.id)}
-                                                            className="text-[10px] text-amber-600 hover:text-amber-700 flex items-center gap-0.5"
+                                                            className="text-[10px] text-amber-600 hover:text-amber-600 flex items-center gap-0.5"
                                                         >
                                                             <Plus className="w-2.5 h-2.5" />
                                                             Add
@@ -609,18 +609,18 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                                                 </div>
 
                                                 {station.side_stations.length === 0 ? (
-                                                    <p className="text-[10px] text-slate-500 text-center py-1.5 bg-white rounded border border-dashed border-slate-300">
+                                                    <p className="text-[10px] text-muted text-center py-1.5 bg-surface rounded border border-dashed border-line-strong">
                                                         No side stations
                                                     </p>
                                                 ) : (
                                                     <div className="space-y-1.5">
                                                         {station.side_stations.map((side, sideIdx) => (
-                                                            <div key={side.id} className="bg-amber-50 rounded p-2 border border-amber-200">
+                                                            <div key={side.id} className="bg-amber-500/10 rounded p-2 border border-amber-500/20">
                                                                 <div className="flex items-center justify-between mb-1">
-                                                                    <span className="text-[10px] font-medium text-amber-700">Side {sideIdx + 1}</span>
+                                                                    <span className="text-[10px] font-medium text-amber-600">Side {sideIdx + 1}</span>
                                                                     <button
                                                                         onClick={() => removeSideStation(station.id, side.id)}
-                                                                        className="p-0.5 text-slate-400 hover:text-error-400"
+                                                                        className="p-0.5 text-faint hover:text-error-400"
                                                                     >
                                                                         <X className="w-2.5 h-2.5" />
                                                                     </button>
@@ -646,7 +646,7 @@ export function AssignmentModal({ isOpen, onClose, initialDate, selectedEvent: i
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-slate-200 flex justify-end gap-3">
+                <div className="p-4 border-t border-line flex justify-end gap-3">
                     <button onClick={onClose} className="btn-secondary">
                         Cancel
                     </button>

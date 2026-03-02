@@ -237,8 +237,8 @@ export function ScoresTable({
 
     if (gymnasts.length === 0) {
         return (
-            <div className="rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
-                <p className="text-sm text-slate-500">
+            <div className="rounded-lg border-2 border-dashed border-line-strong p-12 text-center">
+                <p className="text-sm text-muted">
                     No {gender === 'Female' ? "women's" : "men's"} gymnasts assigned to this competition.
                 </p>
             </div>
@@ -254,14 +254,14 @@ export function ScoresTable({
                 const showTeamOnly = isParent && visibleGymnasts.length === 0;
 
                 return (
-                    <div key={level} className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+                    <div key={level} className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
                         {/* Level Header */}
-                        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-3">
-                            <h3 className="text-lg font-semibold text-slate-900">{level}</h3>
+                        <div className="flex items-center justify-between border-b border-line bg-surface px-4 py-3">
+                            <h3 className="text-lg font-semibold text-heading">{level}</h3>
                             {isCompulsoryLevel(level) && (
                                 <button
                                     onClick={() => toggleTopCount(level)}
-                                    className="inline-flex items-center rounded-md bg-white px-2.5 py-1.5 text-xs font-medium text-slate-700 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
+                                    className="inline-flex items-center rounded-md bg-surface px-2.5 py-1.5 text-xs font-medium text-body shadow-sm ring-1 ring-inset ring-line-strong hover:bg-surface-hover"
                                 >
                                     Top {getTopCount(level)}
                                 </button>
@@ -269,7 +269,7 @@ export function ScoresTable({
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-slate-200 table-fixed">
+                            <table className="min-w-full divide-y divide-line table-fixed">
                                 <colgroup>
                                     <col className="w-36 md:w-48" />
                                     {events.map(event => (
@@ -282,30 +282,30 @@ export function ScoresTable({
                                     <col className="w-[62px]" />
                                 </colgroup>
                                 <thead>
-                                    <tr className="bg-slate-50">
-                                        <th className="sticky left-0 z-10 bg-slate-50 py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500 w-36 min-w-36 max-w-36 md:w-48 md:min-w-48 md:max-w-48 overflow-hidden">
+                                    <tr className="bg-surface">
+                                        <th className="sticky left-0 z-10 bg-surface py-3 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-muted w-36 min-w-36 max-w-36 md:w-48 md:min-w-48 md:max-w-48 overflow-hidden">
                                             Gymnast
                                         </th>
                                         {events.map((event, idx) => (
-                                            <th key={event} colSpan={2} className={`px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-slate-700 w-[124px] min-w-[124px] max-w-[124px] overflow-hidden ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
+                                            <th key={event} colSpan={2} className={`px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-body w-[124px] min-w-[124px] max-w-[124px] overflow-hidden ${idx > 0 ? 'border-l border-line' : ''}`}>
                                                 {EVENT_LABELS[event]}
                                             </th>
                                         ))}
-                                        <th colSpan={2} className="border-l border-slate-200 px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-slate-700 w-[124px] min-w-[124px] max-w-[124px] overflow-hidden">
+                                        <th colSpan={2} className="border-l border-line px-2 py-3 text-center text-sm font-bold uppercase tracking-wide text-body w-[124px] min-w-[124px] max-w-[124px] overflow-hidden">
                                             AA
                                         </th>
                                     </tr>
-                                    <tr className="bg-slate-50 text-xs text-slate-400">
-                                        <th className="sticky left-0 z-10 bg-slate-50"></th>
+                                    <tr className="bg-surface text-xs text-faint">
+                                        <th className="sticky left-0 z-10 bg-surface"></th>
                                         {events.map((event, idx) => (
-                                            <th key={event} colSpan={2} className={`border-b border-slate-200 ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
+                                            <th key={event} colSpan={2} className={`border-b border-line ${idx > 0 ? 'border-l border-line' : ''}`}>
                                                 <div className="flex">
                                                     <span className="flex-1 px-2 py-1 text-center">Score</span>
                                                     <span className="flex-1 px-2 py-1 text-center">Pl</span>
                                                 </div>
                                             </th>
                                         ))}
-                                        <th colSpan={2} className="border-b border-slate-200 border-l border-slate-200">
+                                        <th colSpan={2} className="border-b border-line border-l border-line">
                                             <div className="flex">
                                                 <span className="flex-1 px-2 py-1 text-center">Score</span>
                                                 <span className="flex-1 px-2 py-1 text-center">Pl</span>
@@ -313,16 +313,16 @@ export function ScoresTable({
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-200">
+                                <tbody className="divide-y divide-line">
                                     {/* Team Score Row */}
-                                    <tr className="bg-brand-100 font-bold">
-                                        <td className="sticky left-0 z-10 bg-brand-100 whitespace-nowrap py-3 pl-4 pr-3 text-sm text-brand-900">
+                                    <tr className="bg-accent-500/15 font-bold">
+                                        <td className="sticky left-0 z-10 bg-accent-500/15 whitespace-nowrap py-3 pl-4 pr-3 text-sm text-accent-700">
                                             <span className="font-bold">TEAM TOTAL</span>
                                         </td>
                                         {events.map((event, idx) => (
-                                            <td key={event} colSpan={2} className={`px-1 py-2 text-center ${idx > 0 ? 'border-l border-brand-200' : ''}`}>
+                                            <td key={event} colSpan={2} className={`px-1 py-2 text-center ${idx > 0 ? 'border-l border-accent-500/20' : ''}`}>
                                                 <div className="flex">
-                                                    <span className="flex-1 min-w-0 text-sm font-bold text-brand-900 py-1 truncate">
+                                                    <span className="flex-1 min-w-0 text-sm font-bold text-accent-700 py-1 truncate">
                                                         {formatScore(teamScores.eventScores[event])}
                                                     </span>
                                                     <span className="flex-1 min-w-0">
@@ -339,9 +339,9 @@ export function ScoresTable({
                                                 </div>
                                             </td>
                                         ))}
-                                        <td colSpan={2} className="px-1 py-2 text-center border-l border-brand-200">
+                                        <td colSpan={2} className="px-1 py-2 text-center border-l border-accent-500/20">
                                             <div className="flex">
-                                                <span className="flex-1 min-w-0 text-sm font-bold text-brand-900 py-1 truncate">
+                                                <span className="flex-1 min-w-0 text-sm font-bold text-accent-700 py-1 truncate">
                                                     {formatScore(teamScores.allAroundTotal)}
                                                 </span>
                                                 <span className="flex-1 min-w-0">
@@ -365,12 +365,12 @@ export function ScoresTable({
                                         const gymnastCounting = countingScores[gymnast.id] || {};
 
                                         return (
-                                            <tr key={gymnast.id} className="hover:bg-slate-50">
-                                                <td className="sticky left-0 z-10 bg-white py-2 pl-4 pr-3 text-sm font-medium text-slate-900">
+                                            <tr key={gymnast.id} className="hover:bg-surface-hover">
+                                                <td className="sticky left-0 z-10 bg-surface py-2 pl-4 pr-3 text-sm font-medium text-heading">
                                                     <div className="flex items-center gap-1.5 truncate">
                                                         <span className="truncate">{gymnast.first_name} {gymnast.last_name}</span>
                                                         {ageGroupMap[gymnast.id] && (
-                                                            <span className="inline-flex items-center rounded-full bg-purple-50 px-1.5 py-0.5 text-[10px] font-medium text-purple-700 flex-shrink-0">
+                                                            <span className="inline-flex items-center rounded-full bg-purple-500/10 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 flex-shrink-0">
                                                                 {ageGroupMap[gymnast.id]}
                                                             </span>
                                                         )}
@@ -381,7 +381,7 @@ export function ScoresTable({
                                                     const isCounting = gymnastCounting[event];
 
                                                     return (
-                                                        <td key={event} colSpan={2} className={`px-1 py-1 overflow-hidden ${idx > 0 ? 'border-l border-slate-200' : ''}`}>
+                                                        <td key={event} colSpan={2} className={`px-1 py-1 overflow-hidden ${idx > 0 ? 'border-l border-line' : ''}`}>
                                                             <InlineScoreCell
                                                                 gymnastId={gymnast.id}
                                                                 gymnastLevel={gymnast.level}
@@ -399,9 +399,9 @@ export function ScoresTable({
                                                         </td>
                                                     );
                                                 })}
-                                                <td colSpan={2} className="px-2 py-2 border-l border-slate-200">
+                                                <td colSpan={2} className="px-2 py-2 border-l border-line">
                                                     <div className="flex">
-                                                        <span className="flex-1 text-center text-sm font-medium text-slate-900">
+                                                        <span className="flex-1 text-center text-sm font-medium text-heading">
                                                             <span className="inline-flex items-center gap-1">
                                                                 {formatScore(gymnastData.allAround)}
                                                                 {gymnastData.allAround != null && (
@@ -419,7 +419,7 @@ export function ScoresTable({
                                                                 )}
                                                             </span>
                                                         </span>
-                                                        <span className="flex-1 text-center text-sm text-slate-500">
+                                                        <span className="flex-1 text-center text-sm text-muted">
                                                             -
                                                         </span>
                                                     </div>
@@ -430,7 +430,7 @@ export function ScoresTable({
 
                                     {showTeamOnly && (
                                         <tr>
-                                            <td colSpan={events.length * 2 + 3} className="py-4 text-center text-sm text-slate-500 italic">
+                                            <td colSpan={events.length * 2 + 3} className="py-4 text-center text-sm text-muted italic">
                                                 No gymnasts to display in this level
                                             </td>
                                         </tr>
@@ -440,10 +440,10 @@ export function ScoresTable({
                         </div>
 
                         {/* Legend */}
-                        <div className="border-t border-slate-200 bg-slate-50 px-4 py-2">
-                            <span className="text-xs text-slate-500">
-                                <span className="text-brand-500">*</span> = counts toward team score
-                                {isStaff && <span className="ml-4 text-slate-400">Click any score or placement to edit</span>}
+                        <div className="border-t border-line bg-surface-alt px-4 py-2">
+                            <span className="text-xs text-muted">
+                                <span className="text-accent-500">*</span> = counts toward team score
+                                {isStaff && <span className="ml-4 text-faint">Click any score or placement to edit</span>}
                             </span>
                         </div>
                     </div>

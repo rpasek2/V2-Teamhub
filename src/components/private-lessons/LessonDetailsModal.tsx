@@ -105,10 +105,10 @@ export function LessonDetailsModal({
             <div className="card p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-bold text-slate-900">Lesson Details</h2>
+                    <h2 className="text-xl font-bold text-heading">Lesson Details</h2>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -116,35 +116,35 @@ export function LessonDetailsModal({
 
                 {/* Status Badge */}
                 {isCancelled && (
-                    <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2">
+                    <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg flex items-center gap-2">
                         <AlertTriangle className="w-4 h-4 text-red-500" />
-                        <span className="text-sm font-medium text-red-700">This lesson has been cancelled</span>
+                        <span className="text-sm font-medium text-red-600">This lesson has been cancelled</span>
                     </div>
                 )}
 
                 {/* Lesson Info */}
                 <div className="space-y-4 mb-6">
                     {/* Coach */}
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                        <div className="h-10 w-10 rounded-full bg-violet-100 flex items-center justify-center">
+                    <div className="flex items-center gap-3 p-3 bg-surface-alt rounded-lg">
+                        <div className="h-10 w-10 rounded-full bg-violet-500/10 flex items-center justify-center">
                             <User className="w-5 h-5 text-violet-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500 uppercase">Coach</p>
-                            <p className="font-medium text-slate-900">{coachName}</p>
+                            <p className="text-xs text-muted uppercase">Coach</p>
+                            <p className="font-medium text-heading">{coachName}</p>
                         </div>
                     </div>
 
                     {/* Gymnast */}
-                    <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                        <div className="h-10 w-10 rounded-full bg-pink-100 flex items-center justify-center">
+                    <div className="flex items-center gap-3 p-3 bg-surface-alt rounded-lg">
+                        <div className="h-10 w-10 rounded-full bg-pink-500/10 flex items-center justify-center">
                             <User className="w-5 h-5 text-pink-600" />
                         </div>
                         <div>
-                            <p className="text-xs text-slate-500 uppercase">Gymnast</p>
-                            <p className="font-medium text-slate-900">{gymnastName}</p>
+                            <p className="text-xs text-muted uppercase">Gymnast</p>
+                            <p className="font-medium text-heading">{gymnastName}</p>
                             {gymnast?.level && (
-                                <p className="text-sm text-slate-500">{gymnast.level}</p>
+                                <p className="text-sm text-muted">{gymnast.level}</p>
                             )}
                         </div>
                     </div>
@@ -152,21 +152,21 @@ export function LessonDetailsModal({
                     {/* Date & Time */}
                     {slot && (
                         <div className="grid grid-cols-2 gap-3">
-                            <div className="p-3 bg-slate-50 rounded-lg">
-                                <div className="flex items-center gap-2 text-slate-400 mb-1">
+                            <div className="p-3 bg-surface-alt rounded-lg">
+                                <div className="flex items-center gap-2 text-faint mb-1">
                                     <Calendar className="w-4 h-4" />
                                     <span className="text-xs uppercase">Date</span>
                                 </div>
-                                <p className="font-medium text-slate-900">
+                                <p className="font-medium text-heading">
                                     {format(parseISO(slot.slot_date), 'EEE, MMM d, yyyy')}
                                 </p>
                             </div>
-                            <div className="p-3 bg-slate-50 rounded-lg">
-                                <div className="flex items-center gap-2 text-slate-400 mb-1">
+                            <div className="p-3 bg-surface-alt rounded-lg">
+                                <div className="flex items-center gap-2 text-faint mb-1">
                                     <Clock className="w-4 h-4" />
                                     <span className="text-xs uppercase">Time</span>
                                 </div>
-                                <p className="font-medium text-slate-900">
+                                <p className="font-medium text-heading">
                                     {formatTime(slot.start_time)} - {formatTime(slot.end_time)}
                                 </p>
                             </div>
@@ -174,32 +174,32 @@ export function LessonDetailsModal({
                     )}
 
                     {/* Event Focus */}
-                    <div className="p-3 bg-slate-50 rounded-lg">
-                        <p className="text-xs text-slate-500 uppercase mb-1">Focus</p>
-                        <span className="px-2.5 py-1 bg-brand-100 text-brand-700 rounded-full text-sm font-medium">
+                    <div className="p-3 bg-surface-alt rounded-lg">
+                        <p className="text-xs text-muted uppercase mb-1">Focus</p>
+                        <span className="px-2.5 py-1 bg-accent-500/10 text-accent-600 rounded-full text-sm font-medium">
                             {EVENT_LABELS[booking.event] || booking.event}
                         </span>
                     </div>
 
                     {/* Cost */}
-                    <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-lg">
-                        <DollarSign className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-900 font-medium">${booking.cost.toFixed(2)}</span>
+                    <div className="flex items-center gap-2 p-3 bg-surface-alt rounded-lg">
+                        <DollarSign className="w-4 h-4 text-faint" />
+                        <span className="text-heading font-medium">${booking.cost.toFixed(2)}</span>
                     </div>
 
                     {/* Cancellation Info */}
                     {isCancelled && booking.cancellation_reason && (
-                        <div className="p-3 bg-red-50 rounded-lg">
+                        <div className="p-3 bg-red-500/10 rounded-lg">
                             <p className="text-xs text-red-500 uppercase mb-1">Cancellation Reason</p>
-                            <p className="text-sm text-red-700">{booking.cancellation_reason}</p>
+                            <p className="text-sm text-red-600">{booking.cancellation_reason}</p>
                         </div>
                     )}
                 </div>
 
                 {/* Cancel Confirmation */}
                 {showCancelConfirm && !isCancelled && (
-                    <div className="mb-4 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-                        <p className="text-sm font-medium text-amber-800 mb-3">
+                    <div className="mb-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                        <p className="text-sm font-medium text-amber-600 mb-3">
                             Are you sure you want to cancel this lesson?
                         </p>
                         <textarea
@@ -235,7 +235,7 @@ export function LessonDetailsModal({
 
                 {/* Error Message */}
                 {error && (
-                    <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-4">
+                    <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600 mb-4">
                         {error}
                     </div>
                 )}

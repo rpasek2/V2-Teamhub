@@ -104,17 +104,17 @@ export function JoinHubModal({ isOpen, onClose, onHubJoined }: JoinHubModalProps
         <Modal isOpen={isOpen} onClose={handleClose} title="Join a Hub">
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="flex justify-center">
-                    <div className="rounded-full bg-brand-100 p-3">
-                        <Ticket className="h-8 w-8 text-brand-600" />
+                    <div className="rounded-full bg-accent-500/10 p-3">
+                        <Ticket className="h-8 w-8 text-accent-600" />
                     </div>
                 </div>
 
-                <p className="text-center text-sm text-slate-600">
+                <p className="text-center text-sm text-subtle">
                     Enter the invite code you received to join a hub.
                 </p>
 
                 <div>
-                    <label htmlFor="inviteCode" className="block text-sm font-medium text-slate-700">
+                    <label htmlFor="inviteCode" className="block text-sm font-medium text-body">
                         Invite Code
                     </label>
                     <input
@@ -122,7 +122,7 @@ export function JoinHubModal({ isOpen, onClose, onHubJoined }: JoinHubModalProps
                         id="inviteCode"
                         value={code}
                         onChange={(e) => setCode(e.target.value.toUpperCase())}
-                        className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-center text-lg font-mono tracking-widest uppercase shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+                        className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 text-center text-lg font-mono tracking-widest uppercase shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                         placeholder="XXXXXX"
                         maxLength={10}
                         required
@@ -130,7 +130,7 @@ export function JoinHubModal({ isOpen, onClose, onHubJoined }: JoinHubModalProps
                 </div>
 
                 {error && (
-                    <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+                    <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-600">
                         {error}
                     </div>
                 )}
@@ -139,14 +139,14 @@ export function JoinHubModal({ isOpen, onClose, onHubJoined }: JoinHubModalProps
                     <button
                         type="button"
                         onClick={handleClose}
-                        className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                        className="rounded-md border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
                     >
                         Cancel
                     </button>
                     <button
                         type="submit"
                         disabled={loading || !code.trim()}
-                        className="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex items-center rounded-md border border-transparent bg-accent-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Join Hub

@@ -63,10 +63,10 @@ export const InlineScoreCell = memo(function InlineScoreCell({
     };
 
     const getPlacementStyles = (placement: number | null): string => {
-        if (placement === 1) return 'text-amber-600 bg-amber-50'; // Gold
-        if (placement === 2) return 'text-slate-500 bg-slate-100'; // Silver
-        if (placement === 3) return 'text-orange-700 bg-orange-100'; // Bronze
-        return 'text-slate-500';
+        if (placement === 1) return 'text-amber-600 bg-amber-500/10'; // Gold
+        if (placement === 2) return 'text-muted bg-surface-hover'; // Silver
+        if (placement === 3) return 'text-orange-600 bg-orange-500/10'; // Bronze
+        return 'text-muted';
     };
 
     const handleStartEdit = (field: 'score' | 'placement') => {
@@ -186,19 +186,19 @@ export const InlineScoreCell = memo(function InlineScoreCell({
                         onKeyDown={handleKeyDown}
                         onBlur={handleBlur}
                         disabled={saving}
-                        className="w-full min-w-0 h-7 box-border rounded border border-brand-300 px-1 text-center text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-500"
+                        className="w-full min-w-0 h-7 box-border rounded border border-accent-300 bg-surface px-1 text-center text-sm text-heading focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-accent-500"
                     />
                 ) : (
                     <button
                         onClick={() => handleStartEdit('score')}
                         disabled={!isStaff}
                         className={`w-full h-7 box-border border border-transparent px-1 text-sm ${
-                            isStaff ? 'hover:bg-slate-100 rounded cursor-pointer' : ''
-                        } ${isCounting ? 'font-semibold text-brand-600' : 'text-slate-900'}`}
+                            isStaff ? 'hover:bg-surface-hover rounded cursor-pointer' : ''
+                        } ${isCounting ? 'font-semibold text-accent-600' : 'text-heading'}`}
                     >
                         <span className="inline-flex items-center justify-center gap-1">
                             {formatScore(currentScore)}
-                            {isCounting && <span className="text-brand-500">*</span>}
+                            {isCounting && <span className="text-accent-500">*</span>}
                             {currentScore != null && (
                                 <QualifyingBadges
                                     levels={getQualifyingLevels(
@@ -229,7 +229,7 @@ export const InlineScoreCell = memo(function InlineScoreCell({
                         onKeyDown={handleKeyDown}
                         onBlur={handleBlur}
                         disabled={saving}
-                        className="w-full min-w-0 h-7 box-border rounded border border-brand-300 px-1 text-center text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-500"
+                        className="w-full min-w-0 h-7 box-border rounded border border-accent-300 bg-surface px-1 text-center text-sm text-heading focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-accent-500"
                     />
                 ) : (
                     <button

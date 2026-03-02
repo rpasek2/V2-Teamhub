@@ -118,11 +118,11 @@ export function AssignCoachModal({ isOpen, onClose, onCoachesAssigned, sessionId
                             leaveFrom="opacity-100 translate-y-0 sm:scale-100"
                             leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                         >
-                            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                            <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-surface px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                                 <div className="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                                     <button
                                         type="button"
-                                        className="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                                        className="rounded-md bg-surface text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
                                         onClick={onClose}
                                     >
                                         <span className="sr-only">Close</span>
@@ -160,13 +160,13 @@ export function AssignCoachModal({ isOpen, onClose, onCoachesAssigned, sessionId
                                                                 {coaches.map((coach) => (
                                                                     <div
                                                                         key={coach.user_id}
-                                                                        className={`flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-gray-50 ${selectedCoaches.includes(coach.user_id) ? 'bg-brand-50' : ''
+                                                                        className={`flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-gray-50 ${selectedCoaches.includes(coach.user_id) ? 'bg-accent-50' : ''
                                                                             }`}
                                                                         onClick={() => toggleCoach(coach.user_id)}
                                                                     >
                                                                         <span className="text-sm text-gray-900">{coach.profiles.full_name}</span>
                                                                         {selectedCoaches.includes(coach.user_id) && (
-                                                                            <Check className="h-4 w-4 text-brand-600" />
+                                                                            <Check className="h-4 w-4 text-accent-600" />
                                                                         )}
                                                                     </div>
                                                                 ))}
@@ -184,7 +184,7 @@ export function AssignCoachModal({ isOpen, onClose, onCoachesAssigned, sessionId
                                                     <button
                                                         type="submit"
                                                         disabled={loading}
-                                                        className="inline-flex w-full justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:ml-3 sm:w-auto disabled:opacity-50"
+                                                        className="inline-flex w-full justify-center rounded-md bg-accent-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 sm:ml-3 sm:w-auto disabled:opacity-50"
                                                     >
                                                         {loading ? (
                                                             <>
@@ -197,7 +197,7 @@ export function AssignCoachModal({ isOpen, onClose, onCoachesAssigned, sessionId
                                                     </button>
                                                     <button
                                                         type="button"
-                                                        className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                                                        className="mt-3 inline-flex w-full justify-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                                                         onClick={onClose}
                                                     >
                                                         Cancel

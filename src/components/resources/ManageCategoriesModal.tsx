@@ -53,18 +53,18 @@ export function ManageCategoriesModal({
             <div className="flex min-h-full items-center justify-center p-4">
                 {/* Backdrop */}
                 <div
-                    className="fixed inset-0 bg-slate-900/50 transition-opacity"
+                    className="fixed inset-0 bg-black/50 transition-opacity"
                     onClick={onClose}
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-md bg-white rounded-xl shadow-xl">
+                <div className="relative w-full max-w-md bg-surface rounded-xl shadow-xl">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-4 border-b border-slate-200">
-                        <h2 className="text-lg font-semibold text-slate-900">Manage Categories</h2>
+                    <div className="flex items-center justify-between p-4 border-b border-line">
+                        <h2 className="text-lg font-semibold text-heading">Manage Categories</h2>
                         <button
                             onClick={onClose}
-                            className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                            className="p-1 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -109,18 +109,18 @@ export function ManageCategoriesModal({
                                 {categories.map((category) => (
                                     <div
                                         key={category.id}
-                                        className="flex items-center justify-between p-3 rounded-lg border border-slate-200 bg-slate-50"
+                                        className="flex items-center justify-between p-3 rounded-lg border border-line bg-surface-alt"
                                     >
                                         <div className="flex items-center gap-2">
-                                            <Tag className="w-4 h-4 text-slate-400" />
-                                            <span className="text-sm font-medium text-slate-700">
+                                            <Tag className="w-4 h-4 text-faint" />
+                                            <span className="text-sm font-medium text-body">
                                                 {category.name}
                                             </span>
                                         </div>
                                         <button
                                             onClick={() => handleDeleteCategory(category.id)}
                                             disabled={deleting && deletingId === category.id}
-                                            className="p-1.5 rounded-md text-slate-400 hover:text-error-600 hover:bg-error-50 transition-colors disabled:opacity-50"
+                                            className="p-1.5 rounded-md text-faint hover:text-error-600 hover:bg-error-50 transition-colors disabled:opacity-50"
                                             title="Delete category"
                                         >
                                             {deleting && deletingId === category.id ? (
@@ -134,11 +134,11 @@ export function ManageCategoriesModal({
                             </div>
                         ) : (
                             <div className="text-center py-8">
-                                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
-                                    <Tag className="w-6 h-6 text-slate-400" />
+                                <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-hover flex items-center justify-center">
+                                    <Tag className="w-6 h-6 text-faint" />
                                 </div>
-                                <p className="text-slate-500 text-sm">No categories yet</p>
-                                <p className="text-slate-400 text-xs mt-1">
+                                <p className="text-muted text-sm">No categories yet</p>
+                                <p className="text-faint text-xs mt-1">
                                     Add categories to organize your resources
                                 </p>
                             </div>
@@ -146,7 +146,7 @@ export function ManageCategoriesModal({
                     </div>
 
                     {/* Footer */}
-                    <div className="flex justify-end p-4 border-t border-slate-200">
+                    <div className="flex justify-end p-4 border-t border-line">
                         <button onClick={onClose} className="btn-ghost">
                             Done
                         </button>

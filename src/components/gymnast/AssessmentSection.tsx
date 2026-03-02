@@ -49,7 +49,7 @@ export function AssessmentSection({ gymnastProfileId, readOnly = false }: Assess
     if (loading) {
         return (
             <div className="flex items-center justify-center py-8">
-                <Loader2 className="w-6 h-6 text-mint-400 animate-spin" />
+                <Loader2 className="w-6 h-6 text-accent-400 animate-spin" />
             </div>
         );
     }
@@ -61,10 +61,10 @@ export function AssessmentSection({ gymnastProfileId, readOnly = false }: Assess
         if (!hasContent) {
             return (
                 <div className="text-center py-8">
-                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center">
-                        <ClipboardList className="w-6 h-6 text-slate-400" />
+                    <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-hover flex items-center justify-center">
+                        <ClipboardList className="w-6 h-6 text-faint" />
                     </div>
-                    <p className="text-slate-500 text-sm">No assessment available yet</p>
+                    <p className="text-muted text-sm">No assessment available yet</p>
                 </div>
             );
         }
@@ -213,9 +213,9 @@ function AssessmentCard({ icon, title, content, color }: AssessmentCardProps) {
         <div className={`rounded-lg border p-4 ${colorClasses[color]}`}>
             <div className="flex items-center gap-2 mb-2">
                 {icon}
-                <h4 className="text-sm font-medium text-slate-900">{title}</h4>
+                <h4 className="text-sm font-medium text-heading">{title}</h4>
             </div>
-            <p className="text-sm text-slate-600 whitespace-pre-wrap">{content}</p>
+            <p className="text-sm text-subtle whitespace-pre-wrap">{content}</p>
         </div>
     );
 }

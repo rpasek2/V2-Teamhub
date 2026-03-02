@@ -256,7 +256,7 @@ export function AddressAutocomplete({
     return (
         <div className="relative">
             <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint pointer-events-none" />
                 <input
                     ref={inputRef}
                     type="text"
@@ -275,7 +275,7 @@ export function AddressAutocomplete({
                     autoComplete="off"
                 />
                 {loading && (
-                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 animate-spin" />
+                    <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint animate-spin" />
                 )}
             </div>
 
@@ -290,7 +290,7 @@ export function AddressAutocomplete({
             {isOpen && suggestions.length > 0 && (
                 <div
                     ref={dropdownRef}
-                    className="absolute z-50 mt-1 w-full bg-white rounded-lg border border-slate-200 shadow-lg max-h-60 overflow-y-auto"
+                    className="absolute z-50 mt-1 w-full bg-surface rounded-lg border border-line shadow-lg max-h-60 overflow-y-auto"
                 >
                     {suggestions.map((suggestion, index) => (
                         <button
@@ -300,29 +300,29 @@ export function AddressAutocomplete({
                             onMouseEnter={() => setHighlightedIndex(index)}
                             className={`w-full px-4 py-3 text-left flex items-start gap-3 transition-colors ${
                                 index === highlightedIndex
-                                    ? 'bg-brand-50'
-                                    : 'hover:bg-slate-50'
+                                    ? 'bg-accent-50'
+                                    : 'hover:bg-surface-hover'
                             }`}
                         >
                             <MapPin className={`h-4 w-4 mt-0.5 flex-shrink-0 ${
-                                index === highlightedIndex ? 'text-brand-500' : 'text-slate-400'
+                                index === highlightedIndex ? 'text-accent-500' : 'text-faint'
                             }`} />
                             <div className="min-w-0">
                                 <p className={`text-sm font-medium truncate ${
-                                    index === highlightedIndex ? 'text-brand-700' : 'text-slate-900'
+                                    index === highlightedIndex ? 'text-accent-700' : 'text-heading'
                                 }`}>
                                     {suggestion.mainText}
                                 </p>
                                 {suggestion.secondaryText && (
-                                    <p className="text-xs text-slate-500 truncate">
+                                    <p className="text-xs text-muted truncate">
                                         {suggestion.secondaryText}
                                     </p>
                                 )}
                             </div>
                         </button>
                     ))}
-                    <div className="px-4 py-2 border-t border-slate-100">
-                        <p className="text-xs text-slate-400 flex items-center gap-1">
+                    <div className="px-4 py-2 border-t border-line">
+                        <p className="text-xs text-faint flex items-center gap-1">
                             <img
                                 src="https://maps.gstatic.com/mapfiles/api-3/images/powered-by-google-on-white3.png"
                                 alt="Powered by Google"

@@ -243,18 +243,18 @@ export function ItemDetailModal({
                 />
 
                 {/* Modal */}
-                <div className="relative w-full max-w-4xl transform rounded-xl bg-white shadow-xl transition-all max-h-[90vh] overflow-hidden">
+                <div className="relative w-full max-w-4xl transform rounded-xl bg-surface shadow-xl transition-all max-h-[90vh] overflow-hidden">
                     {/* Close Button */}
                     <button
                         onClick={onClose}
-                        className="absolute right-4 top-4 z-10 rounded-full bg-white/90 p-2 text-slate-600 hover:bg-white hover:text-slate-900 shadow-sm"
+                        className="absolute right-4 top-4 z-10 rounded-full bg-surface/90 p-2 text-subtle hover:bg-surface hover:text-heading shadow-sm"
                     >
                         <X className="h-5 w-5" />
                     </button>
 
                     <div className="grid md:grid-cols-2">
                         {/* Image Gallery */}
-                        <div className="relative bg-slate-100 aspect-square md:aspect-auto md:min-h-[500px]">
+                        <div className="relative bg-surface-hover aspect-square md:aspect-auto md:min-h-[500px]">
                             <img
                                 src={item.images[currentImageIndex] || defaultImage}
                                 alt={item.title}
@@ -266,13 +266,13 @@ export function ItemDetailModal({
                                 <>
                                     <button
                                         onClick={prevImage}
-                                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-600 hover:bg-white hover:text-slate-900 shadow-sm"
+                                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-surface/90 p-2 text-subtle hover:bg-surface hover:text-heading shadow-sm"
                                     >
                                         <ChevronLeft className="h-5 w-5" />
                                     </button>
                                     <button
                                         onClick={nextImage}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white/90 p-2 text-slate-600 hover:bg-white hover:text-slate-900 shadow-sm"
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-surface/90 p-2 text-subtle hover:bg-surface hover:text-heading shadow-sm"
                                     >
                                         <ChevronRight className="h-5 w-5" />
                                     </button>
@@ -285,8 +285,8 @@ export function ItemDetailModal({
                                                 onClick={() => setCurrentImageIndex(index)}
                                                 className={`w-2 h-2 rounded-full transition-colors ${
                                                     index === currentImageIndex
-                                                        ? 'bg-white'
-                                                        : 'bg-white/50 hover:bg-white/75'
+                                                        ? 'bg-surface'
+                                                        : 'bg-surface/50 hover:bg-surface/75'
                                                 }`}
                                             />
                                         ))}
@@ -301,7 +301,7 @@ export function ItemDetailModal({
                                         FREE
                                     </span>
                                 )}
-                                <span className="px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-slate-700 text-sm font-medium shadow-sm">
+                                <span className="px-3 py-1 rounded-full bg-surface/90 backdrop-blur-sm text-body text-sm font-medium shadow-sm">
                                     {category.label}
                                 </span>
                             </div>
@@ -312,11 +312,11 @@ export function ItemDetailModal({
                             {isEditing ? (
                                 /* Edit Mode */
                                 <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-slate-900">Edit Listing</h3>
+                                    <h3 className="text-lg font-semibold text-heading">Edit Listing</h3>
 
                                     {/* Edit Images */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                                        <label className="block text-sm font-medium text-body mb-2">
                                             Photos
                                         </label>
                                         <div className="grid grid-cols-5 gap-2">
@@ -337,7 +337,7 @@ export function ItemDetailModal({
                                                     type="button"
                                                     onClick={() => fileInputRef.current?.click()}
                                                     disabled={uploadingImages}
-                                                    className="aspect-square rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400 hover:border-brand-400 hover:text-brand-500"
+                                                    className="aspect-square rounded-lg border-2 border-dashed border-line-strong flex items-center justify-center text-faint hover:border-accent-400 hover:text-accent-500"
                                                 >
                                                     {uploadingImages ? (
                                                         <Loader2 className="h-5 w-5 animate-spin" />
@@ -359,32 +359,32 @@ export function ItemDetailModal({
 
                                     {/* Title */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Title</label>
                                         <input
                                             type="text"
                                             value={editTitle}
                                             onChange={(e) => setEditTitle(e.target.value)}
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                            className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                         />
                                     </div>
 
                                     {/* Description */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Description</label>
                                         <textarea
                                             value={editDescription}
                                             onChange={(e) => setEditDescription(e.target.value)}
                                             rows={3}
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                            className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                         />
                                     </div>
 
                                     {/* Price */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Price</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Price</label>
                                         <div className="flex items-center gap-3">
                                             <div className="relative flex-1">
-                                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                                 <input
                                                     type="number"
                                                     value={editPrice}
@@ -392,7 +392,7 @@ export function ItemDetailModal({
                                                     disabled={editIsFree}
                                                     min="0"
                                                     step="0.01"
-                                                    className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:bg-slate-100"
+                                                    className="w-full pl-8 pr-3 py-2 rounded-lg border border-line-strong bg-surface text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500 disabled:bg-surface-hover"
                                                 />
                                             </div>
                                             <label className="flex items-center gap-2 cursor-pointer">
@@ -403,9 +403,9 @@ export function ItemDetailModal({
                                                         setEditIsFree(e.target.checked);
                                                         if (e.target.checked) setEditPrice('0');
                                                     }}
-                                                    className="rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+                                                    className="rounded border-line-strong text-accent-600 focus:ring-accent-500"
                                                 />
-                                                <span className="text-sm text-slate-700">Free</span>
+                                                <span className="text-sm text-body">Free</span>
                                             </label>
                                         </div>
                                     </div>
@@ -413,11 +413,11 @@ export function ItemDetailModal({
                                     {/* Category & Condition */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                                            <label className="block text-sm font-medium text-body mb-1">Category</label>
                                             <select
                                                 value={editCategory}
                                                 onChange={(e) => setEditCategory(e.target.value as MarketplaceCategory)}
-                                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                             >
                                                 {Object.entries(MARKETPLACE_CATEGORIES).map(([key, { label }]) => (
                                                     <option key={key} value={key}>{label}</option>
@@ -425,11 +425,11 @@ export function ItemDetailModal({
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Condition</label>
+                                            <label className="block text-sm font-medium text-body mb-1">Condition</label>
                                             <select
                                                 value={editCondition}
                                                 onChange={(e) => setEditCondition(e.target.value as MarketplaceCondition)}
-                                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                             >
                                                 {Object.entries(MARKETPLACE_CONDITIONS).map(([key, label]) => (
                                                     <option key={key} value={key}>{label}</option>
@@ -441,43 +441,43 @@ export function ItemDetailModal({
                                     {/* Size & Brand */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Size</label>
+                                            <label className="block text-sm font-medium text-body mb-1">Size</label>
                                             <input
                                                 type="text"
                                                 value={editSize}
                                                 onChange={(e) => setEditSize(e.target.value)}
-                                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Brand</label>
+                                            <label className="block text-sm font-medium text-body mb-1">Brand</label>
                                             <input
                                                 type="text"
                                                 value={editBrand}
                                                 onChange={(e) => setEditBrand(e.target.value)}
-                                                className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                             />
                                         </div>
                                     </div>
 
                                     {/* Phone */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Phone</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Phone</label>
                                         <input
                                             type="tel"
                                             value={editPhone}
                                             onChange={(e) => setEditPhone(e.target.value)}
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                            className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                         />
                                     </div>
 
                                     {/* Status */}
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Status</label>
                                         <select
                                             value={editStatus}
                                             onChange={(e) => setEditStatus(e.target.value as 'active' | 'pending' | 'sold')}
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                            className="w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-heading focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                         >
                                             <option value="active">Active</option>
                                             <option value="pending">Pending</option>
@@ -487,21 +487,21 @@ export function ItemDetailModal({
 
                                     {/* Error */}
                                     {error && (
-                                        <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-red-800">
+                                        <div className="flex items-start gap-2 rounded-lg bg-red-500/10 p-3 text-red-600">
                                             <AlertCircle className="h-5 w-5 flex-shrink-0" />
                                             <p className="text-sm">{error}</p>
                                         </div>
                                     )}
 
                                     {/* Edit Actions */}
-                                    <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
+                                    <div className="flex justify-end gap-3 pt-4 border-t border-line">
                                         <button
                                             type="button"
                                             onClick={() => {
                                                 setIsEditing(false);
                                                 setError(null);
                                             }}
-                                            className="rounded-lg px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                                            className="rounded-lg px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                                         >
                                             Cancel
                                         </button>
@@ -509,7 +509,7 @@ export function ItemDetailModal({
                                             type="button"
                                             onClick={handleSave}
                                             disabled={saving}
-                                            className="inline-flex items-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50"
+                                            className="inline-flex items-center rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
                                         >
                                             {saving ? (
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -524,44 +524,44 @@ export function ItemDetailModal({
                                 /* View Mode */
                                 <div className="space-y-6">
                                     <div>
-                                        <h2 className="text-2xl font-bold text-slate-900">{item.title}</h2>
+                                        <h2 className="text-2xl font-bold text-heading">{item.title}</h2>
                                         <div className="mt-2 flex items-baseline gap-3">
-                                            <span className={`text-3xl font-bold ${item.price === 0 ? 'text-green-600' : 'text-slate-900'}`}>
+                                            <span className={`text-3xl font-bold ${item.price === 0 ? 'text-green-600' : 'text-heading'}`}>
                                                 {formatPrice(item.price)}
                                             </span>
                                             {item.size && (
-                                                <span className="text-lg text-slate-500">Size {item.size}</span>
+                                                <span className="text-lg text-muted">Size {item.size}</span>
                                             )}
                                         </div>
                                     </div>
 
                                     {/* Meta Info */}
-                                    <div className="flex flex-wrap gap-4 text-sm text-slate-600">
+                                    <div className="flex flex-wrap gap-4 text-sm text-subtle">
                                         <span className="inline-flex items-center gap-1.5">
-                                            <Tag className="h-4 w-4 text-slate-400" />
+                                            <Tag className="h-4 w-4 text-faint" />
                                             {condition}
                                         </span>
                                         {item.brand && (
                                             <span className="inline-flex items-center gap-1.5">
-                                                <span className="text-slate-400">Brand:</span>
+                                                <span className="text-faint">Brand:</span>
                                                 {item.brand}
                                             </span>
                                         )}
                                         <span className="inline-flex items-center gap-1.5">
-                                            <Clock className="h-4 w-4 text-slate-400" />
+                                            <Clock className="h-4 w-4 text-faint" />
                                             Listed {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
                                         </span>
                                     </div>
 
                                     {/* Description */}
                                     <div>
-                                        <h3 className="text-sm font-medium text-slate-700 mb-2">Description</h3>
-                                        <p className="text-slate-600 whitespace-pre-wrap">{item.description}</p>
+                                        <h3 className="text-sm font-medium text-body mb-2">Description</h3>
+                                        <p className="text-subtle whitespace-pre-wrap">{item.description}</p>
                                     </div>
 
                                     {/* Seller Info */}
-                                    <div className="border-t border-slate-200 pt-6">
-                                        <h3 className="text-sm font-medium text-slate-700 mb-3">Seller</h3>
+                                    <div className="border-t border-line pt-6">
+                                        <h3 className="text-sm font-medium text-body mb-3">Seller</h3>
                                         <div className="flex items-center gap-3">
                                             {item.profiles?.avatar_url ? (
                                                 <img
@@ -570,12 +570,12 @@ export function ItemDetailModal({
                                                     className="h-10 w-10 rounded-full object-cover"
                                                 />
                                             ) : (
-                                                <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center">
-                                                    <User className="h-5 w-5 text-slate-400" />
+                                                <div className="h-10 w-10 rounded-full bg-surface-hover flex items-center justify-center">
+                                                    <User className="h-5 w-5 text-faint" />
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="font-medium text-slate-900">
+                                                <p className="font-medium text-heading">
                                                     {item.profiles?.full_name || 'Unknown'}
                                                 </p>
                                                 {isFromLinkedHub && item.hubs?.name && (
@@ -589,10 +589,10 @@ export function ItemDetailModal({
 
                                     {/* Contact Buttons */}
                                     {user?.id !== item.seller_id && (
-                                        <div className="border-t border-slate-200 pt-6 space-y-3">
+                                        <div className="border-t border-line pt-6 space-y-3">
                                             <a
                                                 href={`tel:${item.phone}`}
-                                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-700"
+                                                className="w-full inline-flex items-center justify-center gap-2 rounded-lg bg-accent-600 px-4 py-3 text-sm font-semibold text-white hover:bg-accent-700"
                                             >
                                                 <Phone className="h-5 w-5" />
                                                 Call {item.phone}
@@ -603,14 +603,14 @@ export function ItemDetailModal({
                                                         // Navigate to messages with seller
                                                         onClose();
                                                     }}
-                                                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                                                    className="w-full inline-flex items-center justify-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-3 text-sm font-semibold text-body hover:bg-surface-hover"
                                                 >
                                                     <MessageCircle className="h-5 w-5" />
                                                     Message Seller
                                                 </button>
                                             )}
                                             {isFromLinkedHub && (
-                                                <p className="text-xs text-center text-slate-500">
+                                                <p className="text-xs text-center text-muted">
                                                     This item is from a linked hub.
                                                 </p>
                                             )}
@@ -619,7 +619,7 @@ export function ItemDetailModal({
 
                                     {/* Error */}
                                     {error && (
-                                        <div className="flex items-start gap-2 rounded-lg bg-red-50 p-3 text-red-800">
+                                        <div className="flex items-start gap-2 rounded-lg bg-red-500/10 p-3 text-red-600">
                                             <AlertCircle className="h-5 w-5 flex-shrink-0" />
                                             <p className="text-sm">{error}</p>
                                         </div>
@@ -627,16 +627,16 @@ export function ItemDetailModal({
 
                                     {/* Edit/Delete Actions */}
                                     {(canEdit || canDelete) && (
-                                        <div className="border-t border-slate-200 pt-6">
+                                        <div className="border-t border-line pt-6">
                                             {showDeleteConfirm ? (
-                                                <div className="bg-red-50 rounded-lg p-4">
-                                                    <p className="text-sm text-red-800 mb-3">
+                                                <div className="bg-red-500/10 rounded-lg p-4">
+                                                    <p className="text-sm text-red-600 mb-3">
                                                         Are you sure you want to delete this listing? This cannot be undone.
                                                     </p>
                                                     <div className="flex gap-3">
                                                         <button
                                                             onClick={() => setShowDeleteConfirm(false)}
-                                                            className="flex-1 rounded-lg px-4 py-2 text-sm font-medium text-slate-700 bg-white hover:bg-slate-50 border border-slate-300"
+                                                            className="flex-1 rounded-lg px-4 py-2 text-sm font-medium text-body bg-surface hover:bg-surface-hover border border-line-strong"
                                                         >
                                                             Cancel
                                                         </button>
@@ -658,7 +658,7 @@ export function ItemDetailModal({
                                                     {canEdit && (
                                                         <button
                                                             onClick={() => setIsEditing(true)}
-                                                            className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200"
+                                                            className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-body bg-surface-hover hover:bg-surface-active"
                                                         >
                                                             <Edit2 className="h-4 w-4" />
                                                             Edit
@@ -667,7 +667,7 @@ export function ItemDetailModal({
                                                     {canDelete && (
                                                         <button
                                                             onClick={() => setShowDeleteConfirm(true)}
-                                                            className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-red-700 bg-red-50 hover:bg-red-100"
+                                                            className="flex-1 inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-red-600 bg-red-500/10 hover:bg-red-500/20"
                                                         >
                                                             <Trash2 className="h-4 w-4" />
                                                             Delete

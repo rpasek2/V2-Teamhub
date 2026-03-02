@@ -170,11 +170,11 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
 
     const getRoleBadgeColor = (role: string) => {
         switch (role) {
-            case 'owner': return 'bg-amber-100 text-amber-700';
-            case 'director': return 'bg-purple-100 text-purple-700';
-            case 'admin': return 'bg-blue-100 text-blue-700';
-            case 'coach': return 'bg-green-100 text-green-700';
-            default: return 'bg-slate-100 text-slate-700';
+            case 'owner': return 'bg-amber-500/10 text-amber-600';
+            case 'director': return 'bg-purple-500/10 text-purple-600';
+            case 'admin': return 'bg-blue-500/10 text-blue-600';
+            case 'coach': return 'bg-green-500/10 text-green-600';
+            default: return 'bg-surface-hover text-body';
         }
     };
 
@@ -182,9 +182,9 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
 
     return createPortal(
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-            <div className="bg-white rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="bg-surface rounded-xl shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
                 {/* Header */}
-                <div className="flex items-center justify-between p-4 border-b border-slate-200 bg-slate-50">
+                <div className="flex items-center justify-between p-4 border-b border-line bg-surface">
                     <div className="flex items-center gap-4">
                         {staffMember.profile?.avatar_url ? (
                             <img
@@ -193,17 +193,17 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
                                 className="w-12 h-12 rounded-full object-cover"
                             />
                         ) : (
-                            <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center">
-                                <span className="text-teal-700 font-semibold">{initials}</span>
+                            <div className="w-12 h-12 rounded-full bg-teal-500/10 flex items-center justify-center">
+                                <span className="text-teal-600 font-semibold">{initials}</span>
                             </div>
                         )}
                         <div>
-                            <h2 className="text-lg font-semibold text-slate-800">
+                            <h2 className="text-lg font-semibold text-heading">
                                 {staffMember.profile?.full_name}
                             </h2>
                             <div className="flex items-center gap-2">
                                 {staffMember.staff_profile?.title && (
-                                    <span className="text-sm text-slate-500">{staffMember.staff_profile.title}</span>
+                                    <span className="text-sm text-muted">{staffMember.staff_profile.title}</span>
                                 )}
                                 <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(staffMember.role)}`}>
                                     {staffMember.role.charAt(0).toUpperCase() + staffMember.role.slice(1)}
@@ -213,22 +213,22 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 hover:bg-slate-200 rounded-lg transition-colors"
+                        className="p-2 hover:bg-surface-active rounded-lg transition-colors"
                     >
-                        <X className="w-5 h-5 text-slate-500" />
+                        <X className="w-5 h-5 text-muted" />
                     </button>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex overflow-x-auto border-b border-slate-200 bg-white">
+                <div className="flex overflow-x-auto border-b border-line bg-surface">
                     {visibleTabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
                                 activeTab === tab.id
-                                    ? 'border-teal-500 text-teal-600'
-                                    : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                                    ? 'border-accent-500 text-accent-600'
+                                    : 'border-transparent text-muted hover:text-body hover:border-line-strong'
                             }`}
                         >
                             {tab.icon}
@@ -246,7 +246,7 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
                                 <div className="flex justify-end">
                                     <button
                                         onClick={() => setIsEditing(true)}
-                                        className="text-sm text-brand-600 hover:text-brand-700 font-medium"
+                                        className="text-sm text-accent-600 hover:text-accent-700 font-medium"
                                     >
                                         Edit Profile
                                     </button>
@@ -256,102 +256,102 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
                             {isEditing ? (
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Title</label>
                                         <input
                                             type="text"
                                             value={title}
                                             onChange={(e) => setTitle(e.target.value)}
                                             placeholder="e.g., Head Coach, Program Director"
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Bio</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Bio</label>
                                         <textarea
                                             value={bio}
                                             onChange={(e) => setBio(e.target.value)}
                                             rows={3}
                                             placeholder="A brief description..."
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                         />
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Work Phone</label>
+                                            <label className="block text-sm font-medium text-body mb-1">Work Phone</label>
                                             <input
                                                 type="tel"
                                                 value={phone}
                                                 onChange={(e) => setPhone(e.target.value)}
                                                 placeholder="(555) 123-4567"
-                                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-medium text-slate-700 mb-1">Work Email</label>
+                                            <label className="block text-sm font-medium text-body mb-1">Work Email</label>
                                             <input
                                                 type="email"
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                                 placeholder="work@example.com"
-                                                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-slate-700 mb-1">Hire Date</label>
+                                        <label className="block text-sm font-medium text-body mb-1">Hire Date</label>
                                         <input
                                             type="date"
                                             value={hireDate}
                                             onChange={(e) => setHireDate(e.target.value)}
-                                            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                         />
                                     </div>
 
                                     {/* Emergency Contact */}
-                                    <div className="pt-4 border-t border-slate-200">
+                                    <div className="pt-4 border-t border-line">
                                         <div className="flex items-center gap-2 mb-3">
                                             <AlertCircle className="w-4 h-4 text-red-500" />
-                                            <label className="text-sm font-medium text-slate-700">Emergency Contact</label>
+                                            <label className="text-sm font-medium text-body">Emergency Contact</label>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             <div>
-                                                <label className="block text-xs text-slate-500 mb-1">Name</label>
+                                                <label className="block text-xs text-muted mb-1">Name</label>
                                                 <input
                                                     type="text"
                                                     value={emergencyContact.name}
                                                     onChange={(e) => setEmergencyContact(prev => ({ ...prev, name: e.target.value }))}
                                                     placeholder="Contact name"
-                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-slate-500 mb-1">Relationship</label>
+                                                <label className="block text-xs text-muted mb-1">Relationship</label>
                                                 <input
                                                     type="text"
                                                     value={emergencyContact.relationship}
                                                     onChange={(e) => setEmergencyContact(prev => ({ ...prev, relationship: e.target.value }))}
                                                     placeholder="e.g., Spouse, Parent"
-                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-slate-500 mb-1">Phone</label>
+                                                <label className="block text-xs text-muted mb-1">Phone</label>
                                                 <input
                                                     type="tel"
                                                     value={emergencyContact.phone}
                                                     onChange={(e) => setEmergencyContact(prev => ({ ...prev, phone: e.target.value }))}
                                                     placeholder="(555) 123-4567"
-                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-xs text-slate-500 mb-1">Email (optional)</label>
+                                                <label className="block text-xs text-muted mb-1">Email (optional)</label>
                                                 <input
                                                     type="email"
                                                     value={emergencyContact.email || ''}
                                                     onChange={(e) => setEmergencyContact(prev => ({ ...prev, email: e.target.value }))}
                                                     placeholder="contact@example.com"
-                                                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+                                                    className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
                                                 />
                                             </div>
                                         </div>
@@ -373,14 +373,14 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
                                                     email: staffMember.staff_profile?.emergency_contact?.email || '',
                                                 });
                                             }}
-                                            className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                            className="px-4 py-2 text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={handleSaveProfile}
                                             disabled={saving}
-                                            className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50"
+                                            className="flex items-center gap-2 px-4 py-2 bg-accent-600 text-white rounded-lg hover:bg-accent-700 transition-colors disabled:opacity-50"
                                         >
                                             {saving ? (
                                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -395,20 +395,20 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
                                 <div className="space-y-6">
                                     {/* Contact Info */}
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                            <Mail className="w-5 h-5 text-slate-400" />
+                                        <div className="flex items-center gap-3 p-3 bg-surface-alt rounded-lg">
+                                            <Mail className="w-5 h-5 text-faint" />
                                             <div>
-                                                <p className="text-xs text-slate-500">Email</p>
-                                                <p className="text-sm text-slate-700">
+                                                <p className="text-xs text-muted">Email</p>
+                                                <p className="text-sm text-body">
                                                     {staffMember.staff_profile?.email || staffMember.profile?.email || 'Not set'}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                            <Phone className="w-5 h-5 text-slate-400" />
+                                        <div className="flex items-center gap-3 p-3 bg-surface-alt rounded-lg">
+                                            <Phone className="w-5 h-5 text-faint" />
                                             <div>
-                                                <p className="text-xs text-slate-500">Phone</p>
-                                                <p className="text-sm text-slate-700">
+                                                <p className="text-xs text-muted">Phone</p>
+                                                <p className="text-sm text-body">
                                                     {staffMember.staff_profile?.phone || 'Not set'}
                                                 </p>
                                             </div>
@@ -417,8 +417,8 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
 
                                     {/* Bio */}
                                     <div>
-                                        <h3 className="text-sm font-medium text-slate-700 mb-2">Bio</h3>
-                                        <p className="text-sm text-slate-600">
+                                        <h3 className="text-sm font-medium text-body mb-2">Bio</h3>
+                                        <p className="text-sm text-subtle">
                                             {staffMember.staff_profile?.bio || 'No bio added yet.'}
                                         </p>
                                     </div>
@@ -426,8 +426,8 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
                                     {/* Hire Date */}
                                     {staffMember.staff_profile?.hire_date && (
                                         <div>
-                                            <h3 className="text-sm font-medium text-slate-700 mb-2">Hire Date</h3>
-                                            <p className="text-sm text-slate-600">
+                                            <h3 className="text-sm font-medium text-body mb-2">Hire Date</h3>
+                                            <p className="text-sm text-subtle">
                                                 {new Date(staffMember.staff_profile.hire_date).toLocaleDateString('en-US', {
                                                     year: 'numeric',
                                                     month: 'long',
@@ -438,34 +438,34 @@ export function StaffProfileModal({ isOpen, onClose, staffMember, onUpdate }: St
                                     )}
 
                                     {/* Emergency Contact */}
-                                    <div className="pt-4 border-t border-slate-200">
+                                    <div className="pt-4 border-t border-line">
                                         <div className="flex items-center gap-2 mb-3">
                                             <AlertCircle className="w-4 h-4 text-red-500" />
-                                            <h3 className="text-sm font-medium text-slate-700">Emergency Contact</h3>
+                                            <h3 className="text-sm font-medium text-body">Emergency Contact</h3>
                                         </div>
                                         {staffMember.staff_profile?.emergency_contact ? (
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                <div className="p-3 bg-red-50 rounded-lg">
+                                                <div className="p-3 bg-red-500/10 rounded-lg">
                                                     <p className="text-xs text-red-600 font-medium">Name</p>
-                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.name}</p>
+                                                    <p className="text-sm text-body">{staffMember.staff_profile.emergency_contact.name}</p>
                                                 </div>
-                                                <div className="p-3 bg-red-50 rounded-lg">
+                                                <div className="p-3 bg-red-500/10 rounded-lg">
                                                     <p className="text-xs text-red-600 font-medium">Relationship</p>
-                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.relationship || 'Not specified'}</p>
+                                                    <p className="text-sm text-body">{staffMember.staff_profile.emergency_contact.relationship || 'Not specified'}</p>
                                                 </div>
-                                                <div className="p-3 bg-red-50 rounded-lg">
+                                                <div className="p-3 bg-red-500/10 rounded-lg">
                                                     <p className="text-xs text-red-600 font-medium">Phone</p>
-                                                    <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.phone}</p>
+                                                    <p className="text-sm text-body">{staffMember.staff_profile.emergency_contact.phone}</p>
                                                 </div>
                                                 {staffMember.staff_profile.emergency_contact.email && (
-                                                    <div className="p-3 bg-red-50 rounded-lg">
+                                                    <div className="p-3 bg-red-500/10 rounded-lg">
                                                         <p className="text-xs text-red-600 font-medium">Email</p>
-                                                        <p className="text-sm text-slate-700">{staffMember.staff_profile.emergency_contact.email}</p>
+                                                        <p className="text-sm text-body">{staffMember.staff_profile.emergency_contact.email}</p>
                                                     </div>
                                                 )}
                                             </div>
                                         ) : (
-                                            <p className="text-sm text-slate-500 italic">No emergency contact added yet.</p>
+                                            <p className="text-sm text-muted italic">No emergency contact added yet.</p>
                                         )}
                                     </div>
                                 </div>

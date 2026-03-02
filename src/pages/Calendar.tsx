@@ -366,7 +366,7 @@ export function Calendar() {
         : events.filter(e => e.type === filterType);
 
     return (
-        <div className="flex h-full flex-col bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="flex h-full flex-col bg-surface rounded-xl shadow-sm border border-line overflow-hidden">
             {/* Header */}
             <CalendarHeader
                 currentDate={currentDate}
@@ -426,11 +426,11 @@ export function Calendar() {
             )}
 
             {/* Legend - Desktop always visible, Mobile scrollable */}
-            <div className="flex items-center justify-start sm:justify-center gap-4 sm:gap-6 py-2 sm:py-3 px-4 sm:px-0 border-t border-slate-200 bg-slate-50 overflow-x-auto">
+            <div className="flex items-center justify-start sm:justify-center gap-4 sm:gap-6 py-2 sm:py-3 px-4 sm:px-0 border-t border-line bg-surface-alt overflow-x-auto">
                 {Object.entries(EVENT_TYPE_COLORS).map(([type, colors]) => (
                     <div key={type} className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                         <span className={cn("w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full", colors.dot)} />
-                        <span className="text-[10px] sm:text-xs font-medium text-slate-500 capitalize">{type}</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-muted capitalize">{type}</span>
                     </div>
                 ))}
             </div>
@@ -442,7 +442,7 @@ export function Calendar() {
                         setSelectedDate(null);
                         setIsCreateModalOpen(true);
                     }}
-                    className="fixed bottom-20 right-4 z-20 flex items-center justify-center w-14 h-14 rounded-full bg-mint-500 text-white shadow-lg hover:bg-mint-400 active:scale-95 transition-all"
+                    className="fixed bottom-20 right-4 z-20 flex items-center justify-center w-14 h-14 rounded-full bg-accent-500 text-white shadow-lg hover:bg-accent-400 active:scale-95 transition-all"
                 >
                     <Plus className="h-6 w-6" />
                 </button>

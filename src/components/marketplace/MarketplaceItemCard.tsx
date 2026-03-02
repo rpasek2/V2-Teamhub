@@ -31,10 +31,10 @@ export const MarketplaceItemCard = memo(function MarketplaceItemCard({ item, cur
     return (
         <button
             onClick={onClick}
-            className="group text-left w-full rounded-xl bg-white shadow-sm border border-slate-200 overflow-hidden hover:shadow-md hover:border-brand-300 transition-all"
+            className="group text-left w-full rounded-xl bg-surface shadow-sm border border-line overflow-hidden hover:shadow-md hover:border-accent-300 transition-all"
         >
             {/* Image */}
-            <div className="aspect-square relative overflow-hidden bg-slate-100">
+            <div className="aspect-square relative overflow-hidden bg-surface-hover">
                 <img
                     src={item.images[0] || defaultImage}
                     alt={item.title}
@@ -55,29 +55,29 @@ export const MarketplaceItemCard = memo(function MarketplaceItemCard({ item, cur
                         </span>
                     )}
                 </div>
-                <span className="absolute top-2 right-2 px-2 py-1 rounded-full bg-white/90 backdrop-blur-sm text-slate-700 text-xs font-medium shadow-sm">
+                <span className="absolute top-2 right-2 px-2 py-1 rounded-full bg-surface/90 backdrop-blur-sm text-body text-xs font-medium shadow-sm">
                     {category.label}
                 </span>
             </div>
 
             {/* Content */}
             <div className="p-4">
-                <h3 className="font-semibold text-slate-900 truncate group-hover:text-brand-600 transition-colors">
+                <h3 className="font-semibold text-heading truncate group-hover:text-accent-600 transition-colors">
                     {item.title}
                 </h3>
 
                 <div className="mt-2 flex items-baseline gap-2">
-                    <span className={`text-xl font-bold ${item.price === 0 ? 'text-green-600' : 'text-slate-900'}`}>
+                    <span className={`text-xl font-bold ${item.price === 0 ? 'text-green-600' : 'text-heading'}`}>
                         {formatPrice(item.price)}
                     </span>
                     {item.size && (
-                        <span className="text-sm text-slate-500">
+                        <span className="text-sm text-muted">
                             Size {item.size}
                         </span>
                     )}
                 </div>
 
-                <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+                <div className="mt-3 flex items-center justify-between text-xs text-muted">
                     <span className="inline-flex items-center gap-1">
                         <Tag className="h-3.5 w-3.5" />
                         {condition}

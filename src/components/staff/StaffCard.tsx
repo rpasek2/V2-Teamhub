@@ -49,7 +49,7 @@ export function StaffCard({ member, getRoleBadgeColor, isParentView }: StaffCard
     return (
         <div
             onClick={handleClick}
-            className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-lg hover:border-teal-300 transition-all cursor-pointer"
+            className="bg-surface rounded-xl border border-line p-5 hover:shadow-lg hover:border-teal-500/30 transition-all cursor-pointer"
         >
             {/* Header */}
             <div className="flex items-start gap-4 mb-4">
@@ -62,18 +62,18 @@ export function StaffCard({ member, getRoleBadgeColor, isParentView }: StaffCard
                         className="w-14 h-14 rounded-full object-cover"
                     />
                 ) : (
-                    <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center">
-                        <span className="text-teal-700 font-semibold text-lg">{initials}</span>
+                    <div className="w-14 h-14 rounded-full bg-teal-500/10 flex items-center justify-center">
+                        <span className="text-teal-600 font-semibold text-lg">{initials}</span>
                     </div>
                 )}
 
                 {/* Name & Role */}
                 <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-slate-800 truncate">
+                    <h3 className="font-semibold text-heading truncate">
                         {member.profile?.full_name || 'Unknown'}
                     </h3>
                     {member.staff_profile?.title && (
-                        <p className="text-sm text-slate-500 truncate">{member.staff_profile.title}</p>
+                        <p className="text-sm text-muted truncate">{member.staff_profile.title}</p>
                     )}
                     <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${getRoleBadgeColor(member.role)}`}>
                         {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
@@ -84,14 +84,14 @@ export function StaffCard({ member, getRoleBadgeColor, isParentView }: StaffCard
             {/* Contact Info */}
             <div className="space-y-2 mb-4">
                 {contactEmail && (
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <Mail className="w-4 h-4 text-slate-400" />
+                    <div className="flex items-center gap-2 text-sm text-subtle">
+                        <Mail className="w-4 h-4 text-faint" />
                         <span className="truncate">{contactEmail}</span>
                     </div>
                 )}
                 {contactPhone && (
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
-                        <Phone className="w-4 h-4 text-slate-400" />
+                    <div className="flex items-center gap-2 text-sm text-subtle">
+                        <Phone className="w-4 h-4 text-faint" />
                         <span>{contactPhone}</span>
                     </div>
                 )}
@@ -99,21 +99,21 @@ export function StaffCard({ member, getRoleBadgeColor, isParentView }: StaffCard
 
             {/* Status Badges (staff only) */}
             {!isParentView && (
-                <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+                <div className="flex items-center gap-3 pt-3 border-t border-line">
                     {member.pending_tasks > 0 && (
                         <div className="flex items-center gap-1.5 text-xs">
                             <CheckSquare className="w-3.5 h-3.5 text-amber-500" />
-                            <span className="text-slate-600">{member.pending_tasks} task{member.pending_tasks !== 1 ? 's' : ''}</span>
+                            <span className="text-subtle">{member.pending_tasks} task{member.pending_tasks !== 1 ? 's' : ''}</span>
                         </div>
                     )}
                     {member.pending_time_off > 0 && (
                         <div className="flex items-center gap-1.5 text-xs">
                             <Calendar className="w-3.5 h-3.5 text-blue-500" />
-                            <span className="text-slate-600">{member.pending_time_off} request{member.pending_time_off !== 1 ? 's' : ''}</span>
+                            <span className="text-subtle">{member.pending_time_off} request{member.pending_time_off !== 1 ? 's' : ''}</span>
                         </div>
                     )}
                     {member.pending_tasks === 0 && member.pending_time_off === 0 && (
-                        <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <div className="flex items-center gap-1.5 text-xs text-faint">
                             <Clock className="w-3.5 h-3.5" />
                             <span>No pending items</span>
                         </div>

@@ -89,7 +89,7 @@ export function LevelsSection({ levels, setLevels }: LevelsSectionProps) {
             }
         >
             {levelsMessage && (
-                <div className={`mb-4 p-4 rounded-md ${levelsMessage.type === 'success' ? 'bg-green-50 text-green-800 border border-green-200' : 'bg-red-50 text-red-800 border border-red-200'}`}>
+                <div className={`mb-4 p-4 rounded-md ${levelsMessage.type === 'success' ? 'bg-green-500/10 text-green-600 border border-green-500/20' : 'bg-red-500/10 text-red-600 border border-red-500/20'}`}>
                     {levelsMessage.text}
                 </div>
             )}
@@ -117,28 +117,28 @@ export function LevelsSection({ levels, setLevels }: LevelsSectionProps) {
 
             {/* Levels list */}
             {levels.length === 0 ? (
-                <div className="text-center py-6 bg-slate-50 rounded-lg border-2 border-dashed border-slate-200">
-                    <ListOrdered className="mx-auto h-8 w-8 text-slate-400" />
-                    <p className="mt-2 text-sm text-slate-500">No levels defined yet.</p>
-                    <p className="text-xs text-slate-400">Add levels above to get started.</p>
+                <div className="text-center py-6 bg-surface-alt rounded-lg border-2 border-dashed border-line">
+                    <ListOrdered className="mx-auto h-8 w-8 text-faint" />
+                    <p className="mt-2 text-sm text-muted">No levels defined yet.</p>
+                    <p className="text-xs text-faint">Add levels above to get started.</p>
                 </div>
             ) : (
                 <ul className="space-y-2">
                     {levels.map((level, index) => (
                         <li
                             key={level}
-                            className="flex items-center justify-between bg-white rounded-lg px-4 py-3 border border-slate-200"
+                            className="flex items-center justify-between bg-surface rounded-lg px-4 py-3 border border-line"
                         >
                             <div className="flex items-center">
-                                <GripVertical className="h-4 w-4 text-slate-400 mr-3" />
-                                <span className="text-sm font-medium text-slate-900">{level}</span>
+                                <GripVertical className="h-4 w-4 text-faint mr-3" />
+                                <span className="text-sm font-medium text-heading">{level}</span>
                             </div>
                             <div className="flex items-center gap-1">
                                 <button
                                     type="button"
                                     onClick={() => handleMoveLevel(index, 'up')}
                                     disabled={index === 0}
-                                    className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="p-1 text-faint hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
                                     title="Move up"
                                 >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -149,7 +149,7 @@ export function LevelsSection({ levels, setLevels }: LevelsSectionProps) {
                                     type="button"
                                     onClick={() => handleMoveLevel(index, 'down')}
                                     disabled={index === levels.length - 1}
-                                    className="p-1 text-slate-400 hover:text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="p-1 text-faint hover:text-subtle disabled:opacity-30 disabled:cursor-not-allowed"
                                     title="Move down"
                                 >
                                     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,7 +159,7 @@ export function LevelsSection({ levels, setLevels }: LevelsSectionProps) {
                                 <button
                                     type="button"
                                     onClick={() => handleRemoveLevel(level)}
-                                    className="p-1 text-slate-400 hover:text-red-600 ml-2"
+                                    className="p-1 text-faint hover:text-red-600 ml-2"
                                     title="Remove level"
                                 >
                                     <X className="h-4 w-4" />

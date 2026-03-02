@@ -21,8 +21,8 @@ const getFileIcon = (mimeType: string) => {
     if (mimeType.includes('image')) return <FileImage className="h-5 w-5 text-purple-500" />;
     if (mimeType.includes('video')) return <FileVideo className="h-5 w-5 text-pink-500" />;
     if (mimeType.includes('audio')) return <FileAudio className="h-5 w-5 text-amber-500" />;
-    if (mimeType.includes('zip') || mimeType.includes('archive') || mimeType.includes('compressed')) return <Archive className="h-5 w-5 text-slate-500" />;
-    return <File className="h-5 w-5 text-slate-400" />;
+    if (mimeType.includes('zip') || mimeType.includes('archive') || mimeType.includes('compressed')) return <Archive className="h-5 w-5 text-muted" />;
+    return <File className="h-5 w-5 text-faint" />;
 };
 
 const formatFileSize = (bytes: number) => {
@@ -62,50 +62,50 @@ export function GroupFiles({ posts }: GroupFilesProps) {
 
     if (files.length === 0) {
         return (
-            <div className="text-center py-16 bg-white rounded-2xl shadow-sm border border-slate-200">
-                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center mx-auto">
+            <div className="text-center py-16 bg-surface rounded-2xl shadow-sm border border-line">
+                <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 flex items-center justify-center mx-auto">
                     <FileText className="h-8 w-8 text-blue-400" />
                 </div>
-                <h3 className="mt-4 text-lg font-semibold text-slate-900">No files yet</h3>
-                <p className="mt-1 text-sm text-slate-500">Files from posts will appear here</p>
+                <h3 className="mt-4 text-lg font-semibold text-heading">No files yet</h3>
+                <p className="mt-1 text-sm text-muted">Files from posts will appear here</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+            <div className="px-6 py-4 border-b border-line bg-surface">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
                             <FileText className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-900">Shared Files</h3>
-                            <p className="text-sm text-slate-500">{files.length} file{files.length !== 1 ? 's' : ''}</p>
+                            <h3 className="font-semibold text-heading">Shared Files</h3>
+                            <p className="text-sm text-muted">{files.length} file{files.length !== 1 ? 's' : ''}</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             {/* File list */}
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-line">
                 {files.map((file, index) => (
                     <div
                         key={`${file.postId}-${index}`}
-                        className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors group"
+                        className="flex items-center gap-4 px-6 py-4 hover:bg-surface-hover transition-colors group"
                     >
                         {/* File icon */}
-                        <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center group-hover:bg-slate-200 transition-colors">
+                        <div className="flex-shrink-0 h-12 w-12 rounded-xl bg-surface-hover flex items-center justify-center group-hover:bg-surface-active transition-colors">
                             {getFileIcon(file.mimeType)}
                         </div>
 
                         {/* File info */}
                         <div className="flex-1 min-w-0">
-                            <p className="font-medium text-slate-900 truncate">{file.name}</p>
-                            <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
-                                <span className="px-1.5 py-0.5 rounded bg-slate-100 font-medium">
+                            <p className="font-medium text-heading truncate">{file.name}</p>
+                            <div className="flex items-center gap-3 text-xs text-muted mt-1">
+                                <span className="px-1.5 py-0.5 rounded bg-surface-hover font-medium">
                                     {getFileExtension(file.name)}
                                 </span>
                                 <span>{formatFileSize(file.size)}</span>
@@ -126,7 +126,7 @@ export function GroupFiles({ posts }: GroupFilesProps) {
                             download={file.name}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex-shrink-0 p-2.5 rounded-xl text-slate-400 hover:text-brand-600 hover:bg-brand-50 transition-colors"
+                            className="flex-shrink-0 p-2.5 rounded-xl text-faint hover:text-accent-600 hover:bg-accent-500/10 transition-colors"
                             title="Download"
                         >
                             <Download className="h-5 w-5" />

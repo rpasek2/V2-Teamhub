@@ -331,14 +331,14 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-xl">
+            <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl bg-surface shadow-xl">
                 {/* Header */}
-                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
-                    <h2 className="text-lg font-semibold text-slate-900">
+                <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface px-6 py-4 rounded-t-xl">
+                    <h2 className="text-lg font-semibold text-heading">
                         {step === 'select' ? 'Create Progress Report' : 'Preview Report'}
                     </h2>
-                    <button onClick={onClose} className="rounded-lg p-2 hover:bg-slate-100">
-                        <X className="h-5 w-5 text-slate-500" />
+                    <button onClick={onClose} className="rounded-lg p-2 hover:bg-surface-hover">
+                        <X className="h-5 w-5 text-muted" />
                     </button>
                 </div>
 
@@ -353,16 +353,16 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                     <div className="p-6 space-y-6">
                         {/* Gymnast Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Gymnast</label>
+                            <label className="block text-sm font-medium text-body mb-2">Gymnast</label>
                             {selectedGymnast ? (
-                                <div className="flex items-center justify-between bg-brand-50 border border-brand-200 rounded-lg px-4 py-3">
+                                <div className="flex items-center justify-between bg-accent-500/10 border border-accent-500/20 rounded-lg px-4 py-3">
                                     <div>
-                                        <p className="font-medium text-slate-900">{selectedGymnast.first_name} {selectedGymnast.last_name}</p>
-                                        <p className="text-sm text-slate-500">{selectedGymnast.level || 'No Level'}</p>
+                                        <p className="font-medium text-heading">{selectedGymnast.first_name} {selectedGymnast.last_name}</p>
+                                        <p className="text-sm text-muted">{selectedGymnast.level || 'No Level'}</p>
                                     </div>
                                     <button
                                         onClick={() => setSelectedGymnastId('')}
-                                        className="text-sm text-brand-600 hover:text-brand-700"
+                                        className="text-sm text-accent-600 hover:text-accent-700"
                                     >
                                         Change
                                     </button>
@@ -375,32 +375,32 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                                             placeholder="Search gymnasts..."
                                             value={searchQuery}
                                             onChange={e => setSearchQuery(e.target.value)}
-                                            className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                            className="flex-1 rounded-lg border border-line-strong px-3 py-2 text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                         />
                                         {levels.length > 0 && (
                                             <select
                                                 value={selectedLevel}
                                                 onChange={e => setSelectedLevel(e.target.value)}
-                                                className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                                className="rounded-lg border border-line-strong px-3 py-2 text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                                             >
                                                 <option value="">All Levels</option>
                                                 {levels.map(l => <option key={l} value={l}>{l}</option>)}
                                             </select>
                                         )}
                                     </div>
-                                    <div className="max-h-48 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
+                                    <div className="max-h-48 overflow-y-auto rounded-lg border border-line divide-y divide-line">
                                         {filteredGymnasts.map(g => (
                                             <button
                                                 key={g.id}
                                                 onClick={() => setSelectedGymnastId(g.id)}
-                                                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-slate-50 text-left"
+                                                className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-surface-hover text-left"
                                             >
-                                                <span className="text-sm text-slate-900">{g.last_name}, {g.first_name}</span>
-                                                <span className="text-xs text-slate-500">{g.level}</span>
+                                                <span className="text-sm text-heading">{g.last_name}, {g.first_name}</span>
+                                                <span className="text-xs text-muted">{g.level}</span>
                                             </button>
                                         ))}
                                         {filteredGymnasts.length === 0 && (
-                                            <p className="px-4 py-3 text-sm text-slate-500 text-center">No gymnasts found</p>
+                                            <p className="px-4 py-3 text-sm text-muted text-center">No gymnasts found</p>
                                         )}
                                     </div>
                                 </div>
@@ -409,7 +409,7 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
 
                         {/* Date Range */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">Date Range</label>
+                            <label className="block text-sm font-medium text-body mb-2">Date Range</label>
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {([
                                     { id: 'last_30', label: 'Last 30 Days' },
@@ -423,8 +423,8 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                                         onClick={() => setDatePreset(p.id)}
                                         className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                                             datePreset === p.id
-                                                ? 'bg-brand-500 text-white'
-                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                ? 'bg-accent-500 text-white'
+                                                : 'bg-surface-hover text-subtle hover:bg-surface-active'
                                         }`}
                                     >
                                         {p.label}
@@ -434,27 +434,27 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                             {datePreset === 'custom' && (
                                 <div className="flex gap-3">
                                     <div className="flex-1">
-                                        <label className="block text-xs text-slate-500 mb-1">Start</label>
+                                        <label className="block text-xs text-muted mb-1">Start</label>
                                         <input
                                             type="date"
                                             value={customStart}
                                             onChange={e => setCustomStart(e.target.value)}
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                                            className="w-full rounded-lg border border-line-strong px-3 py-2 text-sm"
                                         />
                                     </div>
                                     <div className="flex-1">
-                                        <label className="block text-xs text-slate-500 mb-1">End</label>
+                                        <label className="block text-xs text-muted mb-1">End</label>
                                         <input
                                             type="date"
                                             value={customEnd}
                                             onChange={e => setCustomEnd(e.target.value)}
-                                            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
+                                            className="w-full rounded-lg border border-line-strong px-3 py-2 text-sm"
                                         />
                                     </div>
                                 </div>
                             )}
                             {startDate && endDate && datePreset !== 'custom' && (
-                                <div className="flex items-center gap-2 mt-2 text-xs text-slate-500">
+                                <div className="flex items-center gap-2 mt-2 text-xs text-muted">
                                     <Calendar className="h-3.5 w-3.5" />
                                     {format(new Date(startDate + 'T00:00:00'), 'MMM d, yyyy')} — {format(new Date(endDate + 'T00:00:00'), 'MMM d, yyyy')}
                                 </div>
@@ -462,23 +462,23 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                         </div>
 
                         {/* Included sections info */}
-                        <div className="bg-slate-50 rounded-lg p-4">
-                            <p className="text-sm font-medium text-slate-700 mb-2">Sections included</p>
+                        <div className="bg-surface-alt rounded-lg p-4">
+                            <p className="text-sm font-medium text-body mb-2">Sections included</p>
                             <div className="flex flex-wrap gap-2">
                                 {isTabEnabled('skills', enabledTabs) && (
-                                    <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700">Skills</span>
+                                    <span className="inline-flex items-center rounded-full bg-surface border border-line px-3 py-1 text-xs font-medium text-body">Skills</span>
                                 )}
                                 {isTabEnabled('attendance', enabledTabs) && (
-                                    <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700">Attendance</span>
+                                    <span className="inline-flex items-center rounded-full bg-surface border border-line px-3 py-1 text-xs font-medium text-body">Attendance</span>
                                 )}
                                 {isTabEnabled('assignments', enabledTabs) && (
-                                    <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700">Assignments</span>
+                                    <span className="inline-flex items-center rounded-full bg-surface border border-line px-3 py-1 text-xs font-medium text-body">Assignments</span>
                                 )}
                                 {isTabEnabled('scores', enabledTabs) && (
-                                    <span className="inline-flex items-center rounded-full bg-white border border-slate-200 px-3 py-1 text-xs font-medium text-slate-700">Scores</span>
+                                    <span className="inline-flex items-center rounded-full bg-surface border border-line px-3 py-1 text-xs font-medium text-body">Scores</span>
                                 )}
                             </div>
-                            <p className="text-xs text-slate-500 mt-2">Based on your hub's enabled tabs</p>
+                            <p className="text-xs text-muted mt-2">Based on your hub's enabled tabs</p>
                         </div>
 
                         {/* Generate button */}
@@ -486,7 +486,7 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                             <button
                                 onClick={generateReport}
                                 disabled={!selectedGymnastId || !startDate || !endDate || generating}
-                                className="flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="flex items-center gap-2 rounded-lg bg-accent-500 px-5 py-2.5 text-sm font-medium text-white hover:bg-accent-600 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {generating ? (
                                     <Loader2 className="h-4 w-4 animate-spin" />
@@ -504,24 +504,24 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                     <div className="p-6 space-y-6">
                         {/* Title */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Report Title</label>
+                            <label className="block text-sm font-medium text-body mb-1">Report Title</label>
                             <input
                                 type="text"
                                 value={title}
                                 onChange={e => setTitle(e.target.value)}
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
+                                className="w-full rounded-lg border border-line-strong px-3 py-2 text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500"
                             />
                         </div>
 
                         {/* Coach Notes */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">Coach Notes (optional)</label>
+                            <label className="block text-sm font-medium text-body mb-1">Coach Notes (optional)</label>
                             <textarea
                                 value={coachNotes}
                                 onChange={e => setCoachNotes(e.target.value)}
                                 rows={3}
                                 placeholder="Add personalized notes for the parent..."
-                                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 resize-none"
+                                className="w-full rounded-lg border border-line-strong px-3 py-2 text-sm focus:border-accent-500 focus:ring-1 focus:ring-accent-500 resize-none"
                             />
                         </div>
 
@@ -538,7 +538,7 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                         <div className="flex items-center justify-between pt-2">
                             <button
                                 onClick={() => setStep('select')}
-                                className="text-sm text-slate-600 hover:text-slate-900"
+                                className="text-sm text-subtle hover:text-heading"
                             >
                                 ← Back
                             </button>
@@ -546,14 +546,14 @@ export function CreateReportModal({ isOpen, onClose, onCreated, preselectedGymna
                                 <button
                                     onClick={() => saveReport('draft')}
                                     disabled={saving}
-                                    className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+                                    className="rounded-lg border border-line-strong px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover disabled:opacity-50"
                                 >
                                     Save as Draft
                                 </button>
                                 <button
                                     onClick={() => saveReport('published')}
                                     disabled={saving}
-                                    className="flex items-center gap-2 rounded-lg bg-brand-500 px-5 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
+                                    className="flex items-center gap-2 rounded-lg bg-accent-500 px-5 py-2 text-sm font-medium text-white hover:bg-accent-600 disabled:opacity-50"
                                 >
                                     {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                                     Publish

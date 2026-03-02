@@ -147,14 +147,14 @@ export function AddGoalModal({
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-brand-50 flex items-center justify-center">
-                            <Target className="w-5 h-5 text-brand-600" />
+                        <div className="h-10 w-10 rounded-lg bg-accent-50 flex items-center justify-center">
+                            <Target className="w-5 h-5 text-accent-600" />
                         </div>
-                        <h2 className="text-xl font-bold text-slate-900">Add Goal</h2>
+                        <h2 className="text-xl font-bold text-heading">Add Goal</h2>
                     </div>
                     <button
                         onClick={onClose}
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -163,7 +163,7 @@ export function AddGoalModal({
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {/* Goal Title */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                        <label className="block text-sm font-medium text-body mb-1">
                             Goal *
                         </label>
                         <input
@@ -178,7 +178,7 @@ export function AddGoalModal({
 
                     {/* Event Selection */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             Event (optional)
                         </label>
                         <div className="flex flex-wrap gap-2">
@@ -189,8 +189,8 @@ export function AddGoalModal({
                                     onClick={() => setEvent(event === evt.value ? '' : evt.value)}
                                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                         event === evt.value
-                                            ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
-                                            : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                            ? 'bg-accent-100 text-accent-700 border-2 border-accent-300'
+                                            : 'bg-surface-hover text-subtle border-2 border-transparent hover:bg-surface-active'
                                     }`}
                                 >
                                     {evt.label}
@@ -201,35 +201,35 @@ export function AddGoalModal({
 
                     {/* Target Date */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-2">
+                        <label className="block text-sm font-medium text-body mb-2">
                             Target Date
                         </label>
                         <div className="flex items-center gap-2 mb-2">
                             <button
                                 type="button"
                                 onClick={() => setQuickDate(1)}
-                                className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors"
+                                className="px-2 py-1 text-xs bg-surface-hover hover:bg-surface-active text-subtle rounded transition-colors"
                             >
                                 1 month
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setQuickDate(3)}
-                                className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors"
+                                className="px-2 py-1 text-xs bg-surface-hover hover:bg-surface-active text-subtle rounded transition-colors"
                             >
                                 3 months
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setQuickDate(6)}
-                                className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors"
+                                className="px-2 py-1 text-xs bg-surface-hover hover:bg-surface-active text-subtle rounded transition-colors"
                             >
                                 6 months
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setQuickDate(12)}
-                                className="px-2 py-1 text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 rounded transition-colors"
+                                className="px-2 py-1 text-xs bg-surface-hover hover:bg-surface-active text-subtle rounded transition-colors"
                             >
                                 1 year
                             </button>
@@ -241,13 +241,13 @@ export function AddGoalModal({
                                 onChange={(e) => setTargetDate(e.target.value)}
                                 className="input w-full pl-10"
                             />
-                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-faint" />
                         </div>
                     </div>
 
                     {/* Description */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-700 mb-1">
+                        <label className="block text-sm font-medium text-body mb-1">
                             Notes (optional)
                         </label>
                         <textarea
@@ -262,19 +262,19 @@ export function AddGoalModal({
                     {/* Milestones/Subgoals */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <label className="block text-sm font-medium text-slate-700">
+                            <label className="block text-sm font-medium text-body">
                                 Milestones
                             </label>
                             <button
                                 type="button"
                                 onClick={addSubgoal}
-                                className="flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700"
+                                className="flex items-center gap-1 text-sm text-accent-600 hover:text-accent-700"
                             >
                                 <Plus className="w-4 h-4" />
                                 Add Milestone
                             </button>
                         </div>
-                        <p className="text-xs text-slate-500 mb-3">
+                        <p className="text-xs text-muted mb-3">
                             Break down your goal into smaller, dated milestones
                         </p>
 
@@ -283,9 +283,9 @@ export function AddGoalModal({
                                 {subgoals.map((subgoal, index) => (
                                     <div
                                         key={subgoal.id}
-                                        className="flex items-start gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200"
+                                        className="flex items-start gap-2 p-3 bg-surface-alt rounded-lg border border-line"
                                     >
-                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-slate-200 text-slate-600 text-xs font-medium flex items-center justify-center mt-1">
+                                        <span className="flex-shrink-0 w-6 h-6 rounded-full bg-surface-active text-subtle text-xs font-medium flex items-center justify-center mt-1">
                                             {index + 1}
                                         </span>
                                         <div className="flex-1 space-y-2">
@@ -297,7 +297,7 @@ export function AddGoalModal({
                                                 className="input w-full text-sm"
                                             />
                                             <div className="flex items-center gap-2">
-                                                <Calendar className="w-4 h-4 text-slate-400" />
+                                                <Calendar className="w-4 h-4 text-faint" />
                                                 <input
                                                     type="date"
                                                     value={subgoal.target_date}
@@ -309,7 +309,7 @@ export function AddGoalModal({
                                         <button
                                             type="button"
                                             onClick={() => removeSubgoal(subgoal.id)}
-                                            className="p-1 text-slate-400 hover:text-error-500 transition-colors"
+                                            className="p-1 text-faint hover:text-error-500 transition-colors"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -322,7 +322,7 @@ export function AddGoalModal({
                             <button
                                 type="button"
                                 onClick={addSubgoal}
-                                className="w-full p-4 border-2 border-dashed border-slate-200 rounded-lg text-slate-500 hover:border-brand-300 hover:text-brand-600 transition-colors text-sm"
+                                className="w-full p-4 border-2 border-dashed border-line rounded-lg text-muted hover:border-accent-300 hover:text-accent-600 transition-colors text-sm"
                             >
                                 <Plus className="w-5 h-5 mx-auto mb-1" />
                                 Add a milestone to track progress

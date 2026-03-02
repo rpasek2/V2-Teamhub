@@ -212,18 +212,18 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
             <div className="space-y-4">
                 {loadingGymnasts ? (
                     <div className="flex items-center justify-center py-8">
-                        <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+                        <Loader2 className="h-6 w-6 animate-spin text-accent-600" />
                     </div>
                 ) : (
                     <>
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-subtle">
                             Select which levels should be Bigs (mentors) and which should be Littles (mentees).
                             Each Big will be randomly assigned exactly one Little.
                         </p>
 
                         {/* Big Levels Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Big (Mentor) Levels
                             </label>
                             <div className="flex flex-wrap gap-2">
@@ -235,10 +235,10 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
                                         disabled={count === 0}
                                         className={`px-3 py-1.5 text-sm rounded-full border-2 transition-all ${
                                             selected
-                                                ? 'border-purple-500 bg-purple-100 text-purple-700'
+                                                ? 'border-purple-500 bg-purple-500/10 text-purple-600'
                                                 : count === 0
-                                                    ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
-                                                    : 'border-slate-300 bg-white text-slate-600 hover:border-purple-300'
+                                                    ? 'border-line bg-surface-hover text-faint cursor-not-allowed'
+                                                    : 'border-line-strong bg-surface text-subtle hover:border-purple-300'
                                         }`}
                                     >
                                         {level} ({count})
@@ -254,7 +254,7 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
 
                         {/* Little Levels Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Little (Mentee) Levels
                             </label>
                             <div className="flex flex-wrap gap-2">
@@ -266,10 +266,10 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
                                         disabled={count === 0}
                                         className={`px-3 py-1.5 text-sm rounded-full border-2 transition-all ${
                                             selected
-                                                ? 'border-pink-500 bg-pink-100 text-pink-700'
+                                                ? 'border-pink-500 bg-pink-500/10 text-pink-600'
                                                 : count === 0
-                                                    ? 'border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed'
-                                                    : 'border-slate-300 bg-white text-slate-600 hover:border-pink-300'
+                                                    ? 'border-line bg-surface-hover text-faint cursor-not-allowed'
+                                                    : 'border-line-strong bg-surface text-subtle hover:border-pink-300'
                                         }`}
                                     >
                                         {level} ({count})
@@ -285,7 +285,7 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
 
                         {/* Warnings */}
                         {willDoubleLittles && (
-                            <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+                            <div className="flex items-start gap-2 p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg text-sm text-amber-600">
                                 <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                                 <span>
                                     There are more Littles ({selectedLittleCount}) than Bigs ({selectedBigCount}).
@@ -295,7 +295,7 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
                         )}
 
                         {unassignedBigs > 0 && (
-                            <div className="flex items-start gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-700">
+                            <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg text-sm text-blue-600">
                                 <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
                                 <span>
                                     There are more Bigs ({selectedBigCount}) than Littles ({selectedLittleCount}).
@@ -310,21 +310,21 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
                                 type="checkbox"
                                 checked={clearExisting}
                                 onChange={(e) => setClearExisting(e.target.checked)}
-                                className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+                                className="w-4 h-4 text-accent-600 border-line-strong rounded focus:ring-accent-500"
                             />
-                            <span className="text-sm text-slate-600">
+                            <span className="text-sm text-subtle">
                                 Clear all existing pairings before assigning
                             </span>
                         </label>
 
                         {error && (
-                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-600">
+                            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600">
                                 {error}
                             </div>
                         )}
 
                         {success && (
-                            <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-600">
+                            <div className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-600">
                                 <Check className="h-4 w-4" />
                                 {success}
                             </div>
@@ -335,7 +335,7 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50"
+                                className="px-4 py-2 text-sm font-medium text-body bg-surface border border-line-strong rounded-lg hover:bg-surface-hover"
                             >
                                 Cancel
                             </button>
@@ -343,7 +343,7 @@ export function RandomAssignModal({ isOpen, onClose, onCreated, hubId }: RandomA
                                 type="button"
                                 onClick={handleRandomAssign}
                                 disabled={loading || selectedBigCount === 0 || selectedLittleCount === 0 || !!success}
-                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-600 rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-accent-600 rounded-lg hover:bg-accent-700 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading ? (
                                     <Loader2 className="h-4 w-4 animate-spin mr-2" />

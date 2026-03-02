@@ -56,10 +56,10 @@ export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorPr
     const isValid = title.trim() && (slots.filter(s => s.name.trim()).length >= 1 || allowUserSlots);
 
     return (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 bg-emerald-100 border-b border-emerald-200">
+        <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 overflow-hidden">
+            <div className="flex items-center gap-2 px-4 py-3 bg-emerald-500/15 border-b border-emerald-500/20">
                 <ClipboardList className="h-4 w-4 text-emerald-600" />
-                <h5 className="text-sm font-semibold text-emerald-700">Create Sign-Up</h5>
+                <h5 className="text-sm font-semibold text-emerald-600">Create Sign-Up</h5>
                 <button
                     type="button"
                     onClick={onCancel}
@@ -71,7 +71,7 @@ export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorPr
             <div className="p-4 space-y-4">
                 {/* Title */}
                 <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                    <label className="block text-xs font-medium text-subtle mb-1.5">
                         Title <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -79,39 +79,39 @@ export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorPr
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="e.g., Snack Sign-Up for Saturday Meet"
-                        className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow"
+                        className="block w-full rounded-lg border border-line-strong bg-surface text-heading px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow"
                     />
                 </div>
 
                 {/* Description */}
                 <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1.5">
-                        Description <span className="text-slate-400">(optional)</span>
+                    <label className="block text-xs font-medium text-subtle mb-1.5">
+                        Description <span className="text-faint">(optional)</span>
                     </label>
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Add any additional details..."
                         rows={2}
-                        className="block w-full rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow resize-none"
+                        className="block w-full rounded-lg border border-line-strong bg-surface text-heading px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow resize-none"
                     />
                 </div>
 
                 {/* Slots */}
                 <div>
-                    <label className="block text-xs font-medium text-slate-600 mb-1.5">
+                    <label className="block text-xs font-medium text-subtle mb-1.5">
                         Sign-Up Slots
                     </label>
                     <div className="space-y-2">
                         {slots.map((slot, index) => (
                             <div key={slot._id} className="flex items-center gap-2">
-                                <GripVertical className="h-4 w-4 text-slate-300 flex-shrink-0" />
+                                <GripVertical className="h-4 w-4 text-faint flex-shrink-0" />
                                 <input
                                     type="text"
                                     value={slot.name}
                                     onChange={(e) => handleSlotChange(slot._id, 'name', e.target.value)}
                                     placeholder={`Slot ${index + 1} (e.g., Fruit, Drinks)`}
-                                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow"
+                                    className="flex-1 rounded-lg border border-line-strong bg-surface text-heading px-3 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow"
                                 />
                                 <input
                                     type="number"
@@ -119,14 +119,14 @@ export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorPr
                                     onChange={(e) => handleSlotChange(slot._id, 'maxSignups', e.target.value ? parseInt(e.target.value) : undefined)}
                                     placeholder="Max"
                                     min={1}
-                                    className="w-16 rounded-lg border border-slate-300 px-2 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow text-center"
+                                    className="w-16 rounded-lg border border-line-strong px-2 py-2 text-sm shadow-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-shadow text-center"
                                     title="Maximum sign-ups (leave empty for unlimited)"
                                 />
                                 {slots.length > 1 && (
                                     <button
                                         type="button"
                                         onClick={() => handleRemoveSlot(slot._id)}
-                                        className="p-1.5 text-slate-400 hover:text-red-500 rounded"
+                                        className="p-1.5 text-faint hover:text-red-500 rounded"
                                     >
                                         <X className="h-4 w-4" />
                                     </button>
@@ -138,32 +138,32 @@ export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorPr
                         <button
                             type="button"
                             onClick={handleAddSlot}
-                            className="mt-2 inline-flex items-center text-sm text-emerald-600 hover:text-emerald-700"
+                            className="mt-2 inline-flex items-center text-sm text-emerald-600 hover:text-emerald-600"
                         >
                             <Plus className="h-4 w-4 mr-1" />
                             Add slot
                         </button>
                     )}
-                    <p className="mt-1 text-xs text-slate-400">
+                    <p className="mt-1 text-xs text-faint">
                         Leave "Max" empty for unlimited sign-ups per slot
                     </p>
                 </div>
 
                 {/* Allow User Slots Option */}
-                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                <div className="rounded-lg border border-line bg-surface p-3">
                     <label className="flex items-start gap-3 cursor-pointer">
                         <input
                             type="checkbox"
                             checked={allowUserSlots}
                             onChange={(e) => setAllowUserSlots(e.target.checked)}
-                            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
+                            className="mt-0.5 h-4 w-4 rounded border-line-strong text-emerald-600 focus:ring-emerald-500"
                         />
                         <div>
                             <div className="flex items-center gap-2">
                                 <Users className="h-4 w-4 text-emerald-600" />
-                                <span className="text-sm font-medium text-slate-900">Allow members to add items</span>
+                                <span className="text-sm font-medium text-heading">Allow members to add items</span>
                             </div>
-                            <p className="text-xs text-slate-500 mt-0.5">
+                            <p className="text-xs text-muted mt-0.5">
                                 Perfect for potlucks! Members can add their own items and sign up to bring them.
                             </p>
                         </div>
@@ -175,7 +175,7 @@ export function SignupCreator({ onSave, onCancel, initialData }: SignupCreatorPr
                     <button
                         type="button"
                         onClick={onCancel}
-                        className="px-3 py-1.5 text-sm font-medium text-slate-600 hover:text-slate-800"
+                        className="px-3 py-1.5 text-sm font-medium text-subtle hover:text-heading"
                     >
                         Cancel
                     </button>

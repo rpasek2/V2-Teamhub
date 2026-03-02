@@ -324,20 +324,20 @@ export function LessonCalendar({ coachId, onSlotSelect, view = 'week' }: LessonC
     const getSlotStatusColor = (status: string) => {
         switch (status) {
             case 'available':
-                return 'bg-green-100 text-green-700 hover:bg-green-200 border-green-300';
+                return 'bg-green-500/10 text-green-600 hover:bg-green-500/15 border-green-500/30';
             case 'partial':
-                return 'bg-amber-100 text-amber-700 hover:bg-amber-200 border-amber-300';
+                return 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/15 border-amber-500/30';
             case 'booked':
-                return 'bg-slate-100 text-slate-400 cursor-not-allowed border-slate-200';
+                return 'bg-surface-hover text-faint cursor-not-allowed border-line';
             default:
-                return 'bg-slate-50 text-slate-500 border-slate-200';
+                return 'bg-surface-alt text-muted border-line';
         }
     };
 
     if (loading) {
         return (
             <div className="card p-8 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
             </div>
         );
     }
@@ -345,10 +345,10 @@ export function LessonCalendar({ coachId, onSlotSelect, view = 'week' }: LessonC
     return (
         <div className="card overflow-hidden">
             {/* Header */}
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+            <div className="p-4 border-b border-line flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <CalendarIcon className="w-5 h-5 text-brand-600" />
-                    <h3 className="font-semibold text-slate-900">
+                    <CalendarIcon className="w-5 h-5 text-accent-600" />
+                    <h3 className="font-semibold text-heading">
                         {view === 'week'
                             ? `Week of ${format(dateRange.start, 'MMM d, yyyy')}`
                             : format(currentDate, 'MMMM yyyy')
@@ -358,21 +358,21 @@ export function LessonCalendar({ coachId, onSlotSelect, view = 'week' }: LessonC
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => setCurrentDate(new Date())}
-                        className="px-3 py-1.5 text-sm text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
+                        className="px-3 py-1.5 text-sm text-accent-600 hover:bg-accent-500/10 rounded-lg transition-colors"
                     >
                         Today
                     </button>
                     <button
                         onClick={() => navigate('prev')}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
                     >
-                        <ChevronLeft className="w-5 h-5 text-slate-600" />
+                        <ChevronLeft className="w-5 h-5 text-subtle" />
                     </button>
                     <button
                         onClick={() => navigate('next')}
-                        className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                        className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors"
                     >
-                        <ChevronRight className="w-5 h-5 text-slate-600" />
+                        <ChevronRight className="w-5 h-5 text-subtle" />
                     </button>
                 </div>
             </div>
@@ -382,7 +382,7 @@ export function LessonCalendar({ coachId, onSlotSelect, view = 'week' }: LessonC
                 {/* Day Headers */}
                 <div className="grid grid-cols-7 gap-2 mb-2">
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className="text-center text-xs font-semibold text-slate-500 uppercase">
+                        <div key={day} className="text-center text-xs font-semibold text-muted uppercase">
                             {day}
                         </div>
                     ))}
@@ -400,17 +400,17 @@ export function LessonCalendar({ coachId, onSlotSelect, view = 'week' }: LessonC
                                 key={day.toISOString()}
                                 className={`min-h-[100px] p-2 rounded-lg border transition-colors ${
                                     isToday(day)
-                                        ? 'border-brand-300 bg-brand-50/30'
-                                        : 'border-slate-200'
+                                        ? 'border-accent-500/30 bg-accent-500/5'
+                                        : 'border-line'
                                 } ${
-                                    !isCurrentMonth ? 'bg-slate-50/50' : ''
+                                    !isCurrentMonth ? 'bg-surface-alt/50' : ''
                                 } ${
                                     isPast ? 'opacity-50' : ''
                                 }`}
                             >
                                 <div className={`text-sm font-medium mb-1 ${
-                                    isToday(day) ? 'text-brand-600' :
-                                    !isCurrentMonth ? 'text-slate-400' : 'text-slate-700'
+                                    isToday(day) ? 'text-accent-600' :
+                                    !isCurrentMonth ? 'text-faint' : 'text-body'
                                 }`}>
                                     {format(day, 'd')}
                                 </div>
@@ -430,7 +430,7 @@ export function LessonCalendar({ coachId, onSlotSelect, view = 'week' }: LessonC
                                         </button>
                                     ))}
                                     {daySlots.length > 3 && (
-                                        <p className="text-xs text-slate-400 text-center">
+                                        <p className="text-xs text-faint text-center">
                                             +{daySlots.length - 3} more
                                         </p>
                                     )}
@@ -444,16 +444,16 @@ export function LessonCalendar({ coachId, onSlotSelect, view = 'week' }: LessonC
             {/* Legend */}
             <div className="px-4 pb-4 flex items-center gap-4 text-xs">
                 <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded bg-green-100 border border-green-300"></div>
-                    <span className="text-slate-600">Available</span>
+                    <div className="w-3 h-3 rounded bg-green-500/10 border border-green-500/30"></div>
+                    <span className="text-subtle">Available</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded bg-amber-100 border border-amber-300"></div>
-                    <span className="text-slate-600">Partial</span>
+                    <div className="w-3 h-3 rounded bg-amber-500/10 border border-amber-500/30"></div>
+                    <span className="text-subtle">Partial</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded bg-slate-100 border border-slate-200"></div>
-                    <span className="text-slate-600">Booked</span>
+                    <div className="w-3 h-3 rounded bg-surface-hover border border-line"></div>
+                    <span className="text-subtle">Booked</span>
                 </div>
             </div>
         </div>

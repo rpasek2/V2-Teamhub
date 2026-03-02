@@ -84,7 +84,7 @@ export function ProgressReports() {
     if (loading) {
         return (
             <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent" />
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent-500 border-t-transparent" />
             </div>
         );
     }
@@ -93,17 +93,17 @@ export function ProgressReports() {
     if (viewingReport) {
         return (
             <div className="h-full flex flex-col">
-                <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
+                <header className="flex items-center justify-between border-b border-line bg-surface px-6 py-4 rounded-t-xl">
                     <button
                         onClick={() => setViewingReport(null)}
-                        className="text-sm text-slate-600 hover:text-slate-900"
+                        className="text-sm text-subtle hover:text-heading"
                     >
                         ← Back to Reports
                     </button>
                     {isStaff && viewingReport.status === 'draft' && (
                         <button
                             onClick={() => { handlePublish(viewingReport); setViewingReport(null); }}
-                            className="flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+                            className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600"
                         >
                             <Send className="h-4 w-4" />
                             Publish
@@ -128,20 +128,20 @@ export function ProgressReports() {
 
     return (
         <div className="h-full flex flex-col">
-            <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
-                <h1 className="text-2xl font-bold text-slate-900">Progress Reports</h1>
+            <header className="flex items-center justify-between border-b border-line bg-surface px-6 py-4 rounded-t-xl">
+                <h1 className="text-2xl font-bold text-heading">Progress Reports</h1>
                 <div className="flex items-center gap-3">
                     {/* Filter (staff only) */}
                     {isStaff && (
-                        <div className="flex rounded-lg bg-slate-100 p-1">
+                        <div className="flex rounded-lg bg-surface-hover p-1">
                             {(['all', 'published', 'draft'] as const).map(f => (
                                 <button
                                     key={f}
                                     onClick={() => setFilter(f)}
                                     className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors capitalize ${
                                         filter === f
-                                            ? 'bg-white text-slate-900 shadow-sm'
-                                            : 'text-slate-500 hover:text-slate-900'
+                                            ? 'bg-surface text-heading shadow-sm'
+                                            : 'text-muted hover:text-heading'
                                     }`}
                                 >
                                     {f}
@@ -152,7 +152,7 @@ export function ProgressReports() {
                     {isStaff && (
                         <button
                             onClick={() => setIsCreateOpen(true)}
-                            className="flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
+                            className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600"
                         >
                             <Plus className="h-4 w-4" />
                             Create Report
@@ -164,11 +164,11 @@ export function ProgressReports() {
             <main className="flex-1 overflow-y-auto p-6">
                 {filteredReports.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center text-center">
-                        <div className="rounded-full bg-slate-100 p-4">
-                            <FileText className="h-8 w-8 text-slate-400" />
+                        <div className="rounded-full bg-surface-hover p-4">
+                            <FileText className="h-8 w-8 text-faint" />
                         </div>
-                        <h3 className="mt-4 text-lg font-semibold text-slate-900">No progress reports</h3>
-                        <p className="mt-2 text-sm text-slate-500 max-w-sm">
+                        <h3 className="mt-4 text-lg font-semibold text-heading">No progress reports</h3>
+                        <p className="mt-2 text-sm text-muted max-w-sm">
                             {isStaff
                                 ? 'Create a progress report to share gymnast progress with parents.'
                                 : 'No progress reports have been shared yet.'}
@@ -181,28 +181,28 @@ export function ProgressReports() {
                             return (
                                 <div
                                     key={report.id}
-                                    className="bg-white rounded-lg border border-slate-200 p-4 hover:border-slate-300 transition-colors"
+                                    className="bg-surface rounded-lg border border-line p-4 hover:border-line-strong transition-colors"
                                 >
                                     <div className="flex items-center justify-between">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2">
-                                                <h3 className="font-medium text-slate-900 truncate">{report.title}</h3>
+                                                <h3 className="font-medium text-heading truncate">{report.title}</h3>
                                                 <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                                                     report.status === 'published'
-                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                        : 'bg-amber-100 text-amber-700'
+                                                        ? 'bg-emerald-500/10 text-emerald-600'
+                                                        : 'bg-amber-500/10 text-amber-600'
                                                 }`}>
                                                     {report.status === 'published' ? 'Published' : 'Draft'}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-slate-500 mt-1">
+                                            <p className="text-sm text-muted mt-1">
                                                 {gymnast ? `${gymnast.first_name} ${gymnast.last_name}` : 'Unknown'} · {gymnast?.level || 'No Level'} · {format(new Date(report.date_range_start + 'T00:00:00'), 'MMM d')} — {format(new Date(report.date_range_end + 'T00:00:00'), 'MMM d, yyyy')}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2 ml-4">
                                             <button
                                                 onClick={() => setViewingReport(report)}
-                                                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                                                className="rounded-lg p-2 text-faint hover:bg-surface-hover hover:text-subtle"
                                                 title="View"
                                             >
                                                 <Eye className="h-4 w-4" />
@@ -210,7 +210,7 @@ export function ProgressReports() {
                                             {isStaff && report.status === 'draft' && (
                                                 <button
                                                     onClick={() => handlePublish(report)}
-                                                    className="rounded-lg p-2 text-brand-500 hover:bg-brand-50"
+                                                    className="rounded-lg p-2 text-accent-500 hover:bg-accent-500/10"
                                                     title="Publish"
                                                 >
                                                     <Send className="h-4 w-4" />
@@ -219,7 +219,7 @@ export function ProgressReports() {
                                             {isStaff && (
                                                 <button
                                                     onClick={() => handleDelete(report.id)}
-                                                    className="rounded-lg p-2 text-slate-400 hover:bg-error-50 hover:text-error-600"
+                                                    className="rounded-lg p-2 text-faint hover:bg-error-50 hover:text-error-600"
                                                     title="Delete"
                                                 >
                                                     <Trash2 className="h-4 w-4" />

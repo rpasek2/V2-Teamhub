@@ -267,7 +267,7 @@ export function Mentorship() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="h-8 w-8 animate-spin text-mint-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-accent-500" />
             </div>
         );
     }
@@ -278,9 +278,9 @@ export function Mentorship() {
             <div>
                 <div className="flex items-center gap-3">
                     <HeartHandshake className="h-8 w-8 text-pink-500" />
-                    <h1 className="text-2xl font-bold text-slate-900">Mentorship</h1>
+                    <h1 className="text-2xl font-bold text-heading">Mentorship</h1>
                 </div>
-                <p className="mt-1 text-sm text-slate-500">
+                <p className="mt-1 text-sm text-muted">
                     Manage pairings, events, and mentorship programs
                 </p>
             </div>
@@ -292,13 +292,13 @@ export function Mentorship() {
             )}
 
             {/* Mobile Tab Navigation */}
-            <div className="lg:hidden flex border-b border-slate-200">
+            <div className="lg:hidden flex border-b border-line">
                 <button
                     onClick={() => setMobileTab('pairings')}
                     className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
                         mobileTab === 'pairings'
                             ? 'border-pink-500 text-pink-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-700'
+                            : 'border-transparent text-muted hover:text-body'
                     }`}
                 >
                     <Users className="inline-block h-4 w-4 mr-2" />
@@ -309,7 +309,7 @@ export function Mentorship() {
                     className={`flex-1 py-3 text-sm font-medium border-b-2 transition-colors ${
                         mobileTab === 'events'
                             ? 'border-pink-500 text-pink-600'
-                            : 'border-transparent text-slate-500 hover:text-slate-700'
+                            : 'border-transparent text-muted hover:text-body'
                     }`}
                 >
                     <Calendar className="inline-block h-4 w-4 mr-2" />
@@ -321,16 +321,16 @@ export function Mentorship() {
             <div className="lg:flex lg:gap-6">
                 {/* Pairings Section */}
                 <div className={`lg:flex-1 lg:w-2/3 ${mobileTab !== 'pairings' ? 'hidden lg:block' : ''}`}>
-                    <div className="bg-white rounded-lg shadow-sm border border-slate-200">
+                    <div className="bg-surface rounded-lg shadow-sm border border-line">
                         {/* Pairings Header */}
-                        <div className="p-4 border-b border-slate-200">
+                        <div className="p-4 border-b border-line">
                             <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-lg font-semibold text-slate-900">Pairings</h2>
+                                <h2 className="text-lg font-semibold text-heading">Pairings</h2>
                                 {isStaff && (
                                     <div className="flex items-center gap-2">
                                         <button
                                             onClick={() => setShowRandomAssignModal(true)}
-                                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-pink-600 bg-pink-50 border border-pink-200 rounded-lg hover:bg-pink-100"
+                                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-pink-600 bg-pink-500/10 border border-pink-500/20 rounded-lg hover:bg-pink-500/15"
                                         >
                                             <Shuffle className="h-4 w-4" />
                                             Random Assign
@@ -348,7 +348,7 @@ export function Mentorship() {
 
                             {/* Search */}
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                 <input
                                     type="text"
                                     placeholder="Search by name..."
@@ -363,8 +363,8 @@ export function Mentorship() {
                         <div className="p-4">
                             {filteredPairings.length === 0 ? (
                                 <div className="text-center py-12">
-                                    <HeartHandshake className="h-12 w-12 text-slate-500 mx-auto mb-4" />
-                                    <p className="text-slate-400">
+                                    <HeartHandshake className="h-12 w-12 text-muted mx-auto mb-4" />
+                                    <p className="text-faint">
                                         {visiblePairings.length === 0
                                             ? (isStaff ? 'No pairings yet. Create your first Big/Little pairing!' : 'No pairings to display.')
                                             : 'No pairings match your search.'}
@@ -388,11 +388,11 @@ export function Mentorship() {
 
                 {/* Events Section */}
                 <div className={`lg:w-1/3 mt-6 lg:mt-0 ${mobileTab !== 'events' ? 'hidden lg:block' : ''}`}>
-                    <div className="bg-white rounded-lg shadow-sm border border-slate-200">
+                    <div className="bg-surface rounded-lg shadow-sm border border-line">
                         {/* Events Header */}
-                        <div className="p-4 border-b border-slate-200">
+                        <div className="p-4 border-b border-line">
                             <div className="flex items-center justify-between">
-                                <h2 className="text-lg font-semibold text-slate-900">Upcoming Events</h2>
+                                <h2 className="text-lg font-semibold text-heading">Upcoming Events</h2>
                                 {isStaff && (
                                     <button
                                         onClick={() => setShowCreateEventModal(true)}
@@ -409,8 +409,8 @@ export function Mentorship() {
                         <div className="p-4 space-y-3">
                             {upcomingEvents.length === 0 ? (
                                 <div className="text-center py-8">
-                                    <Calendar className="h-10 w-10 text-slate-500 mx-auto mb-3" />
-                                    <p className="text-sm text-slate-400">No upcoming events</p>
+                                    <Calendar className="h-10 w-10 text-muted mx-auto mb-3" />
+                                    <p className="text-sm text-faint">No upcoming events</p>
                                 </div>
                             ) : (
                                 upcomingEvents.map((event) => (
@@ -427,11 +427,11 @@ export function Mentorship() {
                                 <div className="pt-4">
                                     <button
                                         onClick={() => setShowPastEvents(!showPastEvents)}
-                                        className="w-full text-sm text-slate-500 hover:text-slate-700 flex items-center justify-center gap-2"
+                                        className="w-full text-sm text-muted hover:text-body flex items-center justify-center gap-2"
                                     >
-                                        <div className="h-px flex-1 bg-slate-200" />
+                                        <div className="h-px flex-1 bg-surface-active" />
                                         <span>{showPastEvents ? 'Hide' : 'Show'} Past Events ({pastEvents.length})</span>
-                                        <div className="h-px flex-1 bg-slate-200" />
+                                        <div className="h-px flex-1 bg-surface-active" />
                                     </button>
 
                                     {showPastEvents && (

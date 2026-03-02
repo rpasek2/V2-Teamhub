@@ -164,7 +164,7 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
     if (loading) {
         return (
             <div className="flex justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-brand-600" />
+                <Loader2 className="h-8 w-8 animate-spin text-accent-600" />
             </div>
         );
     }
@@ -175,9 +175,9 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
                 <div className="mb-4 flex justify-end">
                     <button
                         onClick={() => setIsAdding(!isAdding)}
-                        className="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-slate-50"
+                        className="inline-flex items-center rounded-md bg-surface px-3 py-2 text-sm font-semibold text-heading shadow-sm ring-1 ring-inset ring-line-strong hover:bg-surface-hover"
                     >
-                        <Plus className="-ml-0.5 mr-1.5 h-4 w-4 text-slate-400" />
+                        <Plus className="-ml-0.5 mr-1.5 h-4 w-4 text-faint" />
                         {isAdding ? 'Cancel' : 'Add Document'}
                     </button>
                 </div>
@@ -197,42 +197,42 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
             )}
 
             {isAdding && (
-                <div className="mb-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-                    <h3 className="mb-3 text-sm font-medium text-slate-900">Add New Document</h3>
+                <div className="mb-6 rounded-lg border border-line bg-surface-alt p-4">
+                    <h3 className="mb-3 text-sm font-medium text-heading">Add New Document</h3>
                     <form onSubmit={handleAddDocument} className="space-y-3">
                         <div className="flex space-x-4 mb-3">
                             <label className="inline-flex items-center">
                                 <input
                                     type="radio"
-                                    className="form-radio text-brand-600"
+                                    className="form-radio text-accent-600"
                                     name="docType"
                                     value="link"
                                     checked={docType === 'link'}
                                     onChange={() => setDocType('link')}
                                 />
-                                <span className="ml-2 text-sm text-slate-700">Link</span>
+                                <span className="ml-2 text-sm text-body">Link</span>
                             </label>
                             <label className="inline-flex items-center">
                                 <input
                                     type="radio"
-                                    className="form-radio text-brand-600"
+                                    className="form-radio text-accent-600"
                                     name="docType"
                                     value="file"
                                     checked={docType === 'file'}
                                     onChange={() => setDocType('file')}
                                 />
-                                <span className="ml-2 text-sm text-slate-700">File Upload</span>
+                                <span className="ml-2 text-sm text-body">File Upload</span>
                             </label>
                         </div>
 
                         <div>
-                            <label htmlFor="doc-name" className="block text-xs font-medium text-slate-700">Name</label>
+                            <label htmlFor="doc-name" className="block text-xs font-medium text-body">Name</label>
                             <input
                                 type="text"
                                 id="doc-name"
                                 value={newDocName}
                                 onChange={(e) => setNewDocName(e.target.value)}
-                                className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border-line-strong shadow-sm focus:border-accent-500 focus:ring-accent-500 sm:text-sm"
                                 placeholder="e.g., Meet Packet"
                                 required
                             />
@@ -240,31 +240,31 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
 
                         {docType === 'link' ? (
                             <div>
-                                <label htmlFor="doc-url" className="block text-xs font-medium text-slate-700">URL</label>
+                                <label htmlFor="doc-url" className="block text-xs font-medium text-body">URL</label>
                                 <input
                                     type="url"
                                     id="doc-url"
                                     value={newDocUrl}
                                     onChange={(e) => setNewDocUrl(e.target.value)}
-                                    className="mt-1 block w-full rounded-md border-slate-300 shadow-sm focus:border-brand-500 focus:ring-brand-500 sm:text-sm"
+                                    className="mt-1 block w-full rounded-md border-line-strong shadow-sm focus:border-accent-500 focus:ring-accent-500 sm:text-sm"
                                     placeholder="https://..."
                                     required
                                 />
                             </div>
                         ) : (
                             <div>
-                                <label htmlFor="doc-file" className="block text-xs font-medium text-slate-700">
-                                    File <span className="text-slate-400">(max {FILE_LIMITS.competitionDoc.maxSizeLabel})</span>
+                                <label htmlFor="doc-file" className="block text-xs font-medium text-body">
+                                    File <span className="text-faint">(max {FILE_LIMITS.competitionDoc.maxSizeLabel})</span>
                                 </label>
                                 <input
                                     type="file"
                                     id="doc-file"
                                     accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                                     onChange={handleFileChange}
-                                    className="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100"
+                                    className="mt-1 block w-full text-sm text-muted file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-accent-50 file:text-accent-700 hover:file:bg-accent-100"
                                     required
                                 />
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-xs text-muted">
                                     Accepted: PDF, Word, Excel, JPG, PNG
                                 </p>
                             </div>
@@ -274,7 +274,7 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
                             <button
                                 type="submit"
                                 disabled={submitting || uploading}
-                                className="inline-flex justify-center rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50"
+                                className="inline-flex justify-center rounded-md bg-accent-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 disabled:opacity-50"
                             >
                                 {uploading ? (
                                     <>
@@ -292,24 +292,24 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
                 </div>
             )}
 
-            <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
+            <div className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
                 {documents.length > 0 ? (
-                    <ul role="list" className="divide-y divide-slate-200">
+                    <ul role="list" className="divide-y divide-line">
                         {documents.map((doc) => (
                             <li
                                 key={doc.id}
-                                className="flex cursor-pointer items-center justify-between p-4 hover:bg-slate-50"
+                                className="flex cursor-pointer items-center justify-between p-4 hover:bg-surface-hover"
                                 onClick={() => window.open(doc.url, '_blank', 'noopener,noreferrer')}
                             >
                                 <div className="flex items-center overflow-hidden">
                                     <div className="mr-3 flex-shrink-0">
-                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50">
-                                            <FileText className="h-5 w-5 text-brand-600" />
+                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-50">
+                                            <FileText className="h-5 w-5 text-accent-600" />
                                         </div>
                                     </div>
                                     <div className="min-w-0 truncate">
-                                        <p className="truncate text-sm font-medium text-slate-900">{doc.name}</p>
-                                        <p className="flex items-center truncate text-xs text-slate-500">
+                                        <p className="truncate text-sm font-medium text-heading">{doc.name}</p>
+                                        <p className="flex items-center truncate text-xs text-muted">
                                             {doc.url}
                                             <ExternalLink className="ml-1 h-3 w-3" />
                                         </p>
@@ -322,7 +322,7 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
                                                 e.stopPropagation();
                                                 handleDeleteDocument(doc);
                                             }}
-                                            className="rounded-md bg-white text-slate-400 hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                                            className="rounded-md bg-surface text-faint hover:text-red-500 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
                                         >
                                             <span className="sr-only">Delete</span>
                                             <Trash2 className="h-5 w-5" />
@@ -334,9 +334,9 @@ export function CompetitionDocuments({ competitionId, canManage = false }: Compe
                     </ul>
                 ) : (
                     <div className="p-8 text-center">
-                        <FileText className="mx-auto h-12 w-12 text-slate-300" />
-                        <h3 className="mt-2 text-sm font-semibold text-slate-900">No documents</h3>
-                        <p className="mt-1 text-sm text-slate-500">
+                        <FileText className="mx-auto h-12 w-12 text-faint" />
+                        <h3 className="mt-2 text-sm font-semibold text-heading">No documents</h3>
+                        <p className="mt-1 text-sm text-muted">
                             {canManage ? 'Get started by adding a link to this competition.' : 'No documents have been added yet.'}
                         </p>
                     </div>

@@ -140,13 +140,13 @@ export function ActiveAnnouncementsCard() {
 
     return (
         <div className="card overflow-hidden mb-6">
-            <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-brand-50 to-indigo-50 border-b border-slate-200">
-                <Megaphone className="w-5 h-5 text-brand-600" />
-                <h3 className="text-sm font-semibold text-slate-900">Active Announcements</h3>
+            <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-accent-50 to-indigo-50 border-b border-line">
+                <Megaphone className="w-5 h-5 text-accent-600" />
+                <h3 className="text-sm font-semibold text-heading">Active Announcements</h3>
                 <span className="badge-slate text-xs">{announcements.length}</span>
             </div>
 
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-line">
                 {announcements.map(a => {
                     const pct = a.total_recipients > 0
                         ? Math.round((a.completed_count / a.total_recipients) * 100)
@@ -159,16 +159,16 @@ export function ActiveAnnouncementsCard() {
                                 <div className="flex items-center justify-between">
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center gap-2">
-                                            <p className="text-sm font-medium text-slate-900 truncate">{a.title}</p>
+                                            <p className="text-sm font-medium text-heading truncate">{a.title}</p>
                                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                                 a.type === 'questionnaire'
                                                     ? 'bg-indigo-100 text-indigo-700'
-                                                    : 'bg-brand-100 text-brand-700'
+                                                    : 'bg-accent-100 text-accent-700'
                                             }`}>
                                                 {a.type === 'questionnaire' ? 'Questionnaire' : 'Announcement'}
                                             </span>
                                         </div>
-                                        <p className="text-xs text-slate-500 mt-0.5">
+                                        <p className="text-xs text-muted mt-0.5">
                                             {a.creator?.full_name} &middot; {formatDistanceToNow(parseISO(a.created_at), { addSuffix: true })}
                                         </p>
                                     </div>
@@ -176,14 +176,14 @@ export function ActiveAnnouncementsCard() {
                                     <div className="flex items-center gap-3 flex-shrink-0">
                                         {/* Completion rate */}
                                         <div className="text-right">
-                                            <p className="text-sm font-semibold text-slate-900">{pct}%</p>
-                                            <p className="text-xs text-slate-500">{a.completed_count}/{a.total_recipients}</p>
+                                            <p className="text-sm font-semibold text-heading">{pct}%</p>
+                                            <p className="text-xs text-muted">{a.completed_count}/{a.total_recipients}</p>
                                         </div>
 
                                         {/* Expand */}
                                         <button
                                             onClick={() => toggleExpand(a.id)}
-                                            className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600"
+                                            className="p-1.5 rounded-lg hover:bg-surface-hover text-faint hover:text-subtle"
                                         >
                                             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                         </button>
@@ -191,7 +191,7 @@ export function ActiveAnnouncementsCard() {
                                         {/* Close */}
                                         <button
                                             onClick={() => closeAnnouncement(a.id)}
-                                            className="p-1.5 rounded-lg hover:bg-error-50 text-slate-400 hover:text-error-600"
+                                            className="p-1.5 rounded-lg hover:bg-error-50 text-faint hover:text-error-600"
                                             title="Close announcement"
                                         >
                                             <X className="w-4 h-4" />
@@ -200,9 +200,9 @@ export function ActiveAnnouncementsCard() {
                                 </div>
 
                                 {/* Progress bar */}
-                                <div className="mt-2 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                <div className="mt-2 h-1.5 bg-surface-hover rounded-full overflow-hidden">
                                     <div
-                                        className="h-full bg-brand-500 rounded-full transition-all"
+                                        className="h-full bg-accent-500 rounded-full transition-all"
                                         style={{ width: `${pct}%` }}
                                     />
                                 </div>
@@ -213,7 +213,7 @@ export function ActiveAnnouncementsCard() {
                                 <div className="px-5 pb-3">
                                     {loadingRecipients ? (
                                         <div className="flex items-center justify-center py-4">
-                                            <Loader2 className="w-4 h-4 animate-spin text-slate-400" />
+                                            <Loader2 className="w-4 h-4 animate-spin text-faint" />
                                         </div>
                                     ) : a.type === 'questionnaire' && (a.questions || []).length > 0 ? (
                                         /* Spreadsheet-style table for questionnaires */
@@ -221,39 +221,39 @@ export function ActiveAnnouncementsCard() {
                                         <div className="flex justify-end">
                                             <button
                                                 onClick={() => exportCsv(a)}
-                                                className="flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 px-2.5 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
+                                                className="flex items-center gap-1.5 text-xs font-medium text-subtle hover:text-heading px-2.5 py-1.5 rounded-lg hover:bg-surface-hover transition-colors"
                                             >
                                                 <Download className="w-3.5 h-3.5" />
                                                 Export CSV
                                             </button>
                                         </div>
-                                        <div className="overflow-x-auto border border-slate-200 rounded-lg">
+                                        <div className="overflow-x-auto border border-line rounded-lg">
                                             <table className="w-full text-xs">
                                                 <thead>
-                                                    <tr className="bg-slate-50 border-b border-slate-200">
-                                                        <th className="text-left font-semibold text-slate-700 px-3 py-2 sticky left-0 bg-slate-50 min-w-[140px]">
+                                                    <tr className="bg-surface border-b border-line">
+                                                        <th className="text-left font-semibold text-body px-3 py-2 sticky left-0 bg-surface-alt min-w-[140px]">
                                                             Respondent
                                                         </th>
-                                                        <th className="text-center font-semibold text-slate-700 px-3 py-2 min-w-[80px]">
+                                                        <th className="text-center font-semibold text-body px-3 py-2 min-w-[80px]">
                                                             Status
                                                         </th>
                                                         {(a.questions || []).map(q => (
-                                                            <th key={q.id} className="text-left font-semibold text-slate-700 px-3 py-2 min-w-[160px] max-w-[240px]">
+                                                            <th key={q.id} className="text-left font-semibold text-body px-3 py-2 min-w-[160px] max-w-[240px]">
                                                                 <span className="line-clamp-2">{q.question}</span>
                                                             </th>
                                                         ))}
                                                     </tr>
                                                 </thead>
-                                                <tbody className="divide-y divide-slate-100">
+                                                <tbody className="divide-y divide-line">
                                                     {recipients.map(r => {
                                                         const responses: QuestionResponse[] = (r.responses as unknown as QuestionResponse[]) || [];
                                                         const responseMap: Record<string, string> = {};
                                                         responses.forEach(resp => { responseMap[resp.question_id] = resp.answer; });
 
                                                         return (
-                                                            <tr key={r.id} className="hover:bg-slate-50/50">
-                                                                <td className="px-3 py-2 sticky left-0 bg-white">
-                                                                    <p className="font-medium text-slate-900 truncate">{r.profiles?.full_name}</p>
+                                                            <tr key={r.id} className="hover:bg-surface-hover/50">
+                                                                <td className="px-3 py-2 sticky left-0 bg-surface">
+                                                                    <p className="font-medium text-heading truncate">{r.profiles?.full_name}</p>
                                                                 </td>
                                                                 <td className="px-3 py-2 text-center">
                                                                     <span className={`inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full ${
@@ -265,11 +265,11 @@ export function ActiveAnnouncementsCard() {
                                                                     </span>
                                                                 </td>
                                                                 {(a.questions || []).map(q => (
-                                                                    <td key={q.id} className="px-3 py-2 text-slate-700">
+                                                                    <td key={q.id} className="px-3 py-2 text-body">
                                                                         {r.status === 'pending' ? (
-                                                                            <span className="text-slate-300">&mdash;</span>
+                                                                            <span className="text-faint">&mdash;</span>
                                                                         ) : (
-                                                                            responseMap[q.id] || <span className="italic text-slate-400">No answer</span>
+                                                                            responseMap[q.id] || <span className="italic text-faint">No answer</span>
                                                                         )}
                                                                     </td>
                                                                 ))}
@@ -282,12 +282,12 @@ export function ActiveAnnouncementsCard() {
                                         </div>
                                     ) : (
                                         /* Simple list for announcements */
-                                        <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-lg divide-y divide-slate-100">
+                                        <div className="max-h-48 overflow-y-auto border border-line rounded-lg divide-y divide-line">
                                             {recipients.map(r => (
                                                 <div key={r.id} className="flex items-center justify-between px-3 py-2">
                                                     <div className="min-w-0">
-                                                        <p className="text-sm text-slate-900 truncate">{r.profiles?.full_name}</p>
-                                                        <p className="text-xs text-slate-500 truncate">{r.profiles?.email}</p>
+                                                        <p className="text-sm text-heading truncate">{r.profiles?.full_name}</p>
+                                                        <p className="text-xs text-muted truncate">{r.profiles?.email}</p>
                                                     </div>
                                                     <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
                                                         r.status === 'pending'

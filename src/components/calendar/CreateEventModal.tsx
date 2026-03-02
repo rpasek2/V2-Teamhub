@@ -14,16 +14,16 @@ interface CreateEventModalProps {
 }
 
 const EVENT_TYPES = [
-    { value: 'practice', label: 'Practice', icon: '🏋️', color: 'bg-blue-100 border-blue-300 text-blue-700' },
-    { value: 'competition', label: 'Comp', icon: '🏆', color: 'bg-purple-100 border-purple-300 text-purple-700' },
-    { value: 'mentorship', label: 'Mentor', icon: '💕', color: 'bg-pink-100 border-pink-300 text-pink-700' },
-    { value: 'camp', label: 'Camp', icon: '🏕️', color: 'bg-emerald-100 border-emerald-300 text-emerald-700' },
-    { value: 'clinic', label: 'Clinic', icon: '🎯', color: 'bg-indigo-100 border-indigo-300 text-indigo-700' },
-    { value: 'meeting', label: 'Meeting', icon: '👥', color: 'bg-amber-100 border-amber-300 text-amber-700' },
-    { value: 'social', label: 'Social', icon: '🎉', color: 'bg-green-100 border-green-300 text-green-700' },
-    { value: 'private_lesson', label: 'Private', icon: '👤', color: 'bg-violet-100 border-violet-300 text-violet-700' },
-    { value: 'fundraiser', label: 'Fundraise', icon: '💰', color: 'bg-orange-100 border-orange-300 text-orange-700' },
-    { value: 'other', label: 'Other', icon: '📌', color: 'bg-slate-100 border-slate-300 text-slate-700' },
+    { value: 'practice', label: 'Practice', icon: '🏋️', color: 'bg-blue-500/10 border-blue-500/30 text-blue-600' },
+    { value: 'competition', label: 'Comp', icon: '🏆', color: 'bg-purple-500/10 border-purple-500/30 text-purple-600' },
+    { value: 'mentorship', label: 'Mentor', icon: '💕', color: 'bg-pink-500/10 border-pink-500/30 text-pink-600' },
+    { value: 'camp', label: 'Camp', icon: '🏕️', color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600' },
+    { value: 'clinic', label: 'Clinic', icon: '🎯', color: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600' },
+    { value: 'meeting', label: 'Meeting', icon: '👥', color: 'bg-amber-500/10 border-amber-500/30 text-amber-600' },
+    { value: 'social', label: 'Social', icon: '🎉', color: 'bg-green-500/10 border-green-500/30 text-green-600' },
+    { value: 'private_lesson', label: 'Private', icon: '👤', color: 'bg-violet-500/10 border-violet-500/30 text-violet-600' },
+    { value: 'fundraiser', label: 'Fundraise', icon: '💰', color: 'bg-orange-500/10 border-orange-500/30 text-orange-600' },
+    { value: 'other', label: 'Other', icon: '📌', color: 'bg-surface-hover border-line-strong text-body' },
 ] as const;
 
 // Valid event type values for validation
@@ -211,16 +211,16 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
             />
 
             {/* Modal */}
-            <div className="relative w-full max-w-lg transform rounded-2xl bg-white shadow-2xl transition-all max-h-[90vh] overflow-hidden flex flex-col">
+            <div className="relative w-full max-w-lg transform rounded-2xl bg-surface shadow-2xl transition-all max-h-[90vh] overflow-hidden flex flex-col">
                 {/* Header with colored accent based on event type */}
-                <div className={`relative px-6 py-5 ${selectedType?.color.split(' ')[0] || 'bg-slate-100'}`}>
+                <div className={`relative px-6 py-5 ${selectedType?.color.split(' ')[0] || 'bg-surface-hover'}`}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <span className="text-2xl">{selectedType?.icon}</span>
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-900">Create Event</h3>
+                                <h3 className="text-lg font-semibold text-heading">Create Event</h3>
                                 {initialDate && (
-                                    <p className="text-sm text-slate-600">
+                                    <p className="text-sm text-subtle">
                                         {format(initialDate, 'EEEE, MMMM d, yyyy')}
                                     </p>
                                 )}
@@ -228,7 +228,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                         </div>
                         <button
                             onClick={onClose}
-                            className="rounded-full p-2 text-slate-500 hover:bg-white/50 hover:text-slate-700 transition-colors"
+                            className="rounded-full p-2 text-muted hover:bg-surface/50 hover:text-body transition-colors"
                         >
                             <X className="h-5 w-5" />
                         </button>
@@ -240,17 +240,17 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                     <div className="p-6 space-y-5">
                         {/* Error Alert */}
                         {error && (
-                            <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+                            <div className="rounded-lg bg-red-500/10 border border-red-500/20 p-4">
                                 <div className="flex gap-3">
                                     <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                                    <p className="text-sm text-red-700">{error}</p>
+                                    <p className="text-sm text-red-600">{error}</p>
                                 </div>
                             </div>
                         )}
 
                         {/* Event Type Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Event Type
                             </label>
                             <div className="grid grid-cols-5 gap-1.5">
@@ -267,7 +267,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                         className={`flex flex-col items-center justify-center gap-0.5 p-2 rounded-lg border-2 transition-all aspect-square ${
                                             formData.type === type.value
                                                 ? type.color + ' border-current shadow-sm'
-                                                : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+                                                : 'bg-surface border-line text-subtle hover:border-line-strong hover:bg-surface-hover'
                                         }`}
                                     >
                                         <span className="text-lg leading-none">{type.icon}</span>
@@ -278,9 +278,9 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
                             {/* Competition Warning */}
                             {formData.type === 'competition' && (
-                                <div className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl mt-2">
+                                <div className="flex items-start gap-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl mt-2">
                                     <Trophy className="h-4 w-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                                    <p className="text-xs text-purple-700">
+                                    <p className="text-xs text-purple-600">
                                         This will also create a competition in the Competitions tab.
                                     </p>
                                 </div>
@@ -288,9 +288,9 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
                             {/* Mentorship Info */}
                             {formData.type === 'mentorship' && (
-                                <div className="flex items-start gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl mt-2">
+                                <div className="flex items-start gap-3 p-3 bg-pink-500/10 border border-pink-500/20 rounded-xl mt-2">
                                     <HeartHandshake className="h-4 w-4 text-pink-600 flex-shrink-0 mt-0.5" />
-                                    <p className="text-xs text-pink-700">
+                                    <p className="text-xs text-pink-600">
                                         This will also appear in the Mentorship tab.
                                     </p>
                                 </div>
@@ -299,7 +299,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
                         {/* Event Title */}
                         <div>
-                            <label htmlFor="title" className="block text-sm font-medium text-slate-700 mb-2">
+                            <label htmlFor="title" className="block text-sm font-medium text-body mb-2">
                                 Event Title
                             </label>
                             <input
@@ -309,33 +309,33 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                 maxLength={MAX_TITLE_LENGTH}
                                 value={formData.title}
                                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm"
+                                className="block w-full rounded-lg border-0 py-2.5 px-3 text-heading bg-surface shadow-sm ring-1 ring-inset ring-line-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm"
                                 placeholder="e.g., Team Practice, Parents Meeting..."
                             />
                         </div>
 
                         {/* Date & Time Section */}
-                        <div className="bg-slate-50 rounded-xl p-4 space-y-4">
+                        <div className="bg-surface-alt rounded-xl p-4 space-y-4">
                             <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 text-slate-700">
+                                <div className="flex items-center gap-2 text-body">
                                     <Calendar className="h-4 w-4" />
                                     <span className="text-sm font-medium">Date & Time</span>
                                 </div>
                                 {/* All Day Toggle */}
                                 <div className="flex items-center gap-2">
-                                    <Clock className="h-4 w-4 text-slate-400" />
-                                    <span className="text-xs font-medium text-slate-600">All Day</span>
+                                    <Clock className="h-4 w-4 text-faint" />
+                                    <span className="text-xs font-medium text-subtle">All Day</span>
                                     <button
                                         type="button"
                                         role="switch"
                                         aria-checked={formData.isAllDay}
                                         onClick={() => setFormData({ ...formData, isAllDay: !formData.isAllDay })}
-                                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                            formData.isAllDay ? 'bg-brand-600' : 'bg-slate-300'
+                                        className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 ${
+                                            formData.isAllDay ? 'bg-accent-600' : 'bg-surface-active'
                                         }`}
                                     >
                                         <span
-                                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                            className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                                 formData.isAllDay ? 'translate-x-4' : 'translate-x-0'
                                             }`}
                                         />
@@ -347,7 +347,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                 /* All Day - Just date pickers */
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label htmlFor="startDate" className="block text-xs font-medium text-slate-500 mb-1">
+                                        <label htmlFor="startDate" className="block text-xs font-medium text-muted mb-1">
                                             Start Date
                                         </label>
                                         <input
@@ -356,11 +356,11 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                             required
                                             value={formData.startDate}
                                             onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: formData.endDate < e.target.value ? e.target.value : formData.endDate })}
-                                            className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                            className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                         />
                                     </div>
                                     <div>
-                                        <label htmlFor="endDate" className="block text-xs font-medium text-slate-500 mb-1">
+                                        <label htmlFor="endDate" className="block text-xs font-medium text-muted mb-1">
                                             End Date
                                         </label>
                                         <input
@@ -370,7 +370,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                             value={formData.endDate}
                                             min={formData.startDate}
                                             onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                            className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                            className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                         />
                                     </div>
                                 </div>
@@ -380,7 +380,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                     {/* Start */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label htmlFor="startDate" className="block text-xs font-medium text-slate-500 mb-1">
+                                            <label htmlFor="startDate" className="block text-xs font-medium text-muted mb-1">
                                                 Start Date
                                             </label>
                                             <input
@@ -389,11 +389,11 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                                 required
                                                 value={formData.startDate}
                                                 onChange={(e) => setFormData({ ...formData, startDate: e.target.value, endDate: e.target.value })}
-                                                className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                                className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="startTime" className="block text-xs font-medium text-slate-500 mb-1">
+                                            <label htmlFor="startTime" className="block text-xs font-medium text-muted mb-1">
                                                 Start Time
                                             </label>
                                             <input
@@ -402,7 +402,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                                 required
                                                 value={formData.startTime}
                                                 onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
-                                                className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                                className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                             />
                                         </div>
                                     </div>
@@ -410,7 +410,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                     {/* End */}
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
-                                            <label htmlFor="endDate" className="block text-xs font-medium text-slate-500 mb-1">
+                                            <label htmlFor="endDate" className="block text-xs font-medium text-muted mb-1">
                                                 End Date
                                             </label>
                                             <input
@@ -419,11 +419,11 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                                 required
                                                 value={formData.endDate}
                                                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                                                className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                                className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                             />
                                         </div>
                                         <div>
-                                            <label htmlFor="endTime" className="block text-xs font-medium text-slate-500 mb-1">
+                                            <label htmlFor="endTime" className="block text-xs font-medium text-muted mb-1">
                                                 End Time
                                             </label>
                                             <input
@@ -432,7 +432,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                                 required
                                                 value={formData.endTime}
                                                 onChange={(e) => setFormData({ ...formData, endTime: e.target.value })}
-                                                className="block w-full rounded-lg border-0 py-2 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm bg-white"
+                                                className="block w-full rounded-lg border-0 py-2 px-3 text-heading shadow-sm ring-1 ring-inset ring-line-strong focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm bg-surface"
                                             />
                                         </div>
                                     </div>
@@ -442,9 +442,9 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
 
                         {/* Location */}
                         <div>
-                            <label htmlFor="location" className="block text-sm font-medium text-slate-700 mb-2">
+                            <label htmlFor="location" className="block text-sm font-medium text-body mb-2">
                                 <span className="flex items-center gap-2">
-                                    <MapPin className="h-4 w-4 text-slate-400" />
+                                    <MapPin className="h-4 w-4 text-faint" />
                                     Location
                                 </span>
                             </label>
@@ -454,18 +454,18 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                 maxLength={MAX_LOCATION_LENGTH}
                                 value={formData.location}
                                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                                className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm"
+                                className="block w-full rounded-lg border-0 py-2.5 px-3 text-heading bg-surface shadow-sm ring-1 ring-inset ring-line-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm"
                                 placeholder="e.g., Main Gym, Conference Room..."
                             />
                         </div>
 
                         {/* Description */}
                         <div>
-                            <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-2">
+                            <label htmlFor="description" className="block text-sm font-medium text-body mb-2">
                                 <span className="flex items-center gap-2">
-                                    <AlignLeft className="h-4 w-4 text-slate-400" />
+                                    <AlignLeft className="h-4 w-4 text-faint" />
                                     Description
-                                    <span className="text-slate-400 font-normal">(optional)</span>
+                                    <span className="text-faint font-normal">(optional)</span>
                                 </span>
                             </label>
                             <textarea
@@ -474,20 +474,20 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                 maxLength={MAX_DESCRIPTION_LENGTH}
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                className="block w-full rounded-lg border-0 py-2.5 px-3 text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-brand-500 text-sm resize-none"
+                                className="block w-full rounded-lg border-0 py-2.5 px-3 text-heading bg-surface shadow-sm ring-1 ring-inset ring-line-strong placeholder:text-faint focus:ring-2 focus:ring-inset focus:ring-accent-500 text-sm resize-none"
                                 placeholder="Add any additional details about the event..."
                             />
                         </div>
 
                         {/* RSVP Toggle */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                        <div className="flex items-center justify-between p-4 bg-surface-alt rounded-xl">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white rounded-lg shadow-sm">
-                                    <Users className="h-5 w-5 text-slate-600" />
+                                <div className="p-2 bg-surface rounded-lg shadow-sm">
+                                    <Users className="h-5 w-5 text-subtle" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900">Enable RSVPs</p>
-                                    <p className="text-xs text-slate-500">Allow members to respond to this event</p>
+                                    <p className="text-sm font-medium text-heading">Enable RSVPs</p>
+                                    <p className="text-xs text-muted">Allow members to respond to this event</p>
                                 </div>
                             </div>
                             <button
@@ -495,12 +495,12 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                 role="switch"
                                 aria-checked={formData.rsvpEnabled}
                                 onClick={() => setFormData({ ...formData, rsvpEnabled: !formData.rsvpEnabled })}
-                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
-                                    formData.rsvpEnabled ? 'bg-brand-600' : 'bg-slate-200'
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 ${
+                                    formData.rsvpEnabled ? 'bg-accent-600' : 'bg-surface-active'
                                 }`}
                             >
                                 <span
-                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                         formData.rsvpEnabled ? 'translate-x-5' : 'translate-x-0'
                                     }`}
                                 />
@@ -508,14 +508,14 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                         </div>
 
                         {/* Save the Date Toggle */}
-                        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl">
+                        <div className="flex items-center justify-between p-4 bg-surface-alt rounded-xl">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 bg-white rounded-lg shadow-sm">
+                                <div className="p-2 bg-surface rounded-lg shadow-sm">
                                     <Star className="h-5 w-5 text-amber-500" />
                                 </div>
                                 <div>
-                                    <p className="text-sm font-medium text-slate-900">Save the Date</p>
-                                    <p className="text-xs text-slate-500">Include in season's important events list</p>
+                                    <p className="text-sm font-medium text-heading">Save the Date</p>
+                                    <p className="text-xs text-muted">Include in season's important events list</p>
                                 </div>
                             </div>
                             <button
@@ -524,38 +524,38 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                                 aria-checked={formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type)}
                                 onClick={() => setFormData({ ...formData, isSaveTheDate: !formData.isSaveTheDate })}
                                 disabled={SAVE_THE_DATE_TYPES.includes(formData.type)}
-                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
-                                    (formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type)) ? 'bg-amber-500' : 'bg-slate-200'
+                                className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed ${
+                                    (formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type)) ? 'bg-amber-500' : 'bg-surface-active'
                                 }`}
                             >
                                 <span
-                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                                    className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                         (formData.isSaveTheDate || SAVE_THE_DATE_TYPES.includes(formData.type)) ? 'translate-x-5' : 'translate-x-0'
                                     }`}
                                 />
                             </button>
                         </div>
                         {SAVE_THE_DATE_TYPES.includes(formData.type) && (
-                            <p className="text-xs text-slate-500 -mt-3 ml-1">
+                            <p className="text-xs text-muted -mt-3 ml-1">
                                 Competitions, mentorship, and camp events are automatically included.
                             </p>
                         )}
                     </div>
 
                     {/* Footer Actions */}
-                    <div className="sticky bottom-0 bg-white border-t border-slate-200 px-6 py-4 flex gap-3">
+                    <div className="sticky bottom-0 bg-surface border-t border-line px-6 py-4 flex gap-3">
                         <button
                             type="button"
                             onClick={onClose}
                             disabled={loading}
-                            className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                            className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-body bg-surface border border-line-strong hover:bg-surface-hover transition-colors disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-brand-600 hover:bg-brand-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                            className="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium text-white bg-accent-600 hover:bg-accent-500 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>

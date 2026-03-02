@@ -19,10 +19,10 @@ interface GymnastWithAttendance extends GymnastProfile {
 }
 
 const STATUS_CONFIG: Record<AttendanceStatus, { label: string; color: string; bgColor: string; icon: typeof Check }> = {
-    present: { label: 'Present', color: 'text-emerald-600', bgColor: 'bg-emerald-100', icon: Check },
-    late: { label: 'Late', color: 'text-amber-600', bgColor: 'bg-amber-100', icon: Clock },
-    left_early: { label: 'Left Early', color: 'text-blue-600', bgColor: 'bg-blue-100', icon: LogOut },
-    absent: { label: 'Absent', color: 'text-red-600', bgColor: 'bg-red-100', icon: X },
+    present: { label: 'Present', color: 'text-emerald-600', bgColor: 'bg-emerald-500/10', icon: Check },
+    late: { label: 'Late', color: 'text-amber-600', bgColor: 'bg-amber-500/10', icon: Clock },
+    left_early: { label: 'Left Early', color: 'text-blue-600', bgColor: 'bg-blue-500/10', icon: LogOut },
+    absent: { label: 'Absent', color: 'text-red-600', bgColor: 'bg-red-500/10', icon: X },
 };
 
 export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
@@ -264,7 +264,7 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
             </div>
         );
     }
@@ -275,18 +275,18 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
             <div className="card p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-3">
-                        <CalendarDays className="w-5 h-5 text-slate-400" />
+                        <CalendarDays className="w-5 h-5 text-faint" />
                         <input
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                             className="input"
                         />
-                        <span className="text-sm font-medium text-slate-600">
+                        <span className="text-sm font-medium text-subtle">
                             {DAYS_OF_WEEK[selectedDayOfWeek]}
                         </span>
                     </div>
-                    <div className="text-sm text-slate-500">
+                    <div className="text-sm text-muted">
                         {gymnastsWithPractice.length} gymnasts expected today
                     </div>
                 </div>
@@ -295,9 +295,9 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
             {/* No Practice Message */}
             {gymnastsByLevel.length === 0 ? (
                 <div className="card p-12 text-center">
-                    <CalendarDays className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-slate-900 mb-2">No practice scheduled</h3>
-                    <p className="text-slate-500">
+                    <CalendarDays className="w-12 h-12 text-faint mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-heading mb-2">No practice scheduled</h3>
+                    <p className="text-muted">
                         No gymnasts have practice on {DAYS_OF_WEEK[selectedDayOfWeek]}.
                     </p>
                 </div>
@@ -312,17 +312,17 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
                             <div key={level} className="card overflow-hidden">
                                 {/* Level Header */}
                                 <div
-                                    className="flex items-center justify-between p-4 bg-slate-50 border-b border-slate-200 cursor-pointer hover:bg-slate-100"
+                                    className="flex items-center justify-between p-4 bg-surface border-b border-line cursor-pointer hover:bg-surface-hover"
                                     onClick={() => toggleLevel(level)}
                                 >
                                     <div className="flex items-center gap-3">
                                         {isExpanded ? (
-                                            <ChevronDown className="w-5 h-5 text-slate-400" />
+                                            <ChevronDown className="w-5 h-5 text-faint" />
                                         ) : (
-                                            <ChevronRight className="w-5 h-5 text-slate-400" />
+                                            <ChevronRight className="w-5 h-5 text-faint" />
                                         )}
-                                        <span className="font-semibold text-slate-900">{level}</span>
-                                        <span className="text-sm text-slate-500">
+                                        <span className="font-semibold text-heading">{level}</span>
+                                        <span className="text-sm text-muted">
                                             ({levelGymnasts.length} gymnasts)
                                         </span>
                                     </div>
@@ -330,22 +330,22 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
                                         {/* Quick Stats */}
                                         <div className="hidden sm:flex items-center gap-3 text-xs">
                                             {stats.present > 0 && (
-                                                <span className="px-2 py-1 rounded-full bg-emerald-100 text-emerald-700">
+                                                <span className="px-2 py-1 rounded-full bg-emerald-500/10 text-emerald-600">
                                                     {stats.present} present
                                                 </span>
                                             )}
                                             {stats.late > 0 && (
-                                                <span className="px-2 py-1 rounded-full bg-amber-100 text-amber-700">
+                                                <span className="px-2 py-1 rounded-full bg-amber-500/10 text-amber-600">
                                                     {stats.late} late
                                                 </span>
                                             )}
                                             {stats.absent > 0 && (
-                                                <span className="px-2 py-1 rounded-full bg-red-100 text-red-700">
+                                                <span className="px-2 py-1 rounded-full bg-red-500/10 text-red-600">
                                                     {stats.absent} absent
                                                 </span>
                                             )}
                                             {stats.unmarked > 0 && (
-                                                <span className="px-2 py-1 rounded-full bg-slate-100 text-slate-600">
+                                                <span className="px-2 py-1 rounded-full bg-surface-hover text-subtle">
                                                     {stats.unmarked} unmarked
                                                 </span>
                                             )}
@@ -358,7 +358,7 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
                                                     markAllPresent(level);
                                                 }}
                                                 disabled={saving === `all-${level}`}
-                                                className="text-xs px-3 py-1.5 bg-emerald-100 text-emerald-700 rounded-lg hover:bg-emerald-200"
+                                                className="text-xs px-3 py-1.5 bg-emerald-500/10 text-emerald-600 rounded-lg hover:bg-emerald-500/15"
                                             >
                                                 {saving === `all-${level}` ? (
                                                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -372,7 +372,7 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
 
                                 {/* Gymnast List */}
                                 {isExpanded && (
-                                    <div className="divide-y divide-slate-100">
+                                    <div className="divide-y divide-line">
                                         {levelGymnasts.map(gymnast => {
                                             const currentStatus = gymnast.attendance?.status;
                                             const isSaving = saving === gymnast.id;
@@ -380,19 +380,19 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
                                             return (
                                                 <div
                                                     key={gymnast.id}
-                                                    className="flex items-center justify-between p-4 hover:bg-slate-50"
+                                                    className="flex items-center justify-between p-4 hover:bg-surface-hover"
                                                 >
                                                     <div className="flex items-center gap-3 min-w-0">
-                                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center">
-                                                            <span className="text-sm font-medium text-slate-600">
+                                                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-surface-active flex items-center justify-center">
+                                                            <span className="text-sm font-medium text-subtle">
                                                                 {gymnast.first_name?.[0]}{gymnast.last_name?.[0]}
                                                             </span>
                                                         </div>
                                                         <div className="min-w-0">
-                                                            <p className="font-medium text-slate-900 truncate">
+                                                            <p className="font-medium text-heading truncate">
                                                                 {gymnast.first_name} {gymnast.last_name}
                                                             </p>
-                                                            <p className="text-xs text-slate-500">
+                                                            <p className="text-xs text-muted">
                                                                 {gymnast.expected_start && gymnast.expected_end && (
                                                                     <>
                                                                         {formatTime(gymnast.expected_start)} - {formatTime(gymnast.expected_end)}
@@ -410,7 +410,7 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
                                                     {/* Status Buttons */}
                                                     <div className="flex items-center gap-1">
                                                         {isSaving ? (
-                                                            <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
+                                                            <Loader2 className="w-5 h-5 text-faint animate-spin" />
                                                         ) : (
                                                             <>
                                                                 {(['present', 'late', 'left_early', 'absent'] as AttendanceStatus[]).map(status => {
@@ -427,7 +427,7 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
                                                                             className={`p-2 rounded-lg transition-colors ${
                                                                                 isActive
                                                                                     ? `${config.bgColor} ${config.color}`
-                                                                                    : 'text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                                                                                    : 'text-faint hover:bg-surface-hover hover:text-subtle'
                                                                             } ${!canManage ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                                         >
                                                                             <Icon className="w-5 h-5" />

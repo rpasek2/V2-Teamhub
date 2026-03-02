@@ -203,13 +203,13 @@ export function CoachDashboard() {
         return (
             <div className="space-y-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="h-10 bg-slate-200 rounded-lg w-64 animate-pulse" />
+                    <div className="h-10 bg-surface-active rounded-lg w-64 animate-pulse" />
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     {[1, 2, 3, 4].map(i => (
                         <div key={i} className="card p-4 animate-pulse">
-                            <div className="h-8 bg-slate-200 rounded w-12 mb-2" />
-                            <div className="h-3 bg-slate-200 rounded w-16" />
+                            <div className="h-8 bg-surface-active rounded w-12 mb-2" />
+                            <div className="h-3 bg-surface-active rounded w-16" />
                         </div>
                     ))}
                 </div>
@@ -226,7 +226,7 @@ export function CoachDashboard() {
                 {/* Level Filter */}
                 {levels.length > 0 && (
                     <div className="flex items-center gap-2">
-                        <Filter className="w-4 h-4 text-slate-400" />
+                        <Filter className="w-4 h-4 text-faint" />
                         <select
                             value={levelFilter}
                             onChange={(e) => setLevelFilter(e.target.value)}
@@ -245,34 +245,34 @@ export function CoachDashboard() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="card p-4">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 bg-indigo-100 rounded-lg">
+                        <div className="p-2 bg-indigo-500/10 rounded-lg">
                             <Users className="w-5 h-5 text-indigo-600" />
                         </div>
                         <div>
-                            <p className="text-2xl font-bold text-slate-900">{stats.totalGymnasts}</p>
-                            <p className="text-xs text-slate-500">Gymnasts</p>
+                            <p className="text-2xl font-bold text-heading">{stats.totalGymnasts}</p>
+                            <p className="text-xs text-muted">Gymnasts</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="card p-4">
                     <div>
-                        <p className="text-2xl font-bold text-mint-600">{stats.percentage}%</p>
-                        <p className="text-xs text-slate-500">Overall Progress</p>
+                        <p className="text-2xl font-bold text-accent-600">{stats.percentage}%</p>
+                        <p className="text-xs text-muted">Overall Progress</p>
                     </div>
                 </div>
 
                 <div className="card p-4">
                     <div>
-                        <p className="text-2xl font-bold text-slate-900">{stats.totalCompleted}</p>
-                        <p className="text-xs text-slate-500">Completed</p>
+                        <p className="text-2xl font-bold text-heading">{stats.totalCompleted}</p>
+                        <p className="text-xs text-muted">Completed</p>
                     </div>
                 </div>
 
                 <div className="card p-4">
                     <div>
-                        <p className="text-2xl font-bold text-slate-900">{stats.totalExercises}</p>
-                        <p className="text-xs text-slate-500">Total Exercises</p>
+                        <p className="text-2xl font-bold text-heading">{stats.totalExercises}</p>
+                        <p className="text-xs text-muted">Total Exercises</p>
                     </div>
                 </div>
             </div>
@@ -281,8 +281,8 @@ export function CoachDashboard() {
             {stats.totalExercises > 0 && (
                 <div className="card p-4">
                     <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-slate-500">Team Progress</span>
-                        <span className="text-sm font-medium text-mint-600">
+                        <span className="text-sm font-medium text-muted">Team Progress</span>
+                        <span className="text-sm font-medium text-accent-600">
                             {stats.totalCompleted}/{stats.totalExercises}
                         </span>
                     </div>
@@ -297,14 +297,14 @@ export function CoachDashboard() {
 
             {/* All-Time Stats Section */}
             {!loadingAllAssignments && allTimeStats.totalExercises > 0 && (
-                <div className="card p-5 bg-gradient-to-br from-indigo-100 to-purple-100 border-indigo-200">
+                <div className="card p-5 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border-indigo-500/20">
                     <div className="flex items-center gap-3 mb-5">
-                        <div className="p-2 bg-indigo-200 rounded-lg">
+                        <div className="p-2 bg-indigo-500/15 rounded-lg">
                             <BarChart3 className="w-5 h-5 text-indigo-600" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-900">All-Time Statistics</h3>
-                            <p className="text-xs text-slate-500 flex items-center gap-1">
+                            <h3 className="font-semibold text-heading">All-Time Statistics</h3>
+                            <p className="text-xs text-muted flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
                                 {allTimeStats.totalDays} training day{allTimeStats.totalDays !== 1 ? 's' : ''}
                             </p>
@@ -313,24 +313,24 @@ export function CoachDashboard() {
 
                     {/* Quick Stats Grid */}
                     <div className="grid grid-cols-3 gap-3 mb-5">
-                        <div className="bg-white rounded-lg p-3">
-                            <p className="text-xl font-bold text-slate-900">{allTimeStats.totalExercises.toLocaleString()}</p>
-                            <p className="text-xs text-slate-500">Total Assigned</p>
+                        <div className="bg-surface rounded-lg p-3">
+                            <p className="text-xl font-bold text-heading">{allTimeStats.totalExercises.toLocaleString()}</p>
+                            <p className="text-xs text-muted">Total Assigned</p>
                         </div>
-                        <div className="bg-white rounded-lg p-3">
-                            <p className="text-xl font-bold text-mint-600">{allTimeStats.totalCompleted.toLocaleString()}</p>
-                            <p className="text-xs text-slate-500">Completed</p>
+                        <div className="bg-surface rounded-lg p-3">
+                            <p className="text-xl font-bold text-accent-600">{allTimeStats.totalCompleted.toLocaleString()}</p>
+                            <p className="text-xs text-muted">Completed</p>
                         </div>
-                        <div className="bg-white rounded-lg p-3">
+                        <div className="bg-surface rounded-lg p-3">
                             <p className="text-xl font-bold text-indigo-600">{allTimeStats.completionRate}%</p>
-                            <p className="text-xs text-slate-500">Completion Rate</p>
+                            <p className="text-xs text-muted">Completion Rate</p>
                         </div>
                     </div>
 
                     {/* Event Breakdown */}
                     {allTimeStats.eventStats.length > 0 && (
                         <>
-                            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                            <h4 className="text-xs font-semibold text-muted uppercase tracking-wide mb-3">
                                 Completion by Event
                             </h4>
                             <div className="grid gap-3 sm:grid-cols-2">
@@ -338,7 +338,7 @@ export function CoachDashboard() {
                                     const colors = ASSIGNMENT_EVENT_COLORS[event];
                                     const isExpanded = expandedEvents.has(event);
                                     return (
-                                        <div key={event} className="bg-white rounded-lg p-3">
+                                        <div key={event} className="bg-surface rounded-lg p-3">
                                             <button
                                                 onClick={() => toggleEventExpand(event)}
                                                 className="w-full text-left"
@@ -350,43 +350,43 @@ export function CoachDashboard() {
                                                         </span>
                                                         {levelStats.length > 0 && (
                                                             isExpanded
-                                                                ? <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
-                                                                : <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+                                                                ? <ChevronUp className="w-3.5 h-3.5 text-muted" />
+                                                                : <ChevronDown className="w-3.5 h-3.5 text-muted" />
                                                         )}
                                                     </div>
-                                                    <span className={`text-sm font-bold ${percentage >= 75 ? 'text-mint-600' : 'text-slate-900'}`}>
+                                                    <span className={`text-sm font-bold ${percentage >= 75 ? 'text-accent-600' : 'text-heading'}`}>
                                                         {percentage}%
                                                     </span>
                                                 </div>
-                                                <div className="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                                <div className="h-2 bg-surface-active rounded-full overflow-hidden">
                                                     <div
                                                         className={`h-full rounded-full transition-all duration-500 ${EVENT_BAR_COLORS[event]}`}
                                                         style={{ width: `${percentage}%` }}
                                                     />
                                                 </div>
-                                                <p className="text-xs text-slate-500 mt-1.5">
+                                                <p className="text-xs text-muted mt-1.5">
                                                     {completed.toLocaleString()} / {total.toLocaleString()} exercises
                                                 </p>
                                             </button>
 
                                             {/* Level Breakdown */}
                                             {isExpanded && levelStats.length > 0 && (
-                                                <div className="mt-3 pt-3 border-t border-slate-200 space-y-2">
+                                                <div className="mt-3 pt-3 border-t border-line space-y-2">
                                                     {levelStats.map(({ level, completed: lvlCompleted, total: lvlTotal, percentage: lvlPct }) => (
                                                         <div key={level}>
                                                             <div className="flex items-center justify-between mb-1">
-                                                                <span className="text-xs text-slate-500">{level}</span>
-                                                                <span className={`text-xs font-medium ${lvlPct >= 75 ? 'text-mint-600' : 'text-slate-700'}`}>
+                                                                <span className="text-xs text-muted">{level}</span>
+                                                                <span className={`text-xs font-medium ${lvlPct >= 75 ? 'text-accent-600' : 'text-body'}`}>
                                                                     {lvlPct}%
                                                                 </span>
                                                             </div>
-                                                            <div className="h-1 bg-slate-200 rounded-full overflow-hidden">
+                                                            <div className="h-1 bg-surface-active rounded-full overflow-hidden">
                                                                 <div
-                                                                    className={`h-full rounded-full transition-all duration-300 ${lvlPct >= 75 ? 'bg-mint-500' : 'bg-slate-400'}`}
+                                                                    className={`h-full rounded-full transition-all duration-300 ${lvlPct >= 75 ? 'bg-accent-500' : 'bg-surface-active'}`}
                                                                     style={{ width: `${lvlPct}%` }}
                                                                 />
                                                             </div>
-                                                            <p className="text-[10px] text-slate-500 mt-0.5">
+                                                            <p className="text-[10px] text-muted mt-0.5">
                                                                 {lvlCompleted} / {lvlTotal}
                                                             </p>
                                                         </div>

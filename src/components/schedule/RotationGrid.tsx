@@ -446,13 +446,13 @@ export function RotationGrid({
         >
             {/* Hidden columns toggle */}
             {canManage && hiddenColumns.length > 0 && (
-                <div className="px-4 py-2 bg-amber-50 border-b border-amber-200 flex items-center justify-between">
-                    <span className="text-sm text-amber-700">
+                <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 flex items-center justify-between">
+                    <span className="text-sm text-amber-600">
                         {hiddenColumns.length} column{hiddenColumns.length > 1 ? 's' : ''} hidden
                     </span>
                     <button
                         onClick={() => setShowHiddenColumns(!showHiddenColumns)}
-                        className="flex items-center gap-1 text-sm text-amber-700 hover:text-amber-800 font-medium"
+                        className="flex items-center gap-1 text-sm text-amber-600 hover:text-amber-700 font-medium"
                     >
                         {showHiddenColumns ? (
                             <>
@@ -472,8 +472,8 @@ export function RotationGrid({
             <div className="overflow-x-auto">
                 <div className="min-w-[600px]">
                     {/* Header */}
-                    <div className="flex border-b border-slate-200 bg-slate-50">
-                        <div className="w-20 flex-shrink-0 px-2 py-3 text-sm font-semibold text-slate-700">
+                    <div className="flex border-b border-line bg-surface">
+                        <div className="w-20 flex-shrink-0 px-2 py-3 text-sm font-semibold text-body">
                             Time
                         </div>
                         {visibleLevels.map((level, displayIdx) => {
@@ -491,18 +491,18 @@ export function RotationGrid({
                                     onDragOver={(e) => handleColumnDragOver(e, displayIdx)}
                                     onDragEnd={handleColumnDragEnd}
                                     onDrop={(e) => handleColumnDrop(e, displayIdx)}
-                                    className={`flex-1 min-w-[120px] border-l border-slate-200 transition-all ${
-                                        level.is_external_group ? 'bg-purple-50/50' : ''
+                                    className={`flex-1 min-w-[120px] border-l border-line transition-all ${
+                                        level.is_external_group ? 'bg-purple-500/5' : ''
                                     } ${isDraggingCol ? 'opacity-50' : ''} ${
-                                        isDragTarget ? 'border-l-4 border-l-brand-500' : ''
-                                    } ${isHidden ? 'bg-amber-50/50' : ''} ${
+                                        isDragTarget ? 'border-l-4 border-l-accent-500' : ''
+                                    } ${isHidden ? 'bg-amber-500/5' : ''} ${
                                         canManage && !isEditing ? 'cursor-grab active:cursor-grabbing' : ''
                                     }`}
                                 >
                                     <div className="flex items-center px-2 py-3">
                                         {/* Drag handle */}
                                         {canManage && !isEditing && (
-                                            <div className="flex-shrink-0 mr-1 text-slate-400 hover:text-slate-600">
+                                            <div className="flex-shrink-0 mr-1 text-faint hover:text-subtle">
                                                 <GripVertical className="w-4 h-4" />
                                             </div>
                                         )}
@@ -519,25 +519,25 @@ export function RotationGrid({
                                                             if (e.key === 'Enter') handleSaveRename();
                                                             if (e.key === 'Escape') handleCancelRename();
                                                         }}
-                                                        className="w-full px-1 py-0.5 text-sm font-semibold border border-brand-300 rounded focus:outline-none focus:ring-1 focus:ring-brand-500"
+                                                        className="w-full px-1 py-0.5 text-sm font-semibold border border-accent-300 rounded focus:outline-none focus:ring-1 focus:ring-accent-500"
                                                         autoFocus
                                                     />
                                                     <button
                                                         onClick={handleSaveRename}
-                                                        className="p-1 text-brand-600 hover:text-brand-700"
+                                                        className="p-1 text-accent-600 hover:text-accent-700"
                                                     >
                                                         <Check className="w-4 h-4" />
                                                     </button>
                                                     <button
                                                         onClick={handleCancelRename}
-                                                        className="p-1 text-slate-400 hover:text-slate-600"
+                                                        className="p-1 text-faint hover:text-subtle"
                                                     >
                                                         <X className="w-4 h-4" />
                                                     </button>
                                                 </div>
                                             ) : (
                                                 <div className="text-center">
-                                                    <span className={`font-semibold ${level.is_external_group ? 'text-purple-700' : 'text-slate-700'} ${isHidden ? 'opacity-50' : ''}`}>
+                                                    <span className={`font-semibold ${level.is_external_group ? 'text-purple-600' : 'text-body'} ${isHidden ? 'opacity-50' : ''}`}>
                                                         {getDisplayName(level)}
                                                     </span>
                                                     {level.schedule_group !== 'A' && (
@@ -549,7 +549,7 @@ export function RotationGrid({
                                                         <span className="ml-1 text-xs text-purple-500">ext</span>
                                                     )}
                                                     {columnNames[key] && (
-                                                        <div className="text-xs text-slate-400 truncate">
+                                                        <div className="text-xs text-faint truncate">
                                                             {level.level}
                                                         </div>
                                                     )}
@@ -565,7 +565,7 @@ export function RotationGrid({
                                                         e.stopPropagation();
                                                         handleStartRename(level);
                                                     }}
-                                                    className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                                                    className="p-1 text-faint hover:text-subtle hover:bg-surface-hover rounded transition-colors"
                                                     title="Rename column"
                                                 >
                                                     <Pencil className="w-3.5 h-3.5" />
@@ -577,8 +577,8 @@ export function RotationGrid({
                                                     }}
                                                     className={`p-1 rounded transition-colors ${
                                                         isHidden
-                                                            ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-100'
-                                                            : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'
+                                                            ? 'text-amber-600 hover:text-amber-700 hover:bg-amber-500/10'
+                                                            : 'text-faint hover:text-subtle hover:bg-surface-hover'
                                                     }`}
                                                     title={isHidden ? 'Show column' : 'Hide column'}
                                                 >
@@ -599,20 +599,20 @@ export function RotationGrid({
                     {/* Grid Body */}
                     <div className="flex">
                         {/* Time Column */}
-                        <div className="w-20 flex-shrink-0 bg-slate-50 border-r border-slate-100">
+                        <div className="w-20 flex-shrink-0 bg-surface-alt border-r border-line">
                             {timeSlots.map((time) => {
                                 const { label, isHour } = formatTimeLabel(time);
                                 return (
                                     <div
                                         key={time}
-                                        className={`h-6 px-2 flex items-center border-b border-slate-100 ${
-                                            isHour ? 'bg-slate-100' : ''
+                                        className={`h-6 px-2 flex items-center border-b border-line ${
+                                            isHour ? 'bg-surface-hover' : ''
                                         }`}
                                     >
                                         <span className={
                                             isHour
-                                                ? 'text-xs font-medium text-slate-700'
-                                                : 'text-[10px] text-slate-400'
+                                                ? 'text-xs font-medium text-body'
+                                                : 'text-[10px] text-faint'
                                         }>
                                             {label}
                                         </span>
@@ -631,7 +631,7 @@ export function RotationGrid({
                             return (
                                 <div
                                     key={key}
-                                    className={`flex-1 min-w-[120px] border-l border-slate-200 relative ${isHidden ? 'opacity-50' : ''}`}
+                                    className={`flex-1 min-w-[120px] border-l border-line relative ${isHidden ? 'opacity-50' : ''}`}
                                 >
                                     {/* Time Rows */}
                                     {timeSlots.map((time, rowIndex) => {
@@ -639,12 +639,12 @@ export function RotationGrid({
                                         return (
                                             <div
                                                 key={time}
-                                                className={`h-6 border-b border-slate-100 ${
+                                                className={`h-6 border-b border-line ${
                                                     isActive
                                                         ? selectedEvent
-                                                            ? 'bg-white cursor-crosshair hover:bg-slate-50'
-                                                            : 'bg-white'
-                                                        : 'bg-slate-50'
+                                                            ? 'bg-surface cursor-crosshair hover:bg-surface-hover'
+                                                            : 'bg-surface'
+                                                        : 'bg-surface-alt'
                                                 }`}
                                                 onMouseDown={() => handleMouseDown(level, rowIndex)}
                                                 onMouseEnter={() => handleMouseEnter(level, rowIndex)}
@@ -703,7 +703,7 @@ export function RotationGrid({
                                                     {canManage && (
                                                         <button
                                                             onClick={(e) => handleDeleteBlock(e, block.id)}
-                                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-white/50 rounded transition-opacity flex-shrink-0"
+                                                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-surface/50 rounded transition-opacity flex-shrink-0"
                                                         >
                                                             <X className="w-5 h-5" />
                                                         </button>
@@ -732,7 +732,7 @@ export function RotationGrid({
 
             {/* Instructions */}
             {canManage && (
-                <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 text-sm text-slate-500">
+                <div className="px-4 py-3 bg-surface border-t border-line text-sm text-muted">
                     {selectedEvent ? (
                         <>Click and drag on the grid to create a "{selectedEvent.name}" block</>
                     ) : (
@@ -748,16 +748,16 @@ export function RotationGrid({
                         {/* Header */}
                         <div className="flex items-center justify-between mb-4">
                             <div>
-                                <h3 className="text-lg font-semibold text-slate-900">
+                                <h3 className="text-lg font-semibold text-heading">
                                     Assign Coach
                                 </h3>
-                                <p className="text-sm text-slate-500">
+                                <p className="text-sm text-muted">
                                     {selectedBlock.event_name || selectedBlock.rotation_event?.name} ({formatBlockTime(selectedBlock.start_time)} - {formatBlockTime(selectedBlock.end_time)})
                                 </p>
                             </div>
                             <button
                                 onClick={() => setSelectedBlock(null)}
-                                className="p-1 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded transition-colors"
+                                className="p-1 text-faint hover:text-subtle hover:bg-surface-hover rounded transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -771,12 +771,12 @@ export function RotationGrid({
                                 disabled={savingCoach}
                                 className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                                     !selectedBlock.coach_id
-                                        ? 'bg-slate-100 text-slate-700'
-                                        : 'hover:bg-slate-50 text-slate-600'
+                                        ? 'bg-surface-hover text-body'
+                                        : 'hover:bg-surface-hover text-subtle'
                                 }`}
                             >
-                                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center">
-                                    <User className="w-4 h-4 text-slate-400" />
+                                <div className="w-8 h-8 rounded-full bg-surface-active flex items-center justify-center">
+                                    <User className="w-4 h-4 text-faint" />
                                 </div>
                                 <span className="text-sm font-medium">No coach assigned</span>
                                 {savingCoach && !selectedBlock.coach_id && (
@@ -792,14 +792,14 @@ export function RotationGrid({
                                     disabled={savingCoach}
                                     className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors ${
                                         selectedBlock.coach_id === coach.id
-                                            ? 'bg-brand-50 text-brand-700 border border-brand-200'
-                                            : 'hover:bg-slate-50 text-slate-700'
+                                            ? 'bg-accent-500/10 text-accent-600 border border-accent-500/20'
+                                            : 'hover:bg-surface-hover text-body'
                                     }`}
                                 >
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
                                         selectedBlock.coach_id === coach.id
-                                            ? 'bg-brand-100 text-brand-700'
-                                            : 'bg-slate-100 text-slate-600'
+                                            ? 'bg-accent-500/10 text-accent-600'
+                                            : 'bg-surface-hover text-subtle'
                                     }`}>
                                         {coach.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)}
                                     </div>
@@ -811,7 +811,7 @@ export function RotationGrid({
                             ))}
 
                             {coaches.length === 0 && (
-                                <p className="text-sm text-slate-500 text-center py-4">
+                                <p className="text-sm text-muted text-center py-4">
                                     No coaches found in this hub.
                                 </p>
                             )}

@@ -34,8 +34,8 @@ export function TemplatesManager({ onClose }: TemplatesManagerProps) {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h2 className="text-xl font-semibold text-slate-900">Templates</h2>
-                    <p className="text-sm text-slate-500">
+                    <h2 className="text-xl font-semibold text-heading">Templates</h2>
+                    <p className="text-sm text-muted">
                         Create reusable exercise templates for quick assignment
                     </p>
                 </div>
@@ -56,13 +56,13 @@ export function TemplatesManager({ onClose }: TemplatesManagerProps) {
             </div>
 
             {/* Type Filter */}
-            <div className="flex space-x-1 rounded-lg bg-slate-100 p-1 w-fit">
+            <div className="flex space-x-1 rounded-lg bg-surface-hover p-1 w-fit">
                 <button
                     onClick={() => setSelectedType('all')}
                     className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all ${
                         selectedType === 'all'
-                            ? 'bg-white text-slate-900 shadow'
-                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                            ? 'bg-surface text-heading shadow'
+                            : 'text-muted hover:text-heading hover:bg-surface-hover'
                     }`}
                 >
                     All Types
@@ -71,8 +71,8 @@ export function TemplatesManager({ onClose }: TemplatesManagerProps) {
                     onClick={() => setSelectedType('checklist')}
                     className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all ${
                         selectedType === 'checklist'
-                            ? 'bg-white text-slate-900 shadow'
-                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                            ? 'bg-surface text-heading shadow'
+                            : 'text-muted hover:text-heading hover:bg-surface-hover'
                     }`}
                 >
                     <ClipboardList className="w-4 h-4" />
@@ -82,8 +82,8 @@ export function TemplatesManager({ onClose }: TemplatesManagerProps) {
                     onClick={() => setSelectedType('stations')}
                     className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all ${
                         selectedType === 'stations'
-                            ? 'bg-amber-100 text-amber-600 shadow'
-                            : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                            ? 'bg-amber-500/15 text-amber-600 shadow'
+                            : 'text-muted hover:text-heading hover:bg-surface-hover'
                     }`}
                 >
                     <LayoutGrid className="w-4 h-4" />
@@ -97,8 +97,8 @@ export function TemplatesManager({ onClose }: TemplatesManagerProps) {
                     onClick={() => setSelectedEvent('all')}
                     className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         selectedEvent === 'all'
-                            ? 'bg-slate-200 text-slate-900 border border-slate-300'
-                            : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'
+                            ? 'bg-surface-active text-heading border border-line-strong'
+                            : 'bg-surface text-muted border border-line hover:border-line-strong'
                     }`}
                 >
                     All Events
@@ -112,7 +112,7 @@ export function TemplatesManager({ onClose }: TemplatesManagerProps) {
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                                 selectedEvent === event
                                     ? `${colors.bg} ${colors.text} border ${colors.border}`
-                                    : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'
+                                    : 'bg-surface text-muted border border-line hover:border-line-strong'
                             }`}
                         >
                             {ASSIGNMENT_EVENT_LABELS[event]}
@@ -124,15 +124,15 @@ export function TemplatesManager({ onClose }: TemplatesManagerProps) {
             {/* Templates Grid */}
             {loading ? (
                 <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-6 h-6 text-mint-600 animate-spin" />
+                    <Loader2 className="w-6 h-6 text-accent-600 animate-spin" />
                 </div>
             ) : filteredTemplates.length === 0 ? (
                 <div className="text-center py-12 card">
-                    <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-slate-100 flex items-center justify-center">
-                        <FileText className="w-7 h-7 text-slate-500" />
+                    <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-surface-hover flex items-center justify-center">
+                        <FileText className="w-7 h-7 text-muted" />
                     </div>
-                    <h3 className="font-medium text-slate-900 mb-1">No templates yet</h3>
-                    <p className="text-sm text-slate-500 mb-4">
+                    <h3 className="font-medium text-heading mb-1">No templates yet</h3>
+                    <p className="text-sm text-muted mb-4">
                         Create your first template to speed up assignments
                     </p>
                     <button
@@ -206,11 +206,11 @@ function TemplateCard({ template, onEdit, onDeleted }: TemplateCardProps) {
             <div className="flex items-start justify-between gap-3 mb-3">
                 <div>
                     <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-slate-900">{template.name}</h3>
+                        <h3 className="font-semibold text-heading">{template.name}</h3>
                         {isStations ? (
                             <LayoutGrid className="w-3.5 h-3.5 text-amber-600" />
                         ) : (
-                            <ClipboardList className="w-3.5 h-3.5 text-slate-500" />
+                            <ClipboardList className="w-3.5 h-3.5 text-muted" />
                         )}
                     </div>
                     <span className={`text-xs ${colors.text}`}>
@@ -220,14 +220,14 @@ function TemplateCard({ template, onEdit, onDeleted }: TemplateCardProps) {
                 <div className="flex items-center gap-1">
                     <button
                         onClick={onEdit}
-                        className="p-1.5 text-slate-500 hover:text-mint-600 hover:bg-slate-100 rounded transition-colors"
+                        className="p-1.5 text-muted hover:text-accent-600 hover:bg-surface-hover rounded transition-colors"
                     >
                         <Pencil className="w-4 h-4" />
                     </button>
                     <button
                         onClick={handleDelete}
                         disabled={isDeleting}
-                        className="p-1.5 text-slate-400 hover:text-error-400 hover:bg-error-500/10 rounded transition-colors"
+                        className="p-1.5 text-faint hover:text-error-400 hover:bg-error-500/10 rounded transition-colors"
                     >
                         {isDeleting ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -240,7 +240,7 @@ function TemplateCard({ template, onEdit, onDeleted }: TemplateCardProps) {
 
             {isStations ? (
                 <>
-                    <div className="text-sm text-slate-700 space-y-1.5 max-h-[100px] overflow-hidden">
+                    <div className="text-sm text-body space-y-1.5 max-h-[100px] overflow-hidden">
                         {template.stations?.slice(0, 3).map((station, idx) => (
                             <div key={station.id} className="flex items-start gap-2">
                                 <span className="w-4 h-4 rounded-full bg-slate-600 flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0 mt-0.5">
@@ -251,30 +251,30 @@ function TemplateCard({ template, onEdit, onDeleted }: TemplateCardProps) {
                         ))}
                     </div>
                     {stationCount > 3 && (
-                        <p className="text-xs text-slate-500 mt-2">
+                        <p className="text-xs text-muted mt-2">
                             +{stationCount - 3} more stations
                         </p>
                     )}
-                    <div className="mt-3 pt-3 border-t border-slate-200">
-                        <span className="text-xs text-slate-500">
+                    <div className="mt-3 pt-3 border-t border-line">
+                        <span className="text-xs text-muted">
                             {stationCount} station{stationCount !== 1 ? 's' : ''}
                         </span>
                     </div>
                 </>
             ) : (
                 <>
-                    <div className="text-sm text-slate-700 space-y-1 max-h-[100px] overflow-hidden">
+                    <div className="text-sm text-body space-y-1 max-h-[100px] overflow-hidden">
                         {template.exercises?.split('\n').slice(0, 4).map((line, idx) => (
                             <p key={idx} className="truncate">{line}</p>
                         ))}
                     </div>
                     {exerciseCount > 4 && (
-                        <p className="text-xs text-slate-500 mt-2">
+                        <p className="text-xs text-muted mt-2">
                             +{exerciseCount - 4} more exercises
                         </p>
                     )}
-                    <div className="mt-3 pt-3 border-t border-slate-200">
-                        <span className="text-xs text-slate-500">
+                    <div className="mt-3 pt-3 border-t border-line">
+                        <span className="text-xs text-muted">
                             {exerciseCount} exercise{exerciseCount !== 1 ? 's' : ''}
                         </span>
                     </div>
@@ -397,12 +397,12 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="card p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-xl font-semibold text-slate-900">
+                    <h2 className="text-xl font-semibold text-heading">
                         {template ? 'Edit Template' : 'New Template'}
                     </h2>
                     <button
                         onClick={onClose}
-                        className="p-1.5 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded transition-colors"
+                        className="p-1.5 text-muted hover:text-heading hover:bg-surface-hover rounded transition-colors"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -410,7 +410,7 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
 
                 <div className="space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-2">
+                        <label className="block text-sm font-medium text-muted mb-2">
                             Template Name
                         </label>
                         <input
@@ -424,16 +424,16 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
 
                     {/* Template Type Toggle */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-2">
+                        <label className="block text-sm font-medium text-muted mb-2">
                             Template Type
                         </label>
-                        <div className="flex space-x-1 rounded-lg bg-slate-100 p-1 w-fit">
+                        <div className="flex space-x-1 rounded-lg bg-surface-hover p-1 w-fit">
                             <button
                                 onClick={() => setTemplateType('checklist')}
                                 className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all ${
                                     templateType === 'checklist'
-                                        ? 'bg-white text-slate-900 shadow'
-                                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                        ? 'bg-surface text-heading shadow'
+                                        : 'text-muted hover:text-heading hover:bg-surface-hover'
                                 }`}
                             >
                                 <ClipboardList className="w-4 h-4" />
@@ -443,8 +443,8 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
                                 onClick={() => setTemplateType('stations')}
                                 className={`flex items-center gap-2 rounded-md py-2 px-4 text-sm font-medium transition-all ${
                                     templateType === 'stations'
-                                        ? 'bg-amber-100 text-amber-600 shadow'
-                                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                                        ? 'bg-amber-500/15 text-amber-600 shadow'
+                                        : 'text-muted hover:text-heading hover:bg-surface-hover'
                                 }`}
                             >
                                 <LayoutGrid className="w-4 h-4" />
@@ -454,7 +454,7 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-2">
+                        <label className="block text-sm font-medium text-muted mb-2">
                             Event
                         </label>
                         <div className="flex flex-wrap gap-2">
@@ -467,7 +467,7 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
                                         className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                                             event === e
                                                 ? `${colors.bg} ${colors.text} border ${colors.border}`
-                                                : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'
+                                                : 'bg-surface text-muted border border-line hover:border-line-strong'
                                         }`}
                                     >
                                         {ASSIGNMENT_EVENT_LABELS[e]}
@@ -480,7 +480,7 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
                     {/* Checklist Content */}
                     {templateType === 'checklist' && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-500 mb-2">
+                            <label className="block text-sm font-medium text-muted mb-2">
                                 Exercises (one per line)
                             </label>
                             <textarea
@@ -497,12 +497,12 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
                     {templateType === 'stations' && (
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <label className="text-sm font-medium text-slate-500">
+                                <label className="text-sm font-medium text-muted">
                                     Stations ({mainStations.length})
                                 </label>
                                 <button
                                     onClick={addMainStation}
-                                    className="text-sm text-mint-600 hover:text-mint-700 flex items-center gap-1"
+                                    className="text-sm text-accent-600 hover:text-accent-700 flex items-center gap-1"
                                 >
                                     <Plus className="w-3.5 h-3.5" />
                                     Add Station
@@ -525,7 +525,7 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
                                             {mainStations.length > 1 && (
                                                 <button
                                                     onClick={() => removeMainStation(station.id)}
-                                                    className="p-1 text-slate-400 hover:text-error-400"
+                                                    className="p-1 text-faint hover:text-error-400"
                                                 >
                                                     <X className="w-3.5 h-3.5" />
                                                 </button>
@@ -541,9 +541,9 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
                                         />
 
                                         {/* Side Stations */}
-                                        <div className="border-t border-slate-200 pt-2">
+                                        <div className="border-t border-line pt-2">
                                             <div className="flex items-center justify-between mb-1.5">
-                                                <span className="text-[10px] text-slate-500">Side Stations</span>
+                                                <span className="text-[10px] text-muted">Side Stations</span>
                                                 {station.side_stations.length < 3 && (
                                                     <button
                                                         onClick={() => addSideStation(station.id)}
@@ -556,18 +556,18 @@ function TemplateModal({ template, onClose, onSaved }: TemplateModalProps) {
                                             </div>
 
                                             {station.side_stations.length === 0 ? (
-                                                <p className="text-[10px] text-slate-500 text-center py-1.5 bg-slate-50 rounded border border-dashed border-slate-300">
+                                                <p className="text-[10px] text-muted text-center py-1.5 bg-surface-alt rounded border border-dashed border-line-strong">
                                                     No side stations
                                                 </p>
                                             ) : (
                                                 <div className="space-y-1.5">
                                                     {station.side_stations.map((side, sideIdx) => (
-                                                        <div key={side.id} className="bg-amber-50 rounded p-2 border border-amber-200">
+                                                        <div key={side.id} className="bg-amber-500/10 rounded p-2 border border-amber-500/20">
                                                             <div className="flex items-center justify-between mb-1">
-                                                                <span className="text-[10px] font-medium text-amber-700">Side {sideIdx + 1}</span>
+                                                                <span className="text-[10px] font-medium text-amber-600">Side {sideIdx + 1}</span>
                                                                 <button
                                                                     onClick={() => removeSideStation(station.id, side.id)}
-                                                                    className="p-0.5 text-slate-400 hover:text-error-400"
+                                                                    className="p-0.5 text-faint hover:text-error-400"
                                                                 >
                                                                     <X className="w-2.5 h-2.5" />
                                                                 </button>

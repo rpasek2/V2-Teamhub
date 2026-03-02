@@ -304,7 +304,7 @@ export function Skills() {
     if (initialLoading && selectedLevel) {
         return (
             <div className="flex h-full items-center justify-center">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-brand-500 border-t-transparent"></div>
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-accent-500 border-t-transparent"></div>
             </div>
         );
     }
@@ -313,11 +313,11 @@ export function Skills() {
     if (isParent) {
         return (
             <div className="h-full flex flex-col">
-                <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
+                <header className="flex items-center justify-between border-b border-line bg-surface px-6 py-4 rounded-t-xl">
                     <div>
-                        <h1 className="text-2xl font-bold text-slate-900">Skills</h1>
+                        <h1 className="text-2xl font-bold text-heading">Skills</h1>
                         {linkedGymnast && (
-                            <p className="text-sm text-slate-500 mt-1">
+                            <p className="text-sm text-muted mt-1">
                                 {linkedGymnast.first_name} {linkedGymnast.last_name} · {linkedGymnast.level}
                             </p>
                         )}
@@ -333,11 +333,11 @@ export function Skills() {
                 <main className="flex-1 overflow-y-auto p-6">
                     {!linkedGymnast ? (
                         <div className="flex h-full flex-col items-center justify-center text-center">
-                            <div className="rounded-full bg-slate-100 p-4">
-                                <Sparkles className="h-8 w-8 text-slate-400" />
+                            <div className="rounded-full bg-surface-hover p-4">
+                                <Sparkles className="h-8 w-8 text-faint" />
                             </div>
-                            <h3 className="mt-4 text-lg font-semibold text-slate-900">No gymnast linked</h3>
-                            <p className="mt-2 text-sm text-slate-500">
+                            <h3 className="mt-4 text-lg font-semibold text-heading">No gymnast linked</h3>
+                            <p className="mt-2 text-sm text-muted">
                                 Contact your coach to link your gymnast to your account.
                             </p>
                         </div>
@@ -351,8 +351,8 @@ export function Skills() {
                                         onClick={() => setSelectedEvent(event.id)}
                                         className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                                             selectedEvent === event.id
-                                                ? 'bg-brand-500 text-white'
-                                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                                ? 'bg-accent-500 text-white'
+                                                : 'bg-surface-hover text-subtle hover:bg-surface-active'
                                         }`}
                                     >
                                         {event.fullName}
@@ -375,12 +375,12 @@ export function Skills() {
 
                             {/* No skills message */}
                             {selectedEvent && skills.length === 0 && (
-                                <div className="rounded-lg border-2 border-dashed border-slate-200 p-12 text-center">
-                                    <Sparkles className="mx-auto h-12 w-12 text-slate-400" />
-                                    <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                                <div className="rounded-lg border-2 border-dashed border-line p-12 text-center">
+                                    <Sparkles className="mx-auto h-12 w-12 text-faint" />
+                                    <h3 className="mt-4 text-lg font-semibold text-heading">
                                         No skills defined yet
                                     </h3>
-                                    <p className="mt-2 text-sm text-slate-500">
+                                    <p className="mt-2 text-sm text-muted">
                                         Your coach hasn't added skills for {parentEvents.find(e => e.id === selectedEvent)?.fullName || selectedEvent} at {linkedGymnast.level} yet.
                                     </p>
                                 </div>
@@ -395,17 +395,17 @@ export function Skills() {
     // Staff view - full controls with level and gender filters
     return (
         <div className="h-full flex flex-col">
-            <header className="flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4 rounded-t-xl">
-                <h1 className="text-2xl font-bold text-slate-900">Skills</h1>
+            <header className="flex items-center justify-between border-b border-line bg-surface px-6 py-4 rounded-t-xl">
+                <h1 className="text-2xl font-bold text-heading">Skills</h1>
 
                 {/* Gender Toggle */}
-                <div className="flex rounded-lg bg-slate-100 p-1">
+                <div className="flex rounded-lg bg-surface-hover p-1">
                     <button
                         onClick={() => setActiveGender('Female')}
                         className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                             activeGender === 'Female'
-                                ? 'bg-white text-slate-900 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-900'
+                                ? 'bg-surface text-heading shadow-sm'
+                                : 'text-muted hover:text-heading'
                         }`}
                     >
                         Girls
@@ -414,8 +414,8 @@ export function Skills() {
                         onClick={() => setActiveGender('Male')}
                         className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
                             activeGender === 'Male'
-                                ? 'bg-white text-slate-900 shadow-sm'
-                                : 'text-slate-500 hover:text-slate-900'
+                                ? 'bg-surface text-heading shadow-sm'
+                                : 'text-muted hover:text-heading'
                         }`}
                     >
                         Boys
@@ -432,11 +432,11 @@ export function Skills() {
             <main className="flex-1 overflow-y-auto p-6">
                 {levels.length === 0 ? (
                     <div className="flex h-full flex-col items-center justify-center text-center">
-                        <div className="rounded-full bg-slate-100 p-4">
-                            <Sparkles className="h-8 w-8 text-slate-400" />
+                        <div className="rounded-full bg-surface-hover p-4">
+                            <Sparkles className="h-8 w-8 text-faint" />
                         </div>
-                        <h3 className="mt-4 text-lg font-semibold text-slate-900">No levels configured</h3>
-                        <p className="mt-2 text-sm text-slate-500">
+                        <h3 className="mt-4 text-lg font-semibold text-heading">No levels configured</h3>
+                        <p className="mt-2 text-sm text-muted">
                             Add levels in hub settings to start tracking skills.
                         </p>
                     </div>
@@ -450,8 +450,8 @@ export function Skills() {
                                     onClick={() => setSelectedLevel(level)}
                                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                                         selectedLevel === level
-                                            ? 'bg-brand-500 text-white'
-                                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                            ? 'bg-accent-500 text-white'
+                                            : 'bg-surface-hover text-subtle hover:bg-surface-active'
                                     }`}
                                 >
                                     {level}
@@ -468,7 +468,7 @@ export function Skills() {
                                     className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                                         selectedEvent === event.id
                                             ? 'bg-indigo-600 text-white'
-                                            : 'bg-indigo-100 text-indigo-700 hover:bg-indigo-200'
+                                            : 'bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20'
                                     }`}
                                 >
                                     {event.fullName}
@@ -479,7 +479,7 @@ export function Skills() {
                             {isStaff && (
                                 <button
                                     onClick={() => setIsManageEventsModalOpen(true)}
-                                    className="ml-auto flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                                    className="ml-auto flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-subtle hover:bg-surface-hover"
                                 >
                                     <LayoutGrid className="h-4 w-4" />
                                     Manage Events
@@ -490,7 +490,7 @@ export function Skills() {
                             {isStaff && selectedLevel && selectedEvent && (
                                 <button
                                     onClick={() => setIsManageModalOpen(true)}
-                                    className="flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                                    className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-subtle hover:bg-surface-hover"
                                 >
                                     <Settings2 className="h-4 w-4" />
                                     Manage Skills
@@ -502,12 +502,12 @@ export function Skills() {
                         {selectedLevel && selectedEvent && (
                             <>
                                 {gymnasts.length === 0 ? (
-                                    <div className="rounded-lg border-2 border-dashed border-slate-200 p-12 text-center">
-                                        <Sparkles className="mx-auto h-12 w-12 text-slate-400" />
-                                        <h3 className="mt-4 text-lg font-semibold text-slate-900">
+                                    <div className="rounded-lg border-2 border-dashed border-line p-12 text-center">
+                                        <Sparkles className="mx-auto h-12 w-12 text-faint" />
+                                        <h3 className="mt-4 text-lg font-semibold text-heading">
                                             No {activeGender === 'Female' ? 'girls' : 'boys'} at {selectedLevel}
                                         </h3>
-                                        <p className="mt-2 text-sm text-slate-500">
+                                        <p className="mt-2 text-sm text-muted">
                                             Add gymnasts to this level in the roster to track their skills.
                                         </p>
                                     </div>

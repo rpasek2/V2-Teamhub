@@ -312,7 +312,7 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
     if (loading) {
         return (
             <div className="card p-8 flex items-center justify-center">
-                <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
+                <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
             </div>
         );
     }
@@ -322,31 +322,31 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
             {/* Header */}
             <div className="card p-6">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="h-10 w-10 rounded-lg bg-violet-50 flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
                         <BookOpen className="w-5 h-5 text-violet-600" />
                     </div>
                     <div>
-                        <h2 className="text-lg font-semibold text-slate-900">Lesson Setup</h2>
-                        <p className="text-sm text-slate-500">Configure your private lesson offerings</p>
+                        <h2 className="text-lg font-semibold text-heading">Lesson Setup</h2>
+                        <p className="text-sm text-muted">Configure your private lesson offerings</p>
                     </div>
                 </div>
 
                 {/* Active Toggle */}
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-surface-alt rounded-lg">
                     <div>
-                        <p className="font-medium text-slate-900">Accept Bookings</p>
-                        <p className="text-sm text-slate-500">
+                        <p className="font-medium text-heading">Accept Bookings</p>
+                        <p className="text-sm text-muted">
                             {isActive ? 'Parents can book lessons with you' : 'Your profile is hidden from parents'}
                         </p>
                     </div>
                     <button
                         onClick={() => setIsActive(!isActive)}
                         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                            isActive ? 'bg-brand-500' : 'bg-slate-300'
+                            isActive ? 'bg-accent-500' : 'bg-surface-active'
                         }`}
                     >
                         <span
-                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                            className={`inline-block h-4 w-4 transform rounded-full bg-surface transition-transform ${
                                 isActive ? 'translate-x-6' : 'translate-x-1'
                             }`}
                         />
@@ -356,7 +356,7 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
 
             {/* Events Section */}
             <div className="card p-6">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Events You Teach *</h3>
+                <h3 className="text-sm font-semibold text-body mb-3">Events You Teach *</h3>
                 <div className="flex flex-wrap gap-2">
                     {EVENT_OPTIONS.map(evt => (
                         <button
@@ -365,8 +365,8 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                             onClick={() => toggleEvent(evt.value)}
                             className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                 events.includes(evt.value)
-                                    ? 'bg-brand-100 text-brand-700 border-2 border-brand-300'
-                                    : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                    ? 'bg-accent-500/15 text-accent-600 border-2 border-accent-500/30'
+                                    : 'bg-surface-hover text-subtle border-2 border-transparent hover:bg-surface-active'
                             }`}
                         >
                             {evt.label}
@@ -377,7 +377,7 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
 
             {/* Levels Section */}
             <div className="card p-6">
-                <h3 className="text-sm font-semibold text-slate-700 mb-3">Levels You Teach *</h3>
+                <h3 className="text-sm font-semibold text-body mb-3">Levels You Teach *</h3>
                 {hubLevels.length > 0 ? (
                     <div className="flex flex-wrap gap-2">
                         {hubLevels.map(level => (
@@ -387,8 +387,8 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                                 onClick={() => toggleLevel(level)}
                                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                                     levels.includes(level)
-                                        ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-300'
-                                        : 'bg-slate-100 text-slate-600 border-2 border-transparent hover:bg-slate-200'
+                                        ? 'bg-indigo-500/15 text-indigo-600 border-2 border-indigo-500/30'
+                                        : 'bg-surface-hover text-subtle border-2 border-transparent hover:bg-surface-active'
                                 }`}
                             >
                                 {level}
@@ -396,7 +396,7 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                         ))}
                     </div>
                 ) : (
-                    <p className="text-sm text-slate-500">No levels configured in hub settings</p>
+                    <p className="text-sm text-muted">No levels configured in hub settings</p>
                 )}
             </div>
 
@@ -404,8 +404,8 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
             <div className="card p-6">
                 <div className="flex items-center justify-between mb-4">
                     <div>
-                        <h3 className="text-sm font-semibold text-slate-700">Pricing Packages *</h3>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <h3 className="text-sm font-semibold text-body">Pricing Packages *</h3>
+                        <p className="text-xs text-muted mt-1">
                             Create different options for lesson durations, group sizes, and pricing
                         </p>
                     </div>
@@ -420,10 +420,10 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                 </div>
 
                 {packageForms.length === 0 ? (
-                    <div className="bg-slate-50 rounded-lg p-6 text-center">
-                        <DollarSign className="w-8 h-8 text-slate-300 mx-auto mb-2" />
-                        <p className="text-sm text-slate-500">No pricing packages yet</p>
-                        <p className="text-xs text-slate-400 mt-1">Add a package to set your lesson pricing</p>
+                    <div className="bg-surface-alt rounded-lg p-6 text-center">
+                        <DollarSign className="w-8 h-8 text-faint mx-auto mb-2" />
+                        <p className="text-sm text-muted">No pricing packages yet</p>
+                        <p className="text-xs text-faint mt-1">Add a package to set your lesson pricing</p>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -431,11 +431,11 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                             <div
                                 key={pkg.id || `new-${index}`}
                                 className={`border rounded-lg p-4 ${
-                                    pkg.is_active ? 'border-slate-200 bg-white' : 'border-slate-100 bg-slate-50'
+                                    pkg.is_active ? 'border-line bg-surface' : 'border-line bg-surface-alt'
                                 }`}
                             >
                                 <div className="flex items-start gap-3">
-                                    <div className="text-slate-300 cursor-move mt-2">
+                                    <div className="text-faint cursor-move mt-2">
                                         <GripVertical className="w-4 h-4" />
                                     </div>
 
@@ -455,7 +455,7 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                             {/* Duration */}
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-500 mb-1">
+                                                <label className="block text-xs font-medium text-muted mb-1">
                                                     <Clock className="w-3 h-3 inline mr-1" />
                                                     Duration
                                                 </label>
@@ -474,7 +474,7 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
 
                                             {/* Capacity */}
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-500 mb-1">
+                                                <label className="block text-xs font-medium text-muted mb-1">
                                                     <Users className="w-3 h-3 inline mr-1" />
                                                     Max Gymnasts
                                                 </label>
@@ -493,12 +493,12 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
 
                                             {/* Price */}
                                             <div>
-                                                <label className="block text-xs font-medium text-slate-500 mb-1">
+                                                <label className="block text-xs font-medium text-muted mb-1">
                                                     <DollarSign className="w-3 h-3 inline mr-1" />
                                                     Price
                                                 </label>
                                                 <div className="relative">
-                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">$</span>
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-faint text-sm">$</span>
                                                     <input
                                                         type="number"
                                                         min="0"
@@ -524,7 +524,7 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                                         </div>
 
                                         {/* Summary */}
-                                        <div className="text-xs text-slate-500">
+                                        <div className="text-xs text-muted">
                                             {getCapacityLabel(pkg.max_gymnasts)} • {DURATION_OPTIONS.find(d => d.value === pkg.duration_minutes)?.label || `${pkg.duration_minutes} min`} • ${parseFloat(pkg.price) || 0}
                                         </div>
                                     </div>
@@ -536,8 +536,8 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                                             onClick={() => updatePackage(index, 'is_active', !pkg.is_active)}
                                             className={`px-2 py-1 text-xs rounded-full font-medium ${
                                                 pkg.is_active
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-slate-100 text-slate-500'
+                                                    ? 'bg-green-500/10 text-green-600'
+                                                    : 'bg-surface-hover text-muted'
                                             }`}
                                         >
                                             {pkg.is_active ? 'Active' : 'Inactive'}
@@ -545,7 +545,7 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
                                         <button
                                             type="button"
                                             onClick={() => removePackage(index)}
-                                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                            className="p-1.5 text-faint hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                                         >
                                             <Trash2 className="w-4 h-4" />
                                         </button>
@@ -559,8 +559,8 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
 
             {/* Bio Section */}
             <div className="card p-6">
-                <h3 className="text-sm font-semibold text-slate-700 mb-2">Bio (Optional)</h3>
-                <p className="text-xs text-slate-500 mb-3">
+                <h3 className="text-sm font-semibold text-body mb-2">Bio (Optional)</h3>
+                <p className="text-xs text-muted mb-3">
                     Tell parents about your experience and teaching style
                 </p>
                 <textarea
@@ -574,12 +574,12 @@ export function CoachLessonSetup({ onProfileUpdated }: CoachLessonSetupProps) {
 
             {/* Error/Success Messages */}
             {error && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600">
                     {error}
                 </div>
             )}
             {success && (
-                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+                <div className="p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-sm text-green-600">
                     {success}
                 </div>
             )}

@@ -757,14 +757,14 @@ export function Dashboard() {
     if (loading) {
         return (
             <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 text-mint-500 animate-spin" />
+                <Loader2 className="w-8 h-8 text-accent-500 animate-spin" />
             </div>
         );
     }
 
     if (!hub) {
         return (
-            <div className="flex flex-col items-center justify-center h-64 text-slate-500">
+            <div className="flex flex-col items-center justify-center h-64 text-muted">
                 <FileText className="w-12 h-12 mb-4 opacity-50" />
                 <p className="text-lg">Hub not found</p>
             </div>
@@ -776,10 +776,10 @@ export function Dashboard() {
             {/* Header */}
             <div className="mb-8 flex items-start justify-between">
                 <div>
-                    <h1 className="text-2xl font-semibold text-slate-900">
+                    <h1 className="text-2xl font-semibold text-heading">
                         {getGreeting()}{userName ? `, ${userName}` : ''}
                     </h1>
-                    <p className="text-slate-500 mt-1">
+                    <p className="text-muted mt-1">
                         Welcome to {hub.name} • {format(new Date(), 'EEEE, MMMM d')}
                     </p>
                 </div>
@@ -787,10 +787,10 @@ export function Dashboard() {
                     {isStaff && (
                         <button
                             onClick={() => setShowCreateAnnouncement(true)}
-                            className="relative p-2 rounded-lg hover:bg-slate-100 transition-colors"
+                            className="relative p-2 rounded-lg hover:bg-surface-hover transition-colors"
                             title="Create Announcement"
                         >
-                            <Megaphone className="w-5 h-5 text-slate-600" />
+                            <Megaphone className="w-5 h-5 text-subtle" />
                         </button>
                     )}
                     <NotificationBell />

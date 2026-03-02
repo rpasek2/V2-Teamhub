@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { RootLayout } from './components/layout/RootLayout';
 import { HubLayout } from './components/layout/HubLayout';
@@ -40,6 +41,7 @@ const UserSettings = lazy(() => import('./pages/UserSettings').then(m => ({ defa
 function App() {
   return (
     <AuthProvider>
+      <ThemeProvider>
       <Router>
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -86,6 +88,7 @@ function App() {
           </Routes>
         </Suspense>
       </Router>
+      </ThemeProvider>
     </AuthProvider>
   );
 }

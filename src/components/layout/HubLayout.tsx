@@ -10,7 +10,7 @@ export function HubLayout() {
     return (
         <HubProvider>
             <NotificationProvider>
-                <div className="flex h-screen overflow-hidden bg-slate-50">
+                <div className="flex h-screen overflow-hidden bg-surface-alt">
                     <Sidebar />
                     <main className="flex-1 overflow-y-auto p-8">
                         <Suspense fallback={<PageLoader />}>

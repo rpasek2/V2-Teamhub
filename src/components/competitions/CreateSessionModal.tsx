@@ -165,12 +165,12 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
             />
 
             {/* Modal Content */}
-            <div className="relative z-[10000] w-full max-w-lg rounded-lg bg-white p-6 shadow-xl">
+            <div className="relative z-[10000] w-full max-w-lg rounded-lg bg-surface p-6 shadow-xl">
                 {/* Close Button */}
                 <div className="absolute top-4 right-4">
                     <button
                         type="button"
-                        className="rounded-md text-slate-400 hover:text-slate-500"
+                        className="rounded-md text-faint hover:text-muted"
                         onClick={onClose}
                     >
                         <span className="sr-only">Close</span>
@@ -179,7 +179,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg font-semibold text-slate-900 pr-8" id="modal-title">
+                <h3 className="text-lg font-semibold text-heading pr-8" id="modal-title">
                     {isEditing ? 'Edit Session' : 'Add Session'}
                 </h3>
 
@@ -196,7 +196,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
 
                     {/* Session Name */}
                     <div>
-                        <label htmlFor="name" className="block text-sm font-medium text-slate-700">
+                        <label htmlFor="name" className="block text-sm font-medium text-body">
                             Session Name
                         </label>
                         <input
@@ -206,7 +206,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                             required
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="mt-1.5 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                            className="mt-1.5 block w-full rounded-md border border-line-strong px-3 py-2 text-heading placeholder:text-faint focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 sm:text-sm"
                             placeholder="e.g., Session 1, Morning Session"
                         />
                     </div>
@@ -214,7 +214,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                     {/* Date and Check-In Time */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label htmlFor="date" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="date" className="block text-sm font-medium text-body">
                                 Date
                             </label>
                             <input
@@ -224,11 +224,11 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                                 required
                                 value={formData.date}
                                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                className="mt-1.5 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                                className="mt-1.5 block w-full rounded-md border border-line-strong px-3 py-2 text-heading focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 sm:text-sm"
                             />
                         </div>
                         <div>
-                            <label htmlFor="checkInTime" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="checkInTime" className="block text-sm font-medium text-body">
                                 Check-In Time
                             </label>
                             <input
@@ -237,7 +237,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                                 id="checkInTime"
                                 value={formData.checkInTime}
                                 onChange={(e) => setFormData({ ...formData, checkInTime: e.target.value })}
-                                className="mt-1.5 block w-full rounded-md border border-slate-300 px-3 py-2 text-slate-900 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                                className="mt-1.5 block w-full rounded-md border border-line-strong px-3 py-2 text-heading focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 sm:text-sm"
                             />
                         </div>
                     </div>
@@ -245,33 +245,33 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                     {/* Coach Assignment - only show when creating */}
                     {!isEditing && (
                         <div>
-                            <label className="block text-sm font-medium text-slate-700">
-                                Assign Coaches <span className="text-slate-400 font-normal">(optional)</span>
+                            <label className="block text-sm font-medium text-body">
+                                Assign Coaches <span className="text-faint font-normal">(optional)</span>
                             </label>
-                            <div className="mt-1.5 max-h-40 overflow-y-auto rounded-md border border-slate-300">
+                            <div className="mt-1.5 max-h-40 overflow-y-auto rounded-md border border-line-strong">
                                 {coaches.length > 0 ? (
-                                    <div className="divide-y divide-slate-100">
+                                    <div className="divide-y divide-line">
                                         {coaches.map((coach) => (
                                             <div
                                                 key={coach.user_id}
-                                                className={`flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-slate-50 ${
-                                                    selectedCoaches.includes(coach.user_id) ? 'bg-brand-50' : ''
+                                                className={`flex cursor-pointer items-center justify-between px-3 py-2 hover:bg-surface-hover ${
+                                                    selectedCoaches.includes(coach.user_id) ? 'bg-accent-50' : ''
                                                 }`}
                                                 onClick={() => toggleCoach(coach.user_id)}
                                             >
-                                                <span className="text-sm text-slate-900">{coach.profiles.full_name}</span>
+                                                <span className="text-sm text-heading">{coach.profiles.full_name}</span>
                                                 {selectedCoaches.includes(coach.user_id) && (
-                                                    <Check className="h-4 w-4 text-brand-600" />
+                                                    <Check className="h-4 w-4 text-accent-600" />
                                                 )}
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="px-3 py-2 text-sm text-slate-500">No coaches available</p>
+                                    <p className="px-3 py-2 text-sm text-muted">No coaches available</p>
                                 )}
                             </div>
                             {selectedCoaches.length > 0 && (
-                                <p className="mt-1 text-xs text-slate-500">
+                                <p className="mt-1 text-xs text-muted">
                                     {selectedCoaches.length} coach{selectedCoaches.length !== 1 ? 'es' : ''} selected
                                 </p>
                             )}
@@ -282,7 +282,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                     <div className="flex justify-end gap-3 pt-2">
                         <button
                             type="button"
-                            className="rounded-md px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                            className="rounded-md px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover"
                             onClick={onClose}
                         >
                             Cancel
@@ -290,7 +290,7 @@ export function CreateSessionModal({ isOpen, onClose, onSessionCreated, competit
                         <button
                             type="submit"
                             disabled={loading}
-                            className="inline-flex items-center rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:opacity-50"
+                            className="inline-flex items-center rounded-md bg-accent-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-accent-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent-600 disabled:opacity-50"
                         >
                             {loading ? (
                                 <>

@@ -137,16 +137,16 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
                 onKeyDown={handleKeyDown}
                 onBlur={handleBlur}
                 disabled={saving}
-                className="w-full min-w-0 h-7 box-border rounded border border-brand-300 bg-white px-1 text-center text-sm font-bold focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-brand-500"
+                className="w-full min-w-0 h-7 box-border rounded border border-accent-300 bg-surface px-1 text-center text-sm font-bold focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-inset focus:ring-accent-500"
             />
         );
     }
 
     const getPlacementStyles = (placement: number | null): string => {
-        if (placement === 1) return 'text-amber-600 bg-amber-50'; // Gold
-        if (placement === 2) return 'text-slate-500 bg-slate-100'; // Silver
-        if (placement === 3) return 'text-orange-700 bg-orange-100'; // Bronze
-        return 'text-brand-700';
+        if (placement === 1) return 'text-amber-600 bg-amber-500/10'; // Gold
+        if (placement === 2) return 'text-muted bg-surface-hover'; // Silver
+        if (placement === 3) return 'text-orange-600 bg-orange-500/10'; // Bronze
+        return 'text-accent-600';
     };
 
     return (

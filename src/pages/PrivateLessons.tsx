@@ -136,9 +136,9 @@ export default function PrivateLessons() {
     const tabs = getTabs();
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-surface-alt">
             {/* Header */}
-            <div className="bg-white border-b border-slate-200">
+            <div className="bg-surface border-b border-line">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="py-6">
                         <div className="flex items-center gap-3">
@@ -146,8 +146,8 @@ export default function PrivateLessons() {
                                 <GraduationCap className="w-5 h-5 text-white" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-bold text-slate-900">Private Lessons</h1>
-                                <p className="text-sm text-slate-500">
+                                <h1 className="text-2xl font-bold text-heading">Private Lessons</h1>
+                                <p className="text-sm text-muted">
                                     {isCoach
                                         ? 'Manage your lesson offerings and availability'
                                         : isParent
@@ -169,8 +169,8 @@ export default function PrivateLessons() {
                                 }}
                                 className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                                     activeTab === tab.id
-                                        ? 'border-brand-500 text-brand-600'
-                                        : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300'
+                                        ? 'border-accent-500 text-accent-600'
+                                        : 'border-transparent text-muted hover:text-body hover:border-line-strong'
                                 }`}
                             >
                                 {tab.icon}
@@ -211,7 +211,7 @@ export default function PrivateLessons() {
                             <div>
                                 <button
                                     onClick={() => setSelectedCoachId(null)}
-                                    className="mb-4 text-sm text-brand-600 hover:text-brand-700 font-medium"
+                                    className="mb-4 text-sm text-accent-600 hover:text-accent-700 font-medium"
                                 >
                                     &larr; Back to all coaches
                                 </button>
@@ -224,15 +224,15 @@ export default function PrivateLessons() {
                                                 className="w-10 h-10 rounded-full"
                                             />
                                         ) : (
-                                            <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-semibold">
+                                            <div className="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-600 font-semibold">
                                                 {selectedCoach.coach_profile?.full_name?.charAt(0) || 'C'}
                                             </div>
                                         )}
                                         <div>
-                                            <h2 className="font-semibold text-slate-900">
+                                            <h2 className="font-semibold text-heading">
                                                 {selectedCoach.coach_profile?.full_name}
                                             </h2>
-                                            <p className="text-sm text-slate-500">
+                                            <p className="text-sm text-muted">
                                                 {selectedCoachId && coachPackages[selectedCoachId]?.length > 0 ? (
                                                     `${coachPackages[selectedCoachId].length} lesson option${coachPackages[selectedCoachId].length > 1 ? 's' : ''} available`
                                                 ) : (
@@ -250,15 +250,15 @@ export default function PrivateLessons() {
                             </div>
                         ) : loading ? (
                             <div className="flex items-center justify-center py-12">
-                                <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
+                                <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
                             </div>
                         ) : coaches.length === 0 ? (
                             <div className="card p-8 text-center">
-                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                                    <GraduationCap className="w-6 h-6 text-slate-400" />
+                                <div className="w-12 h-12 rounded-full bg-surface-hover flex items-center justify-center mx-auto mb-3">
+                                    <GraduationCap className="w-6 h-6 text-faint" />
                                 </div>
-                                <h3 className="font-medium text-slate-900 mb-1">No coaches available</h3>
-                                <p className="text-sm text-slate-500">
+                                <h3 className="font-medium text-heading mb-1">No coaches available</h3>
+                                <p className="text-sm text-muted">
                                     No coaches have set up their private lesson profiles yet.
                                 </p>
                             </div>
@@ -282,15 +282,15 @@ export default function PrivateLessons() {
                     <div>
                         {loading ? (
                             <div className="flex items-center justify-center py-12">
-                                <Loader2 className="w-6 h-6 animate-spin text-brand-500" />
+                                <Loader2 className="w-6 h-6 animate-spin text-accent-500" />
                             </div>
                         ) : coaches.length === 0 ? (
                             <div className="card p-8 text-center">
-                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                                    <Users className="w-6 h-6 text-slate-400" />
+                                <div className="w-12 h-12 rounded-full bg-surface-hover flex items-center justify-center mx-auto mb-3">
+                                    <Users className="w-6 h-6 text-faint" />
                                 </div>
-                                <h3 className="font-medium text-slate-900 mb-1">No coaches configured</h3>
-                                <p className="text-sm text-slate-500">
+                                <h3 className="font-medium text-heading mb-1">No coaches configured</h3>
+                                <p className="text-sm text-muted">
                                     Coaches need to set up their lesson profiles in the My Setup tab.
                                 </p>
                             </div>
@@ -307,15 +307,15 @@ export default function PrivateLessons() {
                                                         className="w-10 h-10 rounded-full"
                                                     />
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center text-violet-600 font-semibold">
+                                                    <div className="w-10 h-10 rounded-full bg-violet-500/10 flex items-center justify-center text-violet-600 font-semibold">
                                                         {coach.coach_profile?.full_name?.charAt(0) || 'C'}
                                                     </div>
                                                 )}
                                                 <div>
-                                                    <h3 className="font-medium text-slate-900">
+                                                    <h3 className="font-medium text-heading">
                                                         {coach.coach_profile?.full_name}
                                                     </h3>
-                                                    <p className="text-sm text-slate-500">
+                                                    <p className="text-sm text-muted">
                                                         {coach.events.length} events • {coach.levels.length} levels • ${coach.cost_per_lesson}/lesson
                                                     </p>
                                                 </div>
@@ -323,8 +323,8 @@ export default function PrivateLessons() {
                                             <div className="flex items-center gap-2">
                                                 <span className={`px-2 py-1 text-xs rounded-full ${
                                                     coach.is_active
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-slate-100 text-slate-600'
+                                                        ? 'bg-green-500/10 text-green-600'
+                                                        : 'bg-surface-hover text-subtle'
                                                 }`}>
                                                     {coach.is_active ? 'Active' : 'Inactive'}
                                                 </span>
@@ -349,7 +349,7 @@ export default function PrivateLessons() {
                 {/* All Bookings Tab (Staff only) */}
                 {activeTab === 'all-bookings' && canManage && (
                     <div>
-                        <p className="text-sm text-slate-500 mb-4">
+                        <p className="text-sm text-muted mb-4">
                             Viewing all bookings across all coaches
                         </p>
                         <CoachBookingsTab coachId={undefined} />

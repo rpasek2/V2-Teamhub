@@ -23,21 +23,21 @@ export function MentorshipEventCard({ event, isPast, onDelete }: MentorshipEvent
     const formattedTime = format(eventDate, 'h:mm a');
 
     return (
-        <div className={`p-3 rounded-lg border ${isPast ? 'bg-slate-50 border-slate-200' : 'bg-pink-50 border-pink-200'}`}>
+        <div className={`p-3 rounded-lg border ${isPast ? 'bg-surface-alt border-line' : 'bg-pink-500/10 border-pink-500/20'}`}>
             <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
                     {/* Date Badge */}
                     <div className={`inline-block text-xs font-medium px-2 py-0.5 rounded mb-1 ${
-                        isPast ? 'bg-slate-200 text-slate-600' : 'bg-pink-200 text-pink-700'
+                        isPast ? 'bg-surface-active text-subtle' : 'bg-pink-500/15 text-pink-600'
                     }`}>
                         {formattedDate}
                     </div>
 
                     {/* Title */}
-                    <h3 className="font-medium text-slate-900 truncate">{event.title}</h3>
+                    <h3 className="font-medium text-heading truncate">{event.title}</h3>
 
                     {/* Details */}
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600">
+                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-subtle">
                         {event.location && (
                             <span className="flex items-center gap-1">
                                 <MapPin className="h-3 w-3" />
@@ -52,7 +52,7 @@ export function MentorshipEventCard({ event, isPast, onDelete }: MentorshipEvent
 
                     {/* Description preview */}
                     {event.description && (
-                        <p className="mt-1 text-xs text-slate-500 line-clamp-2">{event.description}</p>
+                        <p className="mt-1 text-xs text-muted line-clamp-2">{event.description}</p>
                     )}
                 </div>
 
@@ -64,7 +64,7 @@ export function MentorshipEventCard({ event, isPast, onDelete }: MentorshipEvent
                                 onDelete(event.id);
                             }
                         }}
-                        className="p-1 text-slate-400 hover:text-red-500 transition-colors"
+                        className="p-1 text-faint hover:text-red-500 transition-colors"
                         title="Delete event"
                     >
                         <Trash2 className="h-4 w-4" />

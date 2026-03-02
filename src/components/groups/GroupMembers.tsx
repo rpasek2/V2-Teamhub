@@ -220,33 +220,33 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
 
     if (loading) {
         return (
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+            <div className="bg-surface rounded-2xl shadow-sm border border-line p-8">
                 <div className="flex items-center justify-center gap-3">
-                    <Loader2 className="h-5 w-5 animate-spin text-brand-600" />
-                    <span className="text-slate-500">Loading members...</span>
+                    <Loader2 className="h-5 w-5 animate-spin text-accent-600" />
+                    <span className="text-muted">Loading members...</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-surface rounded-2xl shadow-sm border border-line overflow-hidden">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+            <div className="px-6 py-4 border-b border-line bg-surface">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
                             <Users className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                            <h3 className="font-semibold text-slate-900">Group Members</h3>
-                            <p className="text-sm text-slate-500">{members.length} member{members.length !== 1 ? 's' : ''}</p>
+                            <h3 className="font-semibold text-heading">Group Members</h3>
+                            <p className="text-sm text-muted">{members.length} member{members.length !== 1 ? 's' : ''}</p>
                         </div>
                     </div>
                     {isAdmin && (
                         <button
                             onClick={openAddMemberModal}
-                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors"
+                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-accent-600 hover:bg-accent-700 rounded-lg transition-colors"
                         >
                             <UserPlus className="h-4 w-4" />
                             Add Member
@@ -256,28 +256,28 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
 
                 {/* Search */}
                 <div className="mt-4 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                     <input
                         type="text"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         placeholder="Search members..."
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-surface text-heading text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-all"
                     />
                 </div>
             </div>
 
             {/* Admins Section */}
             {admins.length > 0 && (
-                <div className="border-b border-slate-100">
-                    <div className="px-6 py-3 bg-amber-50/50">
-                        <div className="flex items-center gap-2 text-amber-700">
+                <div className="border-b border-line">
+                    <div className="px-6 py-3 bg-amber-500/10">
+                        <div className="flex items-center gap-2 text-amber-600">
                             <Crown className="h-4 w-4" />
                             <span className="text-sm font-semibold">Admins</span>
-                            <span className="text-xs bg-amber-100 px-2 py-0.5 rounded-full">{admins.length}</span>
+                            <span className="text-xs bg-amber-500/15 px-2 py-0.5 rounded-full">{admins.length}</span>
                         </div>
                     </div>
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-line">
                         {admins.map((member) => (
                             <MemberRow
                                 key={member.user_id}
@@ -299,14 +299,14 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
             {/* Regular Members Section */}
             {regularMembers.length > 0 && (
                 <div>
-                    <div className="px-6 py-3 bg-slate-50/50">
-                        <div className="flex items-center gap-2 text-slate-600">
+                    <div className="px-6 py-3 bg-surface/50">
+                        <div className="flex items-center gap-2 text-subtle">
                             <Users className="h-4 w-4" />
                             <span className="text-sm font-semibold">Members</span>
-                            <span className="text-xs bg-slate-100 px-2 py-0.5 rounded-full">{regularMembers.length}</span>
+                            <span className="text-xs bg-surface-hover px-2 py-0.5 rounded-full">{regularMembers.length}</span>
                         </div>
                     </div>
-                    <div className="divide-y divide-slate-50">
+                    <div className="divide-y divide-line">
                         {regularMembers.map((member) => (
                             <MemberRow
                                 key={member.user_id}
@@ -328,7 +328,7 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
             {/* Empty state */}
             {filteredMembers.length === 0 && (
                 <div className="p-8 text-center">
-                    <p className="text-slate-500">No members found</p>
+                    <p className="text-muted">No members found</p>
                 </div>
             )}
 
@@ -337,36 +337,36 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
                 <div className="fixed inset-0 z-50 overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4">
                         <div className="fixed inset-0 bg-black/50" onClick={() => setShowAddMemberModal(false)} />
-                        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md">
+                        <div className="relative bg-surface rounded-2xl shadow-xl w-full max-w-md">
                             {/* Modal Header */}
-                            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                            <div className="flex items-center justify-between px-6 py-4 border-b border-line">
                                 <div className="flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-accent-500 to-accent-600 flex items-center justify-center">
                                         <UserPlus className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-slate-900">Add Members</h3>
-                                        <p className="text-sm text-slate-500">Select hub members to add</p>
+                                        <h3 className="text-lg font-semibold text-heading">Add Members</h3>
+                                        <p className="text-sm text-muted">Select hub members to add</p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={() => setShowAddMemberModal(false)}
-                                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                                    className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
                                 >
                                     <X className="h-5 w-5" />
                                 </button>
                             </div>
 
                             {/* Search */}
-                            <div className="px-6 py-4 border-b border-slate-100">
+                            <div className="px-6 py-4 border-b border-line">
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
                                     <input
                                         type="text"
                                         value={addMemberSearch}
                                         onChange={(e) => setAddMemberSearch(e.target.value)}
                                         placeholder="Search hub members..."
-                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 transition-all"
+                                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-line bg-surface text-heading text-sm focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-all"
                                     />
                                 </div>
                             </div>
@@ -375,25 +375,25 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
                             <div className="max-h-80 overflow-y-auto">
                                 {loadingHubMembers ? (
                                     <div className="flex items-center justify-center py-12">
-                                        <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
+                                        <Loader2 className="h-6 w-6 animate-spin text-accent-600" />
                                     </div>
                                 ) : filteredHubMembers.length === 0 ? (
                                     <div className="py-12 text-center">
-                                        <Users className="h-12 w-12 text-slate-300 mx-auto mb-3" />
-                                        <p className="text-slate-500 font-medium">No members available</p>
-                                        <p className="text-sm text-slate-400 mt-1">
+                                        <Users className="h-12 w-12 text-faint mx-auto mb-3" />
+                                        <p className="text-muted font-medium">No members available</p>
+                                        <p className="text-sm text-faint mt-1">
                                             {hubMembers.length === 0
                                                 ? 'All hub members are already in this group'
                                                 : 'No members match your search'}
                                         </p>
                                     </div>
                                 ) : (
-                                    <div className="divide-y divide-slate-50">
+                                    <div className="divide-y divide-line">
                                         {filteredHubMembers.map((member) => (
                                             <button
                                                 key={member.user_id}
                                                 onClick={() => toggleMemberSelection(member.user_id)}
-                                                className="w-full flex items-center gap-4 px-6 py-3 hover:bg-slate-50 transition-colors text-left"
+                                                className="w-full flex items-center gap-4 px-6 py-3 hover:bg-surface-hover transition-colors text-left"
                                             >
                                                 {/* Avatar */}
                                                 {member.profiles?.avatar_url ? (
@@ -404,7 +404,7 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
                                                         className="h-10 w-10 rounded-full"
                                                     />
                                                 ) : (
-                                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+                                                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center">
                                                         <span className="text-white font-semibold text-sm">
                                                             {member.profiles?.full_name?.charAt(0) || 'U'}
                                                         </span>
@@ -413,10 +413,10 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
 
                                                 {/* Info */}
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="font-medium text-slate-900 truncate">
+                                                    <p className="font-medium text-heading truncate">
                                                         {member.profiles?.full_name || 'Unknown User'}
                                                     </p>
-                                                    <p className="text-sm text-slate-500 truncate">
+                                                    <p className="text-sm text-muted truncate">
                                                         {member.profiles?.email}
                                                     </p>
                                                 </div>
@@ -424,8 +424,8 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
                                                 {/* Checkbox */}
                                                 <div className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-colors ${
                                                     selectedMembers.has(member.user_id)
-                                                        ? 'bg-brand-600 border-brand-600'
-                                                        : 'border-slate-300'
+                                                        ? 'bg-accent-600 border-accent-600'
+                                                        : 'border-line-strong'
                                                 }`}>
                                                     {selectedMembers.has(member.user_id) && (
                                                         <Check className="h-3.5 w-3.5 text-white" />
@@ -438,22 +438,22 @@ export function GroupMembers({ groupId, isAdmin, onMemberCountChange }: GroupMem
                             </div>
 
                             {/* Footer */}
-                            <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 rounded-b-2xl">
+                            <div className="px-6 py-4 border-t border-line bg-surface-alt rounded-b-2xl">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm text-slate-500">
+                                    <span className="text-sm text-muted">
                                         {selectedMembers.size} member{selectedMembers.size !== 1 ? 's' : ''} selected
                                     </span>
                                     <div className="flex gap-2">
                                         <button
                                             onClick={() => setShowAddMemberModal(false)}
-                                            className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200 rounded-lg transition-colors"
+                                            className="px-4 py-2 text-sm font-medium text-body hover:bg-surface-active rounded-lg transition-colors"
                                         >
                                             Cancel
                                         </button>
                                         <button
                                             onClick={handleAddSelectedMembers}
                                             disabled={selectedMembers.size === 0 || addingMembers}
-                                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-accent-600 hover:bg-accent-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                                         >
                                             {addingMembers ? (
                                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -490,7 +490,7 @@ function MemberRow({ member, currentUserId, isAdmin, actionLoading, showMenu, se
     const isCurrentUser = member.user_id === currentUserId;
 
     return (
-        <div className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50/50 transition-colors">
+        <div className="flex items-center gap-4 px-6 py-4 hover:bg-surface-hover/50 transition-colors">
             {/* Avatar */}
             <div className="flex-shrink-0">
                 {member.profiles?.avatar_url ? (
@@ -498,10 +498,10 @@ function MemberRow({ member, currentUserId, isAdmin, actionLoading, showMenu, se
                         src={member.profiles.avatar_url}
                         alt=""
                         loading="lazy"
-                        className="h-11 w-11 rounded-full ring-2 ring-white"
+                        className="h-11 w-11 rounded-full ring-2 ring-surface"
                     />
                 ) : (
-                    <div className="h-11 w-11 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center ring-2 ring-white">
+                    <div className="h-11 w-11 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center ring-2 ring-surface">
                         <span className="text-white font-semibold text-sm">
                             {member.profiles?.full_name?.charAt(0) || 'U'}
                         </span>
@@ -512,21 +512,21 @@ function MemberRow({ member, currentUserId, isAdmin, actionLoading, showMenu, se
             {/* Info */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                    <p className="font-medium text-slate-900 truncate">
+                    <p className="font-medium text-heading truncate">
                         {member.profiles?.full_name || 'Unknown User'}
                     </p>
                     {isCurrentUser && (
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-brand-100 text-brand-700">You</span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-accent-500/15 text-accent-600">You</span>
                     )}
                     {member.role === 'admin' && (
-                        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                        <span className="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600">
                             <Shield className="h-3 w-3" />
                             Admin
                         </span>
                     )}
                 </div>
-                <p className="text-sm text-slate-500 truncate">{member.profiles?.email}</p>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-sm text-muted truncate">{member.profiles?.email}</p>
+                <p className="text-xs text-faint mt-0.5">
                     Joined {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}
                 </p>
             </div>
@@ -537,7 +537,7 @@ function MemberRow({ member, currentUserId, isAdmin, actionLoading, showMenu, se
                     <button
                         onClick={() => setShowMenu(showMenu === member.user_id ? null : member.user_id)}
                         disabled={actionLoading === member.user_id}
-                        className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                        className="p-2 rounded-lg text-faint hover:text-subtle hover:bg-surface-hover transition-colors"
                     >
                         {actionLoading === member.user_id ? (
                             <Loader2 className="h-5 w-5 animate-spin" />
@@ -549,11 +549,11 @@ function MemberRow({ member, currentUserId, isAdmin, actionLoading, showMenu, se
                     {showMenu === member.user_id && (
                         <>
                             <div className="fixed inset-0 z-10" onClick={() => setShowMenu(null)} />
-                            <div className="absolute right-0 mt-1 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 z-20">
+                            <div className="absolute right-0 mt-1 w-48 bg-surface rounded-xl shadow-xl border border-line py-1.5 z-20">
                                 {member.role === 'member' ? (
                                     <button
                                         onClick={() => onPromote(member.user_id)}
-                                        className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5"
+                                        className="w-full px-4 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2.5"
                                     >
                                         <Shield className="h-4 w-4 text-amber-500" />
                                         Make Admin
@@ -561,16 +561,16 @@ function MemberRow({ member, currentUserId, isAdmin, actionLoading, showMenu, se
                                 ) : (
                                     <button
                                         onClick={() => onDemote(member.user_id)}
-                                        className="w-full px-4 py-2 text-left text-sm text-slate-700 hover:bg-slate-50 flex items-center gap-2.5"
+                                        className="w-full px-4 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2.5"
                                     >
-                                        <User className="h-4 w-4 text-slate-500" />
+                                        <User className="h-4 w-4 text-muted" />
                                         Remove Admin
                                     </button>
                                 )}
-                                <div className="my-1 border-t border-slate-100" />
+                                <div className="my-1 border-t border-line" />
                                 <button
                                     onClick={() => onRemove(member.user_id)}
-                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2.5"
+                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-500/10 flex items-center gap-2.5"
                                 >
                                     <UserMinus className="h-4 w-4" />
                                     Remove from Group

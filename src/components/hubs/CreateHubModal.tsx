@@ -160,7 +160,7 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                     <>
                         {/* Sport Type Selection */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-2">
+                            <label className="block text-sm font-medium text-body mb-2">
                                 Sport Type
                             </label>
                             <div className={`grid gap-2 ${ENABLED_SPORTS.length === 1 ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3'}`}>
@@ -172,17 +172,17 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                                     // Use explicit color classes for Tailwind purging
                                     const getColorClasses = (color: string, selected: boolean) => {
                                         if (!selected) return {
-                                            button: 'border-slate-200 hover:border-slate-300 hover:bg-slate-50',
-                                            icon: 'text-slate-400',
-                                            text: 'text-slate-600'
+                                            button: 'border-line hover:border-line-strong hover:bg-surface-hover',
+                                            icon: 'text-faint',
+                                            text: 'text-subtle'
                                         };
 
                                         const colorMap: Record<string, { button: string; icon: string; text: string }> = {
-                                            purple: { button: 'border-purple-500 bg-purple-50 ring-2 ring-purple-200', icon: 'text-purple-600', text: 'text-purple-700' },
-                                            pink: { button: 'border-pink-500 bg-pink-50 ring-2 ring-pink-200', icon: 'text-pink-600', text: 'text-pink-700' },
-                                            red: { button: 'border-red-500 bg-red-50 ring-2 ring-red-200', icon: 'text-red-600', text: 'text-red-700' },
-                                            blue: { button: 'border-blue-500 bg-blue-50 ring-2 ring-blue-200', icon: 'text-blue-600', text: 'text-blue-700' },
-                                            amber: { button: 'border-amber-500 bg-amber-50 ring-2 ring-amber-200', icon: 'text-amber-600', text: 'text-amber-700' }
+                                            purple: { button: 'border-purple-500 bg-purple-500/10 ring-2 ring-purple-500/20', icon: 'text-purple-600', text: 'text-purple-600' },
+                                            pink: { button: 'border-pink-500 bg-pink-500/10 ring-2 ring-pink-500/20', icon: 'text-pink-600', text: 'text-pink-600' },
+                                            red: { button: 'border-red-500 bg-red-500/10 ring-2 ring-red-500/20', icon: 'text-red-600', text: 'text-red-600' },
+                                            blue: { button: 'border-blue-500 bg-blue-500/10 ring-2 ring-blue-500/20', icon: 'text-blue-600', text: 'text-blue-600' },
+                                            amber: { button: 'border-amber-500 bg-amber-500/10 ring-2 ring-amber-500/20', icon: 'text-amber-600', text: 'text-amber-600' }
                                         };
                                         return colorMap[color] || colorMap.purple;
                                     };
@@ -205,12 +205,12 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                                 })}
                             </div>
                             {ENABLED_SPORTS.length === 1 && (
-                                <p className="mt-2 text-xs text-slate-500">
+                                <p className="mt-2 text-xs text-muted">
                                     More sports coming soon!
                                 </p>
                             )}
                             {ENABLED_SPORTS.length > 1 && (
-                                <p className="mt-2 text-xs text-slate-500">
+                                <p className="mt-2 text-xs text-muted">
                                     Choose the sport type for your hub. This determines the features and terminology used.
                                 </p>
                             )}
@@ -218,7 +218,7 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
 
                         {/* Hub Name */}
                         <div>
-                            <label htmlFor="hubName" className="block text-sm font-medium text-slate-700">
+                            <label htmlFor="hubName" className="block text-sm font-medium text-body">
                                 Hub Name
                             </label>
                             <input
@@ -234,11 +234,11 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                                         }
                                     }
                                 }}
-                                className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 shadow-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 sm:text-sm"
+                                className="mt-1 block w-full rounded-md border border-line-strong px-3 py-2 shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500 sm:text-sm"
                                 placeholder={getPlaceholder()}
                                 required
                             />
-                            <p className="mt-1 text-xs text-slate-500">
+                            <p className="mt-1 text-xs text-muted">
                                 This is the name of your hub, like a program or team (e.g., JO Team, Boys Team, Competition Squad).
                             </p>
                         </div>
@@ -247,7 +247,7 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                             <button
                                 type="button"
                                 onClick={handleClose}
-                                className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                                className="rounded-md border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
                             >
                                 Cancel
                             </button>
@@ -255,7 +255,7 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                                 type="button"
                                 onClick={handleNextStep}
                                 disabled={!name.trim()}
-                                className="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center rounded-md border border-transparent bg-accent-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 Next
                                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -266,7 +266,7 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                     <>
                         {/* Feature Tab Selection */}
                         <div>
-                            <p className="text-sm text-slate-600 mb-4">
+                            <p className="text-sm text-subtle mb-4">
                                 Choose which feature tabs to enable for <span className="font-semibold">{name}</span>. You can change these later in Settings.
                             </p>
 
@@ -283,25 +283,25 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                                             disabled={isLastEnabled}
                                             className={`flex items-start gap-3 p-3 rounded-lg border-2 text-left transition-all ${
                                                 isEnabled
-                                                    ? 'border-brand-500 bg-brand-50'
-                                                    : 'border-slate-200 bg-slate-50 opacity-60'
-                                            } ${isLastEnabled ? 'cursor-not-allowed' : 'hover:border-brand-300'}`}
+                                                    ? 'border-accent-500 bg-accent-500/10'
+                                                    : 'border-line bg-surface-alt opacity-60'
+                                            } ${isLastEnabled ? 'cursor-not-allowed' : 'hover:border-accent-300'}`}
                                             title={isLastEnabled ? 'At least one feature must be enabled' : undefined}
                                         >
                                             <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-colors ${
                                                 isEnabled
-                                                    ? 'bg-brand-600 border-brand-600'
-                                                    : 'border-slate-300 bg-white'
+                                                    ? 'bg-accent-600 border-accent-600'
+                                                    : 'border-line-strong bg-surface'
                                             }`}>
                                                 {isEnabled && (
                                                     <Check className="h-3.5 w-3.5 text-white" />
                                                 )}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <p className={`text-sm font-medium ${isEnabled ? 'text-slate-900' : 'text-slate-500'}`}>
+                                                <p className={`text-sm font-medium ${isEnabled ? 'text-heading' : 'text-muted'}`}>
                                                     {tab.label}
                                                 </p>
-                                                <p className="text-xs text-slate-500 mt-0.5">
+                                                <p className="text-xs text-muted mt-0.5">
                                                     {tab.description}
                                                 </p>
                                             </div>
@@ -310,13 +310,13 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                                 })}
                             </div>
 
-                            <p className="mt-3 text-xs text-slate-500">
+                            <p className="mt-3 text-xs text-muted">
                                 {enabledTabs.size} of {HUB_FEATURE_TABS.length} features selected
                             </p>
                         </div>
 
                         {error && (
-                            <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
+                            <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-600">
                                 {error}
                             </div>
                         )}
@@ -325,7 +325,7 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                             <button
                                 type="button"
                                 onClick={() => setStep('info')}
-                                className="inline-flex items-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+                                className="inline-flex items-center rounded-md border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-body hover:bg-surface-hover focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2"
                             >
                                 <ArrowLeft className="mr-2 h-4 w-4" />
                                 Back
@@ -334,7 +334,7 @@ export function CreateHubModal({ isOpen, onClose, onHubCreated }: CreateHubModal
                                 type="button"
                                 onClick={handleSubmit}
                                 disabled={loading}
-                                className="inline-flex items-center rounded-md border border-transparent bg-brand-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="inline-flex items-center rounded-md border border-transparent bg-accent-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-accent-700 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Create Hub
