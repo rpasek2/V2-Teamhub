@@ -188,10 +188,9 @@ export const useHubStore = create<HubState>()(
 
           if (memberError) throw memberError;
 
-          // Fetch linked gymnasts for parents
+          // Fetch linked gymnasts for parents (uses same RPC as web)
           let linkedGymnasts: GymnastProfile[] = [];
           if (memberData.role === 'parent') {
-            // Get user's email
             const { data: profile } = await supabase
               .from('profiles')
               .select('email')
@@ -199,14 +198,16 @@ export const useHubStore = create<HubState>()(
               .single();
 
             if (profile?.email) {
-              // Find gymnasts where this email is in guardians
-              const { data: gymnasts } = await supabase
-                .from('gymnast_profiles')
-                .select('id, hub_id, user_id, first_name, last_name, gender, level, date_of_birth, profile_image_url, schedule_group')
-                .eq('hub_id', hubId)
-                .or(`guardians->g1_email.eq.${profile.email},guardians->g2_email.eq.${profile.email}`);
+              const { data: gymnasts, error: rpcError } = await supabase
+                .rpc('get_linked_gymnasts', {
+                  p_hub_id: hubId,
+                  p_email: profile.email
+                });
 
-              linkedGymnasts = gymnasts || [];
+              if (rpcError) {
+                console.error('Error fetching linked gymnasts:', rpcError);
+              }
+              linkedGymnasts = (gymnasts as GymnastProfile[]) || [];
             }
           }
 

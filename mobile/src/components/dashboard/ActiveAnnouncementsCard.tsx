@@ -92,8 +92,8 @@ export function ActiveAnnouncementsCard() {
 
     return (
         <View style={[s.container, { backgroundColor: t.surface, borderColor: t.border }]}>
-            <View style={[s.header, { borderBottomColor: t.border }]}>
-                <Megaphone size={16} color={colors.brand[600]} />
+            <View style={[s.header, { borderBottomColor: t.border, backgroundColor: t.primaryLight }]}>
+                <Megaphone size={16} color={t.primary} />
                 <Text style={[s.headerTitle, { color: t.text }]}>Active Announcements</Text>
                 <View style={[s.badge, { backgroundColor: t.surfaceSecondary }]}>
                     <Text style={[s.badgeText, { color: t.textSecondary }]}>{announcements.length}</Text>

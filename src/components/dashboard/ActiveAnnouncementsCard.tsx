@@ -140,7 +140,7 @@ export function ActiveAnnouncementsCard() {
 
     return (
         <div className="card overflow-hidden mb-6">
-            <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-accent-50 to-indigo-50 border-b border-line">
+            <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-accent-500/10 to-indigo-500/10 border-b border-line">
                 <Megaphone className="w-5 h-5 text-accent-600" />
                 <h3 className="text-sm font-semibold text-heading">Active Announcements</h3>
                 <span className="badge-slate text-xs">{announcements.length}</span>
@@ -162,8 +162,8 @@ export function ActiveAnnouncementsCard() {
                                             <p className="text-sm font-medium text-heading truncate">{a.title}</p>
                                             <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                                 a.type === 'questionnaire'
-                                                    ? 'bg-indigo-100 text-indigo-700'
-                                                    : 'bg-accent-100 text-accent-700'
+                                                    ? 'bg-indigo-500/15 text-indigo-600 dark:text-indigo-400'
+                                                    : 'bg-accent-500/15 text-accent-600 dark:text-accent-400'
                                             }`}>
                                                 {a.type === 'questionnaire' ? 'Questionnaire' : 'Announcement'}
                                             </span>
@@ -258,8 +258,8 @@ export function ActiveAnnouncementsCard() {
                                                                 <td className="px-3 py-2 text-center">
                                                                     <span className={`inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full ${
                                                                         r.status === 'pending'
-                                                                            ? 'bg-amber-100 text-amber-700'
-                                                                            : 'bg-success-100 text-success-700'
+                                                                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                                                            : 'bg-green-500/15 text-green-600 dark:text-green-400'
                                                                     }`}>
                                                                         {r.status === 'pending' ? 'Pending' : 'Done'}
                                                                     </span>
@@ -291,8 +291,8 @@ export function ActiveAnnouncementsCard() {
                                                     </div>
                                                     <span className={`flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full flex-shrink-0 ${
                                                         r.status === 'pending'
-                                                            ? 'bg-amber-100 text-amber-700'
-                                                            : 'bg-success-100 text-success-700'
+                                                            ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                                                            : 'bg-green-500/15 text-green-600 dark:text-green-400'
                                                     }`}>
                                                         {r.status === 'pending' ? (
                                                             <><Users className="w-3 h-3" /> Pending</>

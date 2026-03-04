@@ -22,9 +22,9 @@ interface PendingTimeOffSectionProps {
 
 function getTimeOffTypeColor(type: string) {
     switch (type) {
-        case 'vacation': return 'bg-blue-100 text-blue-700';
-        case 'sick': return 'bg-red-100 text-red-700';
-        case 'personal': return 'bg-purple-100 text-purple-700';
+        case 'vacation': return 'bg-blue-500/15 text-blue-600 dark:text-blue-400';
+        case 'sick': return 'bg-red-500/15 text-red-600 dark:text-red-400';
+        case 'personal': return 'bg-purple-500/15 text-purple-600 dark:text-purple-400';
         case 'other': return 'bg-surface-hover text-body';
         default: return 'bg-surface-hover text-body';
     }
@@ -40,7 +40,7 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-heading">Pending Time Off Requests</h2>
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded-full">
+                    <span className="px-2 py-0.5 bg-amber-500/15 text-amber-600 dark:text-amber-400 text-xs font-medium rounded-full">
                         {pendingTimeOff.length}
                     </span>
                 </div>
@@ -52,11 +52,11 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
                 {pendingTimeOff.map((request) => (
                     <div
                         key={request.id}
-                        className="card p-4 bg-amber-50 border-amber-200"
+                        className="card p-4 bg-amber-500/10 border-amber-500/20"
                     >
                         <div className="flex items-start justify-between">
                             <div className="flex items-start gap-3">
-                                <div className="p-2 bg-surface rounded-lg border border-amber-200">
+                                <div className="p-2 bg-surface rounded-lg border border-amber-500/20">
                                     <Clock className="w-5 h-5 text-amber-600" />
                                 </div>
                                 <div>
@@ -95,7 +95,7 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
                                 <button
                                     onClick={() => onTimeOffDecision(request.id, 'approved', request)}
                                     disabled={processingTimeOff === request.id}
-                                    className="p-2 bg-green-100 text-green-600 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50"
+                                    className="p-2 bg-green-500/15 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-500/25 transition-colors disabled:opacity-50"
                                     title="Approve"
                                 >
                                     {processingTimeOff === request.id ? (
@@ -107,7 +107,7 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
                                 <button
                                     onClick={() => onTimeOffDecision(request.id, 'denied', request)}
                                     disabled={processingTimeOff === request.id}
-                                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+                                    className="p-2 bg-red-500/15 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-500/25 transition-colors disabled:opacity-50"
                                     title="Deny"
                                 >
                                     <X className="w-4 h-4" />

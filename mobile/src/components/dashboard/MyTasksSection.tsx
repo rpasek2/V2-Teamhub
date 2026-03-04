@@ -23,12 +23,14 @@ interface MyTasksSectionProps {
     onStatusChange: (taskId: string, newStatus: 'pending' | 'in_progress' | 'completed') => void;
 }
 
-const PRIORITY_COLORS: Record<string, { bg: string; text: string }> = {
-    urgent: { bg: colors.red[100], text: colors.red[600] },
-    high: { bg: colors.orange[100], text: colors.orange[600] },
-    medium: { bg: colors.amber[100], text: colors.amber[600] },
-    low: { bg: colors.slate[100], text: colors.slate[600] },
-};
+function getPriorityColors(isDark: boolean): Record<string, { bg: string; text: string }> {
+    return {
+        urgent: { bg: `${colors.red[500]}26`, text: isDark ? colors.red[400] : colors.red[600] },
+        high: { bg: `${colors.orange[500]}26`, text: isDark ? colors.orange[400] : colors.orange[600] },
+        medium: { bg: `${colors.amber[500]}26`, text: isDark ? colors.amber[600] : colors.amber[600] },
+        low: { bg: isDark ? colors.slate[700] : colors.slate[100], text: isDark ? colors.slate[400] : colors.slate[600] },
+    };
+}
 
 function getNextStatus(current: 'pending' | 'in_progress' | 'completed'): 'pending' | 'in_progress' | 'completed' {
     if (current === 'pending') return 'in_progress';
@@ -36,10 +38,10 @@ function getNextStatus(current: 'pending' | 'in_progress' | 'completed'): 'pendi
     return 'pending';
 }
 
-function StatusIcon({ status }: { status: string }) {
-    if (status === 'completed') return <CheckCircle2 size={22} color={colors.success[500]} />;
-    if (status === 'in_progress') return <Clock size={22} color={colors.brand[600]} />;
-    return <Circle size={22} color={colors.slate[400]} />;
+function StatusIcon({ status, isDark }: { status: string; isDark: boolean }) {
+    if (status === 'completed') return <CheckCircle2 size={22} color={isDark ? colors.success[500] : colors.success[600]} />;
+    if (status === 'in_progress') return <Clock size={22} color={isDark ? colors.brand[500] : colors.brand[600]} />;
+    return <Circle size={22} color={isDark ? colors.slate[500] : colors.slate[400]} />;
 }
 
 export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
@@ -56,8 +58,8 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
             <View style={styles.header}>
                 <View style={styles.headerLeft}>
                     <Text style={[styles.title, { color: t.text }]}>My Tasks</Text>
-                    <View style={styles.badge}>
-                        <Text style={styles.badgeText}>{tasks.length}</Text>
+                    <View style={[styles.badge, { backgroundColor: t.primaryLight }]}>
+                        <Text style={[styles.badgeText, { color: t.primary }]}>{tasks.length}</Text>
                     </View>
                 </View>
                 {user && (
@@ -72,7 +74,8 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
                     const dueDate = task.due_date ? parseISO(task.due_date) : null;
                     const isOverdue = dueDate && isPast(dueDate) && !isToday(dueDate);
                     const isDueToday = dueDate && isToday(dueDate);
-                    const priorityColor = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.low;
+                    const priorityColors = getPriorityColors(isDark);
+                    const priorityColor = priorityColors[task.priority] || priorityColors.low;
 
                     return (
                         <View
@@ -81,14 +84,14 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
                                 styles.taskItem,
                                 { borderBottomColor: t.borderSubtle },
                                 index === displayTasks.length - 1 && styles.lastItem,
-                                isOverdue ? styles.taskItemOverdue : undefined,
+                                isOverdue ? { backgroundColor: `${colors.red[500]}${isDark ? '26' : '1a'}` } : undefined,
                             ]}
                         >
                             <TouchableOpacity
                                 onPress={() => onStatusChange(task.id, getNextStatus(task.status))}
                                 style={styles.statusButton}
                             >
-                                <StatusIcon status={task.status} />
+                                <StatusIcon status={task.status} isDark={isDark} />
                             </TouchableOpacity>
 
                             <View style={styles.taskContent}>
@@ -183,9 +186,6 @@ const styles = StyleSheet.create({
     },
     lastItem: {
         borderBottomWidth: 0,
-    },
-    taskItemOverdue: {
-        backgroundColor: colors.red[50],
     },
     statusButton: {
         padding: 2,

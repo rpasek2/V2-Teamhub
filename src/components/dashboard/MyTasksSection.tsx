@@ -20,9 +20,9 @@ interface MyTasksSectionProps {
 }
 
 const PRIORITY_STYLES: Record<string, string> = {
-    urgent: 'bg-red-100 text-red-700',
-    high: 'bg-orange-100 text-orange-700',
-    medium: 'bg-amber-100 text-amber-700',
+    urgent: 'bg-red-500/15 text-red-600 dark:text-red-400',
+    high: 'bg-orange-500/15 text-orange-600 dark:text-orange-400',
+    medium: 'bg-amber-500/15 text-amber-600 dark:text-amber-400',
     low: 'bg-surface-hover text-subtle',
 };
 
@@ -51,7 +51,7 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold text-heading">My Tasks</h2>
-                    <span className="px-2 py-0.5 bg-accent-100 text-accent-700 text-xs font-medium rounded-full">
+                    <span className="px-2 py-0.5 bg-accent-500/15 text-accent-600 dark:text-accent-400 text-xs font-medium rounded-full">
                         {tasks.length}
                     </span>
                 </div>
@@ -69,7 +69,7 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
                     return (
                         <div
                             key={task.id}
-                            className={`card p-3 flex items-center gap-3 ${isOverdue ? 'border-red-200 bg-red-50' : ''}`}
+                            className={`card p-3 flex items-center gap-3 ${isOverdue ? 'border-red-500/20 bg-red-500/10' : ''}`}
                         >
                             <button
                                 onClick={() => onStatusChange(task.id, getNextStatus(task.status))}
