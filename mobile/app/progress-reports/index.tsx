@@ -24,7 +24,7 @@ interface ProgressReport {
   date_range_end: string;
   status: string;
   created_at: string;
-  gymnast_profiles?: { first_name: string; last_name: string; level: string | null };
+  gymnast_profiles?: { first_name: string; last_name: string; level: string | null }[];
 }
 
 export default function ProgressReportsScreen() {

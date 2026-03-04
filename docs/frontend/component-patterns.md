@@ -59,5 +59,5 @@ Tab components receive gymnast data as props:
 - Do NOT use `console.log` in production (use `console.error` for errors only)
 - Do NOT create new files unless necessary — prefer editing existing files
 - Do NOT add features beyond what was requested — keep changes minimal
-- Do NOT use dark theme colors (slate-800/900, chalk-50) — the app uses a light theme
-- Do NOT use `mint-*` colors directly — use `brand-*` instead for consistency
+- Do NOT hardcode surface/text colors (`bg-white`, `bg-slate-900`, `text-slate-700`) — use semantic tokens (`bg-surface`, `text-body`, etc.) so dark mode works automatically. See `docs/frontend/design-system.md`.
+- Do NOT use `mint-*` or `brand-*` directly for the hub accent — use `accent-*` tokens which are runtime-swappable per hub

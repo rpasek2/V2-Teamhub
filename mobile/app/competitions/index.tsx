@@ -9,7 +9,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Trophy, MapPin, Calendar, Users, ChevronRight } from 'lucide-react-native';
+import { Trophy, MapPin, Calendar, Users, ChevronRight, Award, Medal } from 'lucide-react-native';
 import { format, parseISO, isPast, isFuture } from 'date-fns';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
@@ -24,7 +24,14 @@ interface Competition {
   end_date: string;
   location: string | null;
   gymnast_count: number;
+  championship_type: 'state' | 'regional' | 'national' | 'unsanctioned' | null;
 }
+
+const CHAMPIONSHIP_BADGE: Record<string, { Icon: typeof Award; label: string; bgColor: (isDark: boolean) => string; textColor: (isDark: boolean) => string }> = {
+  state: { Icon: Award, label: 'State', bgColor: (d) => d ? colors.blue[700] + '30' : colors.blue[100], textColor: (d) => d ? colors.blue[400] : colors.blue[700] },
+  regional: { Icon: Medal, label: 'Regional', bgColor: (d) => d ? colors.purple[700] + '30' : colors.purple[100], textColor: (d) => d ? colors.purple[400] : colors.purple[700] },
+  national: { Icon: Trophy, label: 'National', bgColor: (d) => d ? colors.amber[700] + '30' : colors.amber[100], textColor: (d) => d ? colors.amber[500] : colors.amber[700] },
+};
 
 type FilterTab = 'upcoming' | 'past' | 'all';
 
@@ -60,6 +67,7 @@ export default function CompetitionsScreen() {
           start_date,
           end_date,
           location,
+          championship_type,
           competition_gymnasts(count)
         `)
         .eq('hub_id', currentHub.id)
@@ -76,6 +84,7 @@ export default function CompetitionsScreen() {
           start_date: c.start_date,
           end_date: c.end_date,
           location: c.location,
+          championship_type: c.championship_type,
           gymnast_count: c.competition_gymnasts?.[0]?.count || 0,
         }));
         setCompetitions(mapped);
@@ -118,11 +127,23 @@ export default function CompetitionsScreen() {
           </View>
           <View style={styles.cardHeaderInfo}>
             <Text style={[styles.competitionName, { color: t.text }]} numberOfLines={1}>{item.name}</Text>
-            <Badge
-              label={isUpcoming ? 'Upcoming' : 'Past'}
-              variant={isUpcoming ? 'success' : 'neutral'}
-              size="sm"
-            />
+            <View style={styles.badgeRow}>
+              {item.championship_type && CHAMPIONSHIP_BADGE[item.championship_type] && (() => {
+                const badge = CHAMPIONSHIP_BADGE[item.championship_type!];
+                const BadgeIcon = badge.Icon;
+                return (
+                  <View style={[styles.championshipBadge, { backgroundColor: badge.bgColor(isDark) }]}>
+                    <BadgeIcon size={10} color={badge.textColor(isDark)} />
+                    <Text style={[styles.championshipBadgeText, { color: badge.textColor(isDark) }]}>{badge.label}</Text>
+                  </View>
+                );
+              })()}
+              <Badge
+                label={isUpcoming ? 'Upcoming' : 'Past'}
+                variant={isUpcoming ? 'success' : 'neutral'}
+                size="sm"
+              />
+            </View>
           </View>
           <ChevronRight size={20} color={t.textFaint} />
         </View>
@@ -333,5 +354,22 @@ const styles = StyleSheet.create({
     color: colors.slate[500],
     textAlign: 'center',
     paddingHorizontal: 40,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  championshipBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  championshipBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

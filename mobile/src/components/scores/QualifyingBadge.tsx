@@ -22,14 +22,14 @@ const getBadgeConfig = (isDark: boolean): Record<QualifyingLevel, {
     iconColor: isDark ? colors.blue[400] : colors.blue[700],
   },
   regional: {
-    Icon: Trophy,
-    bgColor: isDark ? colors.amber[700] + '30' : colors.amber[100],
-    iconColor: isDark ? colors.amber[500] : colors.amber[700],
-  },
-  national: {
     Icon: Medal,
     bgColor: isDark ? colors.purple[700] + '30' : colors.purple[100],
     iconColor: isDark ? colors.purple[400] : colors.purple[700],
+  },
+  national: {
+    Icon: Trophy,
+    bgColor: isDark ? colors.amber[700] + '30' : colors.amber[100],
+    iconColor: isDark ? colors.amber[500] : colors.amber[700],
   },
 });
 

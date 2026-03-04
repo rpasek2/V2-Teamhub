@@ -1,53 +1,69 @@
-# Digital Gym Design System (Light Theme)
+# Digital Gym Design System
 
-## Core Palette
-- **Background:** `slate-50` (main content), `white` (cards, sidebars, modals)
-- **Text:** `slate-900` (headings), `slate-700` (body), `slate-500` (muted/labels)
-- **Primary Accent:** `brand-500` to `brand-700` (buttons, links, active states)
-- **Secondary:** `indigo-500` to `indigo-700` (info, selected items)
-- **Semantic:** `success-*`, `error-*`, `warning-*`, `amber-*`
+## Theme Architecture
+The app supports **light mode** and **dark mode** via CSS custom properties defined in `src/index.css`. All UI should use **semantic token classes** so colors automatically adapt to the active theme. Never hardcode `slate-800` or `white` for surfaces/text — use the tokens below.
 
-## Color Reference
+Hub accent colors are also runtime-swappable (owner picks a color in Settings).
+
+## Semantic Token Reference
+These map to `--th-*` CSS variables that swap between light/dark:
+
 ```
-Page background:    bg-slate-50
-Cards/modals:       bg-white border border-slate-200
-Card headers:       bg-slate-50 border-b border-slate-200
-Headings:           text-slate-900
-Body text:          text-slate-700
-Muted text:         text-slate-500
-Links:              text-brand-600 hover:text-brand-700
-Active tabs:        border-brand-500 text-brand-600
-Inactive tabs:      text-slate-500 hover:text-slate-900
-Icon backgrounds:   bg-brand-50, bg-purple-50, bg-blue-50, bg-emerald-50
-Icon colors:        text-brand-600, text-purple-600, text-blue-600
-Badges:             bg-brand-100 text-brand-700 (primary)
-                    bg-slate-100 text-slate-600 (neutral)
-Inputs:             border-slate-300 focus:border-brand-500 focus:ring-brand-500
+Surfaces:
+  bg-surface          — main card/modal background
+  bg-surface-alt      — slightly contrasted (sidebar, footer)
+  bg-surface-hover    — hover state
+  bg-surface-active   — active/pressed state
+
+Text:
+  text-heading        — h1/h2/h3, primary emphasis
+  text-body           — default body text
+  text-subtle         — secondary labels
+  text-muted          — tertiary, descriptions
+  text-faint          — placeholder, hint text
+
+Borders:
+  border-line         — default dividers, card borders
+  border-line-strong  — higher contrast borders
+
+Accent (hub color):
+  bg-accent-50 .. bg-accent-900
+  text-accent-500 .. text-accent-700
+  border-accent-500
+```
+
+## When to Use Raw Tailwind Colors
+Semantic colors like `red-500`, `blue-600`, `amber-500`, `purple-600` are fine for **status badges, alerts, and qualifying indicators** — things that should look the same in both themes. Use them alongside semantic tokens:
+```
+bg-red-500/10 border border-red-500/20 text-red-600    — error alert
+bg-blue-500/15 text-blue-600                           — state qualifier badge
+bg-amber-500/15 text-amber-600                         — national qualifier badge
 ```
 
 ## Component Classes
 ```css
-.btn-primary    /* Brand background, white text */
-.btn-secondary  /* Outlined, slate border, white bg */
-.btn-ghost      /* Text only, hover background */
+.btn-primary    /* Accent background, white text */
+.btn-secondary  /* Outlined, border-line, bg-surface */
+.btn-ghost      /* Text only, hover bg-surface-hover */
 .btn-danger     /* Red/error color */
-.card           /* white bg, rounded-xl, slate-200 border */
-.input          /* Light input with brand focus ring */
+.card           /* bg-surface, rounded-xl, border-line */
+.input          /* bg-input, border-line, accent focus ring */
 .badge-mint     /* Green/success badge */
 .badge-indigo   /* Blue/info badge */
 .badge-slate    /* Neutral badge */
 ```
 
 ## Pill Toggle Pattern
-Used for view mode switches (e.g., By Meet / Metrics, Daily / Metrics):
+Used for view mode switches (e.g., By Meet / Metrics):
 ```
-bg-slate-100 rounded-lg p-1 w-fit
+Container: bg-surface-hover rounded-lg p-1 w-fit
+Active:    bg-surface text-heading shadow-sm
+Inactive:  text-muted hover:text-body
 ```
-Active pill: `bg-white text-slate-900 shadow-sm`
-Inactive pill: `text-slate-500 hover:text-slate-900` or `text-slate-600 hover:text-slate-900`
 
 ## Rules
 - Tailwind CSS 4 only — no CSS modules or inline styles
-- Use `brand-*` instead of `mint-*` for consistency
-- Do NOT use dark theme colors (`slate-800/900` backgrounds, `chalk-50`) — the app uses a light theme
+- Always use semantic tokens (`bg-surface`, `text-heading`, etc.) for surfaces and text
+- Use `accent-*` for the hub's primary color, NOT `brand-*` or `mint-*` directly
+- Raw color scales (slate-*, blue-*, etc.) are OK for fixed-meaning elements (badges, alerts)
 - Use `clsx` + `tailwind-merge` for conditional class composition

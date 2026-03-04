@@ -38,6 +38,8 @@ export function HubSelection() {
     const [selectedHub, setSelectedHub] = useState<Hub | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
     const [showHidden, setShowHidden] = useState(false);
+    const [leaveError, setLeaveError] = useState<string | null>(null);
+    const [confirmLeaveHub, setConfirmLeaveHub] = useState<Hub | null>(null);
     const menuRef = useRef<HTMLDivElement>(null);
 
     const fetchMyHubs = async () => {
@@ -161,38 +163,35 @@ export function HubSelection() {
         setOpenMenuId(null);
     };
 
-    const handleLeaveHub = async (hub: Hub) => {
-        if (!user) return;
-
+    const handleLeaveHub = (hub: Hub) => {
         if (hub.role === 'owner') {
-            alert('Owners cannot leave their hub. Transfer ownership or delete the hub instead.');
+            setLeaveError('Owners cannot leave their hub. Transfer ownership or delete the hub instead.');
             setOpenMenuId(null);
             return;
         }
+        setConfirmLeaveHub(hub);
+        setOpenMenuId(null);
+    };
 
-        const confirmed = window.confirm(`Are you sure you want to leave "${hub.name}"? You'll need a new invite to rejoin.`);
-        if (!confirmed) {
-            setOpenMenuId(null);
-            return;
-        }
+    const confirmLeave = async () => {
+        if (!user || !confirmLeaveHub) return;
 
         try {
             const { error } = await supabase
                 .from('hub_members')
                 .delete()
-                .eq('hub_id', hub.id)
+                .eq('hub_id', confirmLeaveHub.id)
                 .eq('user_id', user.id);
 
             if (error) throw error;
 
-            // Remove from local state
-            setHubs(prev => prev.filter(h => h.id !== hub.id));
+            setHubs(prev => prev.filter(h => h.id !== confirmLeaveHub.id));
         } catch (error) {
             console.error('Error leaving hub:', error);
-            alert('Failed to leave hub. Please try again.');
+            setLeaveError('Failed to leave hub. Please try again.');
         }
 
-        setOpenMenuId(null);
+        setConfirmLeaveHub(null);
     };
 
     const handleDeleteHub = (hub: Hub) => {
@@ -243,6 +242,24 @@ export function HubSelection() {
                     )}
                 </div>
             </div>
+
+            {leaveError && (
+                <div className="mb-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm flex items-center justify-between">
+                    <span>{leaveError}</span>
+                    <button onClick={() => setLeaveError(null)} className="text-red-400 hover:text-red-600 ml-4 font-medium">Dismiss</button>
+                </div>
+            )}
+
+            {confirmLeaveHub && (
+                <div className="mb-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-lg text-sm">
+                    <p className="text-heading font-medium mb-2">Leave &quot;{confirmLeaveHub.name}&quot;?</p>
+                    <p className="text-muted mb-3">You&apos;ll need a new invite code to rejoin.</p>
+                    <div className="flex gap-2">
+                        <button onClick={confirmLeave} className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700">Leave Hub</button>
+                        <button onClick={() => setConfirmLeaveHub(null)} className="px-3 py-1.5 bg-surface border border-line text-sm font-medium rounded-lg hover:bg-surface-hover text-body">Cancel</button>
+                    </div>
+                </div>
+            )}
 
             {/* Show/Hide hidden hubs toggle */}
             {hiddenCount > 0 && (

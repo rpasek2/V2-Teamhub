@@ -39,6 +39,7 @@ export const InlineScoreCell = memo(function InlineScoreCell({
     const [scoreValue, setScoreValue] = useState('');
     const [placementValue, setPlacementValue] = useState('');
     const [saving, setSaving] = useState(false);
+    const [cellError, setCellError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     const maxScore = gender === 'Female' ? 10.0 : 20.0;
@@ -99,7 +100,8 @@ export const InlineScoreCell = memo(function InlineScoreCell({
             // Validate
             if (editingField === 'score' && scoreNum !== null) {
                 if (isNaN(scoreNum) || scoreNum < 0 || scoreNum > maxScore) {
-                    alert(`Score must be between 0 and ${maxScore.toFixed(3)}`);
+                    setCellError(`Score: 0–${maxScore.toFixed(1)}`);
+                    setTimeout(() => setCellError(null), 3000);
                     setSaving(false);
                     return;
                 }
@@ -107,7 +109,8 @@ export const InlineScoreCell = memo(function InlineScoreCell({
 
             if (editingField === 'placement' && placementNum !== null) {
                 if (isNaN(placementNum) || placementNum < 1) {
-                    alert('Placement must be a positive number');
+                    setCellError('Must be a positive number');
+                    setTimeout(() => setCellError(null), 3000);
                     setSaving(false);
                     return;
                 }
@@ -154,7 +157,8 @@ export const InlineScoreCell = memo(function InlineScoreCell({
             setEditingField(null);
         } catch (err) {
             console.error('Error saving score:', err);
-            alert('Failed to save. Please try again.');
+            setCellError('Failed to save');
+            setTimeout(() => setCellError(null), 3000);
         } finally {
             setSaving(false);
         }
@@ -171,6 +175,14 @@ export const InlineScoreCell = memo(function InlineScoreCell({
     const handleBlur = () => {
         handleSave();
     };
+
+    if (cellError) {
+        return (
+            <div className="flex h-8 items-center justify-center">
+                <span className="text-xs text-red-600 font-medium">{cellError}</span>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-8 overflow-hidden">

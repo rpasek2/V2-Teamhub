@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, UserPlus, ChevronDown, ChevronRight, ExternalLink, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, UserPlus, ChevronDown, ChevronRight, ExternalLink, Pencil, Trash2, Award, Medal, Trophy } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { clsx } from 'clsx';
@@ -10,7 +10,14 @@ import { AssignCoachModal } from '../../components/competitions/AssignCoachModal
 import { ManageCompetitionRosterModal } from '../../components/competitions/ManageCompetitionRosterModal';
 import { AssignSessionGymnastsModal } from '../../components/competitions/AssignSessionGymnastsModal';
 import { CompetitionDocuments } from '../../components/competitions/CompetitionDocuments';
-import { WAG_EVENTS, MAG_EVENTS, EVENT_LABELS, type GymEvent } from '../../types';
+import { CreateCompetitionModal } from '../../components/competitions/CreateCompetitionModal';
+import { WAG_EVENTS, MAG_EVENTS, EVENT_LABELS, type GymEvent, type ChampionshipType } from '../../types';
+
+const CHAMPIONSHIP_BADGE: Record<string, { icon: typeof Award; label: string; color: string }> = {
+    state: { icon: Award, label: 'State Championship', color: 'bg-blue-500/15 text-blue-600' },
+    regional: { icon: Medal, label: 'Regional Championship', color: 'bg-purple-500/15 text-purple-600' },
+    national: { icon: Trophy, label: 'National Championship', color: 'bg-amber-500/15 text-amber-600' },
+};
 
 // Helper function to create Google Maps URL from location
 const getGoogleMapsUrl = (location: string): string => {
@@ -25,6 +32,7 @@ interface Competition {
     start_date: string;
     end_date: string;
     location: string;
+    championship_type: ChampionshipType;
 }
 
 interface Gymnast {
@@ -78,7 +86,9 @@ export function CompetitionDetails() {
     const [isAssignGymnastsModalOpen, setIsAssignGymnastsModalOpen] = useState(false);
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
     const [editSession, setEditSession] = useState<Session | null>(null);
+    const [isEditCompetitionModalOpen, setIsEditCompetitionModalOpen] = useState(false);
     const [deletingSessionId, setDeletingSessionId] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
 
     // Tab Data States
     const [roster, setRoster] = useState<Gymnast[]>([]);
@@ -141,7 +151,7 @@ export function CompetitionDetails() {
         if (!competitionId) return;
         const { data, error } = await supabase
             .from('competitions')
-            .select('id, hub_id, name, start_date, end_date, location')
+            .select('id, hub_id, name, start_date, end_date, location, championship_type')
             .eq('id', competitionId)
             .single();
 
@@ -260,7 +270,7 @@ export function CompetitionDetails() {
             fetchSessions();
         } catch (err) {
             console.error('Error deleting session:', err);
-            alert('Failed to delete session. Please try again.');
+            setActionError('Failed to delete session. Please try again.');
         } finally {
             setDeletingSessionId(null);
         }
@@ -309,6 +319,12 @@ export function CompetitionDetails() {
 
     return (
         <div className="flex h-full flex-col bg-surface-alt rounded-xl border border-line">
+            {actionError && (
+                <div className="mx-6 mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm flex items-center justify-between">
+                    <span>{actionError}</span>
+                    <button onClick={() => setActionError(null)} className="text-red-400 hover:text-red-600 ml-2 font-medium text-xs">Dismiss</button>
+                </div>
+            )}
             {/* Header */}
             <div className="border-b border-line px-6 py-4">
                 <div className="mb-4">
@@ -322,7 +338,28 @@ export function CompetitionDetails() {
                 </div>
                 <div className="flex items-start justify-between">
                     <div>
-                        <h1 className="text-2xl font-bold text-heading">{competition.name}</h1>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <h1 className="text-2xl font-bold text-heading">{competition.name}</h1>
+                            {competition.championship_type && CHAMPIONSHIP_BADGE[competition.championship_type] && (() => {
+                                const badge = CHAMPIONSHIP_BADGE[competition.championship_type!];
+                                const Icon = badge.icon;
+                                return (
+                                    <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${badge.color}`}>
+                                        <Icon className="h-3.5 w-3.5" />
+                                        {badge.label}
+                                    </span>
+                                );
+                            })()}
+                            {canManageRoster && (
+                                <button
+                                    onClick={() => setIsEditCompetitionModalOpen(true)}
+                                    className="p-1.5 text-faint hover:text-accent-600 hover:bg-surface-hover rounded-lg transition-colors"
+                                    title="Edit competition details"
+                                >
+                                    <Pencil className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
                         <div className="mt-2 flex items-center space-x-4 text-sm text-muted">
                             <div className="flex items-center">
                                 <Calendar className="mr-1.5 h-4 w-4 text-faint" />
@@ -714,6 +751,15 @@ export function CompetitionDetails() {
                     sessionId={selectedSession.id}
                     competitionId={competition.id}
                     currentGymnastIds={selectedSession.session_gymnasts?.map(sg => sg.gymnast_profile_id) || []}
+                />
+            )}
+
+            {competition && (
+                <CreateCompetitionModal
+                    isOpen={isEditCompetitionModalOpen}
+                    onClose={() => setIsEditCompetitionModalOpen(false)}
+                    onCompetitionCreated={fetchCompetitionDetails}
+                    competition={competition}
                 />
             )}
         </div>

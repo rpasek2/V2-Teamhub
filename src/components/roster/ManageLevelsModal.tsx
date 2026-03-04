@@ -24,6 +24,7 @@ export function ManageLevelsModal({
     const [selectedGymnasts, setSelectedGymnasts] = useState<Set<string>>(new Set());
     const [targetLevel, setTargetLevel] = useState<string>('');
     const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
     const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['No Level']));
 
     // Group gymnasts by their current level
@@ -136,7 +137,7 @@ export function ManageLevelsModal({
             setTargetLevel('');
         } catch (error) {
             console.error('Error updating levels:', error);
-            alert('Failed to update levels. Please try again.');
+            setSaveError('Failed to update levels. Please try again.');
         } finally {
             setSaving(false);
         }
@@ -171,6 +172,13 @@ export function ManageLevelsModal({
                         <X className="h-5 w-5" />
                     </button>
                 </div>
+
+                {saveError && (
+                    <div className="mx-6 mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm flex items-center justify-between">
+                        <span>{saveError}</span>
+                        <button onClick={() => setSaveError(null)} className="text-red-400 hover:text-red-600 ml-2 font-medium text-xs">Dismiss</button>
+                    </div>
+                )}
 
                 {/* Selection controls */}
                 <div className="px-6 py-3 bg-surface border-b border-line flex items-center justify-between">

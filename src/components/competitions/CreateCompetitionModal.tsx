@@ -8,11 +8,21 @@ import { AddressAutocomplete } from '../ui/AddressAutocomplete';
 import { getOrCreateSeasonForDate, DEFAULT_SEASON_CONFIG } from '../../lib/seasons';
 import type { ChampionshipType } from '../../types';
 
+interface EditableCompetition {
+    id: string;
+    name: string;
+    start_date: string;
+    end_date: string;
+    location: string | null;
+    championship_type: ChampionshipType;
+}
+
 interface CreateCompetitionModalProps {
     isOpen: boolean;
     onClose: () => void;
     onCompetitionCreated: () => void;
     defaultSeasonId?: string | null;
+    competition?: EditableCompetition;
 }
 
 interface Gymnast {
@@ -22,7 +32,8 @@ interface Gymnast {
     level: string | null;
 }
 
-export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, defaultSeasonId }: CreateCompetitionModalProps) {
+export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, defaultSeasonId, competition }: CreateCompetitionModalProps) {
+    const isEditing = !!competition;
     const { hub } = useHub();
     const { user } = useAuth();
     const [loading, setLoading] = useState(false);
@@ -40,11 +51,20 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
 
     useEffect(() => {
         if (isOpen && hub) {
-            fetchGymnasts();
-            // Reset form when opening
-            setFormData({ name: '', startDate: '', endDate: '', location: '' });
-            setChampionshipType(null);
-            setSelectedGymnasts([]);
+            if (competition) {
+                setFormData({
+                    name: competition.name,
+                    startDate: competition.start_date,
+                    endDate: competition.end_date,
+                    location: competition.location || ''
+                });
+                setChampionshipType(competition.championship_type);
+            } else {
+                fetchGymnasts();
+                setFormData({ name: '', startDate: '', endDate: '', location: '' });
+                setChampionshipType(null);
+                setSelectedGymnasts([]);
+            }
             setError(null);
         }
     }, [isOpen, hub]);
@@ -145,75 +165,91 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
         setError(null);
 
         try {
-            // Determine the season for this competition
-            let seasonId = defaultSeasonId;
+            if (isEditing) {
+                const { error: updateError } = await supabase
+                    .from('competitions')
+                    .update({
+                        name: formData.name,
+                        start_date: formData.startDate,
+                        end_date: formData.endDate,
+                        location: formData.location || null,
+                        championship_type: championshipType
+                    })
+                    .eq('id', competition!.id);
 
-            // If no default season or we need to auto-detect based on date
-            if (!seasonId && formData.startDate) {
-                const config = hub.settings?.seasonConfig || DEFAULT_SEASON_CONFIG;
-                const season = await getOrCreateSeasonForDate(hub.id, new Date(formData.startDate), config);
-                seasonId = season?.id || null;
+                if (updateError) throw updateError;
+
+                onCompetitionCreated();
+                onClose();
+            } else {
+                // Determine the season for this competition
+                let seasonId = defaultSeasonId;
+
+                // If no default season or we need to auto-detect based on date
+                if (!seasonId && formData.startDate) {
+                    const config = hub.settings?.seasonConfig || DEFAULT_SEASON_CONFIG;
+                    const season = await getOrCreateSeasonForDate(hub.id, new Date(formData.startDate), config);
+                    seasonId = season?.id || null;
+                }
+
+                // 1. Create Competition with season_id and championship_type
+                const { data: compData, error: compError } = await supabase
+                    .from('competitions')
+                    .insert({
+                        hub_id: hub.id,
+                        name: formData.name,
+                        start_date: formData.startDate,
+                        end_date: formData.endDate,
+                        location: formData.location,
+                        created_by: user.id,
+                        season_id: seasonId,
+                        championship_type: championshipType
+                    })
+                    .select()
+                    .single();
+
+                if (compError) throw compError;
+
+                // 2. Add Gymnasts using gymnast_profile_id
+                if (selectedGymnasts.length > 0) {
+                    const gymnastInserts = selectedGymnasts.map(gymnastProfileId => ({
+                        competition_id: compData.id,
+                        gymnast_profile_id: gymnastProfileId
+                    }));
+
+                    const { error: rosterError } = await supabase
+                        .from('competition_gymnasts')
+                        .insert(gymnastInserts);
+
+                    if (rosterError) throw rosterError;
+                }
+
+                // 3. Auto-create calendar event for the competition (all-day event)
+                const startDateTime = new Date(`${formData.startDate}T00:00:00`);
+                const endDateTime = new Date(`${formData.endDate}T23:59:59`);
+
+                const { error: eventError } = await supabase
+                    .from('events')
+                    .insert({
+                        hub_id: hub.id,
+                        title: formData.name,
+                        description: `Competition: ${formData.name}${formData.location ? ` at ${formData.location}` : ''}`,
+                        start_time: startDateTime.toISOString(),
+                        end_time: endDateTime.toISOString(),
+                        location: formData.location || null,
+                        type: 'competition',
+                        rsvp_enabled: false,
+                        is_all_day: true,
+                        created_by: user.id
+                    });
+
+                if (eventError) {
+                    console.error('Error creating calendar event:', eventError);
+                }
+
+                onCompetitionCreated();
+                onClose();
             }
-
-            // 1. Create Competition with season_id and championship_type
-            const { data: compData, error: compError } = await supabase
-                .from('competitions')
-                .insert({
-                    hub_id: hub.id,
-                    name: formData.name,
-                    start_date: formData.startDate,
-                    end_date: formData.endDate,
-                    location: formData.location,
-                    created_by: user.id,
-                    season_id: seasonId,
-                    championship_type: championshipType
-                })
-                .select()
-                .single();
-
-            if (compError) throw compError;
-
-            // 2. Add Gymnasts using gymnast_profile_id
-            if (selectedGymnasts.length > 0) {
-                const gymnastInserts = selectedGymnasts.map(gymnastProfileId => ({
-                    competition_id: compData.id,
-                    gymnast_profile_id: gymnastProfileId
-                }));
-
-                const { error: rosterError } = await supabase
-                    .from('competition_gymnasts')
-                    .insert(gymnastInserts);
-
-                if (rosterError) throw rosterError;
-            }
-
-            // 3. Auto-create calendar event for the competition (all-day event)
-            // Use midnight on start date and end of day on end date for all-day events
-            const startDateTime = new Date(`${formData.startDate}T00:00:00`);
-            const endDateTime = new Date(`${formData.endDate}T23:59:59`);
-
-            const { error: eventError } = await supabase
-                .from('events')
-                .insert({
-                    hub_id: hub.id,
-                    title: formData.name,
-                    description: `Competition: ${formData.name}${formData.location ? ` at ${formData.location}` : ''}`,
-                    start_time: startDateTime.toISOString(),
-                    end_time: endDateTime.toISOString(),
-                    location: formData.location || null,
-                    type: 'competition',
-                    rsvp_enabled: false,
-                    is_all_day: true,
-                    created_by: user.id
-                });
-
-            if (eventError) {
-                console.error('Error creating calendar event:', eventError);
-                // Don't throw - competition was created successfully, calendar event is secondary
-            }
-
-            onCompetitionCreated();
-            onClose();
         } catch (err: any) {
             console.error('Error creating competition:', err);
             setError(err.message || 'Failed to create competition');
@@ -233,7 +269,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                         <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
                             <Trophy className="w-5 h-5 text-white" />
                         </div>
-                        <h2 className="text-xl font-bold text-heading">Create Competition</h2>
+                        <h2 className="text-xl font-bold text-heading">{isEditing ? 'Edit Competition' : 'Create Competition'}</h2>
                     </div>
                     <button
                         onClick={onClose}
@@ -345,36 +381,36 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                                     <Award className="h-4 w-4 text-blue-600 ml-auto" />
                                 </div>
                             </label>
-                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-amber-300 transition-colors">
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-purple-300 transition-colors">
                                 <input
                                     type="radio"
                                     name="championshipType"
                                     checked={championshipType === 'regional'}
                                     onChange={() => setChampionshipType('regional')}
-                                    className="mt-0.5 h-4 w-4 text-amber-600 border-line-strong focus:ring-amber-500"
+                                    className="mt-0.5 h-4 w-4 text-purple-600 border-line-strong focus:ring-purple-500"
                                 />
                                 <div className="flex-1 flex items-center gap-2">
                                     <div>
                                         <span className="text-sm font-medium text-heading">Regional Championship</span>
                                         <p className="text-xs text-muted mt-0.5">Scores can qualify for Nationals</p>
                                     </div>
-                                    <Trophy className="h-4 w-4 text-amber-600 ml-auto" />
+                                    <Medal className="h-4 w-4 text-purple-600 ml-auto" />
                                 </div>
                             </label>
-                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-purple-300 transition-colors">
+                            <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-amber-300 transition-colors">
                                 <input
                                     type="radio"
                                     name="championshipType"
                                     checked={championshipType === 'national'}
                                     onChange={() => setChampionshipType('national')}
-                                    className="mt-0.5 h-4 w-4 text-purple-600 border-line-strong focus:ring-purple-500"
+                                    className="mt-0.5 h-4 w-4 text-amber-600 border-line-strong focus:ring-amber-500"
                                 />
                                 <div className="flex-1 flex items-center gap-2">
                                     <div>
                                         <span className="text-sm font-medium text-heading">National Championship</span>
                                         <p className="text-xs text-muted mt-0.5">No qualification badges shown</p>
                                     </div>
-                                    <Medal className="h-4 w-4 text-purple-600 ml-auto" />
+                                    <Trophy className="h-4 w-4 text-amber-600 ml-auto" />
                                 </div>
                             </label>
                             <label className="flex items-start gap-3 p-3 rounded-lg border border-line bg-surface cursor-pointer hover:border-line-strong transition-colors">
@@ -396,8 +432,8 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                         </div>
                     </div>
 
-                    {/* Gymnast Selection */}
-                    <div>
+                    {/* Gymnast Selection - only shown when creating */}
+                    {!isEditing && <div>
                         <div className="flex items-center justify-between mb-2">
                             <label className="block text-sm font-medium text-body">
                                 Select Gymnasts
@@ -489,7 +525,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                         <p className="mt-1.5 text-xs text-muted">
                             {selectedGymnasts.length} of {gymnasts.length} selected
                         </p>
-                    </div>
+                    </div>}
 
                     {/* Actions */}
                     <div className="flex justify-end gap-3 pt-2">
@@ -507,7 +543,7 @@ export function CreateCompetitionModal({ isOpen, onClose, onCompetitionCreated, 
                             className="btn-primary flex items-center gap-2"
                         >
                             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                            {loading ? 'Creating...' : 'Create Competition'}
+                            {loading ? (isEditing ? 'Saving...' : 'Creating...') : (isEditing ? 'Save Changes' : 'Create Competition')}
                         </button>
                     </div>
                 </form>

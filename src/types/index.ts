@@ -180,9 +180,12 @@ export interface FileAttachment {
     mimeType: string;
 }
 
-export type PostAttachment =
+export type MessageAttachment =
     | { type: 'images'; urls: string[] }
-    | { type: 'files'; files: FileAttachment[] }
+    | { type: 'files'; files: FileAttachment[] };
+
+export type PostAttachment =
+    | MessageAttachment
     | { type: 'poll'; question: string; options: string[]; settings: PollSettings }
     | { type: 'signup'; title: string; description?: string; slots: SignupSlot[]; settings?: SignupSettings }
     | { type: 'rsvp'; title: string; date?: string; time?: string; location?: string }
@@ -317,6 +320,7 @@ export interface Message {
     channel_id: string;
     user_id: string;
     content: string;
+    attachments?: MessageAttachment[];
     created_at: string;
     profiles?: Profile;
 }

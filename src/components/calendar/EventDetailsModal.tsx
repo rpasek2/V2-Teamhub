@@ -9,15 +9,15 @@ import { useHub } from '../../context/HubContext';
 import type { Event } from '../../types';
 
 const EVENT_TYPES = [
-    { value: 'practice', label: 'Practice', icon: '🏋️', color: 'bg-blue-100 border-blue-300 text-blue-700' },
-    { value: 'competition', label: 'Comp', icon: '🏆', color: 'bg-purple-100 border-purple-300 text-purple-700' },
-    { value: 'mentorship', label: 'Mentor', icon: '💕', color: 'bg-pink-100 border-pink-300 text-pink-700' },
-    { value: 'camp', label: 'Camp', icon: '🏕️', color: 'bg-emerald-100 border-emerald-300 text-emerald-700' },
-    { value: 'clinic', label: 'Clinic', icon: '🎯', color: 'bg-indigo-100 border-indigo-300 text-indigo-700' },
-    { value: 'meeting', label: 'Meeting', icon: '👥', color: 'bg-amber-100 border-amber-300 text-amber-700' },
-    { value: 'social', label: 'Social', icon: '🎉', color: 'bg-green-100 border-green-300 text-green-700' },
-    { value: 'private_lesson', label: 'Private', icon: '👤', color: 'bg-violet-100 border-violet-300 text-violet-700' },
-    { value: 'fundraiser', label: 'Fundraise', icon: '💰', color: 'bg-orange-100 border-orange-300 text-orange-700' },
+    { value: 'practice', label: 'Practice', icon: '🏋️', color: 'bg-blue-500/10 border-blue-500/30 text-blue-600' },
+    { value: 'competition', label: 'Comp', icon: '🏆', color: 'bg-purple-500/10 border-purple-500/30 text-purple-600' },
+    { value: 'mentorship', label: 'Mentor', icon: '💕', color: 'bg-pink-500/10 border-pink-500/30 text-pink-600' },
+    { value: 'camp', label: 'Camp', icon: '🏕️', color: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600' },
+    { value: 'clinic', label: 'Clinic', icon: '🎯', color: 'bg-indigo-500/10 border-indigo-500/30 text-indigo-600' },
+    { value: 'meeting', label: 'Meeting', icon: '👥', color: 'bg-amber-500/10 border-amber-500/30 text-amber-600' },
+    { value: 'social', label: 'Social', icon: '🎉', color: 'bg-green-500/10 border-green-500/30 text-green-600' },
+    { value: 'private_lesson', label: 'Private', icon: '👤', color: 'bg-violet-500/10 border-violet-500/30 text-violet-600' },
+    { value: 'fundraiser', label: 'Fundraise', icon: '💰', color: 'bg-orange-500/10 border-orange-500/30 text-orange-600' },
     { value: 'other', label: 'Other', icon: '📌', color: 'bg-surface-hover border-line-strong text-body' },
 ] as const;
 
@@ -55,6 +55,8 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
     const [loading, setLoading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [editError, setEditError] = useState<string | null>(null);
+    const [confirmDelete, setConfirmDelete] = useState(false);
     const [linkedCompetitionId, setLinkedCompetitionId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState({
         title: '',
@@ -155,22 +157,22 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
 
     const handleSaveEdit = async () => {
         if (!event) return;
+        setEditError(null);
         setLoading(true);
 
         try {
-            // Validate input lengths
             if (editForm.title.length > MAX_TITLE_LENGTH) {
-                alert(`Title must be ${MAX_TITLE_LENGTH} characters or less`);
+                setEditError(`Title must be ${MAX_TITLE_LENGTH} characters or less`);
                 setLoading(false);
                 return;
             }
             if (editForm.description.length > MAX_DESCRIPTION_LENGTH) {
-                alert(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or less`);
+                setEditError(`Description must be ${MAX_DESCRIPTION_LENGTH} characters or less`);
                 setLoading(false);
                 return;
             }
             if (editForm.location.length > MAX_LOCATION_LENGTH) {
-                alert(`Location must be ${MAX_LOCATION_LENGTH} characters or less`);
+                setEditError(`Location must be ${MAX_LOCATION_LENGTH} characters or less`);
                 setLoading(false);
                 return;
             }
@@ -179,7 +181,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
             const endDateTime = new Date(`${editForm.endDate}T${editForm.endTime}`);
 
             if (endDateTime <= startDateTime) {
-                alert('End time must be after start time');
+                setEditError('End time must be after start time');
                 setLoading(false);
                 return;
             }
@@ -205,7 +207,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
             onClose();
         } catch (err) {
             console.error('Error updating event:', err);
-            alert('Failed to update event');
+            setEditError('Failed to update event. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -213,7 +215,11 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
 
     const handleDelete = async () => {
         if (!event) return;
-        if (!confirm('Are you sure you want to delete this event? This cannot be undone.')) return;
+
+        if (!confirmDelete) {
+            setConfirmDelete(true);
+            return;
+        }
 
         setDeleting(true);
         try {
@@ -228,7 +234,8 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
             onClose();
         } catch (err) {
             console.error('Error deleting event:', err);
-            alert('Failed to delete event');
+            setEditError('Failed to delete event. Please try again.');
+            setConfirmDelete(false);
         } finally {
             setDeleting(false);
         }
@@ -298,14 +305,31 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                 >
                                                     <Pencil className="h-4 w-4" />
                                                 </button>
-                                                <button
-                                                    onClick={handleDelete}
-                                                    disabled={deleting}
-                                                    className="p-2 text-faint hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    title="Delete event"
-                                                >
-                                                    {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
-                                                </button>
+                                                {confirmDelete ? (
+                                                    <div className="flex items-center gap-1">
+                                                        <button
+                                                            onClick={handleDelete}
+                                                            disabled={deleting}
+                                                            className="px-2 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50"
+                                                        >
+                                                            {deleting ? 'Deleting...' : 'Confirm'}
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setConfirmDelete(false)}
+                                                            className="px-2 py-1 text-xs font-medium text-body bg-surface border border-line rounded hover:bg-surface-hover"
+                                                        >
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleDelete}
+                                                        className="p-2 text-faint hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                        title="Delete event"
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </button>
+                                                )}
                                             </>
                                         )}
                                         <button
@@ -316,6 +340,13 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                         </button>
                                     </div>
                                 </div>
+
+                                {editError && (
+                                    <div className="mx-6 mt-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm flex items-center justify-between">
+                                        <span>{editError}</span>
+                                        <button onClick={() => setEditError(null)} className="text-red-400 hover:text-red-600 ml-2 font-medium text-xs">Dismiss</button>
+                                    </div>
+                                )}
 
                                 <div className="px-6 py-5">
                                     {isEditing ? (
@@ -350,9 +381,9 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
 
                                                 {/* Competition Warning */}
                                                 {editForm.type === 'competition' && (
-                                                    <div className="flex items-start gap-3 p-3 bg-purple-50 border border-purple-200 rounded-xl mt-2">
+                                                    <div className="flex items-start gap-3 p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl mt-2">
                                                         <Trophy className="h-4 w-4 text-purple-600 flex-shrink-0 mt-0.5" />
-                                                        <p className="text-xs text-purple-700">
+                                                        <p className="text-xs text-purple-600">
                                                             This event is linked to the Competitions tab.
                                                         </p>
                                                     </div>
@@ -360,9 +391,9 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
 
                                                 {/* Mentorship Info */}
                                                 {editForm.type === 'mentorship' && (
-                                                    <div className="flex items-start gap-3 p-3 bg-pink-50 border border-pink-200 rounded-xl mt-2">
+                                                    <div className="flex items-start gap-3 p-3 bg-pink-500/10 border border-pink-500/20 rounded-xl mt-2">
                                                         <HeartHandshake className="h-4 w-4 text-pink-600 flex-shrink-0 mt-0.5" />
-                                                        <p className="text-xs text-pink-700">
+                                                        <p className="text-xs text-pink-600">
                                                             This event appears in the Mentorship tab.
                                                         </p>
                                                     </div>
@@ -610,7 +641,7 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                         onClose();
                                                         navigate(`../competitions/${linkedCompetitionId}`);
                                                     }}
-                                                    className="mt-4 w-full flex items-center justify-center gap-2 rounded-lg bg-purple-50 border border-purple-200 px-4 py-2.5 text-sm font-medium text-purple-700 hover:bg-purple-100 transition-colors"
+                                                    className="mt-4 w-full flex items-center justify-center gap-2 rounded-lg bg-purple-500/10 border border-purple-500/20 px-4 py-2.5 text-sm font-medium text-purple-600 hover:bg-purple-500/20 transition-colors"
                                                 >
                                                     <Trophy className="h-4 w-4" />
                                                     View Competition Details
@@ -670,9 +701,9 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                                                                     {attendees.map((attendee) => (
                                                                         <div
                                                                             key={attendee.user_id}
-                                                                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-50 text-green-700 rounded-full text-sm"
+                                                                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-500/10 text-green-600 rounded-full text-sm"
                                                                         >
-                                                                            <div className="h-5 w-5 rounded-full bg-green-200 flex items-center justify-center text-xs font-medium">
+                                                                            <div className="h-5 w-5 rounded-full bg-green-500/20 flex items-center justify-center text-xs font-medium">
                                                                                 {attendee.profiles.full_name?.[0] || '?'}
                                                                             </div>
                                                                             {attendee.profiles.full_name}

@@ -1,4 +1,5 @@
 import { useState, useMemo, Fragment } from 'react';
+import { Award, Trophy, Medal } from 'lucide-react';
 import { useHub } from '../../context/HubContext';
 import type {
     Competition,
@@ -440,11 +441,20 @@ export function ScoresTable({
                         </div>
 
                         {/* Legend */}
-                        <div className="border-t border-line bg-surface-alt px-4 py-2">
+                        <div className="border-t border-line bg-surface-alt px-4 py-2 flex flex-wrap items-center gap-x-4 gap-y-1">
                             <span className="text-xs text-muted">
                                 <span className="text-accent-500">*</span> = counts toward team score
-                                {isStaff && <span className="ml-4 text-faint">Click any score or placement to edit</span>}
                             </span>
+                            <span className="inline-flex items-center gap-1 text-xs text-muted">
+                                <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold bg-blue-500/15 text-blue-600"><Award size={12} /></span> = state qualifier
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-xs text-muted">
+                                <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold bg-purple-500/15 text-purple-600"><Medal size={12} /></span> = regional qualifier
+                            </span>
+                            <span className="inline-flex items-center gap-1 text-xs text-muted">
+                                <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold bg-amber-500/15 text-amber-600"><Trophy size={12} /></span> = national qualifier
+                            </span>
+                            {isStaff && <span className="text-xs text-faint">Click any score or placement to edit</span>}
                         </div>
                     </div>
                 );

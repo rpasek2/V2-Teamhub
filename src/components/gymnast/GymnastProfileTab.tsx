@@ -157,12 +157,18 @@ export function GymnastProfileTab({
         }
     };
 
+    const [confirmRemoveMusic, setConfirmRemoveMusic] = useState(false);
+
     // Floor music remove handler
     const handleRemoveFloorMusic = async () => {
         if (!gymnast?.floor_music_url || !hub || !canManageFloorMusic) return;
 
-        if (!window.confirm('Are you sure you want to remove this floor music?')) return;
+        if (!confirmRemoveMusic) {
+            setConfirmRemoveMusic(true);
+            return;
+        }
 
+        setConfirmRemoveMusic(false);
         setUploadingMusic(true);
         setMusicError(null);
 
@@ -447,10 +453,16 @@ export function GymnastProfileTab({
                             <button onClick={() => floorMusicInputRef.current?.click()} disabled={uploadingMusic} className="p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title={gymnast.floor_music_url ? "Replace floor music" : "Upload floor music"} aria-label={gymnast.floor_music_url ? "Replace floor music" : "Upload floor music"}>
                                 {uploadingMusic ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
                             </button>
-                            {gymnast.floor_music_url && (
+                            {gymnast.floor_music_url && !confirmRemoveMusic && (
                                 <button onClick={handleRemoveFloorMusic} disabled={uploadingMusic} className="p-1.5 rounded-md text-faint hover:text-error-600 hover:bg-error-50 transition-colors" title="Remove floor music" aria-label="Remove floor music">
                                     <Trash2 className="h-3.5 w-3.5" />
                                 </button>
+                            )}
+                            {confirmRemoveMusic && (
+                                <div className="flex items-center gap-1">
+                                    <button onClick={handleRemoveFloorMusic} className="px-2 py-1 text-xs font-medium text-white bg-red-600 rounded hover:bg-red-700">Remove</button>
+                                    <button onClick={() => setConfirmRemoveMusic(false)} className="px-2 py-1 text-xs font-medium text-body bg-surface border border-line rounded hover:bg-surface-hover">Cancel</button>
+                                </div>
                             )}
                         </div>
                     )}

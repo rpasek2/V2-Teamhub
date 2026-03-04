@@ -23,6 +23,7 @@ export interface Competition {
   start_date: string;
   end_date: string;
   location: string | null;
+  championship_type: 'state' | 'regional' | 'national' | 'unsanctioned' | null;
 }
 
 export interface Gymnast {

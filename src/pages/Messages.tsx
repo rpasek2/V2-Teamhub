@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
-import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2, UserPlus, Lock } from 'lucide-react';
+import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2, UserPlus, Lock, Paperclip, Image, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
@@ -9,6 +9,10 @@ import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { AnonymousReportModal } from '../components/messages/AnonymousReportModal';
+import { ImageGallery } from '../components/groups/attachments/ImageGallery';
+import { FileList } from '../components/groups/attachments/FileList';
+import { validateFile, generateSecureFileName, formatFileSize } from '../utils/fileValidation';
+import type { MessageAttachment, FileAttachment } from '../types';
 
 interface AnonymousReport {
     id: string;
@@ -50,6 +54,7 @@ interface HubMemberOption {
 interface Message {
     id: string;
     content: string;
+    attachments?: MessageAttachment[];
     created_at: string;
     user_id: string;
     profiles?: {
@@ -71,6 +76,15 @@ export default function Messages() {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [loadingChannels, setLoadingChannels] = useState(true);
+
+    // Attachment state
+    const [pendingImages, setPendingImages] = useState<File[]>([]);
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+    const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [uploading, setUploading] = useState(false);
+    const imageInputRef = useRef<HTMLInputElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [showAttachMenu, setShowAttachMenu] = useState(false);
 
     // New DM modal state
     const [showNewDmModal, setShowNewDmModal] = useState(false);
@@ -265,7 +279,7 @@ export default function Messages() {
     const fetchMessages = async (channelId: string) => {
         const { data, error } = await supabase
             .from('messages')
-            .select('*, profiles(full_name, email)')
+            .select('*, attachments, profiles(full_name, email)')
             .eq('channel_id', channelId)
             .order('created_at', { ascending: true });
 
@@ -287,7 +301,7 @@ export default function Messages() {
                 async (payload) => {
                     const { data } = await supabase
                         .from('messages')
-                        .select('*, profiles(full_name, email)')
+                        .select('*, attachments, profiles(full_name, email)')
                         .eq('id', payload.new.id)
                         .single();
 
@@ -296,15 +310,133 @@ export default function Messages() {
                     }
                 }
             )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'DELETE',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `channel_id=eq.${channelId}`,
+                },
+                (payload) => {
+                    setMessages((prev) => prev.filter(m => m.id !== payload.old.id));
+                }
+            )
             .subscribe();
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const remaining = 5 - pendingImages.length;
+        const toAdd = files.slice(0, remaining);
+        for (const file of toAdd) {
+            const result = validateFile(file, 'postImage');
+            if (!result.valid) {
+                alert(result.error);
+                return;
+            }
+        }
+        const newPreviews = toAdd.map(f => URL.createObjectURL(f));
+        setPendingImages(prev => [...prev, ...toAdd]);
+        setImagePreviews(prev => [...prev, ...newPreviews]);
+        if (imageInputRef.current) imageInputRef.current.value = '';
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        const remaining = 3 - pendingFiles.length;
+        const toAdd = files.slice(0, remaining);
+        for (const file of toAdd) {
+            const result = validateFile(file, 'postFile');
+            if (!result.valid) {
+                alert(result.error);
+                return;
+            }
+        }
+        setPendingFiles(prev => [...prev, ...toAdd]);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const removePendingImage = (index: number) => {
+        URL.revokeObjectURL(imagePreviews[index]);
+        setPendingImages(prev => prev.filter((_, i) => i !== index));
+        setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removePendingFile = (index: number) => {
+        setPendingFiles(prev => prev.filter((_, i) => i !== index));
     };
 
     const sendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim() || !selectedChannel || !user) return;
+        const hasText = newMessage.trim().length > 0;
+        const hasAttachments = pendingImages.length > 0 || pendingFiles.length > 0;
+        if ((!hasText && !hasAttachments) || !selectedChannel || !user || uploading) return;
 
         const content = newMessage.trim();
+        const savedImages = [...pendingImages];
+        const savedFiles = [...pendingFiles];
+        const savedPreviews = [...imagePreviews];
         setNewMessage('');
+        setShowAttachMenu(false);
+
+        // Upload attachments if any
+        const attachments: MessageAttachment[] = [];
+        if (hasAttachments) {
+            setUploading(true);
+            try {
+                // Upload images
+                if (pendingImages.length > 0) {
+                    const imageUrls: string[] = new Array(pendingImages.length);
+                    await Promise.all(pendingImages.map(async (image, i) => {
+                        const fileName = generateSecureFileName(image.name);
+                        const filePath = `messages/${selectedChannel.id}/${fileName}`;
+                        const { error: uploadErr } = await supabase.storage
+                            .from('post-attachments')
+                            .upload(filePath, image, { cacheControl: '3600', upsert: false });
+                        if (uploadErr) throw uploadErr;
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('post-attachments')
+                            .getPublicUrl(filePath);
+                        imageUrls[i] = publicUrl;
+                    }));
+                    attachments.push({ type: 'images', urls: imageUrls });
+                }
+                // Upload files
+                if (pendingFiles.length > 0) {
+                    const fileAttachments: FileAttachment[] = new Array(pendingFiles.length);
+                    await Promise.all(pendingFiles.map(async (file, i) => {
+                        const fileName = generateSecureFileName(file.name);
+                        const filePath = `messages/${selectedChannel.id}/files/${fileName}`;
+                        const { error: uploadErr } = await supabase.storage
+                            .from('post-attachments')
+                            .upload(filePath, file, { cacheControl: '3600', upsert: false });
+                        if (uploadErr) throw uploadErr;
+                        const { data: { publicUrl } } = supabase.storage
+                            .from('post-attachments')
+                            .getPublicUrl(filePath);
+                        fileAttachments[i] = {
+                            url: publicUrl,
+                            name: file.name,
+                            size: file.size,
+                            mimeType: file.type,
+                        };
+                    }));
+                    attachments.push({ type: 'files', files: fileAttachments });
+                }
+            } catch (err) {
+                console.error('Error uploading attachments:', err);
+                setNewMessage(content);
+                setUploading(false);
+                return;
+            }
+            // Revoke preview URLs and clear pending state
+            imagePreviews.forEach(url => URL.revokeObjectURL(url));
+            setPendingImages([]);
+            setPendingFiles([]);
+            setImagePreviews([]);
+            setUploading(false);
+        }
 
         const { error } = await supabase
             .from('messages')
@@ -313,13 +445,33 @@ export default function Messages() {
                     channel_id: selectedChannel.id,
                     user_id: user.id,
                     content: content,
+                    ...(attachments.length > 0 ? { attachments } : {}),
                 },
             ]);
 
         if (error) {
             console.error('Error sending message:', error);
             setNewMessage(content);
+            // Restore attachments so user can retry
+            if (hasAttachments) {
+                setPendingImages(savedImages);
+                setPendingFiles(savedFiles);
+                setImagePreviews(savedPreviews);
+            }
         }
+    };
+
+    const deleteMessage = async (messageId: string) => {
+        if (!confirm('Delete this message?')) return;
+        const { error } = await supabase
+            .from('messages')
+            .delete()
+            .eq('id', messageId);
+        if (error) {
+            console.error('Error deleting message:', error);
+            return;
+        }
+        setMessages(prev => prev.filter(m => m.id !== messageId));
     };
 
     const scrollToBottom = () => {
@@ -435,30 +587,39 @@ export default function Messages() {
 
     // Fetch existing members of a channel
     const fetchExistingMembers = async (channelId: string) => {
-        const { data, error } = await supabase
+        // channel_members.user_id FKs to auth.users, not profiles — fetch separately
+        const { data: memberRows, error: memberError } = await supabase
             .from('channel_members')
-            .select(`
-                user_id,
-                profile:profiles (
-                    full_name,
-                    email
-                )
-            `)
+            .select('user_id')
             .eq('channel_id', channelId);
 
-        if (error) {
-            console.error('Error fetching channel members:', error);
-        } else {
-            const members: HubMemberOption[] = (data || []).map((m) => {
-                const profile = Array.isArray(m.profile) ? m.profile[0] : m.profile;
-                return {
-                    user_id: m.user_id,
-                    full_name: profile?.full_name || 'Unknown',
-                    email: profile?.email || ''
-                };
-            });
-            setExistingMembers(members);
+        if (memberError) {
+            console.error('Error fetching channel members:', memberError);
+            return;
         }
+
+        const userIds = (memberRows || []).map((m) => m.user_id);
+        if (userIds.length === 0) {
+            setExistingMembers([]);
+            return;
+        }
+
+        const { data: profiles, error: profileError } = await supabase
+            .from('profiles')
+            .select('id, full_name, email')
+            .in('id', userIds);
+
+        if (profileError) {
+            console.error('Error fetching member profiles:', profileError);
+            return;
+        }
+
+        const members: HubMemberOption[] = (profiles || []).map((p) => ({
+            user_id: p.id,
+            full_name: p.full_name || 'Unknown',
+            email: p.email || ''
+        }));
+        setExistingMembers(members);
     };
 
     // Open manage members modal
@@ -1074,7 +1235,7 @@ export default function Messages() {
                                     const showHeader = index === 0 || messages[index - 1].user_id !== message.user_id;
 
                                     return (
-                                        <div key={message.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                        <div key={message.id} className={`group/msg flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                             <div className={`flex max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                                 <div className={`flex-shrink-0 ${isMe ? 'ml-3' : 'mr-3'}`}>
                                                     {showHeader && (
@@ -1084,7 +1245,7 @@ export default function Messages() {
                                                     )}
                                                     {!showHeader && <div className="w-8" />}
                                                 </div>
-                                                <div>
+                                                <div className="relative">
                                                     {showHeader && (
                                                         <div className={`flex items-baseline mb-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
                                                             <span className="text-sm font-medium text-heading mr-2">
@@ -1101,8 +1262,34 @@ export default function Messages() {
                                                             : 'bg-surface text-body border border-line rounded-tl-none'
                                                             }`}
                                                     >
-                                                        {message.content}
+                                                        {message.content && <p>{message.content}</p>}
+                                                        {message.attachments?.map((att, ai) => {
+                                                            if (att.type === 'images') {
+                                                                return (
+                                                                    <div key={ai} className="mt-2 max-w-[300px]">
+                                                                        <ImageGallery urls={att.urls} />
+                                                                    </div>
+                                                                );
+                                                            }
+                                                            if (att.type === 'files') {
+                                                                return (
+                                                                    <div key={ai} className={`mt-2 ${isMe ? '[&_a]:text-white [&_a:hover]:text-white/80' : ''}`}>
+                                                                        <FileList files={att.files} />
+                                                                    </div>
+                                                                );
+                                                            }
+                                                            return null;
+                                                        })}
                                                     </div>
+                                                    {isMe && (
+                                                        <button
+                                                            onClick={() => deleteMessage(message.id)}
+                                                            className="absolute -top-2 right-0 p-1 rounded bg-surface border border-line shadow-sm opacity-0 group-hover/msg:opacity-100 transition-opacity hover:bg-error-50 hover:border-error-200 hover:text-error-600"
+                                                            title="Delete message"
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -1113,8 +1300,94 @@ export default function Messages() {
                         </div>
 
                         {/* Input Area */}
-                        <div className="p-4 border-t border-line bg-surface">
-                            <form onSubmit={sendMessage} className="flex gap-2">
+                        <div className="border-t border-line bg-surface">
+                            {/* Attachment preview strip */}
+                            {(pendingImages.length > 0 || pendingFiles.length > 0) && (
+                                <div className="px-4 pt-3 flex flex-wrap gap-2">
+                                    {pendingImages.map((_, i) => (
+                                        <div key={i} className="relative group">
+                                            <img
+                                                src={imagePreviews[i]}
+                                                alt=""
+                                                className="h-16 w-16 object-cover rounded-lg border border-line"
+                                            />
+                                            <button
+                                                onClick={() => removePendingImage(i)}
+                                                className="absolute -top-1.5 -right-1.5 h-5 w-5 bg-error-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <X className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {pendingFiles.map((file, i) => (
+                                        <div key={i} className="relative group flex items-center gap-2 bg-surface-hover rounded-lg px-3 py-2 text-xs">
+                                            <FileText className="h-4 w-4 text-muted flex-shrink-0" />
+                                            <span className="text-body truncate max-w-[120px]">{file.name}</span>
+                                            <span className="text-faint">{formatFileSize(file.size)}</span>
+                                            <button
+                                                onClick={() => removePendingFile(i)}
+                                                className="ml-1 text-faint hover:text-error-600"
+                                            >
+                                                <X className="h-3.5 w-3.5" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <form onSubmit={sendMessage} className="flex items-center gap-2 p-4">
+                                {/* Hidden file inputs */}
+                                <input
+                                    ref={imageInputRef}
+                                    type="file"
+                                    accept="image/jpeg,image/png,image/gif,image/webp"
+                                    multiple
+                                    className="hidden"
+                                    onChange={handleImageSelect}
+                                />
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv"
+                                    multiple
+                                    className="hidden"
+                                    onChange={handleFileSelect}
+                                />
+
+                                {/* Attach button */}
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowAttachMenu(!showAttachMenu)}
+                                        className="p-2 text-faint hover:text-subtle hover:bg-surface-hover rounded-lg transition-colors"
+                                        title="Attach files"
+                                    >
+                                        <Paperclip className="h-5 w-5" />
+                                    </button>
+                                    {showAttachMenu && (
+                                        <div className="absolute bottom-full left-0 mb-2 bg-surface border border-line rounded-lg shadow-lg py-1 min-w-[160px] z-10">
+                                            <button
+                                                type="button"
+                                                onClick={() => { imageInputRef.current?.click(); setShowAttachMenu(false); }}
+                                                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-body hover:bg-surface-hover"
+                                                disabled={pendingImages.length >= 5}
+                                            >
+                                                <Image className="h-4 w-4 text-blue-500" />
+                                                Photos {pendingImages.length > 0 && `(${pendingImages.length}/5)`}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => { fileInputRef.current?.click(); setShowAttachMenu(false); }}
+                                                className="flex items-center gap-2 w-full px-3 py-2 text-sm text-body hover:bg-surface-hover"
+                                                disabled={pendingFiles.length >= 3}
+                                            >
+                                                <FileText className="h-4 w-4 text-red-500" />
+                                                Files {pendingFiles.length > 0 && `(${pendingFiles.length}/3)`}
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <input
                                     type="text"
                                     value={newMessage}
@@ -1127,13 +1400,14 @@ export default function Messages() {
                                             : `Message #${selectedChannel.name}`
                                     }
                                     className="input flex-1"
+                                    disabled={uploading}
                                 />
                                 <button
                                     type="submit"
-                                    disabled={!newMessage.trim()}
+                                    disabled={(!newMessage.trim() && pendingImages.length === 0 && pendingFiles.length === 0) || uploading}
                                     className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    <Send className="h-4 w-4" />
+                                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                                 </button>
                             </form>
                         </div>

@@ -174,20 +174,11 @@ export function Register() {
                         ))}
                     </div>
 
-                    {/* Quote */}
+                    {/* Tagline */}
                     <div className="mt-12 pt-8 border-t border-white/10">
-                        <blockquote className="text-accent-100 italic text-lg">
-                            "The Gymnastics TeamHub transformed how we manage our program. Everything is organized and accessible."
-                        </blockquote>
-                        <div className="mt-4 flex items-center gap-3">
-                            <div className="w-10 h-10 bg-surface/20 rounded-full flex items-center justify-center">
-                                <span className="text-white font-semibold">JD</span>
-                            </div>
-                            <div>
-                                <div className="text-white font-medium">Jane Doe</div>
-                                <div className="text-accent-200 text-sm">Head Coach, Elite Gymnastics</div>
-                            </div>
-                        </div>
+                        <p className="text-accent-100 text-lg">
+                            Scores, schedules, rosters, messaging, and more — all in one place for your team.
+                        </p>
                     </div>
                 </div>
             </div>

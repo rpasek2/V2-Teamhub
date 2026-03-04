@@ -13,7 +13,17 @@ interface ParentGymnastCardsProps {
 }
 
 export function ParentGymnastCards({ linkedGymnastInfo }: ParentGymnastCardsProps) {
-    if (linkedGymnastInfo.length === 0) return null;
+    if (linkedGymnastInfo.length === 0) {
+        return (
+            <div className="mb-8">
+                <div className="card p-6 text-center">
+                    <User className="h-10 w-10 text-faint mx-auto mb-3" />
+                    <h3 className="text-base font-semibold text-heading mb-1">No gymnasts linked yet</h3>
+                    <p className="text-sm text-muted">Contact your coach or gym admin to link your gymnast to your account.</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="mb-8">

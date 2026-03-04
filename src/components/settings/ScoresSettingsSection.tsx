@@ -186,14 +186,14 @@ export function ScoresSettingsSection({ bare }: { bare?: boolean } = {}) {
                                             </div>
                                         </th>
                                         <th className="px-4 py-3 text-center text-xs font-semibold uppercase">
-                                            <div className="flex items-center justify-center gap-1 text-amber-600">
-                                                <Trophy className="h-3 w-3" />
+                                            <div className="flex items-center justify-center gap-1 text-purple-600">
+                                                <Medal className="h-3 w-3" />
                                                 Regional
                                             </div>
                                         </th>
                                         <th className="px-4 py-3 text-center text-xs font-semibold uppercase">
-                                            <div className="flex items-center justify-center gap-1 text-purple-600">
-                                                <Medal className="h-3 w-3" />
+                                            <div className="flex items-center justify-center gap-1 text-amber-600">
+                                                <Trophy className="h-3 w-3" />
                                                 National
                                             </div>
                                             <span className="text-xs font-normal text-faint">(optional)</span>
@@ -296,12 +296,12 @@ export function ScoresSettingsSection({ bare }: { bare?: boolean } = {}) {
                                     <strong className="text-blue-600">State</strong> badges appear at regular season meets
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <Trophy className="h-3 w-3 text-amber-600" />
-                                    <strong className="text-amber-600">Regional</strong> badges appear at State Championships
+                                    <Medal className="h-3 w-3 text-purple-600" />
+                                    <strong className="text-purple-600">Regional</strong> badges appear at State Championships
                                 </li>
                                 <li className="flex items-center gap-2">
-                                    <Medal className="h-3 w-3 text-purple-600" />
-                                    <strong className="text-purple-600">National</strong> badges appear at Regional Championships
+                                    <Trophy className="h-3 w-3 text-amber-600" />
+                                    <strong className="text-amber-600">National</strong> badges appear at Regional Championships
                                 </li>
                             </ul>
                         </div>

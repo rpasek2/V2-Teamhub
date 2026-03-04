@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Users, EyeOff, Music } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Pencil, Trash2, ChevronUp, ChevronDown, ChevronsUpDown, Users, EyeOff, Music, ClipboardCheck } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
 import { ManageLevelsModal } from '../components/roster/ManageLevelsModal';
 import { FloorMusicModal } from '../components/roster/FloorMusicModal';
+import { QuickChecklistModal } from '../components/roster/QuickChecklistModal';
 import type { GymnastProfile } from '../types';
 
 type SortColumn = 'id' | 'name' | 'role' | 'level' | 'guardian' | 'contact';
@@ -49,8 +50,10 @@ export function Roster() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isManageLevelsOpen, setIsManageLevelsOpen] = useState(false);
     const [isFloorMusicOpen, setIsFloorMusicOpen] = useState(false);
+    const [isChecklistOpen, setIsChecklistOpen] = useState(false);
     const [editingMember, setEditingMember] = useState<DisplayMember | null>(null);
     const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+    const [actionError, setActionError] = useState<string | null>(null);
     const [sortColumn, setSortColumn] = useState<SortColumn>('level');
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
     const menuRef = useRef<HTMLDivElement>(null);
@@ -194,7 +197,7 @@ export function Roster() {
             setOpenMenuId(null);
         } catch (error) {
             console.error('Error deleting member:', error);
-            alert('Failed to remove member. Please try again.');
+            setActionError('Failed to remove member. Please try again.');
         }
     };
 
@@ -368,10 +371,20 @@ export function Roster() {
                 <div className="sm:flex-auto">
                     <h1 className="text-2xl font-semibold text-heading">Roster</h1>
                     <p className="mt-2 text-sm text-muted">
-                        Manage your team members, assign roles, and view contact info.
+                        {canManage ? 'Manage your team members, assign roles, and view contact info.' : 'View team members and contact info.'}
                     </p>
                 </div>
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
+                    {isStaff && (
+                        <button
+                            type="button"
+                            onClick={() => setIsChecklistOpen(true)}
+                            className="btn-secondary"
+                        >
+                            <ClipboardCheck className="h-4 w-4" />
+                            Quick Checklist
+                        </button>
+                    )}
                     {isStaff && (
                         <button
                             type="button"
@@ -392,16 +405,25 @@ export function Roster() {
                             Manage Levels
                         </button>
                     )}
-                    <button
-                        type="button"
-                        onClick={() => setIsAddModalOpen(true)}
-                        className="btn-primary"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add Member
-                    </button>
+                    {canManage && (
+                        <button
+                            type="button"
+                            onClick={() => setIsAddModalOpen(true)}
+                            className="btn-primary"
+                        >
+                            <Plus className="h-4 w-4" />
+                            Add Member
+                        </button>
+                    )}
                 </div>
             </div>
+
+            {actionError && (
+                <div className="mt-4 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-600 text-sm flex items-center justify-between">
+                    <span>{actionError}</span>
+                    <button onClick={() => setActionError(null)} className="text-red-400 hover:text-red-600 ml-4 font-medium">Dismiss</button>
+                </div>
+            )}
 
             <div className="mt-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 {/* Tabs */}
@@ -645,6 +667,16 @@ export function Roster() {
                 onClose={() => setIsFloorMusicOpen(false)}
                 hubId={hub?.id || ''}
                 levels={hub?.settings?.levels || []}
+            />
+
+            <QuickChecklistModal
+                isOpen={isChecklistOpen}
+                onClose={() => setIsChecklistOpen(false)}
+                gymnasts={members
+                    .filter(m => m.type === 'gymnast_profile' && m.full_profile)
+                    .map(m => m.full_profile!)}
+                levels={hub?.settings?.levels || []}
+                hubId={hub?.id || ''}
             />
         </div>
     );

@@ -11,12 +11,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
-import { Search, User, ChevronRight, Phone, Mail, Users, Shield, Dumbbell, Music } from 'lucide-react-native';
+import { Search, User, ChevronRight, Phone, Mail, Users, Shield, Dumbbell, Music, ClipboardCheck } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { QuickChecklistModal } from '../../src/components/roster/QuickChecklistModal';
 
 interface Guardian {
   name?: string;
@@ -69,6 +70,7 @@ export default function RosterScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedLevel, setSelectedLevel] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('Gymnasts');
+  const [isChecklistOpen, setIsChecklistOpen] = useState(false);
 
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
@@ -354,6 +356,14 @@ export default function RosterScreen() {
           </View>
           {isStaff() && (
             <TouchableOpacity
+              style={[styles.floorMusicBtn, { backgroundColor: isDark ? colors.brand[900] + '40' : colors.brand[50] }]}
+              onPress={() => setIsChecklistOpen(true)}
+            >
+              <ClipboardCheck size={18} color={isDark ? colors.brand[400] : colors.brand[600]} />
+            </TouchableOpacity>
+          )}
+          {isStaff() && (
+            <TouchableOpacity
               style={[styles.floorMusicBtn, { backgroundColor: isDark ? colors.purple[900] + '40' : colors.purple[50] }]}
               onPress={() => router.push('/roster/floor-music')}
             >
@@ -438,6 +448,16 @@ export default function RosterScreen() {
           }
         />
       )}
+
+      <QuickChecklistModal
+        visible={isChecklistOpen}
+        onClose={() => setIsChecklistOpen(false)}
+        gymnasts={members
+          .filter(m => m.type === 'gymnast_profile')
+          .map(m => ({ id: m.id, first_name: m.name.split(' ')[0], last_name: m.name.split(' ').slice(1).join(' '), level: m.level || null }))}
+        levels={levels}
+        hubId={currentHub?.id || ''}
+      />
     </View>
   );
 }

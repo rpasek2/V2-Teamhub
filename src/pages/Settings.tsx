@@ -5,10 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { supabase } from '../lib/supabase';
 import {
-    Loader2, Trash2, MessageSquare, UserPlus, Building2, User, Info,
+    Loader2, Trash2, MessageSquare, UserPlus, Building2, User, Info, Users,
     AlertTriangle, Cake, ShieldAlert, Bug, MessageSquarePlus,
     Send, Palette, LayoutGrid, ListOrdered, CalendarDays, Trophy,
-    Link2, Shield, Award, SlidersHorizontal
+    Link2, Shield, Award, SlidersHorizontal, Megaphone
 } from 'lucide-react';
 import type { HubPermissions, HubFeatureTab, SeasonConfig } from '../types';
 import { HUB_FEATURE_TABS } from '../types';
@@ -22,18 +22,21 @@ import { SeasonsSection } from '../components/settings/SeasonsSection';
 import { ChannelsSection } from '../components/settings/ChannelsSection';
 import { InviteCodesSection } from '../components/settings/InviteCodesSection';
 import { ParentPrivacySection } from '../components/settings/ParentPrivacySection';
+import { AnnouncementHistorySection } from '../components/settings/AnnouncementHistorySection';
+import { MemberRolesSection } from '../components/settings/MemberRolesSection';
 import { SettingsCard } from '../components/settings/SettingsCard';
 import { DEFAULT_SEASON_CONFIG } from '../lib/seasons';
 import { ACCENT_PRESETS, ACCENT_LABELS, applyAccentColor } from '../lib/accentColors';
 
 const FEATURES = ['roster', 'calendar', 'messages', 'competitions', 'scores', 'skills', 'marketplace', 'groups', 'mentorship'] as const;
 
-type SettingsTab = 'hub' | 'program' | 'access';
+type SettingsTab = 'hub' | 'program' | 'access' | 'announcements';
 
 const SETTINGS_TABS: { id: SettingsTab; label: string; icon: typeof Info }[] = [
     { id: 'hub', label: 'Hub Settings', icon: Info },
     { id: 'program', label: 'Program Settings', icon: Award },
     { id: 'access', label: 'Access & Roles', icon: Shield },
+    { id: 'announcements', label: 'Announcements', icon: Megaphone },
 ];
 
 export function Settings() {
@@ -372,20 +375,51 @@ export function Settings() {
                     <p className="text-muted">Manage your privacy and preferences.</p>
                 </div>
 
-                <ParentPrivacySection />
+                {/* Tab Bar */}
+                <div className="border-b border-line">
+                    <nav className="-mb-px flex gap-2 sm:gap-6">
+                        {[{ id: 'hub' as SettingsTab, label: 'Settings', icon: SlidersHorizontal }, { id: 'announcements' as SettingsTab, label: 'Announcements', icon: Megaphone }].map(tab => {
+                            const TabIcon = tab.icon;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-2 py-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+                                        activeTab === tab.id
+                                            ? 'border-accent-500 text-accent-600'
+                                            : 'border-transparent text-muted hover:text-heading hover:border-line'
+                                    }`}
+                                >
+                                    <TabIcon className="h-4 w-4" />
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </div>
 
-                <SettingsCard title="Hub Information" icon={Info} description="Information about this hub">
-                    {hubInfoContent()}
-                </SettingsCard>
+                {activeTab === 'hub' && (
+                    <div className="space-y-4">
+                        <ParentPrivacySection />
 
-                <SettingsCard title="Feedback & Support" icon={Bug} description="Report bugs or request features">
-                    {feedbackContent}
-                </SettingsCard>
+                        <SettingsCard title="Hub Information" icon={Info} description="Information about this hub">
+                            {hubInfoContent()}
+                        </SettingsCard>
+
+                        <SettingsCard title="Feedback & Support" icon={Bug} description="Report bugs or request features">
+                            {feedbackContent}
+                        </SettingsCard>
+                    </div>
+                )}
+
+                {activeTab === 'announcements' && (
+                    <AnnouncementHistorySection />
+                )}
             </div>
         );
     }
 
-    // Staff view (admin/coach) - flat, no tabs
+    // Staff view (admin/coach) - tabbed
     if (isStaff) {
         return (
             <div className="space-y-6">
@@ -394,13 +428,44 @@ export function Settings() {
                     <p className="text-muted">Hub information and support.</p>
                 </div>
 
-                <SettingsCard title="Hub Information" icon={Info} description="Basic information about your hub">
-                    {hubInfoContent()}
-                </SettingsCard>
+                {/* Tab Bar */}
+                <div className="border-b border-line">
+                    <nav className="-mb-px flex gap-2 sm:gap-6">
+                        {[{ id: 'hub' as SettingsTab, label: 'Settings', icon: SlidersHorizontal }, { id: 'announcements' as SettingsTab, label: 'Announcements', icon: Megaphone }].map(tab => {
+                            const TabIcon = tab.icon;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`flex items-center gap-2 py-3 px-1 text-sm font-medium border-b-2 transition-colors ${
+                                        activeTab === tab.id
+                                            ? 'border-accent-500 text-accent-600'
+                                            : 'border-transparent text-muted hover:text-heading hover:border-line'
+                                    }`}
+                                >
+                                    <TabIcon className="h-4 w-4" />
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                    </nav>
+                </div>
 
-                <SettingsCard title="Feedback & Support" icon={Bug} description="Report bugs or request features">
-                    {feedbackContent}
-                </SettingsCard>
+                {activeTab === 'hub' && (
+                    <div className="space-y-6">
+                        <SettingsCard title="Hub Information" icon={Info} description="Basic information about your hub">
+                            {hubInfoContent()}
+                        </SettingsCard>
+
+                        <SettingsCard title="Feedback & Support" icon={Bug} description="Report bugs or request features">
+                            {feedbackContent}
+                        </SettingsCard>
+                    </div>
+                )}
+
+                {activeTab === 'announcements' && (
+                    <AnnouncementHistorySection />
+                )}
             </div>
         );
     }
@@ -592,15 +657,28 @@ export function Settings() {
                     <SettingsCard title="Permissions" icon={Shield} description="Control what each role can access">
                         <PermissionsSection permissions={permissions} setPermissions={setPermissions} bare />
                     </SettingsCard>
+
+                    {currentRole === 'owner' && (
+                        <SettingsCard title="Member Roles" icon={Users} description="Change roles for hub members">
+                            <MemberRolesSection />
+                        </SettingsCard>
+                    )}
                 </div>
             )}
 
-            {/* Always visible below tabs */}
-            <SettingsCard title="Feedback & Support" icon={Bug} description="Report bugs or request features">
-                {feedbackContent}
-            </SettingsCard>
+            {/* Announcements Tab */}
+            {activeTab === 'announcements' && (
+                <AnnouncementHistorySection />
+            )}
 
-            {currentRole === 'owner' && hub && (
+            {/* Always visible below tabs */}
+            {activeTab !== 'announcements' && (
+                <SettingsCard title="Feedback & Support" icon={Bug} description="Report bugs or request features">
+                    {feedbackContent}
+                </SettingsCard>
+            )}
+
+            {currentRole === 'owner' && hub && activeTab !== 'announcements' && (
                 <SettingsCard title="Danger Zone" icon={AlertTriangle} description="Irreversible actions for your hub" variant="danger">
                     <div className="flex items-center justify-between p-4 bg-red-500/10 rounded-lg border border-red-500/20">
                         <div className="flex items-center gap-3">

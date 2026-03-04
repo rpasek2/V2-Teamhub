@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  Image,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
@@ -102,9 +103,11 @@ export default function RegisterScreen() {
           keyboardShouldPersistTaps="handled"
         >
         <View style={styles.header}>
-          <View style={[styles.logoContainer, { backgroundColor: t.primary }]}>
-            <Text style={styles.logoText}>Gym{'\n'}TeamHub</Text>
-          </View>
+          <Image
+            source={require('../../assets/images/teamhub-logo.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={[styles.title, { color: t.text }]}>Create account</Text>
           <Text style={[styles.subtitle, { color: t.textMuted }]}>Join your team on Gym TeamHub</Text>
         </View>
@@ -234,19 +237,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 32,
   },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 20,
-    backgroundColor: colors.brand[600],
-    alignItems: 'center',
-    justifyContent: 'center',
+  logo: {
+    width: 120,
+    height: 120,
     marginBottom: 24,
-  },
-  logoText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.white,
   },
   title: {
     fontSize: 28,

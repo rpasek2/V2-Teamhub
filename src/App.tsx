@@ -1,5 +1,6 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { lazy, Suspense, Component } from 'react';
+import type { ReactNode, ErrorInfo } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -38,8 +39,53 @@ const ResetPassword = lazy(() => import('./pages/auth/ResetPassword').then(m => 
 const Settings = lazy(() => import('./pages/Settings').then(m => ({ default: m.Settings })));
 const UserSettings = lazy(() => import('./pages/UserSettings').then(m => ({ default: m.UserSettings })));
 
+function NotFound() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-surface p-4">
+      <div className="text-center">
+        <h1 className="text-6xl font-bold text-heading mb-2">404</h1>
+        <p className="text-lg text-body mb-6">Page not found</p>
+        <Link to="/" className="btn-primary inline-flex">Go Home</Link>
+      </div>
+    </div>
+  );
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('ErrorBoundary caught:', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-surface p-4">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-heading mb-2">Something went wrong</h1>
+            <p className="text-body mb-6">An unexpected error occurred. Please try refreshing the page.</p>
+            <button onClick={() => window.location.reload()} className="btn-primary">
+              Refresh Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   return (
+    <ErrorBoundary>
     <AuthProvider>
       <ThemeProvider>
       <Router>
@@ -85,11 +131,15 @@ function App() {
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
+
+            {/* 404 catch-all */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </Router>
       </ThemeProvider>
     </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

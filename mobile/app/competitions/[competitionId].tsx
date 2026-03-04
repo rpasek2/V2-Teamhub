@@ -17,6 +17,8 @@ import {
   Users,
   Clock,
   ExternalLink,
+  Award,
+  Medal,
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
 import * as Linking from 'expo-linking';
@@ -41,6 +43,12 @@ import { CreateSessionModal } from '../../src/components/competitions/CreateSess
 import { AssignSessionGymnastsModal } from '../../src/components/competitions/AssignSessionGymnastsModal';
 
 type TabType = 'roster' | 'sessions';
+
+const CHAMPIONSHIP_BADGE: Record<string, { Icon: typeof Award; label: string; bgColor: (isDark: boolean) => string; textColor: (isDark: boolean) => string }> = {
+  state: { Icon: Award, label: 'State Championship', bgColor: (d) => d ? colors.blue[700] + '30' : colors.blue[100], textColor: (d) => d ? colors.blue[400] : colors.blue[700] },
+  regional: { Icon: Medal, label: 'Regional Championship', bgColor: (d) => d ? colors.purple[700] + '30' : colors.purple[100], textColor: (d) => d ? colors.purple[400] : colors.purple[700] },
+  national: { Icon: Trophy, label: 'National Championship', bgColor: (d) => d ? colors.amber[700] + '30' : colors.amber[100], textColor: (d) => d ? colors.amber[500] : colors.amber[700] },
+};
 
 export default function CompetitionDetailsScreen() {
   const { t, isDark } = useTheme();
@@ -89,7 +97,7 @@ export default function CompetitionDetailsScreen() {
 
     const { data, error } = await supabase
       .from('competitions')
-      .select('id, hub_id, name, start_date, end_date, location')
+      .select('id, hub_id, name, start_date, end_date, location, championship_type')
       .eq('id', competitionId)
       .single();
 
@@ -335,6 +343,16 @@ export default function CompetitionDetailsScreen() {
         </View>
         <View style={styles.headerInfo}>
           <Text style={[styles.competitionName, { color: t.text }]}>{competition.name}</Text>
+          {competition.championship_type && CHAMPIONSHIP_BADGE[competition.championship_type] && (() => {
+            const badge = CHAMPIONSHIP_BADGE[competition.championship_type!];
+            const BadgeIcon = badge.Icon;
+            return (
+              <View style={[styles.championshipBadge, { backgroundColor: badge.bgColor(isDark) }]}>
+                <BadgeIcon size={12} color={badge.textColor(isDark)} />
+                <Text style={[styles.championshipBadgeText, { color: badge.textColor(isDark) }]}>{badge.label}</Text>
+              </View>
+            );
+          })()}
           <View style={styles.headerDetails}>
             <View style={styles.detailRow}>
               <Calendar size={14} color={t.textFaint} />
@@ -572,5 +590,19 @@ const styles = StyleSheet.create({
   // Content
   content: {
     flex: 1,
+  },
+  championshipBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    marginTop: 4,
+  },
+  championshipBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

@@ -25,19 +25,19 @@ const BADGE_CONFIG: Record<QualifyingLevel, {
         title: 'State Qualifier'
     },
     regional: {
-        icon: Trophy,
+        icon: Medal,
         label: 'Regional',
         shortLabel: 'R',
-        bgColor: 'bg-amber-500/15',
-        textColor: 'text-amber-600',
+        bgColor: 'bg-purple-500/15',
+        textColor: 'text-purple-600',
         title: 'Regional Qualifier'
     },
     national: {
-        icon: Medal,
+        icon: Trophy,
         label: 'National',
         shortLabel: 'N',
-        bgColor: 'bg-purple-500/15',
-        textColor: 'text-purple-600',
+        bgColor: 'bg-amber-500/15',
+        textColor: 'text-amber-600',
         title: 'National Qualifier'
     }
 };

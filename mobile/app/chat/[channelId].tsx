@@ -10,10 +10,18 @@ import {
   ActivityIndicator,
   Keyboard,
   Animated,
+  Image,
+  ScrollView,
+  ActionSheetIOS,
+  Alert,
+  Linking,
+  Dimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { Send, Hash, User } from 'lucide-react-native';
+import { Send, Hash, User, Plus, X, FileText } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as DocumentPicker from 'expo-document-picker';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
@@ -22,9 +30,28 @@ import { useNotificationStore } from '../../src/stores/notificationStore';
 import { useHubStore } from '../../src/stores/hubStore';
 import { format, parseISO, isToday, isYesterday } from 'date-fns';
 
+interface FileAttachment {
+  url: string;
+  name: string;
+  size: number;
+  mimeType: string;
+}
+
+type MessageAttachment =
+  | { type: 'images'; urls: string[] }
+  | { type: 'files'; files: FileAttachment[] };
+
+interface PendingFile {
+  uri: string;
+  name: string;
+  size: number;
+  mimeType: string;
+}
+
 interface Message {
   id: string;
   content: string;
+  attachments?: MessageAttachment[];
   created_at: string;
   user_id: string;
   profiles?: {
@@ -59,6 +86,8 @@ export default function ChatScreen() {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [pendingImages, setPendingImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 
   // Keyboard height animation
   const keyboardHeight = useRef(new Animated.Value(0)).current;
@@ -120,7 +149,7 @@ export default function ChatScreen() {
             // Fetch the full message with profile
             const { data } = await supabase
               .from('messages')
-              .select('*, profiles(full_name, email)')
+              .select('*, attachments, profiles(full_name, email)')
               .eq('id', payload.new.id)
               .single();
 
@@ -129,6 +158,18 @@ export default function ChatScreen() {
               // Mark as read since user is viewing
               markChannelAsRead();
             }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'DELETE',
+            schema: 'public',
+            table: 'messages',
+            filter: `channel_id=eq.${channelId}`,
+          },
+          (payload) => {
+            setMessages((prev) => prev.filter(m => m.id !== payload.old.id));
           }
         )
         .subscribe();
@@ -195,7 +236,7 @@ export default function ChatScreen() {
 
     const { data, error } = await supabase
       .from('messages')
-      .select('*, profiles(full_name, email)')
+      .select('*, attachments, profiles(full_name, email)')
       .eq('channel_id', channelId)
       .order('created_at', { ascending: false });
 
@@ -224,26 +265,210 @@ export default function ChatScreen() {
     }
   };
 
+  const pickImages = async () => {
+    const remaining = 5 - pendingImages.length;
+    if (remaining <= 0) return;
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Please allow photo library access in Settings to attach images.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: remaining,
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setPendingImages(prev => [...prev, ...result.assets]);
+    }
+  };
+
+  const takePhoto = async () => {
+    if (pendingImages.length >= 5) return;
+
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission required', 'Please allow camera access in Settings to take photos.');
+      return;
+    }
+
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.8,
+    });
+
+    if (!result.canceled) {
+      setPendingImages(prev => [...prev, ...result.assets]);
+    }
+  };
+
+  const pickFiles = async () => {
+    const remaining = 3 - pendingFiles.length;
+    if (remaining <= 0) return;
+
+    const result = await DocumentPicker.getDocumentAsync({
+      type: [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-excel',
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'text/plain',
+        'text/csv',
+      ],
+      multiple: true,
+    });
+
+    if (!result.canceled) {
+      const toAdd = result.assets.slice(0, remaining).map(a => ({
+        uri: a.uri,
+        name: a.name,
+        size: a.size || 0,
+        mimeType: a.mimeType || 'application/octet-stream',
+      }));
+      setPendingFiles(prev => [...prev, ...toAdd]);
+    }
+  };
+
+  const showAttachMenu = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['Cancel', 'Photo Library', 'Take Photo', 'File'],
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1) pickImages();
+          if (buttonIndex === 2) takePhoto();
+          if (buttonIndex === 3) pickFiles();
+        }
+      );
+    } else {
+      Alert.alert('Attach', 'Choose attachment type', [
+        { text: 'Photo Library', onPress: pickImages },
+        { text: 'Take Photo', onPress: takePhoto },
+        { text: 'File', onPress: pickFiles },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
+
+  const generateSecureName = (name: string) => {
+    const ext = name.split('.').pop()?.toLowerCase() || '';
+    return `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
+  };
+
+  const deleteMessage = (messageId: string) => {
+    Alert.alert('Delete Message', 'Are you sure you want to delete this message?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          const { error } = await supabase
+            .from('messages')
+            .delete()
+            .eq('id', messageId);
+          if (error) {
+            console.error('Error deleting message:', error);
+            return;
+          }
+          setMessages(prev => prev.filter(m => m.id !== messageId));
+        },
+      },
+    ]);
+  };
+
   const sendMessage = async () => {
-    if (!newMessage.trim() || !channelId || !user || sending) return;
+    const hasText = newMessage.trim().length > 0;
+    const hasAttachments = pendingImages.length > 0 || pendingFiles.length > 0;
+    if ((!hasText && !hasAttachments) || !channelId || !user || sending) return;
 
     const content = newMessage.trim();
+    const savedImages = [...pendingImages];
+    const savedFiles = [...pendingFiles];
     setNewMessage('');
     setSending(true);
+
+    const attachments: MessageAttachment[] = [];
+
+    if (hasAttachments) {
+      try {
+        // Upload images
+        if (pendingImages.length > 0) {
+          const imageUrls: string[] = [];
+          for (const img of pendingImages) {
+            const fileName = generateSecureName(img.uri.split('/').pop() || 'image.jpg');
+            const filePath = `messages/${channelId}/${fileName}`;
+
+            const response = await fetch(img.uri);
+            const blob = await response.blob();
+
+            const { error: uploadErr } = await supabase.storage
+              .from('post-attachments')
+              .upload(filePath, blob, { cacheControl: '3600', contentType: img.mimeType || 'image/jpeg' });
+            if (uploadErr) throw uploadErr;
+
+            const { data: { publicUrl } } = supabase.storage
+              .from('post-attachments')
+              .getPublicUrl(filePath);
+            imageUrls.push(publicUrl);
+          }
+          attachments.push({ type: 'images', urls: imageUrls });
+        }
+
+        // Upload files
+        if (pendingFiles.length > 0) {
+          const fileAttachments: FileAttachment[] = [];
+          for (const file of pendingFiles) {
+            const fileName = generateSecureName(file.name);
+            const filePath = `messages/${channelId}/files/${fileName}`;
+
+            const response = await fetch(file.uri);
+            const blob = await response.blob();
+
+            const { error: uploadErr } = await supabase.storage
+              .from('post-attachments')
+              .upload(filePath, blob, { cacheControl: '3600', contentType: file.mimeType });
+            if (uploadErr) throw uploadErr;
+
+            const { data: { publicUrl } } = supabase.storage
+              .from('post-attachments')
+              .getPublicUrl(filePath);
+            fileAttachments.push({ url: publicUrl, name: file.name, size: file.size, mimeType: file.mimeType });
+          }
+          attachments.push({ type: 'files', files: fileAttachments });
+        }
+      } catch (err) {
+        console.error('Error uploading attachments:', err);
+        setNewMessage(content);
+        setSending(false);
+        return;
+      }
+      setPendingImages([]);
+      setPendingFiles([]);
+    }
 
     const { error } = await supabase.from('messages').insert([
       {
         channel_id: channelId,
         user_id: user.id,
         content: content,
+        ...(attachments.length > 0 ? { attachments } : {}),
       },
     ]);
 
     if (error) {
       console.error('Error sending message:', error);
-      setNewMessage(content); // Restore message on error
+      setNewMessage(content);
+      if (hasAttachments) {
+        setPendingImages(savedImages);
+        setPendingFiles(savedFiles);
+      }
     } else {
-      // Mark as read after sending so badge clears on messages list
       markChannelAsRead();
     }
     setSending(false);
@@ -327,11 +552,55 @@ export default function ChatScreen() {
                 <Text style={[styles.messageTime, { color: t.textFaint }]}>{formatMessageTime(item.created_at)}</Text>
               </View>
             )}
-            <View style={[styles.messageBubble, isMe ? [styles.messageBubbleMe, { backgroundColor: t.primary }] : [styles.messageBubbleOther, { backgroundColor: t.surface, borderColor: t.border }]]}>
-              <Text style={[styles.messageText, { color: t.textSecondary }, isMe && styles.messageTextMe]}>
-                {item.content}
-              </Text>
-            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onLongPress={isMe ? () => deleteMessage(item.id) : undefined}
+              style={[styles.messageBubble, isMe ? [styles.messageBubbleMe, { backgroundColor: t.primary }] : [styles.messageBubbleOther, { backgroundColor: t.surface, borderColor: t.border }]]}
+            >
+              {item.content ? (
+                <Text style={[styles.messageText, { color: t.textSecondary }, isMe && styles.messageTextMe]}>
+                  {item.content}
+                </Text>
+              ) : null}
+              {item.attachments?.map((att, ai) => {
+                if (att.type === 'images') {
+                  const screenW = Dimensions.get('window').width;
+                  const maxW = screenW * 0.6;
+                  return (
+                    <View key={ai} style={item.content ? { marginTop: 8 } : undefined}>
+                      {att.urls.map((url, ui) => (
+                        <TouchableOpacity key={ui} onPress={() => Linking.openURL(url).catch(() => Alert.alert('Error', 'Unable to open this image.'))} activeOpacity={0.8}>
+                          <Image
+                            source={{ uri: url }}
+                            style={{ width: maxW, height: maxW * 0.75, borderRadius: 10, marginTop: ui > 0 ? 4 : 0 }}
+                            resizeMode="cover"
+                          />
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  );
+                }
+                if (att.type === 'files') {
+                  return (
+                    <View key={ai} style={item.content ? { marginTop: 8 } : undefined}>
+                      {att.files.map((file, fi) => (
+                        <TouchableOpacity
+                          key={fi}
+                          style={[styles.filePill, { backgroundColor: isMe ? 'rgba(255,255,255,0.15)' : t.surfaceSecondary }]}
+                          onPress={() => Linking.openURL(file.url).catch(() => Alert.alert('Error', 'Unable to open this file.'))}
+                        >
+                          <FileText size={14} color={isMe ? colors.white : t.textMuted} />
+                          <Text style={[styles.fileName, { color: isMe ? colors.white : t.text }]} numberOfLines={1}>
+                            {file.name}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  );
+                }
+                return null;
+              })}
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -393,30 +662,68 @@ export default function ChatScreen() {
           },
         ]}
       >
-        <TextInput
-          style={[styles.input, { color: t.text, backgroundColor: t.surfaceSecondary }]}
-          value={newMessage}
-          onChangeText={setNewMessage}
-          placeholder={
-            channel?.dm_participant_ids
-              ? `Message ${channel.dm_other_user?.full_name || 'user'}`
-              : `Message #${channel?.name || 'channel'}`
-          }
-          placeholderTextColor={t.textFaint}
-          multiline
-          maxLength={2000}
-        />
-        <TouchableOpacity
-          style={[styles.sendButton, { backgroundColor: t.primary }, (!newMessage.trim() || sending) && styles.sendButtonDisabled]}
-          onPress={sendMessage}
-          disabled={!newMessage.trim() || sending}
-        >
-          {sending ? (
-            <ActivityIndicator size="small" color={colors.white} />
-          ) : (
-            <Send size={20} color={colors.white} />
-          )}
-        </TouchableOpacity>
+        {/* Attachment preview strip */}
+        {(pendingImages.length > 0 || pendingFiles.length > 0) && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.previewStrip} contentContainerStyle={{ gap: 8 }}>
+            {pendingImages.map((img, i) => (
+              <View key={`img-${i}`} style={styles.previewItem}>
+                <Image source={{ uri: img.uri }} style={styles.previewImage} />
+                <TouchableOpacity
+                  style={styles.previewRemove}
+                  onPress={() => setPendingImages(prev => prev.filter((_, idx) => idx !== i))}
+                >
+                  <X size={10} color={colors.white} />
+                </TouchableOpacity>
+              </View>
+            ))}
+            {pendingFiles.map((file, i) => (
+              <View key={`file-${i}`} style={[styles.previewFilePill, { backgroundColor: t.surfaceSecondary }]}>
+                <FileText size={12} color={t.textMuted} />
+                <Text style={[styles.previewFileName, { color: t.text }]} numberOfLines={1}>{file.name}</Text>
+                <TouchableOpacity onPress={() => setPendingFiles(prev => prev.filter((_, idx) => idx !== i))}>
+                  <X size={12} color={t.textFaint} />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </ScrollView>
+        )}
+
+        <View style={styles.inputRow}>
+          {/* Attach button */}
+          <TouchableOpacity style={styles.attachButton} onPress={showAttachMenu}>
+            <Plus size={22} color={t.textMuted} />
+          </TouchableOpacity>
+
+          <TextInput
+            style={[styles.input, { color: t.text, backgroundColor: t.surfaceSecondary }]}
+            value={newMessage}
+            onChangeText={setNewMessage}
+            placeholder={
+              channel?.dm_participant_ids
+                ? `Message ${channel.dm_other_user?.full_name || 'user'}`
+                : `Message #${channel?.name || 'channel'}`
+            }
+            placeholderTextColor={t.textFaint}
+            multiline
+            maxLength={2000}
+            editable={!sending}
+          />
+          <TouchableOpacity
+            style={[
+              styles.sendButton,
+              { backgroundColor: t.primary },
+              (!newMessage.trim() && pendingImages.length === 0 && pendingFiles.length === 0 || sending) && styles.sendButtonDisabled,
+            ]}
+            onPress={sendMessage}
+            disabled={(!newMessage.trim() && pendingImages.length === 0 && pendingFiles.length === 0) || sending}
+          >
+            {sending ? (
+              <ActivityIndicator size="small" color={colors.white} />
+            ) : (
+              <Send size={20} color={colors.white} />
+            )}
+          </TouchableOpacity>
+        </View>
       </Animated.View>
     </View>
   );
@@ -544,13 +851,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingTop: 12,
+    paddingTop: 8,
     paddingHorizontal: 12,
     backgroundColor: colors.white,
     borderTopWidth: 1,
     borderTopColor: colors.slate[200],
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+  },
+  attachButton: {
+    width: 36,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
   },
   input: {
     flex: 1,
@@ -574,5 +890,57 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     backgroundColor: colors.slate[300],
+  },
+  // Attachment preview
+  previewStrip: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  previewItem: {
+    position: 'relative',
+  },
+  previewImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+  },
+  previewRemove: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: colors.red[500],
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  previewFilePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    maxWidth: 180,
+  },
+  previewFileName: {
+    fontSize: 12,
+    flex: 1,
+  },
+  // Message attachment styles
+  filePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 4,
+    maxWidth: 200,
+  },
+  fileName: {
+    fontSize: 13,
+    flex: 1,
   },
 });

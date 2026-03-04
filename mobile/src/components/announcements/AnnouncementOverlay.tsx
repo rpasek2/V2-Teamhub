@@ -63,14 +63,16 @@ export function AnnouncementOverlay() {
 
         const items: PendingItem[] = (data || [])
             .filter(r => {
-                const a = r.announcements as Record<string, unknown>;
+                const arr = r.announcements;
+                const a = Array.isArray(arr) ? arr[0] : arr;
                 if (!a || !a.is_active) return false;
                 if (a.hub_id !== currentHub.id) return false;
                 if (a.expires_at && new Date(a.expires_at as string) < new Date()) return false;
                 return true;
             })
             .map(r => {
-                const a = r.announcements as Record<string, unknown>;
+                const arr = r.announcements;
+                const a = Array.isArray(arr) ? arr[0] : arr;
                 return {
                     recipient_id: r.id,
                     id: a.id as string,

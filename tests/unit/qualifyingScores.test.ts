@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { getQualifyingLevels, getQualifyingThresholds, hasQualifyingScoresConfigured } from './qualifyingScores';
-import type { QualifyingScoresConfig } from '../types';
+import { getQualifyingLevels, getQualifyingThresholds, hasQualifyingScoresConfigured } from '../../src/lib/qualifyingScores';
+import type { QualifyingScoresConfig } from '../../src/types';
 
 const mockQualifyingScores: QualifyingScoresConfig = {
     Female: {

@@ -24,6 +24,7 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
     const [editing, setEditing] = useState(false);
     const [value, setValue] = useState('');
     const [saving, setSaving] = useState(false);
+    const [cellError, setCellError] = useState<string | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -58,7 +59,8 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
             const placementNum = value ? parseInt(value) : null;
 
             if (placementNum !== null && (isNaN(placementNum) || placementNum < 1)) {
-                alert('Placement must be a positive number');
+                setCellError('Must be positive');
+                setTimeout(() => setCellError(null), 3000);
                 setSaving(false);
                 return;
             }
@@ -108,7 +110,8 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
             setEditing(false);
         } catch (err) {
             console.error('Error saving team placement:', err);
-            alert('Failed to save. Please try again.');
+            setCellError('Failed to save');
+            setTimeout(() => setCellError(null), 3000);
         } finally {
             setSaving(false);
         }
@@ -125,6 +128,12 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
     const handleBlur = () => {
         handleSave();
     };
+
+    if (cellError) {
+        return (
+            <span className="text-xs text-red-600 font-medium">{cellError}</span>
+        );
+    }
 
     if (editing) {
         return (

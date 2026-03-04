@@ -610,13 +610,17 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
         }
     };
 
+    const [confirmRemove, setConfirmRemove] = useState(false);
+
     const handleDelete = async () => {
         if (!initialData || !hub) return;
 
-        if (!window.confirm('Are you sure you want to remove this member? This action cannot be undone.')) {
+        if (!confirmRemove) {
+            setConfirmRemove(true);
             return;
         }
 
+        setConfirmRemove(false);
         setLoading(true);
         setError(null);
 
@@ -1135,7 +1139,7 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
 
                                 {/* Action Buttons */}
                                 <div className="flex items-center gap-3 pt-2 pb-4 sticky bottom-0 bg-surface border-t border-line -mx-6 px-6 mt-6">
-                                    {initialData && (
+                                    {initialData && !confirmRemove && (
                                         <button
                                             type="button"
                                             onClick={handleDelete}
@@ -1145,6 +1149,12 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                             <Trash2 className="h-4 w-4 mr-2" />
                                             Delete
                                         </button>
+                                    )}
+                                    {confirmRemove && (
+                                        <div className="flex items-center gap-2">
+                                            <button type="button" onClick={handleDelete} disabled={loading} className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50">Confirm Delete</button>
+                                            <button type="button" onClick={() => setConfirmRemove(false)} className="px-3 py-2 text-sm font-medium text-body bg-surface border border-line rounded-lg hover:bg-surface-hover">Cancel</button>
+                                        </div>
                                     )}
                                     <div className="flex-1" />
                                     <button
@@ -1216,7 +1226,7 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                             )}
 
                             <div className="flex justify-end space-x-3 pt-4">
-                                {initialData && (
+                                {initialData && !confirmRemove && (
                                     <button
                                         type="button"
                                         onClick={handleDelete}
@@ -1226,6 +1236,12 @@ export function AddMemberModal({ isOpen, onClose, onMemberAdded, initialData }: 
                                         <Trash2 className="h-4 w-4 mr-2 inline-block" />
                                         Delete
                                     </button>
+                                )}
+                                {confirmRemove && (
+                                    <div className="flex items-center gap-2 mr-auto">
+                                        <button type="button" onClick={handleDelete} disabled={loading} className="px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50">Confirm Delete</button>
+                                        <button type="button" onClick={() => setConfirmRemove(false)} className="px-3 py-2 text-sm font-medium text-body bg-surface border border-line rounded-lg hover:bg-surface-hover">Cancel</button>
+                                    </div>
                                 )}
                                 <button
                                     type="button"

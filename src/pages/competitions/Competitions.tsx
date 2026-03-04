@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trophy, MapPin, Calendar, Trash2, Loader2, ExternalLink, Clock } from 'lucide-react';
+import { Plus, Trophy, MapPin, Calendar, Trash2, Loader2, ExternalLink, Clock, Award, Medal } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { format, parseISO, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { supabase } from '../../lib/supabase';
@@ -27,6 +27,12 @@ const getCompetitionStatus = (startDate: string, endDate: string): CompetitionSt
     }
 };
 
+const CHAMPIONSHIP_BADGE: Record<string, { icon: typeof Award; label: string; color: string }> = {
+    state: { icon: Award, label: 'State Championship', color: 'bg-blue-500/15 text-blue-600' },
+    regional: { icon: Medal, label: 'Regional Championship', color: 'bg-purple-500/15 text-purple-600' },
+    national: { icon: Trophy, label: 'National Championship', color: 'bg-amber-500/15 text-amber-600' },
+};
+
 // Helper function to create Google Maps URL from location
 const getGoogleMapsUrl = (location: string): string => {
     const encoded = encodeURIComponent(location);
@@ -43,7 +49,7 @@ export function Competitions() {
     const { markAsViewed } = useNotifications();
     const { isStaff, canManage } = useRoleChecks();
     const [competitions, setCompetitions] = useState<CompetitionWithCount[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
@@ -62,6 +68,7 @@ export function Competitions() {
             fetchCompetitions();
         }
     }, [hub, selectedSeasonId]);
+
 
     const fetchCompetitions = async () => {
         if (!hub || !selectedSeasonId) return;
@@ -209,6 +216,17 @@ export function Competitions() {
                                             <Trophy className="h-5 w-5" />
                                         </div>
                                         <div className="flex items-center gap-2">
+                                            {/* Championship type badge */}
+                                            {comp.championship_type && CHAMPIONSHIP_BADGE[comp.championship_type] && (() => {
+                                                const badge = CHAMPIONSHIP_BADGE[comp.championship_type!];
+                                                const Icon = badge.icon;
+                                                return (
+                                                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${badge.color}`}>
+                                                        <Icon className="h-3 w-3" />
+                                                        {badge.label}
+                                                    </span>
+                                                );
+                                            })()}
                                             {/* Status badge */}
                                             {isPast && (
                                                 <span className="inline-flex items-center rounded-full bg-surface-active px-2 py-0.5 text-xs font-medium text-muted">

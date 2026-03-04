@@ -24,7 +24,7 @@ export function Scores() {
     const [competitions, setCompetitions] = useState<CompetitionWithGymnasts[]>([]);
     const [selectedCompetition, setSelectedCompetition] = useState<CompetitionWithGymnasts | null>(null);
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [scores, setScores] = useState<CompetitionScore[]>([]);
     const [teamPlacements, setTeamPlacements] = useState<CompetitionTeamPlacement[]>([]);
