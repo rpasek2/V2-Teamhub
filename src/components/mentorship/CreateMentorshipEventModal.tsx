@@ -22,6 +22,7 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
     const [location, setLocation] = useState('');
+    const [isDueDate, setIsDueDate] = useState(false);
 
     const resetForm = () => {
         setTitle('');
@@ -30,6 +31,7 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
         setStartTime('');
         setEndTime('');
         setLocation('');
+        setIsDueDate(false);
         setError(null);
     };
 
@@ -49,13 +51,21 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
         setLoading(true);
         setError(null);
 
-        // Create calendar event with type 'mentorship'
-        const startDateTime = startTime
-            ? new Date(`${eventDate}T${startTime}`)
-            : new Date(`${eventDate}T09:00`);
-        const endDateTime = endTime
-            ? new Date(`${eventDate}T${endTime}`)
-            : new Date(`${eventDate}T10:00`);
+        let startDateTime: Date;
+        let endDateTime: Date;
+
+        if (isDueDate) {
+            // All-day event: midnight to midnight
+            startDateTime = new Date(`${eventDate}T00:00`);
+            endDateTime = new Date(`${eventDate}T23:59`);
+        } else {
+            startDateTime = startTime
+                ? new Date(`${eventDate}T${startTime}`)
+                : new Date(`${eventDate}T09:00`);
+            endDateTime = endTime
+                ? new Date(`${eventDate}T${endTime}`)
+                : new Date(`${eventDate}T10:00`);
+        }
 
         const { error: insertError } = await supabase
             .from('events')
@@ -68,6 +78,7 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                 location: location.trim() || null,
                 type: 'mentorship',
                 rsvp_enabled: false,
+                is_all_day: isDueDate,
                 created_by: user?.id
             });
 
@@ -116,10 +127,33 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                     />
                 </div>
 
+                {/* Due Date Toggle */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <span className="text-sm font-medium text-body">Due Date</span>
+                        <p className="text-xs text-muted">No specific time, just a deadline</p>
+                    </div>
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isDueDate}
+                        onClick={() => setIsDueDate(!isDueDate)}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 ${
+                            isDueDate ? 'bg-pink-500' : 'bg-surface-active'
+                        }`}
+                    >
+                        <span
+                            className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
+                                isDueDate ? 'translate-x-5' : 'translate-x-0'
+                            }`}
+                        />
+                    </button>
+                </div>
+
                 {/* Date */}
                 <div>
                     <label htmlFor="eventDate" className="block text-sm font-medium text-body mb-1">
-                        Date *
+                        {isDueDate ? 'Due Date *' : 'Date *'}
                     </label>
                     <input
                         type="date"
@@ -131,33 +165,35 @@ export function CreateMentorshipEventModal({ isOpen, onClose, onCreated, hubId }
                     />
                 </div>
 
-                {/* Time */}
-                <div className="grid grid-cols-2 gap-4">
-                    <div>
-                        <label htmlFor="startTime" className="block text-sm font-medium text-body mb-1">
-                            Start Time
-                        </label>
-                        <input
-                            type="time"
-                            id="startTime"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                            className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
-                        />
+                {/* Time - hidden when due date */}
+                {!isDueDate && (
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label htmlFor="startTime" className="block text-sm font-medium text-body mb-1">
+                                Start Time
+                            </label>
+                            <input
+                                type="time"
+                                id="startTime"
+                                value={startTime}
+                                onChange={(e) => setStartTime(e.target.value)}
+                                className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="endTime" className="block text-sm font-medium text-body mb-1">
+                                End Time
+                            </label>
+                            <input
+                                type="time"
+                                id="endTime"
+                                value={endTime}
+                                onChange={(e) => setEndTime(e.target.value)}
+                                className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
+                            />
+                        </div>
                     </div>
-                    <div>
-                        <label htmlFor="endTime" className="block text-sm font-medium text-body mb-1">
-                            End Time
-                        </label>
-                        <input
-                            type="time"
-                            id="endTime"
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                            className="w-full px-3 py-2 bg-surface text-heading border border-line-strong rounded-lg focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent"
-                        />
-                    </div>
-                </div>
+                )}
 
                 {/* Location */}
                 <div>

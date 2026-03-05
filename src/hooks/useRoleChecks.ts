@@ -31,9 +31,9 @@ export function useRoleChecks(): RoleChecks {
         isAthlete: currentRole === 'athlete',
         // Staff includes owner, director, admin, and coach
         isStaff: ['owner', 'director', 'admin', 'coach'].includes(currentRole || ''),
-        // Can manage includes owner, director, and admin
-        canManage: ['owner', 'director', 'admin'].includes(currentRole || ''),
-        // Can edit includes all staff roles
-        canEdit: ['owner', 'director', 'admin', 'coach'].includes(currentRole || ''),
+        // Can manage includes owner and director (admin is view-only + messaging/groups/calendar/marketplace)
+        canManage: ['owner', 'director'].includes(currentRole || ''),
+        // Can edit includes owner, director, and coach (not admin)
+        canEdit: ['owner', 'director', 'coach'].includes(currentRole || ''),
     }), [currentRole]);
 }

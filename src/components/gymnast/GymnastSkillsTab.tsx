@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Loader2, MessageSquare, Check, X, Edit3 } from 'lucide-react';
+import { Sparkles, Loader2, MessageSquare, Check, X, Edit3, ChevronDown } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useAuth } from '../../context/AuthContext';
 import { useRoleChecks } from '../../hooks/useRoleChecks';
-import type { HubEventSkill, GymnastSkill, SkillStatus, SkillEvent, GymnastEventComment } from '../../types';
+import type { HubEventSkill, GymnastSkill, SkillStatus, SkillEvent, GymnastEventComment, SkillList } from '../../types';
 import { DEFAULT_WAG_SKILL_EVENTS, DEFAULT_MAG_SKILL_EVENTS, SKILL_STATUS_CONFIG } from '../../types';
 
 interface GymnastSkillsTabProps {
@@ -29,6 +29,8 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
     const [loading, setLoading] = useState(true);
     const [isEditingComment, setIsEditingComment] = useState(false);
     const [editingCommentText, setEditingCommentText] = useState('');
+    const [skillLists, setSkillLists] = useState<SkillList[]>([]);
+    const [selectedSkillListId, setSelectedSkillListId] = useState<string | null>(null);
 
     // Get events from hub settings or use defaults
     const getEventsForGender = (gender: 'Female' | 'Male'): SkillEvent[] => {
@@ -41,6 +43,26 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
 
     const events = getEventsForGender((gymnastGender || 'Female') as 'Female' | 'Male');
 
+    // Fetch skill lists for this hub (reset on hub change)
+    useEffect(() => {
+        if (hub) {
+            setSelectedSkillListId(null);
+            supabase
+                .from('skill_lists')
+                .select('id, hub_id, name, is_default, created_at, created_by')
+                .eq('hub_id', hub.id)
+                .order('is_default', { ascending: false })
+                .order('name', { ascending: true })
+                .then(({ data }) => {
+                    if (data) {
+                        setSkillLists(data);
+                        const defaultList = data.find(l => l.is_default);
+                        setSelectedSkillListId(defaultList?.id || data[0]?.id || null);
+                    }
+                });
+        }
+    }, [hub?.id]);
+
     // Set default event on mount
     useEffect(() => {
         if (events.length > 0 && !selectedEvent) {
@@ -48,12 +70,12 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
         }
     }, [events, selectedEvent]);
 
-    // Fetch skills when event changes
+    // Fetch skills when event or skill list changes
     useEffect(() => {
-        if (hub && gymnastLevel && selectedEvent) {
+        if (hub && gymnastLevel && selectedEvent && selectedSkillListId) {
             fetchSkills();
         }
-    }, [hub, gymnastLevel, selectedEvent]);
+    }, [hub, gymnastLevel, selectedEvent, selectedSkillListId]);
 
     // Fetch gymnast skill statuses
     useEffect(() => {
@@ -70,13 +92,14 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
     }, [hub, gymnastId, selectedEvent]);
 
     const fetchSkills = async () => {
-        if (!hub || !gymnastLevel || !selectedEvent) return;
+        if (!hub || !gymnastLevel || !selectedEvent || !selectedSkillListId) return;
         setLoading(true);
 
         const { data, error } = await supabase
             .from('hub_event_skills')
-            .select('id, hub_id, event, level, skill_name, skill_order')
+            .select('id, hub_id, skill_list_id, event, level, skill_name, skill_order')
             .eq('hub_id', hub.id)
+            .eq('skill_list_id', selectedSkillListId)
             .eq('level', gymnastLevel)
             .eq('event', selectedEvent)
             .order('skill_order', { ascending: true });
@@ -208,8 +231,8 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
 
     return (
         <div className="space-y-6">
-            {/* Event Tabs */}
-            <div className="flex flex-wrap gap-2">
+            {/* Event Tabs + Skill List Picker */}
+            <div className="flex flex-wrap items-center gap-2">
                 {events.map((event) => (
                     <button
                         key={event.id}
@@ -223,6 +246,27 @@ export function GymnastSkillsTab({ gymnastId, gymnastLevel, gymnastGender }: Gym
                         {event.fullName}
                     </button>
                 ))}
+
+                {/* Skill List Picker - far right */}
+                {skillLists.length > 1 && (
+                    <div className="ml-auto flex items-center gap-2">
+                        <label className="text-sm font-medium text-subtle whitespace-nowrap">Skill List</label>
+                        <div className="relative">
+                            <select
+                                value={selectedSkillListId || ''}
+                                onChange={(e) => setSelectedSkillListId(e.target.value)}
+                                className="block appearance-none rounded-lg border border-line-strong bg-surface py-2 pl-3 pr-8 text-sm font-medium text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                            >
+                                {skillLists.map(list => (
+                                    <option key={list.id} value={list.id}>
+                                        {list.name}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Loading State */}

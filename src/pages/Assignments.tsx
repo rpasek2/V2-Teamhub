@@ -17,7 +17,7 @@ type CoachTab = 'dashboard' | 'coach-mode' | 'templates';
 export function Assignments() {
     const { hub } = useHub();
     const { markAsViewed } = useNotifications();
-    const { isStaff } = useRoleChecks();
+    const { canEdit } = useRoleChecks();
     const [coachTab, setCoachTab] = useState<CoachTab>('dashboard');
     const [parentViewingAssignment, setParentViewingAssignment] = useState<GymnastAssignment | null>(null);
 
@@ -29,7 +29,7 @@ export function Assignments() {
     }, [hub, markAsViewed]);
 
     // Parent View
-    if (!isStaff) {
+    if (!canEdit) {
         if (parentViewingAssignment) {
             return (
                 <div className="animate-fade-in">

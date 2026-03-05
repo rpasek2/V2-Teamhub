@@ -293,6 +293,7 @@ export interface Event {
     rsvp_enabled: boolean;
     is_all_day: boolean;
     is_save_the_date: boolean;
+    staff_only: boolean;
     created_by: string;
     created_at: string;
 }
@@ -680,9 +681,19 @@ export interface MentorshipEvent {
 // Skills Types
 export type SkillStatus = 'none' | 'learning' | 'achieved' | 'mastered' | 'injured';
 
+export interface SkillList {
+    id: string;
+    hub_id: string;
+    name: string;
+    is_default: boolean;
+    created_at: string;
+    created_by: string | null;
+}
+
 export interface HubEventSkill {
     id: string;
     hub_id: string;
+    skill_list_id: string;
     level: string;
     event: string;
     skill_name: string;

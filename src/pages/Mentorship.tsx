@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { HeartHandshake, Plus, Search, Loader2, Calendar, Users, Shuffle } from 'lucide-react';
+import { HeartHandshake, Plus, Search, Loader2, Calendar, Users, Shuffle, Cake, Trophy } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
@@ -42,7 +42,7 @@ export interface GroupedPairing {
 export function Mentorship() {
     const { hubId } = useParams();
     const { hub, getPermissionScope, linkedGymnasts } = useHub();
-    const { isStaff } = useRoleChecks();
+    const { canEdit } = useRoleChecks();
 
     const [groupedPairings, setGroupedPairings] = useState<GroupedPairing[]>([]);
     const [events, setEvents] = useState<CalendarMentorshipEvent[]>([]);
@@ -326,24 +326,37 @@ export function Mentorship() {
                         <div className="p-4 border-b border-line">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-semibold text-heading">Pairings</h2>
-                                {isStaff && (
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setShowRandomAssignModal(true)}
-                                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-pink-600 bg-pink-500/10 border border-pink-500/20 rounded-lg hover:bg-pink-500/15"
-                                        >
-                                            <Shuffle className="h-4 w-4" />
-                                            Random Assign
-                                        </button>
-                                        <button
-                                            onClick={() => setShowCreatePairingModal(true)}
-                                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-pink-500 rounded-lg hover:bg-pink-600"
-                                        >
-                                            <Plus className="h-4 w-4" />
-                                            Create Pairing
-                                        </button>
+                                <div className="flex items-center gap-3">
+                                    {/* Icon Legend */}
+                                    <div className="flex items-center gap-3 text-xs text-muted">
+                                        <span className="flex items-center gap-1">
+                                            <Cake className="h-3 w-3 text-faint" />
+                                            Birthday
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                            <Trophy className="h-3 w-3 text-faint" />
+                                            Next Competition
+                                        </span>
                                     </div>
-                                )}
+                                    {canEdit && (
+                                        <>
+                                            <button
+                                                onClick={() => setShowRandomAssignModal(true)}
+                                                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-pink-600 bg-pink-500/10 border border-pink-500/20 rounded-lg hover:bg-pink-500/15"
+                                            >
+                                                <Shuffle className="h-4 w-4" />
+                                                Random Assign
+                                            </button>
+                                            <button
+                                                onClick={() => setShowCreatePairingModal(true)}
+                                                className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-pink-500 rounded-lg hover:bg-pink-600"
+                                            >
+                                                <Plus className="h-4 w-4" />
+                                                Create Pairing
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Search */}
@@ -366,7 +379,7 @@ export function Mentorship() {
                                     <HeartHandshake className="h-12 w-12 text-muted mx-auto mb-4" />
                                     <p className="text-faint">
                                         {visiblePairings.length === 0
-                                            ? (isStaff ? 'No pairings yet. Create your first Big/Little pairing!' : 'No pairings to display.')
+                                            ? (canEdit ? 'No pairings yet. Create your first Big/Little pairing!' : 'No pairings to display.')
                                             : 'No pairings match your search.'}
                                     </p>
                                 </div>
@@ -376,8 +389,8 @@ export function Mentorship() {
                                         <PairingCard
                                             key={group.big_gymnast_id}
                                             groupedPairing={group}
-                                            onDeleteLittle={isStaff ? handleDeleteLittle : undefined}
-                                            onDeleteGroup={isStaff ? handleDeleteGroup : undefined}
+                                            onDeleteLittle={canEdit ? handleDeleteLittle : undefined}
+                                            onDeleteGroup={canEdit ? handleDeleteGroup : undefined}
                                         />
                                     ))}
                                 </div>
@@ -393,7 +406,7 @@ export function Mentorship() {
                         <div className="p-4 border-b border-line">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-lg font-semibold text-heading">Upcoming Events</h2>
-                                {isStaff && (
+                                {canEdit && (
                                     <button
                                         onClick={() => setShowCreateEventModal(true)}
                                         className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-pink-500 rounded-lg hover:bg-pink-600"
@@ -417,7 +430,7 @@ export function Mentorship() {
                                     <MentorshipEventCard
                                         key={event.id}
                                         event={event}
-                                        onDelete={isStaff ? handleDeleteEvent : undefined}
+                                        onDelete={canEdit ? handleDeleteEvent : undefined}
                                     />
                                 ))
                             )}

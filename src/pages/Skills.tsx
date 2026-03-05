@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Sparkles, Settings2, LayoutGrid, ChevronDown } from 'lucide-react';
+import { Sparkles, Settings2, LayoutGrid, ChevronDown, ListChecks } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,14 +8,15 @@ import { useRoleChecks } from '../hooks/useRoleChecks';
 import { SkillsTable } from '../components/skills/SkillsTable';
 import { ManageSkillsModal } from '../components/skills/ManageSkillsModal';
 import { ManageEventsModal } from '../components/skills/ManageEventsModal';
-import type { GymnastProfile, HubEventSkill, GymnastSkill, SkillEvent, GymnastEventComment } from '../types';
+import { ManageSkillListsModal } from '../components/skills/ManageSkillListsModal';
+import type { GymnastProfile, HubEventSkill, GymnastSkill, SkillEvent, GymnastEventComment, SkillList } from '../types';
 import { DEFAULT_WAG_SKILL_EVENTS, DEFAULT_MAG_SKILL_EVENTS } from '../types';
 
 export function Skills() {
     const { hub, getPermissionScope, linkedGymnasts, refreshHub } = useHub();
     const { user } = useAuth();
     const { markAsViewed } = useNotifications();
-    const { isStaff, isParent } = useRoleChecks();
+    const { isParent, canEdit } = useRoleChecks();
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
     const [selectedLevel, setSelectedLevel] = useState<string>('');
     const [selectedEvent, setSelectedEvent] = useState<string>('');
@@ -27,7 +28,10 @@ export function Skills() {
     const [error, setError] = useState<string | null>(null);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const [isManageEventsModalOpen, setIsManageEventsModalOpen] = useState(false);
+    const [isManageListsModalOpen, setIsManageListsModalOpen] = useState(false);
     const [selectedGymnastId, setSelectedGymnastId] = useState<string | null>(null);
+    const [skillLists, setSkillLists] = useState<SkillList[]>([]);
+    const [selectedSkillListId, setSelectedSkillListId] = useState<string>('');
     const levels = hub?.settings?.levels || [];
 
     // Auto-select first gymnast for parents with multiple kids
@@ -108,6 +112,14 @@ export function Skills() {
         }
     }, [isParent, parentEvents, selectedEvent]);
 
+    // Fetch skill lists when hub loads (reset on hub change)
+    useEffect(() => {
+        if (hub) {
+            setSelectedSkillListId('');
+            fetchSkillLists();
+        }
+    }, [hub?.id]);
+
     // Fetch gymnasts for selected level and gender
     useEffect(() => {
         if (hub && selectedLevel) {
@@ -115,12 +127,12 @@ export function Skills() {
         }
     }, [hub, selectedLevel, activeGender]);
 
-    // Fetch skills for selected level and event
+    // Fetch skills for selected level, event, and skill list
     useEffect(() => {
-        if (hub && selectedLevel && selectedEvent) {
+        if (hub && selectedLevel && selectedEvent && selectedSkillListId) {
             fetchSkills();
         }
-    }, [hub, selectedLevel, selectedEvent]);
+    }, [hub, selectedLevel, selectedEvent, selectedSkillListId]);
 
     // Fetch gymnast skill statuses when gymnasts or skills change
     useEffect(() => {
@@ -139,6 +151,28 @@ export function Skills() {
             setEventComments([]);
         }
     }, [hub, selectedEvent, gymnasts]);
+
+    const fetchSkillLists = async () => {
+        if (!hub) return;
+
+        const { data, error: fetchError } = await supabase
+            .from('skill_lists')
+            .select('id, hub_id, name, is_default, created_at, created_by')
+            .eq('hub_id', hub.id)
+            .order('is_default', { ascending: false })
+            .order('name', { ascending: true });
+
+        if (fetchError) {
+            console.error('Error fetching skill lists:', fetchError);
+        } else {
+            setSkillLists(data || []);
+            // Auto-select default list if nothing selected
+            if (!selectedSkillListId && data && data.length > 0) {
+                const defaultList = data.find(l => l.is_default);
+                setSelectedSkillListId(defaultList?.id || data[0].id);
+            }
+        }
+    };
 
     const fetchGymnasts = async () => {
         if (!hub || !selectedLevel) return;
@@ -162,12 +196,13 @@ export function Skills() {
     };
 
     const fetchSkills = async () => {
-        if (!hub || !selectedLevel || !selectedEvent) return;
+        if (!hub || !selectedLevel || !selectedEvent || !selectedSkillListId) return;
 
         const { data, error: fetchError } = await supabase
             .from('hub_event_skills')
-            .select('id, hub_id, level, event, skill_name, skill_order, created_at, created_by')
+            .select('id, hub_id, skill_list_id, level, event, skill_name, skill_order, created_at, created_by')
             .eq('hub_id', hub.id)
+            .eq('skill_list_id', selectedSkillListId)
             .eq('level', selectedLevel)
             .eq('event', selectedEvent)
             .order('skill_order', { ascending: true });
@@ -488,7 +523,27 @@ export function Skills() {
                             ))}
                         </div>
 
-                        {/* Event Buttons */}
+                        {/* Skill List Selector + Event Buttons */}
+                        {skillLists.length > 1 && (
+                            <div className="flex items-center gap-3">
+                                <label className="text-sm font-medium text-subtle whitespace-nowrap">Skill List</label>
+                                <div className="relative">
+                                    <select
+                                        value={selectedSkillListId}
+                                        onChange={(e) => setSelectedSkillListId(e.target.value)}
+                                        className="block appearance-none rounded-lg border border-line-strong bg-surface py-2 pl-3 pr-8 text-sm font-medium text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                                    >
+                                        {skillLists.map(list => (
+                                            <option key={list.id} value={list.id}>
+                                                {list.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex flex-wrap items-center gap-2">
                             {events.map((event) => (
                                 <button
@@ -504,26 +559,38 @@ export function Skills() {
                                 </button>
                             ))}
 
-                            {/* Manage Events Button */}
-                            {isStaff && (
-                                <button
-                                    onClick={() => setIsManageEventsModalOpen(true)}
-                                    className="ml-auto flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-subtle hover:bg-surface-hover"
-                                >
-                                    <LayoutGrid className="h-4 w-4" />
-                                    Manage Events
-                                </button>
-                            )}
+                            {/* Management Buttons - pushed to the right */}
+                            {canEdit && (
+                                <div className="ml-auto flex items-center gap-2">
+                                    {/* Manage Skill Lists Button */}
+                                    <button
+                                        onClick={() => setIsManageListsModalOpen(true)}
+                                        className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-subtle hover:bg-surface-hover"
+                                    >
+                                        <ListChecks className="h-4 w-4" />
+                                        Manage Lists
+                                    </button>
 
-                            {/* Manage Skills Button */}
-                            {isStaff && selectedLevel && selectedEvent && (
-                                <button
-                                    onClick={() => setIsManageModalOpen(true)}
-                                    className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-subtle hover:bg-surface-hover"
-                                >
-                                    <Settings2 className="h-4 w-4" />
-                                    Manage Skills
-                                </button>
+                                    {/* Manage Events Button */}
+                                    <button
+                                        onClick={() => setIsManageEventsModalOpen(true)}
+                                        className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-subtle hover:bg-surface-hover"
+                                    >
+                                        <LayoutGrid className="h-4 w-4" />
+                                        Manage Events
+                                    </button>
+
+                                    {/* Manage Skills Button */}
+                                    {selectedLevel && selectedEvent && (
+                                        <button
+                                            onClick={() => setIsManageModalOpen(true)}
+                                            className="flex items-center gap-2 rounded-lg border border-line-strong bg-surface px-4 py-2 text-sm font-medium text-subtle hover:bg-surface-hover"
+                                        >
+                                            <Settings2 className="h-4 w-4" />
+                                            Manage Skills
+                                        </button>
+                                    )}
+                                </div>
                             )}
                         </div>
 
@@ -547,7 +614,7 @@ export function Skills() {
                                         skills={skills}
                                         gymnastSkills={gymnastSkills}
                                         eventComments={eventComments}
-                                        canEdit={isStaff}
+                                        canEdit={canEdit}
                                         onSkillStatusChange={handleSkillStatusChange}
                                         onCommentChange={handleCommentChange}
                                         onManageSkills={() => setIsManageModalOpen(true)}
@@ -560,11 +627,12 @@ export function Skills() {
             </main>
 
             {/* Manage Skills Modal */}
-            {selectedLevel && selectedEvent && (
+            {selectedLevel && selectedEvent && selectedSkillListId && (
                 <ManageSkillsModal
                     isOpen={isManageModalOpen}
                     onClose={() => setIsManageModalOpen(false)}
                     hubId={hub?.id || ''}
+                    skillListId={selectedSkillListId}
                     level={selectedLevel}
                     event={selectedEvent}
                     eventName={events.find(e => e.id === selectedEvent)?.fullName || selectedEvent}
@@ -587,6 +655,24 @@ export function Skills() {
                         // If the currently selected event was removed, clear the selection
                         if (selectedEvent && !newEvents.some(e => e.id === selectedEvent)) {
                             setSelectedEvent(newEvents.length > 0 ? newEvents[0].id : '');
+                        }
+                    }}
+                />
+            )}
+
+            {/* Manage Skill Lists Modal */}
+            {hub && (
+                <ManageSkillListsModal
+                    isOpen={isManageListsModalOpen}
+                    onClose={() => setIsManageListsModalOpen(false)}
+                    hubId={hub.id}
+                    skillLists={skillLists}
+                    onListsUpdated={(updatedLists) => {
+                        setSkillLists(updatedLists);
+                        // If selected list was deleted, switch to default
+                        if (!updatedLists.find(l => l.id === selectedSkillListId)) {
+                            const defaultList = updatedLists.find(l => l.is_default);
+                            setSelectedSkillListId(defaultList?.id || updatedLists[0]?.id || '');
                         }
                     }}
                 />

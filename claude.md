@@ -17,7 +17,8 @@ Expert software engineer: TypeScript, React, React Native (Expo), Supabase. Be c
 - **Web:** React + Tailwind CSS 4 + Supabase client
 - **Mobile:** Expo (React Native) + Supabase client
 - **DB:** Supabase (Postgres + RLS). Use Supabase MCP tools for migrations and SQL.
-- **Hosting:** Firebase Hosting (web), EAS Build (mobile)
+- **Hosting:** Firebase Hosting (web)
+- **Mobile builds:** Gradle for local Android AAB builds, EAS for iOS builds. Bump the version in `app.json` every build. Apple requires numeric-only versions (no text).
 
 ## Style Rules
 

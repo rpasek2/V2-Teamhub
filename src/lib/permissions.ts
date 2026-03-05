@@ -9,7 +9,7 @@ export type PermissionScope = 'all' | 'own' | 'none';
 export type HubRole = 'owner' | 'director' | 'admin' | 'coach' | 'parent' | 'athlete';
 
 export const STAFF_ROLES: HubRole[] = ['owner', 'director', 'admin', 'coach'];
-export const MANAGE_ROLES: HubRole[] = ['owner', 'director', 'admin'];
+export const MANAGE_ROLES: HubRole[] = ['owner', 'director'];
 
 export const DEFAULT_PERMISSIONS: Record<string, Record<HubRole, PermissionScope>> = {
     roster: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', athlete: 'own' },

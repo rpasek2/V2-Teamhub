@@ -12,7 +12,7 @@ interface InlineScoreCellProps {
     currentScore: number | null;
     currentPlacement: number | null;
     isCounting: boolean;
-    isStaff: boolean;
+    canEdit: boolean;
     competitionId: string;
     onSaved: () => void;
     gender: 'Female' | 'Male';
@@ -27,7 +27,7 @@ export const InlineScoreCell = memo(function InlineScoreCell({
     currentScore,
     currentPlacement,
     isCounting,
-    isStaff,
+    canEdit,
     competitionId,
     onSaved,
     gender,
@@ -71,7 +71,7 @@ export const InlineScoreCell = memo(function InlineScoreCell({
     };
 
     const handleStartEdit = (field: 'score' | 'placement') => {
-        if (!isStaff) return;
+        if (!canEdit) return;
         setEditingField(field);
         if (field === 'score') {
             setScoreValue(currentScore?.toString() || '');
@@ -203,9 +203,9 @@ export const InlineScoreCell = memo(function InlineScoreCell({
                 ) : (
                     <button
                         onClick={() => handleStartEdit('score')}
-                        disabled={!isStaff}
+                        disabled={!canEdit}
                         className={`w-full h-7 box-border border border-transparent px-1 text-sm ${
-                            isStaff ? 'hover:bg-surface-hover rounded cursor-pointer' : ''
+                            canEdit ? 'hover:bg-surface-hover rounded cursor-pointer' : ''
                         } ${isCounting ? 'font-semibold text-accent-600' : 'text-heading'}`}
                     >
                         <span className="inline-flex items-center justify-center gap-1">
@@ -246,9 +246,9 @@ export const InlineScoreCell = memo(function InlineScoreCell({
                 ) : (
                     <button
                         onClick={() => handleStartEdit('placement')}
-                        disabled={!isStaff}
+                        disabled={!canEdit}
                         className={`w-full h-7 box-border border border-transparent px-1 text-sm rounded flex items-center justify-center ${getPlacementStyles(currentPlacement)} ${
-                            isStaff ? 'hover:opacity-80 cursor-pointer' : ''
+                            canEdit ? 'hover:opacity-80 cursor-pointer' : ''
                         }`}
                     >
                         {formatPlacement(currentPlacement)}

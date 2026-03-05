@@ -543,6 +543,8 @@ export function Dashboard() {
                         type: 'other',
                         start_time: startDate.toISOString(),
                         end_time: endDate.toISOString(),
+                        rsvp_enabled: false,
+                        staff_only: true,
                         created_by: user.id,
                     });
 

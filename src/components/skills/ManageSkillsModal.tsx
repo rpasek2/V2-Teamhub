@@ -8,6 +8,7 @@ interface ManageSkillsModalProps {
     isOpen: boolean;
     onClose: () => void;
     hubId: string;
+    skillListId: string;
     level: string;
     event: string;
     eventName: string;
@@ -19,6 +20,7 @@ export function ManageSkillsModal({
     isOpen,
     onClose,
     hubId,
+    skillListId,
     level,
     event,
     eventName,
@@ -49,6 +51,7 @@ export function ManageSkillsModal({
             .from('hub_event_skills')
             .insert({
                 hub_id: hubId,
+                skill_list_id: skillListId,
                 level,
                 event,
                 skill_name: newSkillName.trim(),

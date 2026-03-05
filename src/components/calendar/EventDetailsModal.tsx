@@ -177,8 +177,8 @@ export function EventDetailsModal({ isOpen, onClose, event, onEventUpdated, canE
                 return;
             }
 
-            const startDateTime = new Date(`${editForm.startDate}T${editForm.startTime}`);
-            const endDateTime = new Date(`${editForm.endDate}T${editForm.endTime}`);
+            const startDateTime = new Date(`${editForm.startDate}T${editForm.startTime || '00:00'}`);
+            const endDateTime = new Date(`${editForm.endDate}T${editForm.endTime || '23:59'}`);
 
             if (endDateTime <= startDateTime) {
                 setEditError('End time must be after start time');

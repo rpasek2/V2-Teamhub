@@ -47,7 +47,7 @@ interface CompetitionWithCount extends BaseCompetition {
 export function Competitions() {
     const { hub } = useHub();
     const { markAsViewed } = useNotifications();
-    const { isStaff, canManage } = useRoleChecks();
+    const { canEdit, canManage } = useRoleChecks();
     const [competitions, setCompetitions] = useState<CompetitionWithCount[]>([]);
     const [loading, setLoading] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -83,7 +83,18 @@ export function Competitions() {
         if (error) {
             console.error('Error fetching competitions:', error);
         } else {
-            setCompetitions(data || []);
+            // Sort: active & upcoming first (by start_date asc), then past (by start_date desc)
+            const sorted = [...(data || [])].sort((a, b) => {
+                const statusA = getCompetitionStatus(a.start_date, a.end_date);
+                const statusB = getCompetitionStatus(b.start_date, b.end_date);
+                const isPastA = statusA === 'past';
+                const isPastB = statusB === 'past';
+                if (isPastA !== isPastB) return isPastA ? 1 : -1;
+                // Active/upcoming: soonest first; Past: most recent first
+                if (isPastA) return parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime();
+                return parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime();
+            });
+            setCompetitions(sorted);
         }
         setLoading(false);
     };
@@ -137,7 +148,7 @@ export function Competitions() {
                         onSeasonChange={handleSeasonChange}
                     />
                 </div>
-                {isStaff && (
+                {canEdit && (
                     <button
                         onClick={() => setIsCreateModalOpen(true)}
                         className="btn-primary"
@@ -314,11 +325,11 @@ export function Competitions() {
                         </div>
                         <h3 className="mt-4 text-lg font-semibold text-heading">No competitions yet</h3>
                         <p className="mt-2 text-sm text-muted">
-                            {isStaff
+                            {canEdit
                                 ? 'Get started by creating your first competition.'
                                 : 'Competitions will appear here once they are created.'}
                         </p>
-                        {isStaff && (
+                        {canEdit && (
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
                                 className="btn-primary mt-6"

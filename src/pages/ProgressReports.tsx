@@ -25,7 +25,7 @@ interface ProgressReport {
 
 export function ProgressReports() {
     const { hub, linkedGymnasts } = useHub();
-    const { isStaff, isParent } = useRoleChecks();
+    const { isParent, canEdit } = useRoleChecks();
 
     const [reports, setReports] = useState<ProgressReport[]>([]);
     const [loading, setLoading] = useState(true);
@@ -100,7 +100,7 @@ export function ProgressReports() {
                     >
                         ← Back to Reports
                     </button>
-                    {isStaff && viewingReport.status === 'draft' && (
+                    {canEdit && viewingReport.status === 'draft' && (
                         <button
                             onClick={() => { handlePublish(viewingReport); setViewingReport(null); }}
                             className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600"
@@ -132,7 +132,7 @@ export function ProgressReports() {
                 <h1 className="text-2xl font-bold text-heading">Progress Reports</h1>
                 <div className="flex items-center gap-3">
                     {/* Filter (staff only) */}
-                    {isStaff && (
+                    {canEdit && (
                         <div className="flex rounded-lg bg-surface-hover p-1">
                             {(['all', 'published', 'draft'] as const).map(f => (
                                 <button
@@ -149,7 +149,7 @@ export function ProgressReports() {
                             ))}
                         </div>
                     )}
-                    {isStaff && (
+                    {canEdit && (
                         <button
                             onClick={() => setIsCreateOpen(true)}
                             className="flex items-center gap-2 rounded-lg bg-accent-500 px-4 py-2 text-sm font-medium text-white hover:bg-accent-600"
@@ -169,7 +169,7 @@ export function ProgressReports() {
                         </div>
                         <h3 className="mt-4 text-lg font-semibold text-heading">No progress reports</h3>
                         <p className="mt-2 text-sm text-muted max-w-sm">
-                            {isStaff
+                            {canEdit
                                 ? 'Create a progress report to share gymnast progress with parents.'
                                 : 'No progress reports have been shared yet.'}
                         </p>
@@ -207,7 +207,7 @@ export function ProgressReports() {
                                             >
                                                 <Eye className="h-4 w-4" />
                                             </button>
-                                            {isStaff && report.status === 'draft' && (
+                                            {canEdit && report.status === 'draft' && (
                                                 <button
                                                     onClick={() => handlePublish(report)}
                                                     className="rounded-lg p-2 text-accent-500 hover:bg-accent-500/10"
@@ -216,7 +216,7 @@ export function ProgressReports() {
                                                     <Send className="h-4 w-4" />
                                                 </button>
                                             )}
-                                            {isStaff && (
+                                            {canEdit && (
                                                 <button
                                                     onClick={() => handleDelete(report.id)}
                                                     className="rounded-lg p-2 text-faint hover:bg-error-50 hover:text-error-600"

@@ -11,7 +11,7 @@ import { ManageCategoriesModal } from '../components/resources/ManageCategoriesM
 export function Resources() {
     const { hub } = useHub();
     const { markAsViewed } = useNotifications();
-    const { isStaff } = useRoleChecks();
+    const { canEdit } = useRoleChecks();
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -62,7 +62,7 @@ export function Resources() {
                         Helpful documents, guides, and links for your team
                     </p>
                 </div>
-                {isStaff && (
+                {canEdit && (
                     <div className="mt-4 sm:mt-0 flex items-center gap-2">
                         <button
                             onClick={() => setIsCategoriesModalOpen(true)}
@@ -138,7 +138,7 @@ export function Resources() {
                         <ResourceCard
                             key={resource.id}
                             resource={resource}
-                            canDelete={isStaff}
+                            canDelete={canEdit}
                             onDelete={() => handleDeleteResource(resource.id, resource.type === 'file' ? resource.url : undefined)}
                         />
                     ))}
@@ -168,11 +168,11 @@ export function Resources() {
                         <>
                             <h3 className="text-lg font-medium text-heading mb-1">No resources yet</h3>
                             <p className="text-muted mb-4">
-                                {isStaff
+                                {canEdit
                                     ? 'Add helpful documents, links, and guides for your team.'
                                     : 'Resources will appear here once they are added.'}
                             </p>
-                            {isStaff && (
+                            {canEdit && (
                                 <button
                                     onClick={() => setIsCreateModalOpen(true)}
                                     className="btn-primary"

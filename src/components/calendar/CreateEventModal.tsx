@@ -54,7 +54,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
         endTime: '10:00',
         location: '',
         type: 'practice',
-        rsvpEnabled: true,
+        rsvpEnabled: false,
         isSaveTheDate: false,
         isAllDay: false
     });
@@ -87,7 +87,7 @@ export function CreateEventModal({ isOpen, onClose, onEventCreated, initialDate 
                 endTime: '10:00',
                 location: '',
                 type: 'practice',
-                rsvpEnabled: true,
+                rsvpEnabled: false,
                 isSaveTheDate: false,
                 isAllDay: false
             });

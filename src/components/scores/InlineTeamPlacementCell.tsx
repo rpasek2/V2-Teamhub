@@ -8,7 +8,7 @@ interface InlineTeamPlacementCellProps {
     gender: 'Female' | 'Male';
     event: GymEvent | 'all_around';
     currentPlacement: number | null;
-    isStaff: boolean;
+    canEdit: boolean;
     onSaved: () => void;
 }
 
@@ -18,7 +18,7 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
     gender,
     event,
     currentPlacement,
-    isStaff,
+    canEdit,
     onSaved
 }: InlineTeamPlacementCellProps) {
     const [editing, setEditing] = useState(false);
@@ -42,7 +42,7 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
     };
 
     const handleStartEdit = () => {
-        if (!isStaff) return;
+        if (!canEdit) return;
         setEditing(true);
         setValue(currentPlacement?.toString() || '');
     };
@@ -161,9 +161,9 @@ export const InlineTeamPlacementCell = memo(function InlineTeamPlacementCell({
     return (
         <button
             onClick={handleStartEdit}
-            disabled={!isStaff}
+            disabled={!canEdit}
             className={`w-full min-w-0 h-7 box-border border border-transparent text-sm font-bold rounded ${getPlacementStyles(currentPlacement)} ${
-                isStaff ? 'hover:opacity-80 cursor-pointer' : ''
+                canEdit ? 'hover:opacity-80 cursor-pointer' : ''
             }`}
         >
             {formatPlacement(currentPlacement)}

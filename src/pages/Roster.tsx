@@ -42,7 +42,7 @@ type TabType = 'All' | 'Admins' | 'Coaches' | 'Gymnasts' | 'Parents';
 export function Roster() {
     const navigate = useNavigate();
     const { hub, getPermissionScope, linkedGymnasts, user } = useHub();
-    const { isStaff, isParent, canManage } = useRoleChecks();
+    const { isStaff, isParent, canManage, canEdit } = useRoleChecks();
     const [members, setMembers] = useState<DisplayMember[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -375,7 +375,7 @@ export function Roster() {
                     </p>
                 </div>
                 <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none flex gap-3">
-                    {isStaff && (
+                    {canEdit && (
                         <button
                             type="button"
                             onClick={() => setIsChecklistOpen(true)}
@@ -385,7 +385,7 @@ export function Roster() {
                             Quick Checklist
                         </button>
                     )}
-                    {isStaff && (
+                    {canEdit && (
                         <button
                             type="button"
                             onClick={() => setIsFloorMusicOpen(true)}

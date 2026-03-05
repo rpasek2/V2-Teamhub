@@ -22,6 +22,7 @@ interface ScoresTableProps {
     levels: string[];
     gender: 'Female' | 'Male';
     isStaff: boolean;
+    canEdit: boolean;
     isParent: boolean;
     userGymnastIds: string[];
     ageGroupMap?: Record<string, string>;
@@ -52,6 +53,7 @@ export function ScoresTable({
     levels,
     gender,
     isStaff,
+    canEdit,
     isParent,
     userGymnastIds,
     ageGroupMap = {},
@@ -333,7 +335,7 @@ export function ScoresTable({
                                                             gender={gender}
                                                             event={event}
                                                             currentPlacement={teamScores.eventPlacements[event]}
-                                                            isStaff={isStaff}
+                                                            canEdit={canEdit}
                                                             onSaved={onTeamPlacementsUpdated}
                                                         />
                                                     </span>
@@ -352,7 +354,7 @@ export function ScoresTable({
                                                         gender={gender}
                                                         event="all_around"
                                                         currentPlacement={teamScores.eventPlacements['all_around']}
-                                                        isStaff={isStaff}
+                                                        canEdit={canEdit}
                                                         onSaved={onTeamPlacementsUpdated}
                                                     />
                                                 </span>
@@ -390,7 +392,7 @@ export function ScoresTable({
                                                                 currentScore={scoreData.score}
                                                                 currentPlacement={scoreData.placement}
                                                                 isCounting={isCounting}
-                                                                isStaff={isStaff}
+                                                                canEdit={canEdit}
                                                                 competitionId={competition.id}
                                                                 onSaved={onScoresUpdated}
                                                                 gender={gender}
@@ -454,7 +456,7 @@ export function ScoresTable({
                             <span className="inline-flex items-center gap-1 text-xs text-muted">
                                 <span className="inline-flex items-center rounded-full px-1.5 py-0.5 text-xs font-semibold bg-amber-500/15 text-amber-600"><Trophy size={12} /></span> = national qualifier
                             </span>
-                            {isStaff && <span className="text-xs text-faint">Click any score or placement to edit</span>}
+                            {canEdit && <span className="text-xs text-faint">Click any score or placement to edit</span>}
                         </div>
                     </div>
                 );

@@ -87,17 +87,17 @@ export function GymnastDetails() {
     }, [gymnast, currentRole, linkedGymnasts]);
 
     const canReportInjury = useMemo(() => {
-        const staffRoles = ['owner', 'director', 'admin', 'coach'];
+        const staffRoles = ['owner', 'director', 'coach'];
         return currentRole ? staffRoles.includes(currentRole) : false;
     }, [currentRole]);
 
     const canEditProfile = useMemo(() => {
-        const staffRoles = ['owner', 'director', 'admin'];
+        const staffRoles = ['owner', 'director'];
         return currentRole ? staffRoles.includes(currentRole) : false;
     }, [currentRole]);
 
     const canManageFloorMusic = useMemo(() => {
-        const staffRoles = ['owner', 'director', 'admin', 'coach'];
+        const staffRoles = ['owner', 'director', 'coach'];
         return currentRole ? staffRoles.includes(currentRole) : false;
     }, [currentRole]);
 

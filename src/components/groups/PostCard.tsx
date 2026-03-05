@@ -1,8 +1,9 @@
 import { useState, useEffect, memo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Trash2, User, Pin, MoreHorizontal, Heart, ThumbsUp, PartyPopper, PinOff, Eye } from 'lucide-react';
+import { MessageSquare, Trash2, User, Pin, MoreHorizontal, Heart, ThumbsUp, PartyPopper, PinOff, Eye, Pencil, Check, X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { PollDisplay, SignupDisplay, RsvpDisplay, ImageGallery, FileList } from './attachments';
+import { LinkifiedText } from '../ui/LinkifiedText';
 import type { Post, PostAttachment } from '../../types';
 
 type ReactionType = 'like' | 'heart' | 'celebrate';
@@ -37,8 +38,13 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
     const [reactions, setReactions] = useState<{ like: number; heart: number; celebrate: number }>({ like: 0, heart: 0, celebrate: 0 });
     const [userReaction, setUserReaction] = useState<string | null>(null);
     const [viewCount, setViewCount] = useState(0);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editContent, setEditContent] = useState(post.content);
+    const [savingEdit, setSavingEdit] = useState(false);
+    const [displayContent, setDisplayContent] = useState(post.content);
 
     const canDelete = isAdmin || post.user_id === currentUserId;
+    const canEdit = post.user_id === currentUserId;
     const canPin = isAdmin;
 
     // Fetch reactions and view count on mount
@@ -222,6 +228,35 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
         }
     };
 
+    const handleSaveEdit = async () => {
+        if (!editContent.trim() || editContent === displayContent) {
+            setIsEditing(false);
+            setEditContent(displayContent);
+            return;
+        }
+
+        setSavingEdit(true);
+        try {
+            const { error } = await supabase
+                .from('posts')
+                .update({ content: editContent.trim() })
+                .eq('id', post.id);
+
+            if (error) throw error;
+            setDisplayContent(editContent.trim());
+            setIsEditing(false);
+        } catch (error) {
+            console.error('Error updating post:', error);
+        } finally {
+            setSavingEdit(false);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setIsEditing(false);
+        setEditContent(displayContent);
+    };
+
     return (
         <div className="bg-surface rounded-2xl border border-line shadow-sm overflow-hidden">
             {/* Header */}
@@ -259,7 +294,7 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                         </p>
                     </div>
-                    {(canDelete || canPin) && (
+                    {(canDelete || canEdit || canPin) && (
                         <div className="relative">
                             <button
                                 onClick={() => setShowMenu(!showMenu)}
@@ -306,9 +341,24 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                                                 )}
                                             </button>
                                         )}
-                                        {canDelete && (
+                                        {canEdit && (
                                             <>
                                                 {canPin && <div className="my-1 border-t border-line" />}
+                                                <button
+                                                    onClick={() => {
+                                                        setShowMenu(false);
+                                                        setIsEditing(true);
+                                                    }}
+                                                    className="w-full px-4 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2.5"
+                                                >
+                                                    <Pencil className="h-4 w-4 text-muted" />
+                                                    Edit Post
+                                                </button>
+                                            </>
+                                        )}
+                                        {canDelete && (
+                                            <>
+                                                {(canPin || canEdit) && <div className="my-1 border-t border-line" />}
                                                 <button
                                                     onClick={() => {
                                                         setShowMenu(false);
@@ -332,7 +382,36 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
             {/* Content */}
             <div className="px-5 py-4 space-y-4">
                 {/* Text content */}
-                <p className="text-heading whitespace-pre-wrap leading-relaxed">{post.content}</p>
+                {isEditing ? (
+                    <div className="space-y-2">
+                        <textarea
+                            value={editContent}
+                            onChange={(e) => setEditContent(e.target.value)}
+                            className="w-full min-h-[100px] rounded-lg border border-line-strong bg-surface text-heading px-3 py-2 text-sm leading-relaxed whitespace-pre-wrap resize-none focus:border-accent-500 focus:ring-1 focus:ring-accent-500 focus:outline-none"
+                            autoFocus
+                        />
+                        <div className="flex items-center gap-2 justify-end">
+                            <button
+                                onClick={handleCancelEdit}
+                                disabled={savingEdit}
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium text-subtle hover:bg-surface-hover"
+                            >
+                                <X className="h-4 w-4" />
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveEdit}
+                                disabled={savingEdit || !editContent.trim()}
+                                className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium bg-accent-500 text-white hover:bg-accent-600 disabled:opacity-50"
+                            >
+                                <Check className="h-4 w-4" />
+                                {savingEdit ? 'Saving...' : 'Save'}
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <p className="text-heading whitespace-pre-wrap leading-relaxed"><LinkifiedText text={displayContent} /></p>
+                )}
 
                 {/* Image Gallery */}
                 {allImageUrls.length > 0 && (
@@ -486,7 +565,7 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                                                     {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
                                                 </span>
                                             </div>
-                                            <p className="text-sm text-body mt-0.5">{comment.content}</p>
+                                            <p className="text-sm text-body mt-0.5"><LinkifiedText text={comment.content} /></p>
                                         </div>
                                         {(isAdmin || comment.user_id === currentUserId) && (
                                             <button

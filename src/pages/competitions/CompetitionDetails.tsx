@@ -82,7 +82,7 @@ export function CompetitionDetails() {
     const [isManageRosterModalOpen, setIsManageRosterModalOpen] = useState(false);
 
     // Staff roles that can manage competition rosters
-    const canManageRoster = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
+    const canManageRoster = ['owner', 'director', 'coach'].includes(currentRole || '');
     const [isAssignGymnastsModalOpen, setIsAssignGymnastsModalOpen] = useState(false);
     const [selectedSession, setSelectedSession] = useState<Session | null>(null);
     const [editSession, setEditSession] = useState<Session | null>(null);

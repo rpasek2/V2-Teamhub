@@ -51,7 +51,7 @@ export function GymnastProfileTab({
     const injuryReports = gymnast?.medical_info?.injury_reports || [];
 
     const calculateAge = (dob: string) => {
-        const birthDate = new Date(dob);
+        const birthDate = new Date(dob + 'T00:00:00');
         const today = new Date();
         let age = today.getFullYear() - birthDate.getFullYear();
         const monthDiff = today.getMonth() - birthDate.getMonth();
@@ -62,7 +62,7 @@ export function GymnastProfileTab({
     };
 
     const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
+        const date = new Date(dateString + 'T00:00:00');
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
     };
 

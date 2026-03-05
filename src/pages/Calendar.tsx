@@ -302,7 +302,11 @@ export function Calendar() {
                 .order('start_time', { ascending: true });
 
             if (error) throw error;
-            setEvents(data || []);
+            // Filter out staff-only events (e.g. time off) for non-staff users
+            const staffRoles = ['owner', 'director', 'admin', 'coach'];
+            const userIsStaff = staffRoles.includes(currentRole || '');
+            const filtered = userIsStaff ? (data || []) : (data || []).filter(e => !e.staff_only);
+            setEvents(filtered);
         } catch (error) {
             console.error('Error fetching events:', error);
         } finally {
