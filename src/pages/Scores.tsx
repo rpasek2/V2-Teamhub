@@ -28,7 +28,9 @@ export function Scores() {
     const [error, setError] = useState<string | null>(null);
     const [scores, setScores] = useState<CompetitionScore[]>([]);
     const [teamPlacements, setTeamPlacements] = useState<CompetitionTeamPlacement[]>([]);
-    const userGymnastIds = useMemo(() => linkedGymnasts.map(g => g.id), [linkedGymnasts]);
+    const userGymnastIds = useMemo(() => {
+        return linkedGymnasts.map(g => g.id);
+    }, [linkedGymnasts]);
     const [selectedSeasonId, setSelectedSeasonId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'by-meet' | 'metrics'>('by-meet');
 
@@ -275,22 +277,24 @@ export function Scores() {
                     <div className="space-y-6">
                         {/* Competition Selector */}
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                            <div className="relative">
-                                <select
-                                    value={selectedCompetition?.id || ''}
-                                    onChange={(e) => {
-                                        const comp = competitions.find(c => c.id === e.target.value);
-                                        setSelectedCompetition(comp || null);
-                                    }}
-                                    className="block w-full sm:w-80 appearance-none rounded-lg border border-line-strong bg-surface py-2.5 pl-4 pr-10 text-sm font-medium text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
-                                >
-                                    {competitions.map((comp) => (
-                                        <option key={comp.id} value={comp.id}>
-                                            {comp.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-faint" />
+                            <div className="flex items-center gap-3">
+                                <div className="relative">
+                                    <select
+                                        value={selectedCompetition?.id || ''}
+                                        onChange={(e) => {
+                                            const comp = competitions.find(c => c.id === e.target.value);
+                                            setSelectedCompetition(comp || null);
+                                        }}
+                                        className="block w-full sm:w-80 appearance-none rounded-lg border border-line-strong bg-surface py-2.5 pl-4 pr-10 text-sm font-medium text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                                    >
+                                        {competitions.map((comp) => (
+                                            <option key={comp.id} value={comp.id}>
+                                                {comp.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-faint" />
+                                </div>
                             </div>
 
                             {/* Gender Tabs */}

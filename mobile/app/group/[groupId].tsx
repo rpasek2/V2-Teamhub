@@ -213,6 +213,12 @@ export default function GroupDetailsScreen() {
         })
       );
       setPosts(postsWithCounts as Post[]);
+
+      // Record post views (fire-and-forget)
+      if (user && postsWithCounts.length > 0) {
+        const rows = postsWithCounts.map(p => ({ post_id: p.id, user_id: user.id }));
+        supabase.from('post_views').upsert(rows, { onConflict: 'post_id,user_id', ignoreDuplicates: true }).then();
+      }
     }
     setLoading(false);
     setRefreshing(false);

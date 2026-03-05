@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Sparkles, Settings2, LayoutGrid } from 'lucide-react';
+import { Sparkles, Settings2, LayoutGrid, ChevronDown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
@@ -27,7 +27,15 @@ export function Skills() {
     const [error, setError] = useState<string | null>(null);
     const [isManageModalOpen, setIsManageModalOpen] = useState(false);
     const [isManageEventsModalOpen, setIsManageEventsModalOpen] = useState(false);
+    const [selectedGymnastId, setSelectedGymnastId] = useState<string | null>(null);
     const levels = hub?.settings?.levels || [];
+
+    // Auto-select first gymnast for parents with multiple kids
+    useEffect(() => {
+        if (isParent && linkedGymnasts.length > 0 && !selectedGymnastId) {
+            setSelectedGymnastId(linkedGymnasts[0].id);
+        }
+    }, [isParent, linkedGymnasts, selectedGymnastId]);
 
     // Get events from hub settings or use defaults
     const getEventsForGender = (gender: 'Female' | 'Male'): SkillEvent[] => {
@@ -43,8 +51,10 @@ export function Skills() {
     // Get permission scope for skills
     const skillsScope = getPermissionScope('skills');
 
-    // For parents, get the linked gymnast's info
-    const linkedGymnast = isParent && linkedGymnasts.length > 0 ? linkedGymnasts[0] : null;
+    // For parents, get the selected linked gymnast's info
+    const linkedGymnast = isParent && linkedGymnasts.length > 0
+        ? linkedGymnasts.find(g => g.id === selectedGymnastId) || linkedGymnasts[0]
+        : null;
     const parentGender = linkedGymnast?.gender || 'Female';
     const parentLevel = linkedGymnast?.level || '';
     const parentEvents = getEventsForGender(parentGender as 'Female' | 'Male');
@@ -316,12 +326,31 @@ export function Skills() {
                 <header className="flex items-center justify-between border-b border-line bg-surface px-6 py-4 rounded-t-xl">
                     <div>
                         <h1 className="text-2xl font-bold text-heading">Skills</h1>
-                        {linkedGymnast && (
+                        {linkedGymnast && linkedGymnasts.length <= 1 && (
                             <p className="text-sm text-muted mt-1">
                                 {linkedGymnast.first_name} {linkedGymnast.last_name} · {linkedGymnast.level}
                             </p>
                         )}
                     </div>
+                    {linkedGymnasts.length > 1 && (
+                        <div className="relative">
+                            <select
+                                value={selectedGymnastId || ''}
+                                onChange={(e) => {
+                                    setSelectedGymnastId(e.target.value);
+                                    setSelectedEvent('');
+                                }}
+                                className="block appearance-none rounded-lg border border-line-strong bg-surface py-2.5 pl-4 pr-10 text-sm font-medium text-heading shadow-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                            >
+                                {linkedGymnasts.map(g => (
+                                    <option key={g.id} value={g.id}>
+                                        {g.first_name} {g.last_name} · {g.level}
+                                    </option>
+                                ))}
+                            </select>
+                            <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-faint" />
+                        </div>
+                    )}
                 </header>
 
                 {error && (

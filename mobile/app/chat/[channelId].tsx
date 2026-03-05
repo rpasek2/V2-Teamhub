@@ -19,7 +19,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
-import { Send, Hash, User, Plus, X, FileText } from 'lucide-react-native';
+import { Send, Hash, User, Plus, X, FileText, ThumbsUp, Heart, PartyPopper, Check } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import { colors } from '../../src/constants/colors';
@@ -60,6 +60,8 @@ interface Message {
   };
 }
 
+type MessageReactionType = 'like' | 'heart' | 'celebrate';
+
 interface Channel {
   id: string;
   name: string;
@@ -88,6 +90,8 @@ export default function ChatScreen() {
   const [sending, setSending] = useState(false);
   const [pendingImages, setPendingImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
+  const [messageReactions, setMessageReactions] = useState<Map<string, { like: number; heart: number; celebrate: number; userReaction: MessageReactionType | null }>>(new Map());
+  const [otherUserLastRead, setOtherUserLastRead] = useState<string | null>(null);
 
   // Keyboard height animation
   const keyboardHeight = useRef(new Animated.Value(0)).current;
@@ -172,6 +176,32 @@ export default function ChatScreen() {
             setMessages((prev) => prev.filter(m => m.id !== payload.old.id));
           }
         )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'message_reactions',
+          },
+          () => {
+            setMessages(prev => {
+              if (prev.length > 0) fetchMessageReactions(prev.map(m => m.id));
+              return prev;
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'channel_members',
+            filter: `channel_id=eq.${channelId}`,
+          },
+          () => {
+            fetchDmReadReceipt(channelId);
+          }
+        )
         .subscribe();
 
       return () => {
@@ -179,6 +209,22 @@ export default function ChatScreen() {
       };
     }
   }, [channelId]);
+
+  // Fetch reactions when messages change
+  useEffect(() => {
+    if (messages.length > 0) {
+      fetchMessageReactions(messages.map(m => m.id));
+    }
+  }, [messages.length]);
+
+  // Fetch DM read receipt when channel loads
+  useEffect(() => {
+    if (channel?.dm_participant_ids && channelId) {
+      fetchDmReadReceipt(channelId);
+    } else {
+      setOtherUserLastRead(null);
+    }
+  }, [channel]);
 
   // Update header title when channel loads
   useEffect(() => {
@@ -359,6 +405,94 @@ export default function ChatScreen() {
   const generateSecureName = (name: string) => {
     const ext = name.split('.').pop()?.toLowerCase() || '';
     return `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`;
+  };
+
+  const fetchMessageReactions = async (messageIds: string[]) => {
+    if (messageIds.length === 0) return;
+    const { data, error } = await supabase
+      .from('message_reactions')
+      .select('message_id, reaction_type, user_id')
+      .in('message_id', messageIds);
+    if (error) { console.error('Error fetching reactions:', error); return; }
+    const map = new Map<string, { like: number; heart: number; celebrate: number; userReaction: MessageReactionType | null }>();
+    data?.forEach(r => {
+      const existing = map.get(r.message_id) || { like: 0, heart: 0, celebrate: 0, userReaction: null };
+      existing[r.reaction_type as MessageReactionType]++;
+      if (r.user_id === user?.id) existing.userReaction = r.reaction_type as MessageReactionType;
+      map.set(r.message_id, existing);
+    });
+    setMessageReactions(map);
+  };
+
+  const handleMessageReaction = async (messageId: string, type: MessageReactionType) => {
+    if (!user?.id) return;
+    const current = messageReactions.get(messageId);
+    const currentReaction = current?.userReaction || null;
+
+    if (currentReaction === type) {
+      await supabase.from('message_reactions').delete()
+        .eq('message_id', messageId).eq('user_id', user.id);
+      setMessageReactions(prev => {
+        const next = new Map(prev);
+        const entry = { ...(next.get(messageId) || { like: 0, heart: 0, celebrate: 0, userReaction: null }) };
+        entry[type] = Math.max(0, entry[type] - 1);
+        entry.userReaction = null;
+        next.set(messageId, entry);
+        return next;
+      });
+    } else {
+      if (currentReaction) {
+        await supabase.from('message_reactions').update({ reaction_type: type })
+          .eq('message_id', messageId).eq('user_id', user.id);
+      } else {
+        await supabase.from('message_reactions').insert({
+          message_id: messageId, user_id: user.id, reaction_type: type
+        });
+      }
+      setMessageReactions(prev => {
+        const next = new Map(prev);
+        const entry = { ...(next.get(messageId) || { like: 0, heart: 0, celebrate: 0, userReaction: null }) };
+        if (currentReaction) entry[currentReaction] = Math.max(0, entry[currentReaction] - 1);
+        entry[type] = entry[type] + 1;
+        entry.userReaction = type;
+        next.set(messageId, entry);
+        return next;
+      });
+    }
+  };
+
+  const fetchDmReadReceipt = async (chId: string) => {
+    const { data, error } = await supabase.rpc('get_dm_read_receipt', { p_channel_id: chId });
+    if (!error) setOtherUserLastRead(data);
+  };
+
+  const showMessageActions = (messageId: string, isMe: boolean) => {
+    const reactionOptions = ['👍 Like', '❤️ Heart', '🎉 Celebrate'];
+    const options = [...reactionOptions];
+    if (isMe) options.push('Delete');
+    options.push('Cancel');
+    const destructiveIndex = isMe ? reactionOptions.length : undefined;
+    const cancelIndex = options.length - 1;
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        { options, destructiveButtonIndex: destructiveIndex, cancelButtonIndex: cancelIndex },
+        (buttonIndex) => {
+          if (buttonIndex === 0) handleMessageReaction(messageId, 'like');
+          else if (buttonIndex === 1) handleMessageReaction(messageId, 'heart');
+          else if (buttonIndex === 2) handleMessageReaction(messageId, 'celebrate');
+          else if (buttonIndex === 3 && isMe) deleteMessage(messageId);
+        }
+      );
+    } else {
+      Alert.alert('Message', undefined, [
+        { text: '👍 Like', onPress: () => handleMessageReaction(messageId, 'like') },
+        { text: '❤️ Heart', onPress: () => handleMessageReaction(messageId, 'heart') },
+        { text: '🎉 Celebrate', onPress: () => handleMessageReaction(messageId, 'celebrate') },
+        ...(isMe ? [{ text: 'Delete', style: 'destructive' as const, onPress: () => deleteMessage(messageId) }] : []),
+        { text: 'Cancel', style: 'cancel' as const },
+      ]);
+    }
   };
 
   const deleteMessage = (messageId: string) => {
@@ -554,7 +688,7 @@ export default function ChatScreen() {
             )}
             <TouchableOpacity
               activeOpacity={0.8}
-              onLongPress={isMe ? () => deleteMessage(item.id) : undefined}
+              onLongPress={() => showMessageActions(item.id, isMe)}
               style={[styles.messageBubble, isMe ? [styles.messageBubbleMe, { backgroundColor: t.primary }] : [styles.messageBubbleOther, { backgroundColor: t.surface, borderColor: t.border }]]}
             >
               {item.content ? (
@@ -601,6 +735,43 @@ export default function ChatScreen() {
                 return null;
               })}
             </TouchableOpacity>
+            {/* Reaction pills */}
+            {(() => {
+              const r = messageReactions.get(item.id);
+              if (!r || (r.like === 0 && r.heart === 0 && r.celebrate === 0)) return null;
+              return (
+                <View style={[styles.reactionRow, isMe && styles.reactionRowMe]}>
+                  {r.like > 0 && (
+                    <TouchableOpacity onPress={() => handleMessageReaction(item.id, 'like')} style={[styles.reactionPill, { backgroundColor: r.userReaction === 'like' ? '#EFF6FF' : t.surfaceSecondary, borderColor: r.userReaction === 'like' ? '#BFDBFE' : t.border }]}>
+                      <ThumbsUp size={12} color={r.userReaction === 'like' ? '#2563EB' : t.textMuted} />
+                      <Text style={[styles.reactionCount, { color: r.userReaction === 'like' ? '#2563EB' : t.textMuted }]}>{r.like}</Text>
+                    </TouchableOpacity>
+                  )}
+                  {r.heart > 0 && (
+                    <TouchableOpacity onPress={() => handleMessageReaction(item.id, 'heart')} style={[styles.reactionPill, { backgroundColor: r.userReaction === 'heart' ? '#FDF2F8' : t.surfaceSecondary, borderColor: r.userReaction === 'heart' ? '#FBCFE8' : t.border }]}>
+                      <Heart size={12} color={r.userReaction === 'heart' ? '#EC4899' : t.textMuted} />
+                      <Text style={[styles.reactionCount, { color: r.userReaction === 'heart' ? '#EC4899' : t.textMuted }]}>{r.heart}</Text>
+                    </TouchableOpacity>
+                  )}
+                  {r.celebrate > 0 && (
+                    <TouchableOpacity onPress={() => handleMessageReaction(item.id, 'celebrate')} style={[styles.reactionPill, { backgroundColor: r.userReaction === 'celebrate' ? '#FFFBEB' : t.surfaceSecondary, borderColor: r.userReaction === 'celebrate' ? '#FDE68A' : t.border }]}>
+                      <PartyPopper size={12} color={r.userReaction === 'celebrate' ? '#D97706' : t.textMuted} />
+                      <Text style={[styles.reactionCount, { color: r.userReaction === 'celebrate' ? '#D97706' : t.textMuted }]}>{r.celebrate}</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              );
+            })()}
+            {/* DM read receipt */}
+            {isMe && channel?.dm_participant_ids && otherUserLastRead &&
+              new Date(item.created_at) <= new Date(otherUserLastRead) &&
+              (index === 0 || messages[index - 1]?.user_id !== user?.id ||
+                new Date(messages[index - 1]?.created_at) > new Date(otherUserLastRead)) && (
+              <View style={[styles.seenIndicator, isMe && { alignSelf: 'flex-end' }]}>
+                <Check size={12} color={t.textFaint} />
+                <Text style={[styles.seenText, { color: t.textFaint }]}>Seen</Text>
+              </View>
+            )}
           </View>
         </View>
       </View>
@@ -942,5 +1113,37 @@ const styles = StyleSheet.create({
   fileName: {
     fontSize: 13,
     flex: 1,
+  },
+  // Reaction styles
+  reactionRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginTop: 4,
+  },
+  reactionRowMe: {
+    justifyContent: 'flex-end',
+  },
+  reactionPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  reactionCount: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  // Read receipt styles
+  seenIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 2,
+  },
+  seenText: {
+    fontSize: 11,
   },
 });

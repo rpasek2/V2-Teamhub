@@ -1,6 +1,6 @@
 import { useState, useEffect, memo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Trash2, User, Pin, MoreHorizontal, Heart, ThumbsUp, PartyPopper, PinOff } from 'lucide-react';
+import { MessageSquare, Trash2, User, Pin, MoreHorizontal, Heart, ThumbsUp, PartyPopper, PinOff, Eye } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { PollDisplay, SignupDisplay, RsvpDisplay, ImageGallery, FileList } from './attachments';
 import type { Post, PostAttachment } from '../../types';
@@ -36,14 +36,24 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
     const [isPinned, setIsPinned] = useState(post.is_pinned);
     const [reactions, setReactions] = useState<{ like: number; heart: number; celebrate: number }>({ like: 0, heart: 0, celebrate: 0 });
     const [userReaction, setUserReaction] = useState<string | null>(null);
+    const [viewCount, setViewCount] = useState(0);
 
     const canDelete = isAdmin || post.user_id === currentUserId;
     const canPin = isAdmin;
 
-    // Fetch reactions on mount
+    // Fetch reactions and view count on mount
     useEffect(() => {
         fetchReactions();
+        fetchViewCount();
     }, [post.id]);
+
+    const fetchViewCount = async () => {
+        const { count } = await supabase
+            .from('post_views')
+            .select('id', { count: 'exact', head: true })
+            .eq('post_id', post.id);
+        if (count !== null) setViewCount(count);
+    };
 
     const fetchReactions = async () => {
         try {
@@ -421,18 +431,25 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                         </button>
                     </div>
 
-                    {/* Comments button */}
-                    <button
-                        onClick={fetchComments}
-                        className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all ${
-                            showComments
-                                ? 'bg-accent-500/15 text-accent-600 shadow-sm'
-                                : 'text-muted hover:bg-surface-hover hover:text-accent-600'
-                        }`}
-                    >
-                        <MessageSquare className="h-[18px] w-[18px]" />
-                        <span className="font-medium">{post._count?.comments || 0}</span>
-                    </button>
+                    <div className="flex items-center gap-2">
+                        {viewCount > 0 && (
+                            <span className="flex items-center gap-1 px-2 py-1.5 text-xs text-faint">
+                                <Eye className="h-3.5 w-3.5" /> {viewCount}
+                            </span>
+                        )}
+                        {/* Comments button */}
+                        <button
+                            onClick={fetchComments}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all ${
+                                showComments
+                                    ? 'bg-accent-500/15 text-accent-600 shadow-sm'
+                                    : 'text-muted hover:bg-surface-hover hover:text-accent-600'
+                            }`}
+                        >
+                            <MessageSquare className="h-[18px] w-[18px]" />
+                            <span className="font-medium">{post._count?.comments || 0}</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 

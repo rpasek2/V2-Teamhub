@@ -60,7 +60,7 @@ export function AnonymousReportModal({ isOpen, onClose, hubId, ownerName }: Anon
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-line px-6 py-4">
                     <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-100">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-purple-500/15">
                             <ShieldAlert className="h-5 w-5 text-purple-600" />
                         </div>
                         <h3 className="text-lg font-semibold text-heading">Anonymous Report</h3>
@@ -77,7 +77,7 @@ export function AnonymousReportModal({ isOpen, onClose, hubId, ownerName }: Anon
                 <div className="p-6">
                     {submitted ? (
                         <div className="text-center py-4">
-                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 mb-4">
+                            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-500/15 mb-4">
                                 <Check className="h-6 w-6 text-green-600" />
                             </div>
                             <h4 className="text-lg font-medium text-heading mb-2">Report Submitted</h4>
@@ -95,12 +95,12 @@ export function AnonymousReportModal({ isOpen, onClose, hubId, ownerName }: Anon
                     ) : (
                         <form onSubmit={handleSubmit}>
                             {/* Info Box */}
-                            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                            <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-4 mb-4">
                                 <div className="flex gap-3">
                                     <ShieldAlert className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                                    <div className="text-sm text-purple-800">
+                                    <div className="text-sm text-purple-600">
                                         <p className="font-medium mb-1">Your identity will not be recorded</p>
-                                        <p className="text-purple-700">
+                                        <p className="opacity-80">
                                             This message will be sent anonymously to <strong>{ownerName}</strong>,
                                             the hub owner. They will not be able to see who sent it.
                                         </p>
@@ -109,10 +109,10 @@ export function AnonymousReportModal({ isOpen, onClose, hubId, ownerName }: Anon
                             </div>
 
                             {/* Warning */}
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
+                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-4">
                                 <div className="flex gap-2">
                                     <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                                    <p className="text-xs text-amber-800">
+                                    <p className="text-xs text-amber-600">
                                         Because this is anonymous, you won't receive a direct reply.
                                         If you need a response, consider sending a direct message instead.
                                     </p>
@@ -136,7 +136,7 @@ export function AnonymousReportModal({ isOpen, onClose, hubId, ownerName }: Anon
                             </div>
 
                             {error && (
-                                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+                                <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-600">
                                     {error}
                                 </div>
                             )}

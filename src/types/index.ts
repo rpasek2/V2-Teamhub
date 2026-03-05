@@ -325,6 +325,26 @@ export interface Message {
     profiles?: Profile;
 }
 
+// Message Reactions
+export type MessageReactionType = 'like' | 'heart' | 'celebrate';
+
+export interface MessageReaction {
+    id: string;
+    message_id: string;
+    user_id: string;
+    reaction_type: MessageReactionType;
+    created_at: string;
+    profiles?: Profile;
+}
+
+// Post Views
+export interface PostView {
+    id: string;
+    post_id: string;
+    user_id: string;
+    viewed_at: string;
+}
+
 // Gymnast Profile Types
 export interface Guardian {
     first_name?: string;

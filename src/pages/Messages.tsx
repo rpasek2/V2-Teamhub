@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
-import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2, UserPlus, Lock, Paperclip, Image, FileText } from 'lucide-react';
+import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2, UserPlus, Lock, Paperclip, Image, FileText, ThumbsUp, Heart, PartyPopper } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
@@ -12,7 +12,7 @@ import { AnonymousReportModal } from '../components/messages/AnonymousReportModa
 import { ImageGallery } from '../components/groups/attachments/ImageGallery';
 import { FileList } from '../components/groups/attachments/FileList';
 import { validateFile, generateSecureFileName, formatFileSize } from '../utils/fileValidation';
-import type { MessageAttachment, FileAttachment } from '../types';
+import type { MessageAttachment, FileAttachment, MessageReactionType } from '../types';
 
 interface AnonymousReport {
     id: string;
@@ -86,6 +86,12 @@ export default function Messages() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [showAttachMenu, setShowAttachMenu] = useState(false);
 
+    // Message reactions state
+    const [messageReactions, setMessageReactions] = useState<Map<string, { like: number; heart: number; celebrate: number; userReaction: MessageReactionType | null }>>(new Map());
+
+    // DM read receipt state
+    const [otherUserLastRead, setOtherUserLastRead] = useState<string | null>(null);
+
     // New DM modal state
     const [showNewDmModal, setShowNewDmModal] = useState(false);
     const [hubMembers, setHubMembers] = useState<HubMemberOption[]>([]);
@@ -149,6 +155,12 @@ export default function Messages() {
         if (selectedChannel) {
             fetchMessages(selectedChannel.id);
             const subscription = subscribeToMessages(selectedChannel.id);
+            // Fetch DM read receipt if this is a DM channel
+            if (selectedChannel.dm_participant_ids) {
+                fetchDmReadReceipt(selectedChannel.id);
+            } else {
+                setOtherUserLastRead(null);
+            }
             return () => {
                 subscription.unsubscribe();
             };
@@ -157,6 +169,10 @@ export default function Messages() {
 
     useEffect(() => {
         scrollToBottom();
+        // Fetch reactions whenever messages change
+        if (messages.length > 0) {
+            fetchMessageReactions(messages.map(m => m.id));
+        }
     }, [messages]);
 
     const fetchChannels = async () => {
@@ -322,6 +338,34 @@ export default function Messages() {
                     setMessages((prev) => prev.filter(m => m.id !== payload.old.id));
                 }
             )
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'message_reactions',
+                },
+                () => {
+                    // Re-fetch reactions on any change
+                    setMessages(prev => {
+                        if (prev.length > 0) fetchMessageReactions(prev.map(m => m.id));
+                        return prev;
+                    });
+                }
+            )
+            .on(
+                'postgres_changes',
+                {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: 'channel_members',
+                    filter: `channel_id=eq.${channelId}`,
+                },
+                () => {
+                    // Re-fetch DM read receipt when other user reads
+                    fetchDmReadReceipt(channelId);
+                }
+            )
             .subscribe();
     };
 
@@ -472,6 +516,70 @@ export default function Messages() {
             return;
         }
         setMessages(prev => prev.filter(m => m.id !== messageId));
+    };
+
+    // Fetch reactions for all visible messages
+    const fetchMessageReactions = async (messageIds: string[]) => {
+        if (messageIds.length === 0) return;
+        const { data, error } = await supabase
+            .from('message_reactions')
+            .select('message_id, reaction_type, user_id')
+            .in('message_id', messageIds);
+        if (error) { console.error('Error fetching reactions:', error); return; }
+        const map = new Map<string, { like: number; heart: number; celebrate: number; userReaction: MessageReactionType | null }>();
+        data?.forEach(r => {
+            const existing = map.get(r.message_id) || { like: 0, heart: 0, celebrate: 0, userReaction: null };
+            existing[r.reaction_type as MessageReactionType]++;
+            if (r.user_id === user?.id) existing.userReaction = r.reaction_type as MessageReactionType;
+            map.set(r.message_id, existing);
+        });
+        setMessageReactions(map);
+    };
+
+    const handleMessageReaction = async (messageId: string, type: MessageReactionType) => {
+        if (!user?.id) return;
+        const current = messageReactions.get(messageId);
+        const currentReaction = current?.userReaction || null;
+
+        if (currentReaction === type) {
+            // Remove reaction
+            await supabase.from('message_reactions').delete()
+                .eq('message_id', messageId).eq('user_id', user.id);
+            setMessageReactions(prev => {
+                const next = new Map(prev);
+                const entry = { ...(next.get(messageId) || { like: 0, heart: 0, celebrate: 0, userReaction: null }) };
+                entry[type] = Math.max(0, entry[type] - 1);
+                entry.userReaction = null;
+                next.set(messageId, entry);
+                return next;
+            });
+        } else {
+            if (currentReaction) {
+                // Update existing
+                await supabase.from('message_reactions').update({ reaction_type: type })
+                    .eq('message_id', messageId).eq('user_id', user.id);
+            } else {
+                // Insert new
+                await supabase.from('message_reactions').insert({
+                    message_id: messageId, user_id: user.id, reaction_type: type
+                });
+            }
+            setMessageReactions(prev => {
+                const next = new Map(prev);
+                const entry = { ...(next.get(messageId) || { like: 0, heart: 0, celebrate: 0, userReaction: null }) };
+                if (currentReaction) entry[currentReaction] = Math.max(0, entry[currentReaction] - 1);
+                entry[type] = entry[type] + 1;
+                entry.userReaction = type;
+                next.set(messageId, entry);
+                return next;
+            });
+        }
+    };
+
+    // Fetch DM read receipt
+    const fetchDmReadReceipt = async (channelId: string) => {
+        const { data, error } = await supabase.rpc('get_dm_read_receipt', { p_channel_id: channelId });
+        if (!error) setOtherUserLastRead(data);
     };
 
     const scrollToBottom = () => {
@@ -1049,7 +1157,7 @@ export default function Messages() {
                             </div>
                             <button
                                 onClick={() => setShowAnonymousReportModal(true)}
-                                className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-purple-600 hover:bg-purple-50"
+                                className="w-full flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors text-purple-600 hover:bg-purple-500/10"
                             >
                                 <ShieldAlert className="mr-2 h-4 w-4" />
                                 <span>Submit Report</span>
@@ -1066,11 +1174,11 @@ export default function Messages() {
                     <>
                         {/* Header */}
                         <div className="px-6 py-4 border-b border-line flex items-center">
-                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-100 mr-3">
+                            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/15 mr-3">
                                 <ShieldAlert className="h-4 w-4 text-purple-600" />
                             </div>
                             <h3 className="text-lg font-medium text-heading">Anonymous Reports</h3>
-                            <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
+                            <span className="ml-2 text-xs bg-purple-500/15 text-purple-600 px-2 py-0.5 rounded-full">
                                 {anonymousReports.length} report{anonymousReports.length !== 1 ? 's' : ''}
                             </span>
                         </div>
@@ -1083,7 +1191,7 @@ export default function Messages() {
                                 </div>
                             ) : anonymousReports.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                                    <div className="rounded-full bg-purple-100 p-4 mb-4">
+                                    <div className="rounded-full bg-purple-500/15 p-4 mb-4">
                                         <ShieldAlert className="h-8 w-8 text-purple-400" />
                                     </div>
                                     <h3 className="text-lg font-medium text-heading">No anonymous reports</h3>
@@ -1097,8 +1205,8 @@ export default function Messages() {
                                         <div
                                             key={report.id}
                                             className={`p-4 hover:bg-surface transition-colors cursor-pointer ${
-                                                !report.read_at ? 'bg-purple-50' : ''
-                                            } ${selectedReport?.id === report.id ? 'bg-surface ring-1 ring-purple-200' : ''}`}
+                                                !report.read_at ? 'bg-purple-500/5' : ''
+                                            } ${selectedReport?.id === report.id ? 'bg-surface ring-1 ring-purple-500/30' : ''}`}
                                             onClick={() => {
                                                 setSelectedReport(report);
                                                 if (!report.read_at) {
@@ -1134,7 +1242,7 @@ export default function Messages() {
                                                                 deleteReport(report.id);
                                                             }
                                                         }}
-                                                        className="p-1 rounded text-faint hover:text-red-500 hover:bg-red-50"
+                                                        className="p-1 rounded text-faint hover:text-red-500 hover:bg-red-500/10"
                                                         title="Delete report"
                                                     >
                                                         <Trash2 className="h-4 w-4" />
@@ -1281,14 +1389,68 @@ export default function Messages() {
                                                             return null;
                                                         })}
                                                     </div>
-                                                    {isMe && (
-                                                        <button
-                                                            onClick={() => deleteMessage(message.id)}
-                                                            className="absolute -top-2 right-0 p-1 rounded bg-surface border border-line shadow-sm opacity-0 group-hover/msg:opacity-100 transition-opacity hover:bg-error-50 hover:border-error-200 hover:text-error-600"
-                                                            title="Delete message"
-                                                        >
-                                                            <Trash2 className="h-3 w-3" />
-                                                        </button>
+                                                    {/* Hover actions: reactions + delete */}
+                                                    <div className={`absolute -top-2 ${isMe ? 'left-0' : 'right-0'} flex items-center gap-0.5 opacity-0 group-hover/msg:opacity-100 transition-opacity`}>
+                                                        {(['like', 'heart', 'celebrate'] as MessageReactionType[]).map(type => (
+                                                            <button
+                                                                key={type}
+                                                                onClick={() => handleMessageReaction(message.id, type)}
+                                                                className={`p-1 rounded bg-surface border border-line shadow-sm transition-colors ${
+                                                                    messageReactions.get(message.id)?.userReaction === type
+                                                                        ? type === 'like' ? 'text-blue-600 bg-blue-50' : type === 'heart' ? 'text-pink-500 bg-pink-50' : 'text-amber-600 bg-amber-50'
+                                                                        : 'text-faint hover:text-body'
+                                                                }`}
+                                                                title={type === 'like' ? 'Like' : type === 'heart' ? 'Love' : 'Celebrate'}
+                                                            >
+                                                                {type === 'like' && <ThumbsUp className="h-3 w-3" />}
+                                                                {type === 'heart' && <Heart className="h-3 w-3" />}
+                                                                {type === 'celebrate' && <PartyPopper className="h-3 w-3" />}
+                                                            </button>
+                                                        ))}
+                                                        {isMe && (
+                                                            <button
+                                                                onClick={() => deleteMessage(message.id)}
+                                                                className="p-1 rounded bg-surface border border-line shadow-sm hover:bg-error-50 hover:border-error-200 hover:text-error-600 text-faint"
+                                                                title="Delete message"
+                                                            >
+                                                                <Trash2 className="h-3 w-3" />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                    {/* Reaction pills */}
+                                                    {(() => {
+                                                        const r = messageReactions.get(message.id);
+                                                        if (!r || (r.like === 0 && r.heart === 0 && r.celebrate === 0)) return null;
+                                                        return (
+                                                            <div className={`flex items-center gap-1 mt-1 ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                                {r.like > 0 && (
+                                                                    <button onClick={() => handleMessageReaction(message.id, 'like')} className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border ${r.userReaction === 'like' ? 'bg-blue-50 border-blue-200 text-blue-600' : 'bg-surface border-line text-muted hover:bg-surface-hover'}`}>
+                                                                        <ThumbsUp className="h-3 w-3" /> {r.like}
+                                                                    </button>
+                                                                )}
+                                                                {r.heart > 0 && (
+                                                                    <button onClick={() => handleMessageReaction(message.id, 'heart')} className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border ${r.userReaction === 'heart' ? 'bg-pink-50 border-pink-200 text-pink-500' : 'bg-surface border-line text-muted hover:bg-surface-hover'}`}>
+                                                                        <Heart className="h-3 w-3" /> {r.heart}
+                                                                    </button>
+                                                                )}
+                                                                {r.celebrate > 0 && (
+                                                                    <button onClick={() => handleMessageReaction(message.id, 'celebrate')} className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs border ${r.userReaction === 'celebrate' ? 'bg-amber-50 border-amber-200 text-amber-600' : 'bg-surface border-line text-muted hover:bg-surface-hover'}`}>
+                                                                        <PartyPopper className="h-3 w-3" /> {r.celebrate}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })()}
+                                                    {/* DM Read receipt */}
+                                                    {isMe && selectedChannel?.dm_participant_ids && otherUserLastRead &&
+                                                        new Date(message.created_at) <= new Date(otherUserLastRead) &&
+                                                        (index === messages.length - 1 || messages[index + 1].user_id !== user?.id ||
+                                                            new Date(messages[index + 1].created_at) > new Date(otherUserLastRead)) && (
+                                                        <div className="flex justify-end mt-0.5">
+                                                            <span className="text-[11px] text-muted flex items-center gap-1">
+                                                                <Check className="h-3 w-3" /> Seen
+                                                            </span>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>

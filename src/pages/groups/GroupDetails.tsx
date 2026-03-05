@@ -146,6 +146,12 @@ export default function GroupDetails() {
                 }
             })) || [];
             setPosts(postsWithCount as any);
+
+            // Record post views (fire-and-forget)
+            if (user && postsWithCount.length > 0) {
+                const rows = postsWithCount.map(p => ({ post_id: p.id, user_id: user.id }));
+                supabase.from('post_views').upsert(rows, { onConflict: 'post_id,user_id', ignoreDuplicates: true }).then();
+            }
         }
         setLoading(false);
     };

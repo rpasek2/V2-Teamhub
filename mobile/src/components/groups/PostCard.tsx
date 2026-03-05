@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { MessageSquare, Pin, PinOff, MoreHorizontal, Trash2, Send, User, ThumbsUp, Heart, PartyPopper } from 'lucide-react-native';
+import { MessageSquare, Pin, PinOff, MoreHorizontal, Trash2, Send, User, ThumbsUp, Heart, PartyPopper, Eye } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
@@ -71,14 +71,24 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
     celebrate: 0,
   });
   const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
+  const [viewCount, setViewCount] = useState(0);
 
   const canDelete = isAdmin || post.user_id === currentUserId;
   const canPin = isAdmin;
 
-  // Fetch reactions on mount
+  // Fetch reactions and view count on mount
   useEffect(() => {
     fetchReactions();
+    fetchViewCount();
   }, [post.id]);
+
+  const fetchViewCount = async () => {
+    const { count } = await supabase
+      .from('post_views')
+      .select('id', { count: 'exact', head: true })
+      .eq('post_id', post.id);
+    if (count !== null) setViewCount(count);
+  };
 
   const fetchReactions = async () => {
     try {
@@ -467,11 +477,18 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
           </TouchableOpacity>
         </View>
 
-        {/* Comments Button */}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleToggleComments}
-        >
+        <View style={styles.rightActions}>
+          {viewCount > 0 && (
+            <View style={styles.viewCount}>
+              <Eye size={14} color={t.textFaint} />
+              <Text style={[styles.viewCountText, { color: t.textFaint }]}>{viewCount}</Text>
+            </View>
+          )}
+          {/* Comments Button */}
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={handleToggleComments}
+          >
           {loadingComments ? (
             <ActivityIndicator size="small" color={colors.slate[400]} />
           ) : (
@@ -493,6 +510,7 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
             </>
           )}
         </TouchableOpacity>
+        </View>
       </View>
 
       {/* Comments Section */}
@@ -701,6 +719,19 @@ const styles = StyleSheet.create({
   },
   reactionCountCelebrate: {
     color: colors.amber[600],
+  },
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  viewCount: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  viewCountText: {
+    fontSize: 12,
   },
   actionButton: {
     flexDirection: 'row',
