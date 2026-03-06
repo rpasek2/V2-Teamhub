@@ -75,8 +75,8 @@ export default function RosterScreen() {
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const currentMember = useHubStore((state) => state.currentMember);
+  const getPermissionScope = useHubStore((state) => state.getPermissionScope);
   const isStaff = useHubStore((state) => state.isStaff);
-  const isParent = useHubStore((state) => state.isParent);
 
   const levels = currentHub?.settings?.levels || [];
 
@@ -159,18 +159,22 @@ export default function RosterScreen() {
     }
   };
 
+  const rosterScope = useMemo(() => getPermissionScope('roster'), [getPermissionScope]);
+
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
-      // Permission check for parents - only see linked gymnasts
-      if (isParent() && !isStaff()) {
+      // Permission scope check
+      if (rosterScope === 'none') return false;
+      if (rosterScope === 'own') {
         if (member.type === 'gymnast_profile') {
           const isLinked = linkedGymnasts.some((g) => g.id === member.id);
           if (!isLinked) return false;
         } else {
-          // Parents can only see themselves in hub_member list
+          // Only see themselves in hub_member list
           if (member.id !== currentMember?.user_id) return false;
         }
       }
+      // rosterScope === 'all' shows everything
 
       // Tab filter
       if (activeTab !== 'All') {
@@ -207,7 +211,7 @@ export default function RosterScreen() {
       }
       return a.name.localeCompare(b.name);
     });
-  }, [members, activeTab, selectedLevel, searchQuery, isParent, isStaff, linkedGymnasts, currentMember, levels]);
+  }, [members, activeTab, selectedLevel, searchQuery, rosterScope, linkedGymnasts, currentMember, levels]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -217,7 +221,6 @@ export default function RosterScreen() {
   const handleMemberPress = (member: DisplayMember) => {
     // Only allow navigation to gymnast profiles
     if (member.type === 'gymnast_profile') {
-      // Check permission
       const canView = isStaff() || linkedGymnasts.some((g) => g.id === member.id);
       if (canView) {
         router.push(`/roster/${member.id}`);
@@ -337,7 +340,7 @@ export default function RosterScreen() {
         )}
       </TouchableOpacity>
     );
-  }, [isStaff, linkedGymnasts, handleMemberPress, t]);
+  }, [isStaff, linkedGymnasts, handleMemberPress, t, rosterScope]);
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
@@ -391,7 +394,7 @@ export default function RosterScreen() {
       </View>
 
       {/* Level Filter (only for gymnasts tab) */}
-      {levels.length > 0 && activeTab === 'Gymnasts' && isStaff() && (
+      {levels.length > 0 && activeTab === 'Gymnasts' && (isStaff() || rosterScope === 'all') && (
         <View style={[styles.filterContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterList}>
             <TouchableOpacity
