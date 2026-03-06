@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { MoreVertical, UserX, Trash2 } from 'lucide-react';
+import { MoreVertical, UserX, Trash2, Pencil, FileText } from 'lucide-react';
 import { useToggleCompletion, useDeleteAssignment, useUpsertAssignment } from '../../hooks/useAssignments';
+import { AssignmentDetailModal } from './AssignmentDetailModal';
+import { SaveAsTemplateModal } from './SaveAsTemplateModal';
 import type { GymnastAssignment, AssignmentEventType } from '../../types';
 
 interface GymnastEventCardProps {
@@ -22,6 +24,8 @@ export function GymnastEventCard({ assignment, eventKey, eventColor, borderColor
     const { upsertAssignment } = useUpsertAssignment();
     const cardRef = useRef<HTMLDivElement>(null);
     const [showMenu, setShowMenu] = useState(false);
+    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [showSaveTemplate, setShowSaveTemplate] = useState(false);
     const [localCompleted, setLocalCompleted] = useState<number[]>([]);
     const menuRef = useRef<HTMLDivElement>(null);
 
@@ -133,6 +137,20 @@ export function GymnastEventCard({ assignment, eventKey, eventColor, borderColor
                         {showMenu && (
                             <div className="absolute right-0 top-full mt-1 w-48 bg-surface rounded-lg shadow-lg border border-line py-1 z-20">
                                 <button
+                                    onClick={() => { setShowMenu(false); setShowDetailModal(true); }}
+                                    className="w-full px-3 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2"
+                                >
+                                    <Pencil className="w-4 h-4 text-muted" />
+                                    Edit assignment
+                                </button>
+                                <button
+                                    onClick={() => { setShowMenu(false); setShowSaveTemplate(true); }}
+                                    className="w-full px-3 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2"
+                                >
+                                    <FileText className="w-4 h-4 text-muted" />
+                                    Save as template
+                                </button>
+                                <button
                                     onClick={handleRemoveEvent}
                                     className="w-full px-3 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2"
                                 >
@@ -180,6 +198,25 @@ export function GymnastEventCard({ assignment, eventKey, eventColor, borderColor
                     );
                 })}
             </div>
+
+            {showDetailModal && (
+                <AssignmentDetailModal
+                    assignment={assignment}
+                    isOpen={showDetailModal}
+                    onClose={() => setShowDetailModal(false)}
+                    onUpdated={onUpdate}
+                    canEdit
+                />
+            )}
+
+            {showSaveTemplate && (
+                <SaveAsTemplateModal
+                    event={eventKey}
+                    templateType="checklist"
+                    exercises={assignment[eventKey] || ''}
+                    onClose={() => setShowSaveTemplate(false)}
+                />
+            )}
         </div>
     );
 }

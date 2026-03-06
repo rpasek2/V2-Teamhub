@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { format, addDays, subDays } from 'date-fns';
-import { ChevronLeft, ChevronRight, Calendar, Plus, Filter, X, Trash2, LayoutGrid, FileText } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Plus, Filter, X, Trash2, LayoutGrid, FileText, Pencil, Save, Loader2, MoreVertical } from 'lucide-react';
 import { useHub } from '../../context/HubContext';
 import { useAssignments } from '../../hooks/useAssignments';
-import { useStations, useDeleteStation } from '../../hooks/useStations';
+import { useStations, useUpsertStation, useDeleteStation } from '../../hooks/useStations';
 import { GymnastEventCard } from './GymnastEventCard';
 import { AssignmentModal } from './AssignmentModal';
-import type { AssignmentEventType, GymnastAssignment } from '../../types';
+import { SaveAsTemplateModal } from './SaveAsTemplateModal';
+import type { AssignmentEventType, GymnastAssignment, StationAssignment, MainStation } from '../../types';
 import { ASSIGNMENT_EVENTS, ASSIGNMENT_EVENT_LABELS, ASSIGNMENT_EVENT_COLORS } from '../../types';
 
 interface CoachModeProps {
@@ -30,6 +32,317 @@ function formatDateDisplay(date: Date): string {
     return format(date, 'EEEE, MMMM d, yyyy');
 }
 
+function EditStationModal({ station, onClose, onSaved }: {
+    station: StationAssignment;
+    onClose: () => void;
+    onSaved: () => void;
+}) {
+    const { upsertStation } = useUpsertStation();
+    const [mainStations, setMainStations] = useState<MainStation[]>(
+        station.stations.map(s => ({
+            id: s.id,
+            content: s.content,
+            side_stations: s.side_stations.map(ss => ({ id: ss.id, content: ss.content }))
+        }))
+    );
+    const [isSaving, setIsSaving] = useState(false);
+    const [error, setError] = useState('');
+    const eventColors = ASSIGNMENT_EVENT_COLORS[station.event];
+
+    const addMainStation = () => {
+        setMainStations(prev => [...prev, { id: crypto.randomUUID(), content: '', side_stations: [] }]);
+    };
+
+    const updateMainStation = (id: string, content: string) => {
+        setMainStations(prev => prev.map(s => s.id === id ? { ...s, content } : s));
+    };
+
+    const removeMainStation = (id: string) => {
+        if (mainStations.length > 1) {
+            setMainStations(prev => prev.filter(s => s.id !== id));
+        }
+    };
+
+    const addSideStation = (mainId: string) => {
+        setMainStations(prev => prev.map(m =>
+            m.id === mainId
+                ? { ...m, side_stations: [...m.side_stations, { id: crypto.randomUUID(), content: '' }] }
+                : m
+        ));
+    };
+
+    const updateSideStation = (mainId: string, sideId: string, content: string) => {
+        setMainStations(prev => prev.map(m =>
+            m.id === mainId
+                ? { ...m, side_stations: m.side_stations.map(s => s.id === sideId ? { ...s, content } : s) }
+                : m
+        ));
+    };
+
+    const removeSideStation = (mainId: string, sideId: string) => {
+        setMainStations(prev => prev.map(m =>
+            m.id === mainId
+                ? { ...m, side_stations: m.side_stations.filter(s => s.id !== sideId) }
+                : m
+        ));
+    };
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        setError('');
+        try {
+            const validStations = mainStations
+                .filter(m => m.content.trim())
+                .map(m => ({
+                    ...m,
+                    side_stations: m.side_stations.filter(s => s.content.trim())
+                }));
+
+            const result = await upsertStation({
+                hub_id: station.hub_id,
+                date: station.date,
+                level: station.level,
+                event: station.event,
+                stations: validStations
+            });
+            if (result) {
+                onSaved();
+                onClose();
+            } else {
+                setError('Failed to save stations. Please try again.');
+            }
+        } catch (err) {
+            console.error('Error saving stations:', err);
+            setError('Failed to save stations. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    return createPortal(
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="bg-surface rounded-xl border border-line w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+                <div className="p-4 border-b border-line flex items-center justify-between">
+                    <div>
+                        <h2 className="text-lg font-semibold text-heading">Edit Stations</h2>
+                        <p className="text-sm text-muted">{station.level} — {ASSIGNMENT_EVENT_LABELS[station.event]}</p>
+                    </div>
+                    <button onClick={onClose} className="p-2 text-muted hover:text-heading hover:bg-surface-hover rounded-lg transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <span className="font-medium text-heading text-sm">Stations ({mainStations.length})</span>
+                        <button onClick={addMainStation} className="text-sm text-accent-600 hover:text-accent-700 flex items-center gap-1">
+                            <Plus className="w-3.5 h-3.5" />
+                            Add Station
+                        </button>
+                    </div>
+
+                    <div className="space-y-3">
+                        {mainStations.map((ms, idx) => (
+                            <div key={ms.id} className={`rounded-lg border-2 p-3 ${eventColors.bg} ${eventColors.border}`}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-5 h-5 rounded-full bg-slate-600 flex items-center justify-center text-xs font-bold text-white">
+                                            {idx + 1}
+                                        </span>
+                                        <span className={`text-xs font-medium ${eventColors.text}`}>Station {idx + 1}</span>
+                                    </div>
+                                    {mainStations.length > 1 && (
+                                        <button onClick={() => removeMainStation(ms.id)} className="p-1 text-faint hover:text-error-400">
+                                            <X className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
+                                </div>
+
+                                <textarea
+                                    value={ms.content}
+                                    onChange={(e) => updateMainStation(ms.id, e.target.value)}
+                                    placeholder="Station exercises..."
+                                    className="input w-full min-h-[60px] resize-none text-sm mb-2"
+                                    rows={2}
+                                />
+
+                                <div className="border-t border-line pt-2">
+                                    <div className="flex items-center justify-between mb-1.5">
+                                        <span className="text-[10px] text-muted">Side Stations</span>
+                                        {ms.side_stations.length < 3 && (
+                                            <button onClick={() => addSideStation(ms.id)} className="text-[10px] text-amber-600 hover:text-amber-700 flex items-center gap-0.5">
+                                                <Plus className="w-2.5 h-2.5" />
+                                                Add
+                                            </button>
+                                        )}
+                                    </div>
+                                    {ms.side_stations.length === 0 ? (
+                                        <p className="text-[10px] text-muted text-center py-1.5 bg-surface rounded border border-dashed border-line-strong">
+                                            No side stations
+                                        </p>
+                                    ) : (
+                                        <div className="space-y-1.5">
+                                            {ms.side_stations.map((side, sideIdx) => (
+                                                <div key={side.id} className="bg-amber-500/10 rounded p-2 border border-amber-500/20">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-[10px] font-medium text-amber-600">Side {sideIdx + 1}</span>
+                                                        <button onClick={() => removeSideStation(ms.id, side.id)} className="p-0.5 text-faint hover:text-error-400">
+                                                            <X className="w-2.5 h-2.5" />
+                                                        </button>
+                                                    </div>
+                                                    <textarea
+                                                        value={side.content}
+                                                        onChange={(e) => updateSideStation(ms.id, side.id, e.target.value)}
+                                                        placeholder="Side station..."
+                                                        className="input w-full text-xs py-1 resize-none"
+                                                        rows={1}
+                                                    />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="p-4 border-t border-line">
+                    {error && <p className="text-sm text-error-500 mb-3">{error}</p>}
+                    <div className="flex justify-end gap-3">
+                    <button onClick={onClose} className="btn-secondary">Cancel</button>
+                    <button
+                        onClick={handleSave}
+                        disabled={isSaving || mainStations.every(s => !s.content.trim())}
+                        className="btn-primary"
+                    >
+                        {isSaving ? (
+                            <><Loader2 className="w-4 h-4 animate-spin" /> Saving...</>
+                        ) : (
+                            <><Save className="w-4 h-4" /> Save Changes</>
+                        )}
+                    </button>
+                    </div>
+                </div>
+            </div>
+        </div>,
+        document.body
+    );
+}
+
+interface StationCardMenuProps {
+    station: StationAssignment;
+    eventConfig: { bg: string; border: string };
+    onEdit: () => void;
+    onDelete: () => void;
+}
+
+function StationCardWithMenu({ station, eventConfig, onEdit, onDelete }: StationCardMenuProps) {
+    const [showMenu, setShowMenu] = useState(false);
+    const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+                setShowMenu(false);
+            }
+        };
+        if (showMenu) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showMenu]);
+
+    return (
+        <div className={`${eventConfig.bg} rounded-lg border-2 ${eventConfig.border} p-4 mb-4`}>
+            <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                    <LayoutGrid className="w-4 h-4 text-amber-600 flex-shrink-0" />
+                    <span className="text-sm font-medium text-body">
+                        {station.stations.length} Station{station.stations.length !== 1 ? 's' : ''}
+                    </span>
+                </div>
+                <div className="relative" ref={menuRef}>
+                    <button
+                        onClick={() => setShowMenu(!showMenu)}
+                        className="p-1 text-muted hover:text-body hover:bg-surface-hover rounded transition-colors"
+                    >
+                        <MoreVertical className="w-4 h-4" />
+                    </button>
+
+                    {showMenu && (
+                        <div className="absolute right-0 top-full mt-1 w-48 bg-surface rounded-lg shadow-lg border border-line py-1 z-20">
+                            <button
+                                onClick={() => { setShowMenu(false); onEdit(); }}
+                                className="w-full px-3 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2"
+                            >
+                                <Pencil className="w-4 h-4 text-muted" />
+                                Edit stations
+                            </button>
+                            <button
+                                onClick={() => { setShowMenu(false); setShowSaveTemplate(true); }}
+                                className="w-full px-3 py-2 text-left text-sm text-body hover:bg-surface-hover flex items-center gap-2"
+                            >
+                                <FileText className="w-4 h-4 text-muted" />
+                                Save as template
+                            </button>
+                            <button
+                                onClick={() => { setShowMenu(false); onDelete(); }}
+                                className="w-full px-3 py-2 text-left text-sm text-error-500 hover:bg-error-500/10 flex items-center gap-2"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                                Delete stations
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Main Stations Grid */}
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {station.stations.map((mainStation, mainIndex) => (
+                    <div key={mainStation.id} className="bg-surface-alt rounded-lg border border-line p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-600 text-white text-xs font-bold">
+                                {mainIndex + 1}
+                            </span>
+                            <span className="text-xs font-medium text-muted">Station {mainIndex + 1}</span>
+                        </div>
+                        <div className="text-sm text-body whitespace-pre-wrap">
+                            {mainStation.content}
+                        </div>
+                        {mainStation.side_stations && mainStation.side_stations.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-line space-y-2">
+                                {mainStation.side_stations.map((side, sideIndex) => (
+                                    <div key={side.id} className="bg-amber-500/10 rounded p-2 border border-amber-500/20">
+                                        <div className="flex items-center gap-1 mb-1">
+                                            <ChevronRight className="w-3 h-3 text-amber-600 flex-shrink-0" />
+                                            <span className="text-xs font-medium text-amber-600">Side {sideIndex + 1}</span>
+                                        </div>
+                                        <div className="text-xs text-subtle whitespace-pre-wrap pl-4">
+                                            {side.content}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                ))}
+            </div>
+
+            {showSaveTemplate && (
+                <SaveAsTemplateModal
+                    event={station.event}
+                    templateType="stations"
+                    stations={station.stations}
+                    onClose={() => setShowSaveTemplate(false)}
+                />
+            )}
+        </div>
+    );
+}
+
 export function CoachMode({ onNavigateToTemplates }: CoachModeProps) {
     const { hub } = useHub();
     const [selectedDate, setSelectedDate] = useState(new Date());
@@ -42,6 +355,7 @@ export function CoachMode({ onNavigateToTemplates }: CoachModeProps) {
     const { assignments, loading, refetch } = useAssignments({ hubId: hub?.id, date: dateString });
     const { stations, refetch: refetchStations } = useStations({ hubId: hub?.id, date: dateString });
     const { deleteStation } = useDeleteStation();
+    const [editingStation, setEditingStation] = useState<StationAssignment | null>(null);
 
     // Navigation handlers
     const handlePrevDay = () => setSelectedDate(subDays(selectedDate, 1));
@@ -375,60 +689,12 @@ export function CoachMode({ onNavigateToTemplates }: CoachModeProps) {
 
                                 {/* Station Card (if exists) */}
                                 {station && station.stations && station.stations.length > 0 && (
-                                    <div className={`${eventConfig.bg} rounded-lg border-2 ${eventConfig.border} p-4 mb-4`}>
-                                        <div className="flex items-start justify-between gap-3 mb-3">
-                                            <div className="flex items-center gap-2">
-                                                <LayoutGrid className="w-4 h-4 text-amber-600 flex-shrink-0" />
-                                                <span className="text-sm font-medium text-body">
-                                                    {station.stations.length} Station{station.stations.length !== 1 ? 's' : ''}
-                                                </span>
-                                            </div>
-                                            <button
-                                                onClick={() => handleDeleteStation(station.id)}
-                                                className="p-1.5 text-faint hover:text-error-400 hover:bg-error-500/10 rounded-lg transition-colors flex-shrink-0"
-                                                title="Delete stations"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-
-                                        {/* Main Stations Grid */}
-                                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                            {station.stations.map((mainStation, mainIndex) => (
-                                                <div key={mainStation.id} className="bg-surface-alt rounded-lg border border-line p-3">
-                                                    {/* Station Header */}
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <span className="flex items-center justify-center w-5 h-5 rounded-full bg-slate-600 text-white text-xs font-bold">
-                                                            {mainIndex + 1}
-                                                        </span>
-                                                        <span className="text-xs font-medium text-muted">Station {mainIndex + 1}</span>
-                                                    </div>
-
-                                                    {/* Station Content */}
-                                                    <div className="text-sm text-body whitespace-pre-wrap">
-                                                        {mainStation.content}
-                                                    </div>
-
-                                                    {/* Side Stations */}
-                                                    {mainStation.side_stations && mainStation.side_stations.length > 0 && (
-                                                        <div className="mt-2 pt-2 border-t border-line space-y-2">
-                                                            {mainStation.side_stations.map((side, sideIndex) => (
-                                                                <div key={side.id} className="bg-amber-500/10 rounded p-2 border border-amber-500/20">
-                                                                    <div className="flex items-center gap-1 mb-1">
-                                                                        <ChevronRight className="w-3 h-3 text-amber-600 flex-shrink-0" />
-                                                                        <span className="text-xs font-medium text-amber-600">Side {sideIndex + 1}</span>
-                                                                    </div>
-                                                                    <div className="text-xs text-subtle whitespace-pre-wrap pl-4">
-                                                                        {side.content}
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    <StationCardWithMenu
+                                        station={station}
+                                        eventConfig={eventConfig}
+                                        onEdit={() => setEditingStation(station)}
+                                        onDelete={() => handleDeleteStation(station.id)}
+                                    />
                                 )}
 
                                 {/* Gymnast Cards (Checklist) */}
@@ -463,6 +729,14 @@ export function CoachMode({ onNavigateToTemplates }: CoachModeProps) {
                     refetchStations();
                 }}
             />
+
+            {editingStation && (
+                <EditStationModal
+                    station={editingStation}
+                    onClose={() => setEditingStation(null)}
+                    onSaved={refetchStations}
+                />
+            )}
         </div>
     );
 }
