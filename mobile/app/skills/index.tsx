@@ -156,30 +156,36 @@ export default function SkillsScreen() {
     }
   }, [currentHub?.id]);
 
-  // Fetch gymnasts when level changes
+  // Fetch gymnasts, skills, and gymnast_skills together (parallel where possible)
   useEffect(() => {
-    if (currentHub && selectedLevel) {
-      fetchGymnasts();
-    }
-  }, [currentHub?.id, selectedLevel]);
+    if (!currentHub || !selectedLevel || !selectedEvent || !selectedSkillListId) return;
 
-  // Fetch skills when level, event, or skill list changes
-  useEffect(() => {
-    if (currentHub && selectedLevel && selectedEvent && selectedSkillListId) {
-      fetchSkills();
-    }
+    let cancelled = false;
+    const loadAll = async () => {
+      setLoading(true);
+      setError(null);
+
+      // Fetch gymnasts and skills in parallel
+      const [gymnastsResult, skillsResult] = await Promise.all([
+        fetchGymnasts(),
+        fetchSkills(),
+      ]);
+
+      if (cancelled) return;
+
+      // Then fetch gymnast_skills (depends on both results)
+      if (gymnastsResult && gymnastsResult.length > 0 && skillsResult && skillsResult.length > 0) {
+        await fetchGymnastSkills();
+      }
+      if (!cancelled) setLoading(false);
+    };
+
+    loadAll();
+    return () => { cancelled = true; };
   }, [currentHub?.id, selectedLevel, selectedEvent, selectedSkillListId]);
 
-  // Fetch gymnast skills when skills or gymnasts change
-  useEffect(() => {
-    if (gymnasts.length > 0 && skills.length > 0) {
-      fetchGymnastSkills();
-    }
-  }, [gymnasts, skills]);
-
-  const fetchGymnasts = async () => {
-    if (!currentHub || !selectedLevel) return;
-    setError(null);
+  const fetchGymnasts = async (): Promise<Gymnast[]> => {
+    if (!currentHub || !selectedLevel) return [];
 
     let query = supabase
       .from('gymnast_profiles')
@@ -199,8 +205,10 @@ export default function SkillsScreen() {
       console.error('Error fetching gymnasts:', error);
       setError('Failed to load data. Pull to refresh.');
       setGymnasts([]);
+      return [];
     } else {
       setGymnasts(data || []);
+      return data || [];
     }
   };
 
@@ -225,9 +233,8 @@ export default function SkillsScreen() {
     }
   };
 
-  const fetchSkills = async () => {
-    if (!currentHub || !selectedLevel || !selectedEvent || !selectedSkillListId) return;
-    setLoading(true);
+  const fetchSkills = async (): Promise<HubEventSkill[]> => {
+    if (!currentHub || !selectedLevel || !selectedEvent || !selectedSkillListId) return [];
 
     const { data, error } = await supabase
       .from('hub_event_skills')
@@ -242,10 +249,11 @@ export default function SkillsScreen() {
       console.error('Error fetching skills:', error);
       setError('Failed to load data. Pull to refresh.');
       setSkills([]);
+      return [];
     } else {
       setSkills(data || []);
+      return data || [];
     }
-    setLoading(false);
   };
 
   const fetchGymnastSkills = async () => {

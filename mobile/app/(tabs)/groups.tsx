@@ -123,48 +123,77 @@ export default function GroupsScreen() {
         return;
       }
 
-      // Process all groups in parallel
-      const processedGroups = await Promise.all(
-        (groupData || []).map(async (g) => {
-          // Run all queries for this group in parallel
-          const [memberCountResult, lastPostResult, unreadResult] = await Promise.all([
-            // Get member count
-            supabase
-              .from('group_members')
-              .select('user_id', { count: 'exact', head: true })
-              .eq('group_id', g.id),
+      // Batch queries: 3 total instead of 3 per group
+      const allGroupIds = (groupData || []).map(g => g.id);
+      if (allGroupIds.length === 0) {
+        setGroups([]);
+        return;
+      }
 
-            // Get last post time
-            supabase
+      // Find the oldest last_viewed_at for unread filtering
+      const memberEntries = memberGroups?.filter(m => allGroupIds.includes(m.group_id)) || [];
+      const oldestLastViewed = memberEntries.length > 0
+        ? memberEntries.reduce((oldest, m) => {
+            const val = m.last_viewed_at || '1970-01-01';
+            return val < oldest ? val : oldest;
+          }, memberEntries[0].last_viewed_at || '1970-01-01')
+        : '1970-01-01';
+
+      const [allMembersResult, allPostsResult, allUnreadResult] = await Promise.all([
+        // 1. All group_members rows for these groups (just group_id column)
+        supabase
+          .from('group_members')
+          .select('group_id')
+          .in('group_id', allGroupIds),
+
+        // 2. Recent posts for all groups (to find last activity per group)
+        supabase
+          .from('posts')
+          .select('group_id, created_at')
+          .in('group_id', allGroupIds)
+          .order('created_at', { ascending: false }),
+
+        // 3. Unread posts for member groups (excluding own posts, after oldest last_viewed)
+        memberGroupIds.length > 0
+          ? supabase
               .from('posts')
-              .select('created_at')
-              .eq('group_id', g.id)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle(),
+              .select('group_id, created_at')
+              .in('group_id', memberGroupIds)
+              .gt('created_at', oldestLastViewed)
+              .neq('user_id', user.id)
+          : Promise.resolve({ data: [] as { group_id: string; created_at: string }[] }),
+      ]);
 
-            // Calculate unread posts if user is a member (excluding own posts)
-            memberGroupIds.includes(g.id)
-              ? supabase
-                  .from('posts')
-                  .select('id', { count: 'exact', head: true })
-                  .eq('group_id', g.id)
-                  .gt('created_at', lastViewedMap.get(g.id) || '1970-01-01')
-                  .neq('user_id', user.id)
-              : Promise.resolve({ count: 0 }),
-          ]);
+      // Build maps client-side
+      const memberCountMap = new Map<string, number>();
+      (allMembersResult.data || []).forEach(r => {
+        memberCountMap.set(r.group_id, (memberCountMap.get(r.group_id) || 0) + 1);
+      });
 
-          return {
-            id: g.id,
-            name: g.name,
-            description: g.description,
-            type: g.type as 'public' | 'private',
-            memberCount: memberCountResult.count || 0,
-            unreadPosts: unreadResult.count || 0,
-            lastActivity: lastPostResult.data?.created_at || null,
-          };
-        })
-      );
+      const lastActivityMap = new Map<string, string>();
+      (allPostsResult.data || []).forEach(r => {
+        if (!lastActivityMap.has(r.group_id)) {
+          lastActivityMap.set(r.group_id, r.created_at); // Already sorted desc, first = latest
+        }
+      });
+
+      const unreadCountMap = new Map<string, number>();
+      (allUnreadResult.data || []).forEach((r: { group_id: string; created_at: string }) => {
+        const groupLastViewed = lastViewedMap.get(r.group_id) || '1970-01-01';
+        if (r.created_at > groupLastViewed) {
+          unreadCountMap.set(r.group_id, (unreadCountMap.get(r.group_id) || 0) + 1);
+        }
+      });
+
+      const processedGroups: Group[] = (groupData || []).map(g => ({
+        id: g.id,
+        name: g.name,
+        description: g.description,
+        type: g.type as 'public' | 'private',
+        memberCount: memberCountMap.get(g.id) || 0,
+        unreadPosts: unreadCountMap.get(g.id) || 0,
+        lastActivity: lastActivityMap.get(g.id) || null,
+      }));
 
       // Sort by unread first, then by last activity
       processedGroups.sort((a, b) => {

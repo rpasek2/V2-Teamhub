@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { View, StyleSheet, AppState, AppStateStatus } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -92,6 +92,15 @@ export default function TabLayout() {
 
   // Track app state for foreground refresh
   const appState = useRef(AppState.currentState);
+  const notifDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Debounced version for Realtime callbacks (2-second debounce)
+  const debouncedFetchCounts = useCallback((hubId: string, userId: string) => {
+    if (notifDebounceRef.current) clearTimeout(notifDebounceRef.current);
+    notifDebounceRef.current = setTimeout(() => {
+      fetchNotificationCounts(hubId, userId);
+    }, 2000);
+  }, [fetchNotificationCounts]);
 
   // Fetch notification counts and subscribe to Realtime changes
   useEffect(() => {
@@ -100,33 +109,32 @@ export default function TabLayout() {
     const hubId = currentHub.id;
     const userId = user.id;
 
-    // Initial fetch
+    // Initial fetch (immediate, no debounce)
     fetchNotificationCounts(hubId, userId);
 
-    // Subscribe to Realtime changes on relevant tables
+    // Subscribe to Realtime changes on relevant tables (debounced)
     const channel = supabase
       .channel(`mobile-notifications:${hubId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
-        () => { fetchNotificationCounts(hubId, userId); }
+        () => { debouncedFetchCounts(hubId, userId); }
       )
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'posts' },
-        () => { fetchNotificationCounts(hubId, userId); }
+        () => { debouncedFetchCounts(hubId, userId); }
       )
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'events', filter: `hub_id=eq.${hubId}` },
-        () => { fetchNotificationCounts(hubId, userId); }
+        () => { debouncedFetchCounts(hubId, userId); }
       )
       .subscribe();
 
-    // Handle app state changes - refresh counts when app comes to foreground
+    // Handle app state changes - refresh counts when app comes to foreground (immediate)
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        // App came to foreground - fetch immediately
         fetchNotificationCounts(hubId, userId);
       }
       appState.current = nextAppState;
@@ -135,10 +143,11 @@ export default function TabLayout() {
     const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
 
     return () => {
+      if (notifDebounceRef.current) clearTimeout(notifDebounceRef.current);
       supabase.removeChannel(channel);
       appStateSubscription.remove();
     };
-  }, [currentHub?.id, user?.id]);
+  }, [currentHub?.id, user?.id, debouncedFetchCounts]);
 
   // Helper to get badge for a tab
   const getBadgeForTab = (tabId: TabId): number | boolean | undefined => {

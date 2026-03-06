@@ -196,22 +196,25 @@ export default function GroupDetailsScreen() {
       setError('Failed to load data. Pull to refresh.');
       setPosts([]);
     } else {
-      // Fetch comment counts for each post
-      const postsWithCounts = await Promise.all(
-        (data || []).map(async (post) => {
-          const { count } = await supabase
-            .from('comments')
-            .select('id', { count: 'exact', head: true })
-            .eq('post_id', post.id);
+      // Batch fetch comment counts in a single query
+      const postIds = (data || []).map(p => p.id);
+      const commentCountMap = new Map<string, number>();
+      if (postIds.length > 0) {
+        const { data: commentRows } = await supabase
+          .from('comments')
+          .select('post_id')
+          .in('post_id', postIds);
+        (commentRows || []).forEach(r => {
+          commentCountMap.set(r.post_id, (commentCountMap.get(r.post_id) || 0) + 1);
+        });
+      }
 
-          return {
-            ...post,
-            is_pinned: post.is_pinned || false,
-            attachments: post.attachments || [],
-            commentCount: count || 0,
-          };
-        })
-      );
+      const postsWithCounts = (data || []).map(post => ({
+        ...post,
+        is_pinned: post.is_pinned || false,
+        attachments: post.attachments || [],
+        commentCount: commentCountMap.get(post.id) || 0,
+      }));
       setPosts(postsWithCounts as Post[]);
 
       // Record post views (fire-and-forget)

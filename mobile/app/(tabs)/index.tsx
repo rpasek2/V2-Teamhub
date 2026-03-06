@@ -316,14 +316,19 @@ export default function DashboardScreen() {
       const now = new Date().toISOString();
       const twoWeeksAgo = subWeeks(new Date(), 2).toISOString();
 
-      // Fetch stats (for staff)
-      const [memberCountResult, gymnastCountResult, eventsResult, competitionsResult] = await Promise.all([
+      // Single batch: stats + upcoming + activity data
+      const [memberCountResult, gymnastCountResult, eventsResult, competitionsResult, memberGroupsResult] = await Promise.all([
         supabase.from('hub_members').select('*', { count: 'exact', head: true }).eq('hub_id', currentHub.id),
         supabase.from('gymnast_profiles').select('*', { count: 'exact', head: true }).eq('hub_id', currentHub.id),
-        supabase.from('events').select('id, title, start_time, type', { count: 'exact' })
-          .eq('hub_id', currentHub.id).gte('start_time', now).order('start_time', { ascending: true }).limit(5),
-        supabase.from('competitions').select('id, name, start_date, end_date', { count: 'exact' })
-          .eq('hub_id', currentHub.id).gte('end_date', now.split('T')[0]).order('start_date', { ascending: true }).limit(5),
+        supabase.from('events').select('id, title, start_time, type, created_at', { count: 'exact' })
+          .eq('hub_id', currentHub.id).gte('start_time', now).order('start_time', { ascending: true }),
+        supabase.from('competitions').select('id, name, start_date, end_date, created_at', { count: 'exact' })
+          .eq('hub_id', currentHub.id).gte('end_date', now.split('T')[0]).order('start_date', { ascending: true }),
+        supabase
+          .from('group_members')
+          .select('group_id, groups!inner(hub_id)')
+          .eq('user_id', user.id)
+          .eq('groups.hub_id', currentHub.id),
       ]);
 
       setStats({
@@ -335,33 +340,15 @@ export default function DashboardScreen() {
         nextCompetitionName: competitionsResult.data && competitionsResult.data.length > 0 ? competitionsResult.data[0].name : null,
       });
 
-      setUpcomingEvents(eventsResult.data || []);
+      setUpcomingEvents((eventsResult.data || []).slice(0, 5));
 
-      // Fetch recent activity - parallelize independent queries
-      const [recentEventsResult, recentCompsResult, memberGroupsResult] = await Promise.all([
-        supabase
-          .from('events')
-          .select('id, title, created_at')
-          .eq('hub_id', currentHub.id)
-          .gte('created_at', twoWeeksAgo)
-          .order('created_at', { ascending: false })
-          .limit(3),
-        supabase
-          .from('competitions')
-          .select('id, name, created_at')
-          .eq('hub_id', currentHub.id)
-          .gte('created_at', twoWeeksAgo)
-          .order('created_at', { ascending: false })
-          .limit(3),
-        supabase
-          .from('group_members')
-          .select('group_id, groups!inner(hub_id)')
-          .eq('user_id', user.id)
-          .eq('groups.hub_id', currentHub.id),
-      ]);
-
-      const recentEvents = recentEventsResult.data;
-      const recentComps = recentCompsResult.data;
+      // Split recent activity from the same results (client-side)
+      const recentEvents = (eventsResult.data || [])
+        .filter((e: { created_at: string }) => e.created_at >= twoWeeksAgo)
+        .slice(0, 3);
+      const recentComps = (competitionsResult.data || [])
+        .filter((c: { created_at: string }) => c.created_at >= twoWeeksAgo)
+        .slice(0, 3);
       const memberGroups = memberGroupsResult.data;
 
       const activities: RecentActivity[] = [];
