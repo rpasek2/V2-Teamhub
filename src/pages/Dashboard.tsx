@@ -124,6 +124,9 @@ export function Dashboard() {
     const [showCreateAnnouncement, setShowCreateAnnouncement] = useState(false);
     const [announcementKey, setAnnouncementKey] = useState(0);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const [dashboardAnnouncements, setDashboardAnnouncements] = useState<any[]>([]);
+
     // Parent-specific data
     const [recentScores, setRecentScores] = useState<RecentScore[]>([]);
     const [recentSkillChanges, setRecentSkillChanges] = useState<RecentSkillChange[]>([]);
@@ -568,15 +571,53 @@ export function Dashboard() {
 
         try {
             const now = new Date().toISOString();
+            const twoWeeksAgo = subWeeks(new Date(), 2).toISOString();
 
-            // Group 1: Stats queries (all independent) - run in parallel
-            const [memberCountResult, gymnastCountResult, eventsResult, competitionsResult] = await Promise.all([
+            // Unified queries: fetch events & competitions once with all needed columns
+            // Then split client-side for stats vs activity
+            const groupsQuery = isStaff
+                ? supabase.from('groups').select('id').eq('hub_id', hub.id).limit(50)
+                : null;
+            const memberGroupsQuery = !isStaff
+                ? supabase.from('group_members').select('group_id, groups!inner(hub_id)')
+                    .eq('user_id', user.id).eq('groups.hub_id', hub.id).limit(50)
+                : null;
+            const publicGroupsQuery = !isStaff
+                ? supabase.from('groups').select('id').eq('hub_id', hub.id).eq('type', 'public').limit(50)
+                : null;
+
+            // Single parallel batch for all queries
+            const [
+                memberCountResult,
+                gymnastCountResult,
+                eventsResult,
+                competitionsResult,
+                recentMembersResult,
+                groupsResult,
+                memberGroupsResult,
+                publicGroupsResult,
+                announcementsResult
+            ] = await Promise.all([
                 supabase.from('hub_members').select('*', { count: 'exact', head: true }).eq('hub_id', hub.id),
                 supabase.from('gymnast_profiles').select('*', { count: 'exact', head: true }).eq('hub_id', hub.id),
-                supabase.from('events').select('id, title, start_time, type', { count: 'exact' })
-                    .eq('hub_id', hub.id).gte('start_time', now).order('start_time', { ascending: true }).limit(5),
-                supabase.from('competitions').select('id, name, start_date, end_date', { count: 'exact' })
-                    .eq('hub_id', hub.id).gte('end_date', now.split('T')[0]).order('start_date', { ascending: true }).limit(5)
+                // Single events query: upcoming + recent created_at columns
+                supabase.from('events').select('id, title, start_time, type, created_at', { count: 'exact' })
+                    .eq('hub_id', hub.id).gte('start_time', now).order('start_time', { ascending: true }).limit(10),
+                // Single competitions query: active + recent created_at columns
+                supabase.from('competitions').select('id, name, start_date, end_date, created_at', { count: 'exact' })
+                    .eq('hub_id', hub.id).gte('end_date', now.split('T')[0]).order('start_date', { ascending: true }).limit(10),
+                // Recent members (staff only, but cheap — always fetch)
+                supabase.from('hub_members').select(`user_id, created_at, role, profiles:user_id (full_name)`)
+                    .eq('hub_id', hub.id).gte('created_at', twoWeeksAgo).order('created_at', { ascending: false }).limit(5),
+                groupsQuery || Promise.resolve({ data: null, error: null }),
+                memberGroupsQuery || Promise.resolve({ data: null, error: null }),
+                publicGroupsQuery || Promise.resolve({ data: null, error: null }),
+                // Announcements (staff only data, but batched to avoid separate fetch)
+                isStaff
+                    ? supabase.from('announcements')
+                        .select('*, profiles!announcements_created_by_fkey(id, full_name, avatar_url)')
+                        .eq('hub_id', hub.id).eq('is_active', true).order('created_at', { ascending: false })
+                    : Promise.resolve({ data: null, error: null })
             ]);
 
             const memberCount = memberCountResult.count;
@@ -586,43 +627,14 @@ export function Dashboard() {
             const competitionsData = competitionsResult.data;
             const competitionsCount = competitionsResult.count;
 
-            // Group 2: Activity queries (all independent) - run in parallel
-            // Limit activity to the past 2 weeks
-            const twoWeeksAgo = subWeeks(new Date(), 2).toISOString();
-
-            const recentEventsQuery = supabase.from('events').select('id, title, created_at')
-                .eq('hub_id', hub.id).gte('created_at', twoWeeksAgo).order('created_at', { ascending: false }).limit(5);
-            const recentCompsQuery = supabase.from('competitions').select('id, name, created_at')
-                .eq('hub_id', hub.id).gte('created_at', twoWeeksAgo).order('created_at', { ascending: false }).limit(5);
-            const groupsQuery = supabase.from('groups').select('id').eq('hub_id', hub.id).limit(50);
-            const memberGroupsQuery = supabase.from('group_members').select('group_id, groups!inner(hub_id)')
-                .eq('user_id', user.id).eq('groups.hub_id', hub.id).limit(50);
-            const publicGroupsQuery = supabase.from('groups').select('id').eq('hub_id', hub.id).eq('type', 'public').limit(50);
-            const recentMembersQuery = supabase.from('hub_members').select(`user_id, created_at, role, profiles:user_id (full_name)`)
-                .eq('hub_id', hub.id).gte('created_at', twoWeeksAgo).order('created_at', { ascending: false }).limit(5);
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let activityResults: { data: any[] | null; error: unknown }[];
-            if (isStaff) {
-                activityResults = await Promise.all([
-                    recentEventsQuery,
-                    recentCompsQuery,
-                    groupsQuery,
-                    recentMembersQuery
-                ]);
-            } else {
-                activityResults = await Promise.all([
-                    recentEventsQuery,
-                    recentCompsQuery,
-                    memberGroupsQuery,
-                    publicGroupsQuery
-                ]);
-            }
+            // Split events into upcoming (for stats) and recently created (for activity)
+            const recentEvents = (eventsData || []).filter(e => e.created_at >= twoWeeksAgo).slice(0, 5);
+            // Split competitions similarly
+            const recentCompetitions = (competitionsData || []).filter(c => c.created_at >= twoWeeksAgo).slice(0, 5);
 
             const activities: RecentActivity[] = [];
 
-            const recentEvents = activityResults[0].data;
-            if (recentEvents) {
+            if (recentEvents.length > 0) {
                 recentEvents.forEach((event) => {
                     activities.push({
                         id: `event-${event.id}`,
@@ -634,8 +646,7 @@ export function Dashboard() {
                 });
             }
 
-            const recentCompetitions = activityResults[1].data;
-            if (recentCompetitions) {
+            if (recentCompetitions.length > 0) {
                 recentCompetitions.forEach((comp) => {
                     activities.push({
                         id: `comp-${comp.id}`,
@@ -649,13 +660,10 @@ export function Dashboard() {
 
             let accessibleGroupIds: string[] = [];
             if (isStaff) {
-                const allGroups = activityResults[2].data;
-                accessibleGroupIds = allGroups?.map((g) => g.id) || [];
+                accessibleGroupIds = groupsResult.data?.map((g: { id: string }) => g.id) || [];
             } else {
-                const memberGroups = activityResults[2].data;
-                const publicGroups = activityResults[3].data;
-                const memberGroupIds = memberGroups?.map((g) => g.group_id) || [];
-                const publicGroupIds = publicGroups?.map((g) => g.id) || [];
+                const memberGroupIds = memberGroupsResult.data?.map((g: { group_id: string }) => g.group_id) || [];
+                const publicGroupIds = publicGroupsResult.data?.map((g: { id: string }) => g.id) || [];
                 accessibleGroupIds = [...new Set([...memberGroupIds, ...publicGroupIds])];
             }
 
@@ -699,9 +707,9 @@ export function Dashboard() {
             }
 
             if (isStaff) {
-                const recentMembers = activityResults[3]?.data;
+                const recentMembers = recentMembersResult?.data;
                 if (recentMembers) {
-                    recentMembers.forEach((member) => {
+                    recentMembers.forEach((member: { user_id: string; created_at: string; role: string; profiles: { full_name: string } | { full_name: string }[] }) => {
                         const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
                         const memberName = profile?.full_name || 'A new member';
                         activities.push({
@@ -730,6 +738,31 @@ export function Dashboard() {
 
             setUpcomingEvents(eventsData || []);
             setRecentActivity(activities.slice(0, 8));
+
+            // Process announcements data for ActiveAnnouncementsCard
+            if (isStaff && announcementsResult.data && announcementsResult.data.length > 0) {
+                const announcementIds = announcementsResult.data.map((a: { id: string }) => a.id);
+                const { data: recipientStats } = await supabase
+                    .from('announcement_recipients')
+                    .select('announcement_id, status')
+                    .in('announcement_id', announcementIds);
+
+                const statsMap: Record<string, { total: number; completed: number }> = {};
+                (recipientStats || []).forEach((r: { announcement_id: string; status: string }) => {
+                    if (!statsMap[r.announcement_id]) statsMap[r.announcement_id] = { total: 0, completed: 0 };
+                    statsMap[r.announcement_id].total++;
+                    if (r.status !== 'pending') statsMap[r.announcement_id].completed++;
+                });
+
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const enriched = announcementsResult.data.map((a: any) => ({
+                    ...a,
+                    creator: a.profiles,
+                    total_recipients: statsMap[a.id]?.total || 0,
+                    completed_count: statsMap[a.id]?.completed || 0,
+                }));
+                setDashboardAnnouncements(enriched);
+            }
 
         } catch (error) {
             console.error('Error fetching dashboard data:', error);
@@ -803,7 +836,7 @@ export function Dashboard() {
             {isParent && <ParentGymnastCards linkedGymnastInfo={linkedGymnastInfo} />}
 
             {/* Staff: Active Announcements */}
-            {isStaff && <ActiveAnnouncementsCard key={announcementKey} />}
+            {isStaff && <ActiveAnnouncementsCard key={announcementKey} initialAnnouncements={dashboardAnnouncements} />}
 
             {/* Stat Cards - only for staff, parents see gymnast card + schedule below */}
             {!isParent && (
@@ -849,7 +882,10 @@ export function Dashboard() {
             <CreateAnnouncementModal
                 isOpen={showCreateAnnouncement}
                 onClose={() => setShowCreateAnnouncement(false)}
-                onCreated={() => setAnnouncementKey(prev => prev + 1)}
+                onCreated={() => {
+                    setAnnouncementKey(prev => prev + 1);
+                    fetchDashboardData(); // Re-fetch to update announcements data
+                }}
             />
         </div>
     );

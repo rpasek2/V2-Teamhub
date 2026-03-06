@@ -193,7 +193,7 @@ export function CalendarGrid({
 
                             {/* Desktop: Show event cards */}
                             {!isMobile && (
-                                <div className="space-y-1 overflow-hidden relative z-10">
+                                <div className="space-y-1 overflow-hidden relative z-10 min-h-[60px]">
                                     {dayEvents.slice(0, 3).map((event) => {
                                         const colors = getEventColors(event.type);
                                         return (

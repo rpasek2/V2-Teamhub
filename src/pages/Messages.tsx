@@ -75,6 +75,9 @@ export default function Messages() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [hasMoreMessages, setHasMoreMessages] = useState(false);
+    const [loadingMoreMessages, setLoadingMoreMessages] = useState(false);
+    const MESSAGE_PAGE_SIZE = 50;
     const [loadingChannels, setLoadingChannels] = useState(true);
 
     // Attachment state
@@ -297,14 +300,48 @@ export default function Messages() {
     };
 
     const fetchMessages = async (channelId: string) => {
+        // Fetch most recent messages (descending), then reverse for display
         const { data, error } = await supabase
             .from('messages')
             .select('*, attachments, profiles(full_name, email)')
             .eq('channel_id', channelId)
-            .order('created_at', { ascending: true });
+            .order('created_at', { ascending: false })
+            .range(0, MESSAGE_PAGE_SIZE - 1);
 
-        if (error) console.error('Error fetching messages:', error);
-        else setMessages(data || []);
+        if (error) {
+            console.error('Error fetching messages:', error);
+            return;
+        }
+        const fetched = data || [];
+        setHasMoreMessages(fetched.length === MESSAGE_PAGE_SIZE);
+        setMessages(fetched.reverse()); // Reverse to chronological order
+    };
+
+    const loadOlderMessages = async () => {
+        if (!selectedChannel || loadingMoreMessages || !hasMoreMessages) return;
+        setLoadingMoreMessages(true);
+
+        const oldestMessage = messages[0];
+        if (!oldestMessage) { setLoadingMoreMessages(false); return; }
+
+        const { data, error } = await supabase
+            .from('messages')
+            .select('*, attachments, profiles(full_name, email)')
+            .eq('channel_id', selectedChannel.id)
+            .lt('created_at', oldestMessage.created_at)
+            .order('created_at', { ascending: false })
+            .range(0, MESSAGE_PAGE_SIZE - 1);
+
+        if (error) {
+            console.error('Error fetching older messages:', error);
+            setLoadingMoreMessages(false);
+            return;
+        }
+
+        const fetched = data || [];
+        setHasMoreMessages(fetched.length === MESSAGE_PAGE_SIZE);
+        setMessages(prev => [...fetched.reverse(), ...prev]);
+        setLoadingMoreMessages(false);
     };
 
     const subscribeToMessages = (channelId: string) => {
@@ -608,6 +645,7 @@ export default function Messages() {
         if (selectedChannel?.id === channelId) {
             setSelectedChannel(null);
             setMessages([]);
+            setHasMoreMessages(false);
         }
         setChannels(prev => prev.filter(c => c.id !== channelId));
         setDmChannels(prev => prev.filter(c => c.id !== channelId));
@@ -1332,6 +1370,25 @@ export default function Messages() {
 
                         {/* Messages List */}
                         <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface-alt">
+                            {/* Load older messages button */}
+                            {hasMoreMessages && (
+                                <div className="text-center">
+                                    <button
+                                        onClick={loadOlderMessages}
+                                        disabled={loadingMoreMessages}
+                                        className="text-sm text-accent-600 hover:text-accent-700 font-medium px-4 py-2 rounded-lg hover:bg-surface-hover transition-colors"
+                                    >
+                                        {loadingMoreMessages ? (
+                                            <span className="flex items-center gap-2">
+                                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                Loading...
+                                            </span>
+                                        ) : (
+                                            'Load older messages'
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                             {messages.length === 0 ? (
                                 <div className="text-center py-12">
                                     <MessageSquare className="mx-auto h-12 w-12 text-faint" />

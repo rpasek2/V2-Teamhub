@@ -171,7 +171,7 @@ export function SkillsTable({
                                     </td>
                                 )}
                                 {/* Notes Cell */}
-                                <td className="px-4 py-2">
+                                <td className="px-4 py-2 min-h-[36px]">
                                     {isEditing ? (
                                         <div className="flex items-start gap-2">
                                             <textarea

@@ -11,17 +11,30 @@ interface AnnouncementWithStats extends Announcement {
     creator?: Profile;
 }
 
-export function ActiveAnnouncementsCard() {
+interface ActiveAnnouncementsCardProps {
+    initialAnnouncements?: AnnouncementWithStats[];
+}
+
+export function ActiveAnnouncementsCard({ initialAnnouncements }: ActiveAnnouncementsCardProps = {}) {
     const { hub } = useHub();
-    const [announcements, setAnnouncements] = useState<AnnouncementWithStats[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [announcements, setAnnouncements] = useState<AnnouncementWithStats[]>(initialAnnouncements || []);
+    const [loading, setLoading] = useState(initialAnnouncements ? false : true);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [recipients, setRecipients] = useState<(AnnouncementRecipient & { profiles?: Profile })[]>([]);
     const [loadingRecipients, setLoadingRecipients] = useState(false);
 
+    // If initial data is provided, update when it changes
     useEffect(() => {
-        if (hub) fetchAnnouncements();
-    }, [hub]);
+        if (initialAnnouncements) {
+            setAnnouncements(initialAnnouncements);
+            setLoading(false);
+        }
+    }, [initialAnnouncements]);
+
+    // Only self-fetch if no initial data was provided
+    useEffect(() => {
+        if (!initialAnnouncements && hub) fetchAnnouncements();
+    }, [hub, initialAnnouncements]);
 
     const fetchAnnouncements = async () => {
         if (!hub) return;
