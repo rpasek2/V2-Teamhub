@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Loader2, Save, CalendarDays } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { useHub } from '../../context/HubContext';
 import { fetchSeasonsForHub, getMonthName } from '../../lib/seasons';
 import { CollapsibleSection } from '../ui/CollapsibleSection';
@@ -153,7 +156,7 @@ export function SeasonsSection({ seasonConfig, setSeasonConfig, bare }: SeasonsS
                                     )}
                                 </div>
                                 <span className="text-xs text-muted">
-                                    {format(parseISO(season.start_date), 'MMM d, yyyy')} - {format(parseISO(season.end_date), 'MMM d, yyyy')}
+                                    {format(parseLocalDate(season.start_date), 'MMM d, yyyy')} - {format(parseLocalDate(season.end_date), 'MMM d, yyyy')}
                                 </span>
                             </div>
                         ))}

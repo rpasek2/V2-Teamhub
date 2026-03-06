@@ -2,6 +2,9 @@ import { useState, useMemo } from 'react';
 import { Plus, Circle, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 import type { StaffWithData, Task } from '../../hooks/useStaffBulk';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { useBulkUpdateTasks } from '../../hooks/useStaffBulk';
 import { BulkTaskModal } from './BulkTaskModal';
 
@@ -250,10 +253,10 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
                             ) : (
                                 sortedTasks.map(task => {
                                     const isOverdue = task.due_date &&
-                                        isPast(parseISO(task.due_date)) &&
-                                        !isToday(parseISO(task.due_date)) &&
+                                        isPast(parseLocalDate(task.due_date)) &&
+                                        !isToday(parseLocalDate(task.due_date)) &&
                                         task.status !== 'completed';
-                                    const isDueToday = task.due_date && isToday(parseISO(task.due_date));
+                                    const isDueToday = task.due_date && isToday(parseLocalDate(task.due_date));
 
                                     return (
                                         <tr
@@ -293,7 +296,7 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
                                                             : 'text-subtle'
                                                     }`}>
                                                         {isOverdue && <AlertCircle className="w-3.5 h-3.5" />}
-                                                        {format(parseISO(task.due_date), 'MMM d, yyyy')}
+                                                        {format(parseLocalDate(task.due_date), 'MMM d, yyyy')}
                                                     </span>
                                                 ) : (
                                                     <span className="text-sm text-faint">No due date</span>
@@ -325,7 +328,7 @@ export function TeamTasksView({ hubId, staffData, onDataChanged }: TeamTasksView
             <div className="flex items-center gap-4 text-xs text-muted">
                 <span>Total: {sortedTasks.length} task{sortedTasks.length !== 1 ? 's' : ''}</span>
                 <span className="text-faint">|</span>
-                <span>Overdue: {sortedTasks.filter(t => t.due_date && isPast(parseISO(t.due_date)) && !isToday(parseISO(t.due_date)) && t.status !== 'completed').length}</span>
+                <span>Overdue: {sortedTasks.filter(t => t.due_date && isPast(parseLocalDate(t.due_date)) && !isToday(parseLocalDate(t.due_date)) && t.status !== 'completed').length}</span>
             </div>
 
             {/* Bulk Task Modal */}

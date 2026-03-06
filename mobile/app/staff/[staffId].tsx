@@ -37,6 +37,9 @@ import {
   Check,
 } from 'lucide-react-native';
 import { format, parseISO, differenceInDays, isPast } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
@@ -774,8 +777,8 @@ export default function StaffDetailScreen() {
                         </View>
                       </View>
                       <Text style={[styles.timeOffDates, { color: t.textSecondary }]}>
-                        {format(parseISO(request.start_date), 'MMM d')} -{' '}
-                        {format(parseISO(request.end_date), 'MMM d, yyyy')}
+                        {format(parseLocalDate(request.start_date), 'MMM d')} -{' '}
+                        {format(parseLocalDate(request.end_date), 'MMM d, yyyy')}
                       </Text>
                       {request.notes && (
                         <Text style={[styles.timeOffNotes, { color: t.textMuted }]} numberOfLines={2}>

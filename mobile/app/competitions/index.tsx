@@ -12,6 +12,9 @@ import { useRouter } from 'expo-router';
 import { Trophy, MapPin, Calendar, Users, ChevronRight, Award, Medal } from 'lucide-react-native';
 import { format, parseISO, isPast, isFuture } from 'date-fns';
 import { colors } from '../../src/constants/colors';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
@@ -105,14 +108,14 @@ export default function CompetitionsScreen() {
   };
 
   const filteredCompetitions = competitions.filter(comp => {
-    const endDate = parseISO(comp.end_date);
+    const endDate = parseLocalDate(comp.end_date);
     if (activeFilter === 'upcoming') return isFuture(endDate) || format(endDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
     if (activeFilter === 'past') return isPast(endDate) && format(endDate, 'yyyy-MM-dd') !== format(new Date(), 'yyyy-MM-dd');
     return true;
   });
 
   const renderCompetition = ({ item }: { item: Competition }) => {
-    const endDate = parseISO(item.end_date);
+    const endDate = parseLocalDate(item.end_date);
     const isUpcoming = isFuture(endDate) || format(endDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
 
     return (
@@ -152,8 +155,8 @@ export default function CompetitionsScreen() {
           <View style={styles.detailRow}>
             <Calendar size={16} color={t.textFaint} />
             <Text style={[styles.detailText, { color: t.textSecondary }]}>
-              {format(parseISO(item.start_date), 'MMM d, yyyy')}
-              {item.end_date !== item.start_date && ` - ${format(parseISO(item.end_date), 'MMM d, yyyy')}`}
+              {format(parseLocalDate(item.start_date), 'MMM d, yyyy')}
+              {item.end_date !== item.start_date && ` - ${format(parseLocalDate(item.end_date), 'MMM d, yyyy')}`}
             </Text>
           </View>
 

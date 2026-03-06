@@ -4,6 +4,9 @@ import { useState } from 'react';
 import type { GymnastProfile } from '../../types';
 import type { GroupedPairing } from '../../pages/Mentorship';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 interface PairingCardProps {
     groupedPairing: GroupedPairing;
     onDeleteLittle?: (pairingId: string) => void;
@@ -24,7 +27,7 @@ function BigGymnastInfo({
         ? format(parseISO(gymnast.date_of_birth), 'MMM d')
         : null;
     const formattedCompDate = nextCompetition?.start_date
-        ? format(parseISO(nextCompetition.start_date), 'MMM d')
+        ? format(parseLocalDate(nextCompetition.start_date), 'MMM d')
         : null;
 
     return (
@@ -80,7 +83,7 @@ function LittleGymnastChip({
         ? format(parseISO(gymnast.date_of_birth), 'MMM d')
         : null;
     const formattedCompDate = nextCompetition?.start_date
-        ? format(parseISO(nextCompetition.start_date), 'MMM d')
+        ? format(parseLocalDate(nextCompetition.start_date), 'MMM d')
         : null;
 
     return (

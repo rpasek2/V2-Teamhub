@@ -38,6 +38,9 @@ import { ActiveAnnouncementsCard } from '../../src/components/dashboard/ActiveAn
 import { CreateAnnouncementModal } from '../../src/components/announcements/CreateAnnouncementModal';
 import { format, parseISO, subWeeks, subDays } from 'date-fns';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 // Interfaces
 interface DashboardStats {
   totalMembers: number;
@@ -556,7 +559,7 @@ export default function DashboardScreen() {
                 <View style={styles.gymnastInfoRow}>
                   <Cake size={16} color={colors.purple[500]} />
                   <Text style={[styles.gymnastInfoText, { color: t.textSecondary }]}>
-                    Birthday: {format(parseISO(gymnast.date_of_birth), 'MMMM d')}
+                    Birthday: {format(parseLocalDate(gymnast.date_of_birth), 'MMMM d')}
                   </Text>
                 </View>
               )}

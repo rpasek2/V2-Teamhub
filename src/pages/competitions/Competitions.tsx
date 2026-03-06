@@ -13,10 +13,13 @@ import type { Competition as BaseCompetition, Season } from '../../types';
 // Helper to determine competition status
 type CompetitionStatus = 'past' | 'active' | 'upcoming';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 const getCompetitionStatus = (startDate: string, endDate: string): CompetitionStatus => {
     const now = new Date();
-    const start = startOfDay(parseISO(startDate));
-    const end = endOfDay(parseISO(endDate));
+    const start = startOfDay(parseLocalDate(startDate));
+    const end = endOfDay(parseLocalDate(endDate));
 
     if (isAfter(now, end)) {
         return 'past';
@@ -91,8 +94,8 @@ export function Competitions() {
                 const isPastB = statusB === 'past';
                 if (isPastA !== isPastB) return isPastA ? 1 : -1;
                 // Active/upcoming: soonest first; Past: most recent first
-                if (isPastA) return parseISO(b.start_date).getTime() - parseISO(a.start_date).getTime();
-                return parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime();
+                if (isPastA) return parseLocalDate(b.start_date).getTime() - parseLocalDate(a.start_date).getTime();
+                return parseLocalDate(a.start_date).getTime() - parseLocalDate(b.start_date).getTime();
             });
             setCompetitions(sorted);
         }
@@ -269,7 +272,7 @@ export function Competitions() {
                                     <div className="mt-4 space-y-2">
                                         <div className={`flex items-center text-sm ${isPast ? 'text-faint' : 'text-muted'}`}>
                                             <Calendar className={`mr-2 h-4 w-4 ${isPast ? 'text-faint' : 'text-faint'}`} />
-                                            {format(parseISO(comp.start_date), 'MMM d')} - {format(parseISO(comp.end_date), 'MMM d, yyyy')}
+                                            {format(parseLocalDate(comp.start_date), 'MMM d')} - {format(parseLocalDate(comp.end_date), 'MMM d, yyyy')}
                                         </div>
                                         {comp.location && (
                                             <div className={`flex items-center text-sm ${isPast ? 'text-faint' : 'text-muted'}`}>

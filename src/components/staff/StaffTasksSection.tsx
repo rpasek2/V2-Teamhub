@@ -6,6 +6,9 @@ import { useAuth } from '../../context/AuthContext';
 import { createStaffTaskNotification } from '../../lib/notifications';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 interface Task {
     id: string;
     title: string;
@@ -309,8 +312,8 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
             ) : (
                 <ul className="space-y-2">
                     {filteredTasks.map((task) => {
-                        const isOverdue = task.due_date && isPast(parseISO(task.due_date)) && !isToday(parseISO(task.due_date)) && task.status !== 'completed';
-                        const isDueToday = task.due_date && isToday(parseISO(task.due_date));
+                        const isOverdue = task.due_date && isPast(parseLocalDate(task.due_date)) && !isToday(parseLocalDate(task.due_date)) && task.status !== 'completed';
+                        const isDueToday = task.due_date && isToday(parseLocalDate(task.due_date));
 
                         return (
                             <li
@@ -359,7 +362,7 @@ export function StaffTasksSection({ staffUserId, isOwner, isSelf }: StaffTasksSe
                                                     isOverdue ? 'text-red-600' : isDueToday ? 'text-amber-600' : 'text-muted'
                                                 }`}>
                                                     {isOverdue && <AlertCircle className="w-3 h-3" />}
-                                                    Due: {format(parseISO(task.due_date), 'MMM d, yyyy')}
+                                                    Due: {format(parseLocalDate(task.due_date), 'MMM d, yyyy')}
                                                 </span>
                                             )}
                                             {task.completed_at && (

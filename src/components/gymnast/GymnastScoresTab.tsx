@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { Trophy, Loader2, Calendar, TrendingUp } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { useHub } from '../../context/HubContext';
 import { SeasonPicker } from '../ui/SeasonPicker';
 import type { Competition, CompetitionScore, Season, GymEvent } from '../../types';
@@ -184,7 +187,7 @@ export function GymnastScoresTab({ gymnastId, gymnastGender, gymnastLevel }: Gym
                                                 {competition.name}
                                             </h3>
                                             <p className="text-xs text-muted">
-                                                {format(parseISO(competition.start_date), 'MMM d, yyyy')}
+                                                {format(parseLocalDate(competition.start_date), 'MMM d, yyyy')}
                                                 {competition.location && ` • ${competition.location}`}
                                             </p>
                                         </div>

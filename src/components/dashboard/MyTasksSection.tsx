@@ -3,6 +3,9 @@ import { Circle, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { format, parseISO, isPast, isToday } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 interface StaffTask {
     id: string;
     title: string;
@@ -63,8 +66,8 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
             </div>
             <div className="space-y-2">
                 {displayTasks.map((task) => {
-                    const isOverdue = task.due_date && isPast(parseISO(task.due_date)) && !isToday(parseISO(task.due_date));
-                    const isDueToday = task.due_date && isToday(parseISO(task.due_date));
+                    const isOverdue = task.due_date && isPast(parseLocalDate(task.due_date)) && !isToday(parseLocalDate(task.due_date));
+                    const isDueToday = task.due_date && isToday(parseLocalDate(task.due_date));
 
                     return (
                         <div
@@ -92,7 +95,7 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
                                         isOverdue ? 'text-red-600 font-medium' : isDueToday ? 'text-amber-600' : 'text-muted'
                                     }`}>
                                         {isOverdue && <AlertCircle className="w-3 h-3" />}
-                                        {isOverdue ? 'Overdue' : isDueToday ? 'Due today' : `Due ${format(parseISO(task.due_date), 'MMM d')}`}
+                                        {isOverdue ? 'Overdue' : isDueToday ? 'Due today' : `Due ${format(parseLocalDate(task.due_date), 'MMM d')}`}
                                     </p>
                                 )}
                             </div>

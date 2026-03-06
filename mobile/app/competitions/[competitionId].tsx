@@ -22,6 +22,9 @@ import {
 } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
 import * as Linking from 'expo-linking';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
@@ -357,10 +360,10 @@ export default function CompetitionDetailsScreen() {
             <View style={styles.detailRow}>
               <Calendar size={14} color={t.textFaint} />
               <Text style={[styles.detailText, { color: t.textSecondary }]}>
-                {format(parseISO(competition.start_date), 'MMM d')}
+                {format(parseLocalDate(competition.start_date), 'MMM d')}
                 {competition.end_date !== competition.start_date &&
-                  ` - ${format(parseISO(competition.end_date), 'MMM d')}`}
-                {`, ${format(parseISO(competition.start_date), 'yyyy')}`}
+                  ` - ${format(parseLocalDate(competition.end_date), 'MMM d')}`}
+                {`, ${format(parseLocalDate(competition.start_date), 'yyyy')}`}
               </Text>
             </View>
             {competition.location && (

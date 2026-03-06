@@ -17,6 +17,9 @@ import {
 import { BarChart3, Trophy, ChevronDown, ChevronRight, X } from 'lucide-react-native';
 import { format, parseISO } from 'date-fns';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
@@ -617,7 +620,7 @@ export default function ScoresScreen() {
                 {comp.name}
               </Text>
               <Text style={[styles.pickerOptionDate, { color: t.textMuted }]}>
-                {format(parseISO(comp.start_date), 'MMM d, yyyy')}
+                {format(parseLocalDate(comp.start_date), 'MMM d, yyyy')}
               </Text>
             </TouchableOpacity>
           ))}

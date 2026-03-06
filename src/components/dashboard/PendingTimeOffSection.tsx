@@ -3,6 +3,9 @@ import { Clock, Loader2, Check, X } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { clsx } from 'clsx';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 interface PendingTimeOffRequest {
     id: string;
     staff_user_id: string;
@@ -75,12 +78,12 @@ export function PendingTimeOffSection({ pendingTimeOff, processingTimeOff, onTim
                                         </span>
                                     </div>
                                     <p className="text-sm text-body mt-0.5">
-                                        {format(parseISO(request.start_date), 'MMM d')}
+                                        {format(parseLocalDate(request.start_date), 'MMM d')}
                                         {request.start_date !== request.end_date && (
-                                            <> - {format(parseISO(request.end_date), 'MMM d, yyyy')}</>
+                                            <> - {format(parseLocalDate(request.end_date), 'MMM d, yyyy')}</>
                                         )}
                                         {request.start_date === request.end_date && (
-                                            <>, {format(parseISO(request.start_date), 'yyyy')}</>
+                                            <>, {format(parseLocalDate(request.start_date), 'yyyy')}</>
                                         )}
                                     </p>
                                     {request.notes && (

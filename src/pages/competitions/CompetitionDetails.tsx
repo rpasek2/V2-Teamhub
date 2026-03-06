@@ -4,6 +4,9 @@ import { ArrowLeft, MapPin, Calendar, Users, Clock, FileText, Plus, UserPlus, Ch
 import { format, parseISO } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { clsx } from 'clsx';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { useHub } from '../../context/HubContext';
 import { CreateSessionModal } from '../../components/competitions/CreateSessionModal';
 import { AssignCoachModal } from '../../components/competitions/AssignCoachModal';
@@ -363,7 +366,7 @@ export function CompetitionDetails() {
                         <div className="mt-2 flex items-center space-x-4 text-sm text-muted">
                             <div className="flex items-center">
                                 <Calendar className="mr-1.5 h-4 w-4 text-faint" />
-                                {format(parseISO(competition.start_date), 'MMM d')} - {format(parseISO(competition.end_date), 'MMM d, yyyy')}
+                                {format(parseLocalDate(competition.start_date), 'MMM d')} - {format(parseLocalDate(competition.end_date), 'MMM d, yyyy')}
                             </div>
                             {competition.location && (
                                 <a

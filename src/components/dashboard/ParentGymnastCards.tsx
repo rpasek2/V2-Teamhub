@@ -3,6 +3,9 @@ import { User, Trophy, Star, Heart, Cake } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import type { GymnastProfile } from '../../types';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 interface LinkedGymnastInfo extends GymnastProfile {
     nextCompetition?: { name: string; start_date: string } | null;
     mentorshipPairing?: { big_name: string; little_name: string; role: 'big' | 'little' } | null;
@@ -54,7 +57,7 @@ export function ParentGymnastCards({ linkedGymnastInfo }: ParentGymnastCardsProp
                         {gymnast.date_of_birth && (
                             <div className="flex items-center gap-2 text-sm text-subtle mb-2">
                                 <Cake className="h-4 w-4 text-purple-500" />
-                                <span>Birthday: {format(parseISO(gymnast.date_of_birth), 'MMMM d')}</span>
+                                <span>Birthday: {format(parseLocalDate(gymnast.date_of_birth), 'MMMM d')}</span>
                             </div>
                         )}
 
@@ -64,7 +67,7 @@ export function ParentGymnastCards({ linkedGymnastInfo }: ParentGymnastCardsProp
                                 <Trophy className="h-4 w-4 text-amber-500" />
                                 <span className="text-body">
                                     <span className="font-medium">{gymnast.nextCompetition.name}</span>
-                                    <span className="text-muted"> · {format(parseISO(gymnast.nextCompetition.start_date), 'MMM d')}</span>
+                                    <span className="text-muted"> · {format(parseLocalDate(gymnast.nextCompetition.start_date), 'MMM d')}</span>
                                 </span>
                             </div>
                         )}

@@ -5,6 +5,9 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { format, parseISO, isPast } from 'date-fns';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 interface TimeOffRequest {
     id: string;
     start_date: string;
@@ -144,7 +147,7 @@ export function StaffTimeOffSection({ staffUserId, isOwner, isSelf }: StaffTimeO
     };
 
     const filteredRequests = requests.filter(r => {
-        const endDate = parseISO(r.end_date);
+        const endDate = parseLocalDate(r.end_date);
         const isUpcoming = !isPast(endDate);
 
         if (filter === 'pending') return r.status === 'pending';
@@ -301,12 +304,12 @@ export function StaffTimeOffSection({ staffUserId, isOwner, isSelf }: StaffTimeO
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <span className="font-medium text-heading">
-                                                {format(parseISO(request.start_date), 'MMM d')}
+                                                {format(parseLocalDate(request.start_date), 'MMM d')}
                                                 {request.start_date !== request.end_date && (
-                                                    <> - {format(parseISO(request.end_date), 'MMM d, yyyy')}</>
+                                                    <> - {format(parseLocalDate(request.end_date), 'MMM d, yyyy')}</>
                                                 )}
                                                 {request.start_date === request.end_date && (
-                                                    <>, {format(parseISO(request.start_date), 'yyyy')}</>
+                                                    <>, {format(parseLocalDate(request.start_date), 'yyyy')}</>
                                                 )}
                                             </span>
                                             <span className={`px-2 py-0.5 rounded text-xs font-medium ${getTypeColor(request.type)}`}>

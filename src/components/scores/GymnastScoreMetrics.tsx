@@ -1,6 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 import {
     ResponsiveContainer,
     LineChart,
@@ -50,7 +54,7 @@ export function GymnastScoreMetrics({ gymnastGender, competitions }: GymnastScor
             .map(comp => {
                 const point: Record<string, string | number | null> = {
                     name: comp.name,
-                    date: format(parseISO(comp.start_date), 'MMM d'),
+                    date: format(parseLocalDate(comp.start_date), 'MMM d'),
                     fullDate: comp.start_date,
                 };
                 let aaTotal = 0;
