@@ -15,7 +15,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.twotrees.gymteamhub",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "supportsTablet": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "TeamHub needs access to your photo library to upload images for posts, profiles, and marketplace listings.",
