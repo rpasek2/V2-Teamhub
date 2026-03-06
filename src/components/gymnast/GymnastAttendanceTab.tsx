@@ -1,6 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { UserCheck, Loader2, Calendar, TrendingUp, Clock, AlertTriangle } from 'lucide-react';
-import { format, parseISO, startOfMonth, endOfMonth, subMonths, eachDayOfInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, eachDayOfInterval } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import type { AttendanceRecord, PracticeSchedule, AttendanceStatus } from '../../types';
@@ -111,7 +114,7 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
 
             const scheduledDays = getScheduledDays(monthStart, monthEnd);
             const monthRecords = attendanceRecords.filter(r => {
-                const recordDate = parseISO(r.attendance_date);
+                const recordDate = parseLocalDate(r.attendance_date);
                 return recordDate >= monthStart && recordDate <= monthEnd;
             });
 
@@ -185,7 +188,7 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
 
         return attendanceRecords
             .filter(r => {
-                const recordDate = parseISO(r.attendance_date);
+                const recordDate = parseLocalDate(r.attendance_date);
                 return recordDate >= monthStart && recordDate <= monthEnd;
             })
             .sort((a, b) => b.attendance_date.localeCompare(a.attendance_date));
@@ -383,7 +386,7 @@ export function GymnastAttendanceTab({ gymnastId, gymnastLevel, scheduleGroup = 
                                         <div className={`w-2.5 h-2.5 rounded-full ${config.dotColor}`} />
                                         <div>
                                             <p className="text-sm font-medium text-heading">
-                                                {format(parseISO(record.attendance_date), 'EEEE, MMMM d')}
+                                                {format(parseLocalDate(record.attendance_date), 'EEEE, MMMM d')}
                                             </p>
                                             {record.notes && (
                                                 <p className="text-xs text-muted mt-0.5">{record.notes}</p>

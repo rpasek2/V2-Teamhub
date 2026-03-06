@@ -36,7 +36,7 @@ import {
   X,
   Check,
 } from 'lucide-react-native';
-import { format, parseISO, differenceInDays, isPast } from 'date-fns';
+import { format, differenceInDays, isPast } from 'date-fns';
 
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
 const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
@@ -325,7 +325,7 @@ export default function StaffDetailScreen() {
   const getCertStatus = (expiryDate: string | null) => {
     if (!expiryDate) return { status: 'valid', label: 'No Expiry', color: isDark ? colors.slate[400] : colors.slate[500], bg: isDark ? colors.slate[700] : colors.slate[100] };
 
-    const expiry = parseISO(expiryDate);
+    const expiry = parseLocalDate(expiryDate);
     if (isPast(expiry)) {
       return { status: 'expired', label: 'Expired', color: isDark ? colors.error[400] : colors.error[600], bg: isDark ? colors.error[700] + '30' : colors.error[100] };
     }
@@ -613,7 +613,7 @@ export default function StaffDetailScreen() {
               <View style={styles.detailRow}>
                 <Calendar size={16} color={t.textFaint} />
                 <Text style={[styles.detailText, { color: t.textSecondary }]}>
-                  Hired {format(parseISO(staffMember.staff_profile.hire_date), 'MMM d, yyyy')}
+                  Hired {format(parseLocalDate(staffMember.staff_profile.hire_date), 'MMM d, yyyy')}
                 </Text>
               </View>
             ) : (
@@ -714,7 +714,7 @@ export default function StaffDetailScreen() {
                       )}
                       {cert.expiry_date && (
                         <Text style={[styles.certificationDate, { color: t.textFaint }]}>
-                          Expires {format(parseISO(cert.expiry_date), 'MMM d, yyyy')}
+                          Expires {format(parseLocalDate(cert.expiry_date), 'MMM d, yyyy')}
                         </Text>
                       )}
                     </View>
@@ -871,7 +871,7 @@ export default function StaffDetailScreen() {
                       </Text>
                       {task.due_date && (
                         <Text style={[styles.taskDue, { color: t.textMuted }]}>
-                          Due {format(parseISO(task.due_date), 'MMM d')}
+                          Due {format(parseLocalDate(task.due_date), 'MMM d')}
                         </Text>
                       )}
                     </View>

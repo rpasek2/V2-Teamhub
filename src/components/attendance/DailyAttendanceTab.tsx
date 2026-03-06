@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2, Check, X, Clock, LogOut, ChevronDown, ChevronRight, CalendarDays } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useAuth } from '../../context/AuthContext';
@@ -39,7 +42,7 @@ export function DailyAttendanceTab({ canManage }: DailyAttendanceTabProps) {
     const [expandedLevels, setExpandedLevels] = useState<Set<string>>(new Set());
 
     // Get day of week from selected date (0 = Sunday)
-    const selectedDayOfWeek = parseISO(selectedDate).getDay();
+    const selectedDayOfWeek = parseLocalDate(selectedDate).getDay();
 
     useEffect(() => {
         if (hubId) {

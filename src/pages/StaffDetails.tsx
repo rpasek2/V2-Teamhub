@@ -30,6 +30,7 @@ interface StaffMember {
         full_name: string;
         email: string;
         avatar_url: string | null;
+        date_of_birth: string | null;
     };
     staff_profile?: {
         id: string;
@@ -63,6 +64,7 @@ export function StaffDetails() {
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
     const [hireDate, setHireDate] = useState('');
+    const [dateOfBirth, setDateOfBirth] = useState('');
     const [emergencyContact, setEmergencyContact] = useState<EmergencyContact>({
         name: '',
         relationship: '',
@@ -116,6 +118,7 @@ export function StaffDetails() {
             setPhone(staffMember.staff_profile?.phone || '');
             setEmail(staffMember.staff_profile?.email || '');
             setHireDate(staffMember.staff_profile?.hire_date || '');
+            setDateOfBirth(staffMember.profile?.date_of_birth || '');
             setEmergencyContact({
                 name: staffMember.staff_profile?.emergency_contact?.name || '',
                 relationship: staffMember.staff_profile?.emergency_contact?.relationship || '',
@@ -135,7 +138,7 @@ export function StaffDetails() {
                 .select(`
                     user_id,
                     role,
-                    profile:profiles(id, full_name, email, avatar_url)
+                    profile:profiles(id, full_name, email, avatar_url, date_of_birth)
                 `)
                 .eq('hub_id', hubId)
                 .eq('user_id', staffUserId)
@@ -210,6 +213,14 @@ export function StaffDetails() {
 
                 if (error) throw error;
             }
+
+            // Also update date_of_birth on the profiles table
+            const { error: dobError } = await supabase
+                .from('profiles')
+                .update({ date_of_birth: dateOfBirth || null })
+                .eq('id', staffMember.profile.id);
+
+            if (dobError) throw dobError;
 
             setIsEditing(false);
             fetchStaffMember();
@@ -376,6 +387,7 @@ export function StaffDetails() {
                                             setPhone(staffMember.staff_profile?.phone || '');
                                             setEmail(staffMember.staff_profile?.email || '');
                                             setHireDate(staffMember.staff_profile?.hire_date || '');
+                                            setDateOfBirth(staffMember.profile?.date_of_birth || '');
                                             setEmergencyContact({
                                                 name: staffMember.staff_profile?.emergency_contact?.name || '',
                                                 relationship: staffMember.staff_profile?.emergency_contact?.relationship || '',
@@ -445,14 +457,25 @@ export function StaffDetails() {
                                             />
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-body mb-1">Hire Date</label>
-                                        <input
-                                            type="date"
-                                            value={hireDate}
-                                            onChange={(e) => setHireDate(e.target.value)}
-                                            className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
-                                        />
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-body mb-1">Birthday</label>
+                                            <input
+                                                type="date"
+                                                value={dateOfBirth}
+                                                onChange={(e) => setDateOfBirth(e.target.value)}
+                                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-body mb-1">Hire Date</label>
+                                            <input
+                                                type="date"
+                                                value={hireDate}
+                                                onChange={(e) => setHireDate(e.target.value)}
+                                                className="w-full px-3 py-2 border border-line-strong rounded-lg focus:ring-2 focus:ring-accent-500 focus:border-accent-500"
+                                            />
+                                        </div>
                                     </div>
 
                                     {/* Emergency Contact */}
@@ -537,17 +560,32 @@ export function StaffDetails() {
                                         </p>
                                     </div>
 
-                                    {/* Hire Date (staff only) */}
-                                    {!isParentView && staffMember.staff_profile?.hire_date && (
-                                        <div>
-                                            <h3 className="text-sm font-medium text-body mb-2">Hire Date</h3>
-                                            <p className="text-sm text-subtle">
-                                                {new Date(staffMember.staff_profile.hire_date).toLocaleDateString('en-US', {
-                                                    year: 'numeric',
-                                                    month: 'long',
-                                                    day: 'numeric',
-                                                })}
-                                            </p>
+                                    {/* Birthday & Hire Date (staff only) */}
+                                    {!isParentView && (staffMember.profile?.date_of_birth || staffMember.staff_profile?.hire_date) && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            {staffMember.profile?.date_of_birth && (
+                                                <div>
+                                                    <h3 className="text-sm font-medium text-body mb-2">Birthday</h3>
+                                                    <p className="text-sm text-subtle">
+                                                        {new Date(staffMember.profile.date_of_birth + 'T00:00:00').toLocaleDateString('en-US', {
+                                                            month: 'long',
+                                                            day: 'numeric',
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            )}
+                                            {staffMember.staff_profile?.hire_date && (
+                                                <div>
+                                                    <h3 className="text-sm font-medium text-body mb-2">Hire Date</h3>
+                                                    <p className="text-sm text-subtle">
+                                                        {new Date(staffMember.staff_profile.hire_date + 'T00:00:00').toLocaleDateString('en-US', {
+                                                            year: 'numeric',
+                                                            month: 'long',
+                                                            day: 'numeric',
+                                                        })}
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 

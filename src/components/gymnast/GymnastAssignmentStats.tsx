@@ -1,5 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
-import { format, subDays, parseISO, isAfter } from 'date-fns';
+import { format, subDays, isAfter } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { BarChart3, Calendar, TrendingUp, CheckCircle2, Target, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import type { AssignmentEventType, CompletedItems } from '../../types';
@@ -86,7 +89,7 @@ export function GymnastAssignmentStats({ gymnastProfileId }: GymnastAssignmentSt
         const cutoff = subDays(now, daysMap[timeRange]);
 
         return assignments.filter(a => {
-            const assignmentDate = parseISO(a.date);
+            const assignmentDate = parseLocalDate(a.date);
             return isAfter(assignmentDate, cutoff) || format(assignmentDate, 'yyyy-MM-dd') === format(cutoff, 'yyyy-MM-dd');
         });
     }, [assignments, timeRange]);
@@ -359,7 +362,7 @@ export function GymnastAssignmentStats({ gymnastProfileId }: GymnastAssignmentSt
                                 <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
                                         <span className="text-sm font-medium text-heading">
-                                            {format(parseISO(date), 'EEEE, MMM d')}
+                                            {format(parseLocalDate(date), 'EEEE, MMM d')}
                                         </span>
                                         {selectedDate === date
                                             ? <ChevronUp className="w-3.5 h-3.5 text-faint" />

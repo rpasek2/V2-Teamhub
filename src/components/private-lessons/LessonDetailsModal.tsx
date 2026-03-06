@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, Calendar, Clock, User, DollarSign, AlertTriangle, Trash2 } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import type { LessonBooking, LessonSlot, GymnastProfile, Profile } from '../../types';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 // Event label mapping
 const EVENT_LABELS: Record<string, string> = {
@@ -158,7 +161,7 @@ export function LessonDetailsModal({
                                     <span className="text-xs uppercase">Date</span>
                                 </div>
                                 <p className="font-medium text-heading">
-                                    {format(parseISO(slot.slot_date), 'EEE, MMM d, yyyy')}
+                                    {format(parseLocalDate(slot.slot_date), 'EEE, MMM d, yyyy')}
                                 </p>
                             </div>
                             <div className="p-3 bg-surface-alt rounded-lg">

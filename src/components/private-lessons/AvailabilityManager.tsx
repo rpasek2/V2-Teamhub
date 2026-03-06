@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Plus, Trash2, Clock, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
-import { format, addDays, parseISO } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useHub } from '../../context/HubContext';
 import type { LessonAvailability, LessonSlot } from '../../types';
 import { DAYS_OF_WEEK } from '../../types';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 interface AvailabilityManagerProps {
     onAvailabilityUpdated?: () => void;
@@ -385,7 +388,7 @@ export function AvailabilityManager({ onAvailabilityUpdated }: AvailabilityManag
                                     >
                                         <div>
                                             <p className="text-sm font-medium text-heading">
-                                                {format(parseISO(slot.slot_date), 'EEE, MMM d, yyyy')}
+                                                {format(parseLocalDate(slot.slot_date), 'EEE, MMM d, yyyy')}
                                             </p>
                                             <p className="text-xs text-muted">
                                                 {formatTime(slot.start_time)} - {formatTime(slot.end_time)}

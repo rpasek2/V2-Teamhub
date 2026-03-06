@@ -227,7 +227,10 @@ export default function CalendarScreen() {
     }
   };
 
-  // Fetch birthdays from gymnast profiles
+  // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+  const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
+  // Fetch birthdays from gymnast profiles and staff profiles
   const fetchBirthdays = async () => {
     if (!currentHub || !showBirthdays) {
       setBirthdays([]);
@@ -235,7 +238,7 @@ export default function CalendarScreen() {
     }
 
     try {
-      const [gymnastResult, membersResult, privacyResult] = await Promise.all([
+      const [gymnastResult, membersResult, privacyResult, staffResult] = await Promise.all([
         supabase
           .from('gymnast_profiles')
           .select('id, first_name, last_name, date_of_birth, guardian_1')
@@ -249,7 +252,12 @@ export default function CalendarScreen() {
         supabase
           .from('parent_privacy_settings')
           .select('user_id, show_gymnast_birthday')
+          .eq('hub_id', currentHub.id),
+        supabase
+          .from('hub_members')
+          .select('user_id, profile:profiles(id, full_name, date_of_birth)')
           .eq('hub_id', currentHub.id)
+          .in('role', ['owner', 'director', 'admin', 'coach'])
       ]);
 
       if (gymnastResult.error) throw gymnastResult.error;
@@ -273,7 +281,7 @@ export default function CalendarScreen() {
       });
 
       // Filter gymnasts based on parent privacy settings (default: show)
-      const birthdayData: Birthday[] = gymnasts
+      const gymnastBirthdays: Birthday[] = gymnasts
         .filter((g: any) => {
           const guardianEmail = g.guardian_1?.email?.toLowerCase();
           if (!guardianEmail) return true;
@@ -285,10 +293,26 @@ export default function CalendarScreen() {
         .map((g: any) => ({
           id: g.id,
           name: `${g.first_name} ${g.last_name}`.trim(),
-          date: format(parseISO(g.date_of_birth), 'MM-dd'),
+          date: format(parseLocalDate(g.date_of_birth), 'MM-dd'),
         }));
 
-      setBirthdays(birthdayData);
+      // Staff birthdays from profiles table
+      const staffMembers = staffResult.data || [];
+      const staffBirthdays: Birthday[] = staffMembers
+        .filter((m: any) => {
+          const profile = Array.isArray(m.profile) ? m.profile[0] : m.profile;
+          return profile?.date_of_birth;
+        })
+        .map((m: any) => {
+          const profile = Array.isArray(m.profile) ? m.profile[0] : m.profile;
+          return {
+            id: m.user_id,
+            name: profile.full_name || 'Staff',
+            date: format(parseLocalDate(profile.date_of_birth), 'MM-dd'),
+          };
+        });
+
+      setBirthdays([...gymnastBirthdays, ...staffBirthdays]);
     } catch (err) {
       console.error('Error fetching birthdays:', err);
       setError('Failed to load data. Pull to refresh.');

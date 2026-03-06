@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { Loader2, TrendingUp, Users, AlertTriangle, Calendar, ChevronDown, ChevronRight } from 'lucide-react';
-import { format, subDays, parseISO, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { format, subDays, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import type { GymnastProfile, PracticeSchedule, AttendanceRecord } from '../../types';
@@ -107,8 +110,8 @@ export function AttendanceMetricsTab() {
         if (relevantSchedules.length === 0) return [];
 
         // Get all days in range
-        const start = parseISO(startDate);
-        const end = parseISO(endDate);
+        const start = parseLocalDate(startDate);
+        const end = parseLocalDate(endDate);
         const allDays = eachDayOfInterval({ start, end });
 
         // Filter to days that match practice schedules
@@ -374,7 +377,7 @@ export function AttendanceMetricsTab() {
                                         {stat.gymnast.level}
                                         {stat.lastAbsenceDate && (
                                             <span className="ml-2">
-                                                • Last absence: {format(parseISO(stat.lastAbsenceDate), 'MMM d')}
+                                                • Last absence: {format(parseLocalDate(stat.lastAbsenceDate), 'MMM d')}
                                             </span>
                                         )}
                                     </p>

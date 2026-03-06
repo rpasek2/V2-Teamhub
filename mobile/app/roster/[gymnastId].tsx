@@ -45,7 +45,7 @@ import {
   Square,
   Check,
 } from 'lucide-react-native';
-import { format, parseISO, differenceInYears, subMonths, startOfMonth, endOfMonth, subDays, isAfter } from 'date-fns';
+import { format, differenceInYears, subMonths, startOfMonth, endOfMonth, subDays, isAfter } from 'date-fns';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
@@ -55,6 +55,9 @@ import { useHubStore } from '../../src/stores/hubStore';
 import { useOfflineMusicStore } from '../../src/stores/offlineMusicStore';
 import { useMusicPlayerStore } from '../../src/stores/musicPlayerStore';
 import { isTabEnabled } from '../../src/lib/permissions';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 interface Guardian {
   name?: string;
@@ -536,7 +539,7 @@ export default function GymnastProfileScreen() {
   const getAge = (dob: string | null) => {
     if (!dob) return null;
     try {
-      return differenceInYears(new Date(), parseISO(dob));
+      return differenceInYears(new Date(), parseLocalDate(dob));
     } catch {
       return null;
     }
@@ -609,7 +612,7 @@ export default function GymnastProfileScreen() {
     if (!selectedMonth) return attendanceRecords;
 
     return attendanceRecords.filter((r) => {
-      const recordMonth = format(parseISO(r.attendance_date), 'yyyy-MM');
+      const recordMonth = format(parseLocalDate(r.attendance_date), 'yyyy-MM');
       return recordMonth === selectedMonth;
     });
   }, [attendanceRecords, selectedMonth]);
@@ -618,7 +621,7 @@ export default function GymnastProfileScreen() {
   const assignmentStats = useMemo(() => {
     const cutoff = subDays(new Date(), 30);
     const filtered = assignments.filter(a => {
-      const date = parseISO(a.date);
+      const date = parseLocalDate(a.date);
       return isAfter(date, cutoff) || format(date, 'yyyy-MM-dd') === format(cutoff, 'yyyy-MM-dd');
     });
 
@@ -2068,7 +2071,7 @@ export default function GymnastProfileScreen() {
                           <View style={styles.goalDateRow}>
                             <Calendar size={12} color={t.textFaint} />
                             <Text style={[styles.goalDateText, { color: t.textMuted }]}>
-                              {format(parseISO(goal.target_date), 'MMM d, yyyy')}
+                              {format(parseLocalDate(goal.target_date), 'MMM d, yyyy')}
                             </Text>
                           </View>
                         )}
@@ -2520,7 +2523,7 @@ export default function GymnastProfileScreen() {
                           <Text style={[styles.competitionScoreName, { color: t.text }]}>{comp.competition_name}</Text>
                           {comp.competition_date && (
                             <Text style={[styles.competitionScoreDate, { color: t.textMuted }]}>
-                              {format(parseISO(comp.competition_date), 'MMM d, yyyy')}
+                              {format(parseLocalDate(comp.competition_date), 'MMM d, yyyy')}
                             </Text>
                           )}
                         </View>
@@ -2674,7 +2677,7 @@ export default function GymnastProfileScreen() {
                 <View key={record.id} style={[styles.attendanceRecordCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                   <View style={styles.attendanceRecordHeader}>
                     <Text style={[styles.attendanceRecordDate, { color: t.text }]}>
-                      {format(parseISO(record.attendance_date), 'EEEE, MMM d')}
+                      {format(parseLocalDate(record.attendance_date), 'EEEE, MMM d')}
                     </Text>
                     <View style={[styles.statusBadge, { backgroundColor: config.bgColor }]}>
                       <Text style={[styles.statusText, { color: config.color }]}>
@@ -2770,7 +2773,7 @@ export default function GymnastProfileScreen() {
                 <View key={assignment.id} style={[styles.assignmentCard, { backgroundColor: t.surface, borderColor: t.border }]}>
                   <View style={styles.assignmentCardHeader}>
                     <Text style={[styles.assignmentDate, { color: t.text }]}>
-                      {format(parseISO(assignment.date), 'EEEE, MMM d')}
+                      {format(parseLocalDate(assignment.date), 'EEEE, MMM d')}
                     </Text>
                     <View style={styles.assignmentPercentageContainer}>
                       <Text style={[

@@ -16,6 +16,7 @@ interface StaffMember {
         full_name: string;
         email: string;
         avatar_url: string | null;
+        date_of_birth: string | null;
     };
     staff_profile?: {
         id: string;
@@ -67,7 +68,7 @@ export function Staff() {
             .select(`
                 user_id,
                 role,
-                profile:profiles(id, full_name, email, avatar_url)
+                profile:profiles(id, full_name, email, avatar_url, date_of_birth)
             `)
             .eq('hub_id', hubId)
             .in('role', ['owner', 'director', 'admin', 'coach']);

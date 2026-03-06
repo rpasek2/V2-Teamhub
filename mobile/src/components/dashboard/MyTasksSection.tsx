@@ -4,8 +4,11 @@ import { router } from 'expo-router';
 import { Circle, Clock, CheckCircle2, AlertCircle, ChevronRight } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
 import { useTheme } from '../../hooks/useTheme';
-import { format, parseISO, isPast, isToday } from 'date-fns';
+import { format, isPast, isToday } from 'date-fns';
 import { useAuthStore } from '../../stores/authStore';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 interface StaffTask {
     id: string;
@@ -71,7 +74,7 @@ export function MyTasksSection({ tasks, onStatusChange }: MyTasksSectionProps) {
 
             <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                 {displayTasks.map((task, index) => {
-                    const dueDate = task.due_date ? parseISO(task.due_date) : null;
+                    const dueDate = task.due_date ? parseLocalDate(task.due_date) : null;
                     const isOverdue = dueDate && isPast(dueDate) && !isToday(dueDate);
                     const isDueToday = dueDate && isToday(dueDate);
                     const priorityColors = getPriorityColors(isDark);

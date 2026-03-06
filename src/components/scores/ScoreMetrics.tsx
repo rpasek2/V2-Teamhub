@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Loader2, TrendingUp, TrendingDown, Minus, ChevronDown } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import {
     ResponsiveContainer,
     LineChart,
@@ -13,6 +13,9 @@ import {
 import { supabase } from '../../lib/supabase';
 import type { GymnastProfile, GymEvent } from '../../types';
 import { WAG_EVENTS, MAG_EVENTS, EVENT_LABELS, EVENT_FULL_NAMES } from '../../types';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 interface ScoreMetricsProps {
     hubId: string;
@@ -144,7 +147,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
             .map(comp => {
                 const point: Record<string, string | number | null> = {
                     name: comp.name,
-                    date: format(parseISO(comp.date), 'MMM d'),
+                    date: format(parseLocalDate(comp.date), 'MMM d'),
                     fullDate: comp.date,
                 };
                 let aaTotal = 0;
@@ -188,7 +191,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
             .map(comp => {
                 const point: Record<string, string | number | null> = {
                     name: comp.name,
-                    date: format(parseISO(comp.date), 'MMM d'),
+                    date: format(parseLocalDate(comp.date), 'MMM d'),
                     fullDate: comp.date,
                 };
 
@@ -358,7 +361,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                                 labelFormatter={(_, payload) => {
                                     if (payload && payload.length > 0) {
                                         const data = payload[0].payload;
-                                        return `${data.name} — ${format(parseISO(data.fullDate), 'MMM d, yyyy')}`;
+                                        return `${data.name} — ${format(parseLocalDate(data.fullDate), 'MMM d, yyyy')}`;
                                     }
                                     return '';
                                 }}

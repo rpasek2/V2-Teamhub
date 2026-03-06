@@ -1,6 +1,9 @@
 import { useState, useCallback, useRef } from 'react';
 import { Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Pencil, X, Check, Loader2, Music, Upload, Download, Trash2 } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useGymnastEditForm, type EditSection } from '../../hooks/useGymnastEditForm';
@@ -684,7 +687,7 @@ export function GymnastProfileTab({
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2">
                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${injury.status === 'active' ? 'bg-error-100 text-error-700' : injury.status === 'recovering' ? 'bg-amber-100 text-amber-700' : 'bg-success-100 text-success-700'}`}>{injury.status.charAt(0).toUpperCase() + injury.status.slice(1)}</span>
-                                                        <span className="text-xs text-muted">{format(parseISO(injury.date), 'MMM d, yyyy')} at {injury.time}</span>
+                                                        <span className="text-xs text-muted">{format(parseLocalDate(injury.date), 'MMM d, yyyy')} at {injury.time}</span>
                                                     </div>
                                                     <div className="mt-1.5 flex items-center gap-2 text-xs text-muted">
                                                         <span className="capitalize">{injury.location}</span>

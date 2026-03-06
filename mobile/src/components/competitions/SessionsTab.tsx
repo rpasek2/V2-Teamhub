@@ -17,6 +17,9 @@ import { colors } from '../../constants/colors';
 import { useTheme } from '../../hooks/useTheme';
 import { Session } from './types';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 interface SessionsTabProps {
   sessions: Session[];
   hubLevels: string[];
@@ -102,7 +105,7 @@ export function SessionsTab({
                 <View style={styles.sessionDetailRow}>
                   <Calendar size={14} color={t.textFaint} />
                   <Text style={[styles.sessionDetailText, { color: t.textSecondary }]}>
-                    {format(parseISO(session.date), 'MMM d, yyyy')}
+                    {format(parseLocalDate(session.date), 'MMM d, yyyy')}
                   </Text>
                 </View>
                 {session.warmup_time && (

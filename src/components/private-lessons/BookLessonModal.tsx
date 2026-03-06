@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Loader2, Calendar, Clock, User, DollarSign, Check, Users } from 'lucide-react';
-import { format, parseISO, addMinutes } from 'date-fns';
+import { format, addMinutes } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useHub } from '../../context/HubContext';
 import type { LessonSlot, CoachLessonProfile, LessonPackage, Profile } from '../../types';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 // Event label mapping
 const EVENT_LABELS: Record<string, string> = {
@@ -131,7 +134,7 @@ export function BookLessonModal({
             const coachName = coachProfile?.coach_profile?.full_name || 'Coach';
 
             // Calculate lesson times
-            const slotDate = parseISO(slot.slot_date);
+            const slotDate = parseLocalDate(slot.slot_date);
             const [startHours, startMinutes] = slot.start_time.split(':').map(Number);
 
             const startTime = new Date(slotDate);
@@ -262,7 +265,7 @@ export function BookLessonModal({
                                 <div className="flex items-center gap-2 text-sm">
                                     <Calendar className="w-4 h-4 text-faint" />
                                     <span className="text-body">
-                                        {format(parseISO(slot.slot_date), 'EEE, MMM d, yyyy')}
+                                        {format(parseLocalDate(slot.slot_date), 'EEE, MMM d, yyyy')}
                                     </span>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">

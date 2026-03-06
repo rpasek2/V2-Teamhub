@@ -33,6 +33,9 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
 interface GymnastProfile {
   id: string;
   first_name: string;
@@ -453,12 +456,12 @@ function PairingCard({
 
   const formatBirthday = (dob: string | null) => {
     if (!dob) return null;
-    return format(parseISO(dob), 'MMM d');
+    return format(parseLocalDate(dob), 'MMM d');
   };
 
   const formatCompDate = (date: string | null | undefined) => {
     if (!date) return null;
-    return format(parseISO(date), 'MMM d');
+    return format(parseLocalDate(date), 'MMM d');
   };
 
   return (

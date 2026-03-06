@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Trophy, Sparkles, MessageSquare, ShoppingBag } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { clsx } from 'clsx';
 import { isTabEnabled } from '../../lib/permissions';
 import { SKILL_STATUS_CONFIG, type SkillStatus } from '../../types';
@@ -154,7 +157,7 @@ export function ParentDashboardSections({
                                             </p>
                                             <p className="text-xs text-muted">
                                                 {linkedGymnastCount > 1 ? `${score.gymnastName} · ` : ''}
-                                                {format(parseISO(score.date), 'MMM d')}
+                                                {format(parseLocalDate(score.date), 'MMM d')}
                                             </p>
                                         </div>
                                     </div>

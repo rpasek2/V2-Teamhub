@@ -565,7 +565,7 @@ export function CompetitionDetails() {
                                                 <div className="flex items-center gap-3 text-sm text-muted">
                                                     <span className="flex items-center">
                                                         <Calendar className="mr-1 h-4 w-4 text-faint" />
-                                                        {format(parseISO(session.date), 'MMM d, yyyy')}
+                                                        {format(parseLocalDate(session.date), 'MMM d, yyyy')}
                                                     </span>
                                                     {session.warmup_time && (
                                                         <span className="flex items-center">

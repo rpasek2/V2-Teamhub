@@ -92,7 +92,10 @@ export function Calendar() {
         return ALL_HOLIDAYS_MAP.get(key);
     };
 
-    // Fetch birthdays from gymnast profiles (respecting parent privacy settings)
+    // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+    const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
+    // Fetch birthdays from gymnast profiles and staff profiles
     const fetchBirthdays = async () => {
         if (!hub || !showBirthdays) {
             setBirthdays([]);
@@ -100,8 +103,8 @@ export function Calendar() {
         }
 
         try {
-            // Fetch gymnast profiles with birthdays (including guardian email for privacy lookup)
-            const [gymnastResult, membersResult, privacyResult] = await Promise.all([
+            // Fetch gymnast profiles, parent privacy settings, AND staff birthdays in parallel
+            const [gymnastResult, membersResult, privacyResult, staffResult] = await Promise.all([
                 supabase
                     .from('gymnast_profiles')
                     .select('id, first_name, last_name, date_of_birth, guardian_1')
@@ -115,7 +118,12 @@ export function Calendar() {
                 supabase
                     .from('parent_privacy_settings')
                     .select('user_id, show_gymnast_birthday')
+                    .eq('hub_id', hub.id),
+                supabase
+                    .from('hub_members')
+                    .select('user_id, profile:profiles(id, full_name, date_of_birth)')
                     .eq('hub_id', hub.id)
+                    .in('role', ['owner', 'director', 'admin', 'coach'])
             ]);
 
             if (gymnastResult.error) throw gymnastResult.error;
@@ -140,29 +148,40 @@ export function Calendar() {
             });
 
             // Filter gymnasts based on parent privacy settings
-            // Default: show birthdays unless parent explicitly opts out
-            const birthdayData: Birthday[] = gymnasts
+            const gymnastBirthdays: Birthday[] = gymnasts
                 .filter(g => {
-                    // Get the guardian's email
                     const guardianEmail = g.guardian_1?.email?.toLowerCase();
-                    if (!guardianEmail) return true; // No guardian email linked, show by default
-
-                    // Find the parent's user_id
+                    if (!guardianEmail) return true;
                     const parentUserId = emailToUserId.get(guardianEmail);
-                    if (!parentUserId) return true; // Parent not in hub as member, show by default
-
-                    // Check privacy settings (default to true - show unless explicitly hidden)
+                    if (!parentUserId) return true;
                     const showBirthday = userPrivacyMap.get(parentUserId) ?? true;
                     return showBirthday;
                 })
                 .map(g => ({
                     id: g.id,
                     name: `${g.first_name} ${g.last_name}`.trim(),
-                    date: format(parseISO(g.date_of_birth), 'MM-dd'),
+                    date: format(parseLocalDate(g.date_of_birth), 'MM-dd'),
                     fullDate: g.date_of_birth
                 }));
 
-            setBirthdays(birthdayData);
+            // Staff birthdays from profiles table
+            const staffMembers = staffResult.data || [];
+            const staffBirthdays: Birthday[] = staffMembers
+                .filter(m => {
+                    const profile = Array.isArray(m.profile) ? m.profile[0] : m.profile;
+                    return profile?.date_of_birth;
+                })
+                .map(m => {
+                    const profile = Array.isArray(m.profile) ? m.profile[0] : m.profile;
+                    return {
+                        id: m.user_id,
+                        name: profile.full_name || 'Staff',
+                        date: format(parseLocalDate(profile.date_of_birth), 'MM-dd'),
+                        fullDate: profile.date_of_birth
+                    };
+                });
+
+            setBirthdays([...gymnastBirthdays, ...staffBirthdays]);
         } catch (err) {
             console.error('Error fetching birthdays:', err);
             setBirthdays([]);

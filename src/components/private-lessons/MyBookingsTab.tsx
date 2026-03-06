@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Calendar, Clock, User, ChevronRight, Search } from 'lucide-react';
-import { format, parseISO, isBefore, startOfDay } from 'date-fns';
+import { format, isBefore, startOfDay } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useHub } from '../../context/HubContext';
 import type { LessonBooking, LessonSlot, GymnastProfile, Profile } from '../../types';
 import { LessonDetailsModal } from './LessonDetailsModal';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 // Event label mapping
 const EVENT_LABELS: Record<string, string> = {
@@ -75,12 +78,12 @@ export function MyBookingsTab() {
 
             if (filter === 'upcoming') {
                 filtered = filtered.filter(b => {
-                    const slotDate = parseISO(b.lesson_slot.slot_date);
+                    const slotDate = parseLocalDate(b.lesson_slot.slot_date);
                     return !isBefore(slotDate, today);
                 });
             } else if (filter === 'past') {
                 filtered = filtered.filter(b => {
-                    const slotDate = parseISO(b.lesson_slot.slot_date);
+                    const slotDate = parseLocalDate(b.lesson_slot.slot_date);
                     return isBefore(slotDate, today) || b.status === 'cancelled';
                 });
             }
@@ -149,7 +152,7 @@ export function MyBookingsTab() {
                         const slot = booking.lesson_slot;
                         const gymnast = booking.gymnast_profile;
                         const coach = slot.coach_profile;
-                        const isPast = isBefore(parseISO(slot.slot_date), startOfDay(new Date()));
+                        const isPast = isBefore(parseLocalDate(slot.slot_date), startOfDay(new Date()));
                         const isCancelled = booking.status === 'cancelled';
 
                         return (
@@ -198,7 +201,7 @@ export function MyBookingsTab() {
                                             </span>
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="w-3.5 h-3.5" />
-                                                {format(parseISO(slot.slot_date), 'MMM d')}
+                                                {format(parseLocalDate(slot.slot_date), 'MMM d')}
                                             </span>
                                             <span className="flex items-center gap-1">
                                                 <Clock className="w-3.5 h-3.5" />
@@ -228,7 +231,7 @@ export function MyBookingsTab() {
                         setSelectedBooking(null);
                     }}
                     booking={selectedBooking}
-                    canCancel={!isBefore(parseISO(selectedBooking.lesson_slot.slot_date), startOfDay(new Date()))}
+                    canCancel={!isBefore(parseLocalDate(selectedBooking.lesson_slot.slot_date), startOfDay(new Date()))}
                 />
             )}
         </div>

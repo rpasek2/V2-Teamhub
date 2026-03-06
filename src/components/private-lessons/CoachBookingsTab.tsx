@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Loader2, User, ChevronRight, Search, Users } from 'lucide-react';
-import { format, parseISO, isBefore, startOfDay, isToday } from 'date-fns';
+import { format, isBefore, startOfDay, isToday } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { useHub } from '../../context/HubContext';
 import type { LessonBooking, LessonSlot, GymnastProfile, Profile } from '../../types';
 import { LessonDetailsModal } from './LessonDetailsModal';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 // Event label mapping
 const EVENT_LABELS: Record<string, string> = {
@@ -95,10 +98,10 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
             const today = startOfDay(new Date());
 
             if (filter === 'today') {
-                filtered = filtered.filter(b => isToday(parseISO(b.lesson_slot.slot_date)));
+                filtered = filtered.filter(b => isToday(parseLocalDate(b.lesson_slot.slot_date)));
             } else if (filter === 'upcoming') {
                 filtered = filtered.filter(b => {
-                    const slotDate = parseISO(b.lesson_slot.slot_date);
+                    const slotDate = parseLocalDate(b.lesson_slot.slot_date);
                     return !isBefore(slotDate, today);
                 });
                 // Sort by date for upcoming
@@ -109,7 +112,7 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
                 });
             } else if (filter === 'past') {
                 filtered = filtered.filter(b => {
-                    const slotDate = parseISO(b.lesson_slot.slot_date);
+                    const slotDate = parseLocalDate(b.lesson_slot.slot_date);
                     return isBefore(slotDate, today) || b.status === 'cancelled';
                 });
             }
@@ -209,9 +212,9 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
                     {Object.entries(groupedBookings).map(([date, dateBookings]) => (
                         <div key={date}>
                             <h3 className="text-sm font-semibold text-muted uppercase mb-3">
-                                {isToday(parseISO(date))
+                                {isToday(parseLocalDate(date))
                                     ? 'Today'
-                                    : format(parseISO(date), 'EEEE, MMMM d')}
+                                    : format(parseLocalDate(date), 'EEEE, MMMM d')}
                             </h3>
                             <div className="space-y-2">
                                 {dateBookings.map(booking => (
@@ -250,7 +253,7 @@ export function CoachBookingsTab({ coachId }: CoachBookingsTabProps) {
                         setSelectedBooking(null);
                     }}
                     booking={selectedBooking}
-                    canCancel={!isBefore(parseISO(selectedBooking.lesson_slot.slot_date), startOfDay(new Date()))}
+                    canCancel={!isBefore(parseLocalDate(selectedBooking.lesson_slot.slot_date), startOfDay(new Date()))}
                 />
             )}
         </div>
@@ -268,7 +271,7 @@ function BookingRow({ booking, onClick, showDate }: BookingRowProps) {
     const slot = booking.lesson_slot;
     const gymnast = booking.gymnast_profile;
     const parent = booking.booked_by;
-    const isPast = isBefore(parseISO(slot.slot_date), startOfDay(new Date()));
+    const isPast = isBefore(parseLocalDate(slot.slot_date), startOfDay(new Date()));
     const isCancelled = booking.status === 'cancelled';
 
     const formatTime = (time: string) => {
@@ -294,7 +297,7 @@ function BookingRow({ booking, onClick, showDate }: BookingRowProps) {
                     </p>
                     {showDate && (
                         <p className="text-xs text-muted">
-                            {format(parseISO(slot.slot_date), 'MMM d')}
+                            {format(parseLocalDate(slot.slot_date), 'MMM d')}
                         </p>
                     )}
                 </div>

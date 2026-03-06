@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Plus, Trash2, Loader2, Award, AlertTriangle, CheckCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { format, parseISO, differenceInDays, isPast } from 'date-fns';
+import { format, differenceInDays, isPast } from 'date-fns';
+
+// Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
+const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 
 interface Certification {
     id: string;
@@ -99,7 +102,7 @@ export function StaffCertificationsSection({ staffUserId, canEdit }: StaffCertif
     const getCertStatus = (expiryDate: string | null) => {
         if (!expiryDate) return { status: 'valid', label: 'No Expiry', color: 'text-muted bg-surface-alt' };
 
-        const expiry = parseISO(expiryDate);
+        const expiry = parseLocalDate(expiryDate);
         const daysUntil = differenceInDays(expiry, new Date());
 
         if (isPast(expiry)) {
@@ -248,10 +251,10 @@ export function StaffCertificationsSection({ staffUserId, canEdit }: StaffCertif
                                             )}
                                             <div className="flex items-center gap-4 mt-2 text-xs text-muted">
                                                 {cert.issue_date && (
-                                                    <span>Issued: {format(parseISO(cert.issue_date), 'MMM d, yyyy')}</span>
+                                                    <span>Issued: {format(parseLocalDate(cert.issue_date), 'MMM d, yyyy')}</span>
                                                 )}
                                                 {cert.expiry_date && (
-                                                    <span>Expires: {format(parseISO(cert.expiry_date), 'MMM d, yyyy')}</span>
+                                                    <span>Expires: {format(parseLocalDate(cert.expiry_date), 'MMM d, yyyy')}</span>
                                                 )}
                                             </div>
                                         </div>

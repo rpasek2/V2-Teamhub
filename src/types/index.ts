@@ -6,6 +6,7 @@ export interface Profile {
     full_name: string;
     avatar_url: string | null;
     organization: string | null;
+    date_of_birth?: string | null;
 }
 
 export type PermissionScope = 'none' | 'all' | 'own';
