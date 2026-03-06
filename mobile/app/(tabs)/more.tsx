@@ -120,7 +120,7 @@ const FEATURE_ITEMS: MenuItem[] = [
   },
   {
     id: 'mentorship',
-    label: 'Big/Little',
+    label: 'Mentorship',
     icon: Heart,
     route: '/mentorship',
     requiresPermission: 'mentorship',

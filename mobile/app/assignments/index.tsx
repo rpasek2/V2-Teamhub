@@ -425,11 +425,12 @@ export default function AssignmentsScreen() {
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
+  const canEdit = useHubStore((state) => state.canEdit);
   const isParent = useHubStore((state) => state.isParent);
 
   // Check if parents can toggle (hub setting)
   const allowParentToggle = currentHub?.settings?.allowParentToggle !== false;
-  const canToggle = isStaff() || (isParent() && allowParentToggle);
+  const canToggle = canEdit() || (isParent() && allowParentToggle);
 
   const dateString = format(currentDate, 'yyyy-MM-dd');
 

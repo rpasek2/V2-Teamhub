@@ -31,18 +31,28 @@ async function loadDeviceModule() {
   return Device;
 }
 
+interface DeepLinkData {
+  type: string;
+  reference_id?: string;
+  hub_id?: string;
+}
+
 interface PushNotificationState {
   expoPushToken: string | null;
   permissionStatus: 'undetermined' | 'granted' | 'denied';
+  pendingDeepLink: DeepLinkData | null;
 
   registerForPushNotifications: (userId: string) => Promise<void>;
   deregisterPushToken: () => Promise<void>;
   setupNotificationListeners: () => () => void;
+  consumeDeepLink: () => DeepLinkData | null;
+  checkInitialNotification: () => Promise<void>;
 }
 
 export const usePushNotificationStore = create<PushNotificationState>((set, get) => ({
   expoPushToken: null,
   permissionStatus: 'undetermined',
+  pendingDeepLink: null,
 
   registerForPushNotifications: async (userId: string) => {
     try {
@@ -141,75 +151,59 @@ export const usePushNotificationStore = create<PushNotificationState>((set, get)
   },
 
   setupNotificationListeners: () => {
+    const setPending = (data: DeepLinkData) => set({ pendingDeepLink: data });
+
     // Load module synchronously from cache (registerForPushNotifications should have been called first)
     if (!Notifications) {
       // Module not loaded yet — schedule async setup
       let cleanupFn: (() => void) | null = null;
+      let disposed = false;
       loadNotificationsModule().then((NotifMod) => {
-        cleanupFn = setupListeners(NotifMod);
+        if (disposed) return;
+        cleanupFn = setupListeners(NotifMod, setPending);
       });
-      return () => { cleanupFn?.(); };
+      return () => { disposed = true; cleanupFn?.(); };
     }
 
-    return setupListeners(Notifications);
+    return setupListeners(Notifications, setPending);
+  },
+
+  consumeDeepLink: () => {
+    const link = get().pendingDeepLink;
+    if (link) set({ pendingDeepLink: null });
+    return link;
+  },
+
+  checkInitialNotification: async () => {
+    try {
+      const NotifMod = await loadNotificationsModule();
+      const response = await NotifMod.getLastNotificationResponseAsync();
+      if (response) {
+        // Only act on recent notifications (within 30s) to avoid stale deep links
+        const responseTime = response.notification.date; // epoch seconds
+        const now = Date.now() / 1000;
+        if (now - responseTime > 30) return;
+
+        const data = response.notification.request.content.data as DeepLinkData;
+        if (data?.type) {
+          set({ pendingDeepLink: data });
+        }
+      }
+    } catch {
+      // Ignore — module may not be available
+    }
   },
 }));
 
-function setupListeners(NotifMod: typeof import('expo-notifications')): () => void {
+function setupListeners(
+  NotifMod: typeof import('expo-notifications'),
+  setPending: (data: DeepLinkData) => void,
+): () => void {
   // Handle notification tap (app in background or killed)
   const responseSubscription = NotifMod.addNotificationResponseReceivedListener((response) => {
-    const data = response.notification.request.content.data as {
-      type?: string;
-      reference_id?: string;
-      hub_id?: string;
-    };
-
+    const data = response.notification.request.content.data as DeepLinkData;
     if (!data?.type) return;
-
-    // Deep link based on notification type
-    switch (data.type) {
-      case 'message':
-        if (data.reference_id) {
-          router.push(`/chat/${data.reference_id}` as never);
-        }
-        break;
-      case 'post':
-        if (data.reference_id) {
-          router.push(`/group/${data.reference_id}` as never);
-        }
-        break;
-      case 'event':
-        router.push('/(tabs)/calendar' as never);
-        break;
-      case 'competition':
-        if (data.reference_id) {
-          router.push(`/competitions/${data.reference_id}` as never);
-        }
-        break;
-      case 'score':
-        router.push('/(tabs)/scores' as never);
-        break;
-      case 'assignment':
-        router.push('/(tabs)/assignments' as never);
-        break;
-      case 'marketplace_item':
-        router.push('/(tabs)/more' as never);
-        break;
-      case 'resource':
-        router.push('/(tabs)/more' as never);
-        break;
-      case 'staff_task':
-      case 'staff_time_off':
-        router.push('/staff/' as never);
-        break;
-      case 'private_lesson':
-        router.push('/private-lessons/' as never);
-        break;
-      default:
-        // Open to dashboard
-        router.push('/(tabs)/' as never);
-        break;
-    }
+    setPending(data);
   });
 
   // Handle notification received while app is in foreground
@@ -221,4 +215,48 @@ function setupListeners(NotifMod: typeof import('expo-notifications')): () => vo
     responseSubscription.remove();
     receivedSubscription.remove();
   };
+}
+
+/** Navigate to the screen matching a deep link. Call after hub is selected and tabs are mounted. */
+export function navigateToDeepLink(data: DeepLinkData) {
+  switch (data.type) {
+    case 'message':
+      if (data.reference_id) {
+        router.push(`/chat/${data.reference_id}` as never);
+      }
+      break;
+    case 'post':
+      if (data.reference_id) {
+        router.push(`/group/${data.reference_id}` as never);
+      }
+      break;
+    case 'event':
+      router.push('/(tabs)/calendar' as never);
+      break;
+    case 'competition':
+      if (data.reference_id) {
+        router.push(`/competitions/${data.reference_id}` as never);
+      }
+      break;
+    case 'score':
+      router.push('/(tabs)/scores' as never);
+      break;
+    case 'assignment':
+      router.push('/(tabs)/assignments' as never);
+      break;
+    case 'marketplace_item':
+    case 'resource':
+      router.push('/(tabs)/more' as never);
+      break;
+    case 'staff_task':
+    case 'staff_time_off':
+      router.push('/staff/' as never);
+      break;
+    case 'private_lesson':
+      router.push('/private-lessons/' as never);
+      break;
+    default:
+      router.push('/(tabs)/' as never);
+      break;
+  }
 }

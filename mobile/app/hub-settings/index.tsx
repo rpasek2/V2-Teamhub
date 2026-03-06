@@ -49,7 +49,7 @@ export default function HubSettingsScreen() {
   const [savingAccent, setSavingAccent] = useState(false);
 
   const isOwner = currentRole === 'owner';
-  const isAdmin = ['owner', 'director', 'admin'].includes(currentRole || '');
+  const canManageSettings = ['owner', 'director'].includes(currentRole || '');
 
   useEffect(() => {
     if (currentHub) {
@@ -77,7 +77,7 @@ export default function HubSettingsScreen() {
   };
 
   const updateSetting = async (key: keyof HubSettings, value: any) => {
-    if (!currentHub || !isAdmin) return;
+    if (!currentHub || !canManageSettings) return;
     setSaving(true);
 
     try {
@@ -178,7 +178,7 @@ export default function HubSettingsScreen() {
       </View>
 
       {/* Accent Color Picker - Admin only */}
-      {isAdmin && (
+      {canManageSettings && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: t.textMuted }]}>Appearance</Text>
           <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
@@ -252,7 +252,7 @@ export default function HubSettingsScreen() {
           )}
 
           {/* Levels */}
-          {isAdmin && (
+          {canManageSettings && (
             <TouchableOpacity
               style={styles.navItem}
               onPress={() => router.push('/hub-settings/levels')}
@@ -271,7 +271,7 @@ export default function HubSettingsScreen() {
           )}
 
           {/* Invite Codes */}
-          {isAdmin && (
+          {canManageSettings && (
             <TouchableOpacity
               style={[styles.navItem, { borderBottomWidth: 0 }]}
               onPress={() => router.push('/hub-settings/invite-codes')}
@@ -290,7 +290,7 @@ export default function HubSettingsScreen() {
       </View>
 
       {/* Quick Toggles */}
-      {isAdmin && (
+      {canManageSettings && (
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { color: t.textMuted }]}>Quick Settings</Text>
           <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>

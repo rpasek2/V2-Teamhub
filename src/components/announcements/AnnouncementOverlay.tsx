@@ -56,6 +56,16 @@ export function AnnouncementOverlay() {
 
     const questions: AnnouncementQuestion[] = (current.questions as AnnouncementQuestion[]) || [];
 
+    const advanceOrClear = () => {
+        setResponses({});
+        setError(null);
+        if (currentIndex + 1 < pending.length) {
+            setCurrentIndex(prev => prev + 1);
+        } else {
+            setPending([]);
+        }
+    };
+
     const handleAcknowledge = async () => {
         setSubmitting(true);
         setError(null);
@@ -87,14 +97,25 @@ export function AnnouncementOverlay() {
             console.error('Error acknowledging announcement:', updateError);
             setError('Failed to submit. Please try again.');
         } else {
-            // Move to next or clear
-            setResponses({});
-            setError(null);
-            if (currentIndex + 1 < pending.length) {
-                setCurrentIndex(prev => prev + 1);
-            } else {
-                setPending([]);
-            }
+            advanceOrClear();
+        }
+        setSubmitting(false);
+    };
+
+    const handleDismiss = async () => {
+        setSubmitting(true);
+        const { error: updateError } = await supabase
+            .from('announcement_recipients')
+            .update({
+                status: 'acknowledged',
+                completed_at: new Date().toISOString(),
+            })
+            .eq('id', current.recipient_id);
+
+        if (updateError) {
+            console.error('Error dismissing announcement:', updateError);
+        } else {
+            advanceOrClear();
         }
         setSubmitting(false);
     };
@@ -109,11 +130,11 @@ export function AnnouncementOverlay() {
             <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" aria-hidden="true" />
 
             {/* Card */}
-            <div className="relative w-full max-w-lg transform rounded-xl bg-surface shadow-2xl border border-line max-h-[90vh] flex flex-col animate-scale-in">
+            <div className="relative w-full max-w-lg transform rounded-xl bg-surface shadow-2xl border border-line dark:border-red-900/50 max-h-[90vh] flex flex-col animate-scale-in">
                 {/* Header */}
-                <div className="flex items-center gap-3 px-6 py-4 border-b border-line flex-shrink-0">
-                    <div className="w-10 h-10 rounded-lg bg-accent-50 flex items-center justify-center">
-                        <Megaphone className="w-5 h-5 text-accent-600" />
+                <div className="flex items-center gap-3 px-6 py-4 border-b border-line dark:border-red-900/40 dark:bg-red-950/30 flex-shrink-0">
+                    <div className="w-10 h-10 rounded-lg bg-accent-50 dark:bg-red-900/40 flex items-center justify-center">
+                        <Megaphone className="w-5 h-5 text-accent-600 dark:text-red-400" />
                     </div>
                     <div className="min-w-0 flex-1">
                         <h3 className="text-lg font-semibold text-heading truncate">{current.title}</h3>
@@ -198,19 +219,42 @@ export function AnnouncementOverlay() {
 
                 {/* Footer */}
                 <div className="px-6 py-4 border-t border-line flex-shrink-0">
-                    <button
-                        onClick={handleAcknowledge}
-                        disabled={submitting}
-                        className="btn-primary w-full justify-center"
-                    >
-                        {submitting ? (
-                            <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
-                        ) : current.type === 'questionnaire' ? (
-                            'Submit Responses'
-                        ) : (
-                            'I Acknowledge'
-                        )}
-                    </button>
+                    {current.require_acknowledgement !== false ? (
+                        <button
+                            onClick={handleAcknowledge}
+                            disabled={submitting}
+                            className="btn-primary w-full justify-center"
+                        >
+                            {submitting ? (
+                                <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
+                            ) : current.type === 'questionnaire' ? (
+                                'Submit Responses'
+                            ) : (
+                                'I Acknowledge'
+                            )}
+                        </button>
+                    ) : (
+                        <div className="flex gap-3">
+                            <button
+                                onClick={handleDismiss}
+                                disabled={submitting}
+                                className="btn-secondary flex-1 justify-center"
+                            >
+                                Dismiss
+                            </button>
+                            <button
+                                onClick={handleAcknowledge}
+                                disabled={submitting}
+                                className="btn-primary flex-1 justify-center"
+                            >
+                                {submitting ? (
+                                    <><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</>
+                                ) : (
+                                    'I Acknowledge'
+                                )}
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>,

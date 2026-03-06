@@ -54,7 +54,7 @@ export default function CompetitionDetailsScreen() {
   const { t, isDark } = useTheme();
   const { competitionId } = useLocalSearchParams<{ competitionId: string }>();
   const currentHub = useHubStore((state) => state.currentHub);
-  const isStaff = useHubStore((state) => state.isStaff);
+  const canEdit = useHubStore((state) => state.canEdit);
 
   const [competition, setCompetition] = useState<Competition | null>(null);
   const [roster, setRoster] = useState<Gymnast[]>([]);
@@ -168,7 +168,7 @@ export default function CompetitionDetailsScreen() {
 
   // Toggle event for a gymnast (staff only)
   const toggleEvent = async (gymnastProfileId: string, event: GymEvent, currentEvents: GymEvent[]) => {
-    if (!isStaff() || !competitionId) return;
+    if (!canEdit() || !competitionId) return;
 
     const newEvents = currentEvents.includes(event)
       ? currentEvents.filter((e) => e !== event)
@@ -419,7 +419,7 @@ export default function CompetitionDetailsScreen() {
         {activeTab === 'roster' && (
           <RosterTab
             roster={roster}
-            isStaff={isStaff()}
+            isStaff={canEdit()}
             hubLevels={hubLevels}
             onToggleEvent={toggleEvent}
             onManageRoster={handleOpenManageRoster}
@@ -430,7 +430,7 @@ export default function CompetitionDetailsScreen() {
           <SessionsTab
             sessions={sessions}
             hubLevels={hubLevels}
-            isStaff={isStaff()}
+            isStaff={canEdit()}
             onAddSession={handleOpenCreateSession}
             onManageSessionGymnasts={handleOpenAssignGymnasts}
           />

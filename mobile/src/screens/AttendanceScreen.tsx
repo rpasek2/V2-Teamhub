@@ -88,11 +88,11 @@ export function AttendanceScreen() {
 
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
-  const isStaff = useHubStore((state) => state.isStaff);
+  const canEditData = useHubStore((state) => state.canEdit);
   const isParent = useHubStore((state) => state.isParent);
   const user = useAuthStore((state) => state.user);
 
-  const canManage = isStaff();
+  const canManage = canEditData();
   const selectedDayOfWeek = parseISO(selectedDate).getDay();
 
   useEffect(() => {

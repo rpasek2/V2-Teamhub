@@ -82,7 +82,7 @@ export default function MentorshipScreen() {
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const hasPermission = useHubStore((state) => state.hasPermission);
   const getPermissionScope = useHubStore((state) => state.getPermissionScope);
-  const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentMember?.role || '');
+  const canEditData = ['owner', 'director', 'coach'].includes(currentMember?.role || '');
   const mentorshipScope = getPermissionScope('mentorship');
 
   useEffect(() => {
@@ -255,7 +255,7 @@ export default function MentorshipScreen() {
 
   const handleDeletePairing = async (pairingId: string, gymnastName: string) => {
     Alert.alert(
-      'Remove Little',
+      'Remove Mentee',
       `Remove ${gymnastName} from this pairing?`,
       [
         { text: 'Cancel', style: 'cancel' },
@@ -331,6 +331,18 @@ export default function MentorshipScreen() {
             </View>
           </View>
 
+          {/* Icon Legend */}
+          <View style={[styles.legendContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+            <View style={styles.legendItem}>
+              <Cake size={12} color={t.textFaint} />
+              <Text style={[styles.legendText, { color: t.textMuted }]}>Birthday</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <Trophy size={12} color={t.textFaint} />
+              <Text style={[styles.legendText, { color: t.textMuted }]}>Next Competition</Text>
+            </View>
+          </View>
+
           <ScrollView
             style={styles.listContainer}
             contentContainerStyle={styles.listContent}
@@ -342,7 +354,7 @@ export default function MentorshipScreen() {
                 <Text style={[styles.emptyTitle, { color: t.text }]}>No pairings found</Text>
                 <Text style={[styles.emptyText, { color: t.textMuted }]}>
                   {visiblePairings.length === 0
-                    ? 'No Big/Little pairings have been created yet.'
+                    ? 'No mentorship pairings have been created yet.'
                     : 'No pairings match your search.'}
                 </Text>
               </View>
@@ -351,7 +363,7 @@ export default function MentorshipScreen() {
                 <PairingCard
                   key={group.big_gymnast_id}
                   groupedPairing={group}
-                  onDeleteLittle={isStaff ? handleDeletePairing : undefined}
+                  onDeleteLittle={canEditData ? handleDeletePairing : undefined}
                 />
               ))
             )}
@@ -654,6 +666,24 @@ const styles = StyleSheet.create({
   },
   tabTextActive: {
     color: colors.pink[600],
+  },
+
+  // Icon Legend
+  legendContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  legendText: {
+    fontSize: 11,
   },
 
   // Search

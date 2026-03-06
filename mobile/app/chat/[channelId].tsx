@@ -158,7 +158,10 @@ export default function ChatScreen() {
               .single();
 
             if (data) {
-              setMessages((prev) => [data, ...prev]);
+              setMessages((prev) => {
+                if (prev.some((m) => m.id === data.id)) return prev;
+                return [data, ...prev];
+              });
               // Mark as read since user is viewing
               markChannelAsRead();
             }
@@ -586,14 +589,14 @@ export default function ChatScreen() {
       setPendingFiles([]);
     }
 
-    const { error } = await supabase.from('messages').insert([
+    const { data: insertedData, error } = await supabase.from('messages').insert([
       {
         channel_id: channelId,
         user_id: user.id,
         content: content,
         ...(attachments.length > 0 ? { attachments } : {}),
       },
-    ]);
+    ]).select('*, attachments, profiles(full_name, email)').single();
 
     if (error) {
       console.error('Error sending message:', error);
@@ -603,6 +606,14 @@ export default function ChatScreen() {
         setPendingFiles(savedFiles);
       }
     } else {
+      // Add sent message to local state immediately (don't wait for realtime)
+      if (insertedData) {
+        setMessages((prev) => {
+          // Deduplicate in case realtime already delivered it
+          if (prev.some((m) => m.id === insertedData.id)) return prev;
+          return [insertedData, ...prev];
+        });
+      }
       markChannelAsRead();
     }
     setSending(false);

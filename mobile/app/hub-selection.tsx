@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  InteractionManager,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -15,6 +16,7 @@ import { colors } from '../src/constants/colors';
 import { useTheme } from '../src/hooks/useTheme';
 import { useAuthStore } from '../src/stores/authStore';
 import { useHubStore, Hub } from '../src/stores/hubStore';
+import { usePushNotificationStore, navigateToDeepLink } from '../src/stores/pushNotificationStore';
 import { Card } from '../src/components/ui';
 
 // Sport type to icon/color mapping
@@ -54,13 +56,38 @@ export default function HubSelectionScreen() {
   const hubsLoading = useHubStore((state) => state.hubsLoading);
   const fetchHubs = useHubStore((state) => state.fetchHubs);
   const setCurrentHub = useHubStore((state) => state.setCurrentHub);
+  const pendingDeepLink = usePushNotificationStore((s) => s.pendingDeepLink);
+  const consumeDeepLink = usePushNotificationStore((s) => s.consumeDeepLink);
   const [refreshing, setRefreshing] = useState(false);
+  const autoSelectedRef = useRef(false);
 
   useEffect(() => {
     if (user) {
       fetchHubs(user.id);
     }
   }, [user]);
+
+  // Auto-select hub if there's a pending deep link with hub_id
+  useEffect(() => {
+    if (!user || !pendingDeepLink?.hub_id || hubs.length === 0 || autoSelectedRef.current) return;
+    const targetHub = hubs.find((h) => h.id === pendingDeepLink.hub_id);
+    if (targetHub) {
+      autoSelectedRef.current = true;
+      (async () => {
+        try {
+          await setCurrentHub(targetHub.id, user.id);
+          const link = consumeDeepLink();
+          router.replace('/(tabs)');
+          if (link) {
+            InteractionManager.runAfterInteractions(() => navigateToDeepLink(link));
+          }
+        } catch (err) {
+          console.error('[HubSelection] Auto-select failed:', err);
+          autoSelectedRef.current = false;
+        }
+      })();
+    }
+  }, [user, pendingDeepLink, hubs]);
 
   const handleRefresh = async () => {
     if (user) {

@@ -1290,6 +1290,7 @@ export interface Announcement {
     links: AnnouncementLink[] | null;
     is_active: boolean;
     expires_at: string | null;
+    require_acknowledgement: boolean;
     created_at: string;
 }
 

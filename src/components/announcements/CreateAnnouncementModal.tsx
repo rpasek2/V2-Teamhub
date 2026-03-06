@@ -34,6 +34,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
     const [questions, setQuestions] = useState<AnnouncementQuestion[]>([]);
     const [links, setLinks] = useState<AnnouncementLink[]>([]);
     const [expiresAt, setExpiresAt] = useState('');
+    const [requireAcknowledgement, setRequireAcknowledgement] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -83,6 +84,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
         setQuestions([]);
         setLinks([]);
         setExpiresAt('');
+        setRequireAcknowledgement(true);
         setError(null);
     };
 
@@ -196,6 +198,7 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
             p_questions: validQuestions,
             p_links: validLinks.length > 0 ? validLinks : null,
             p_expires_at: expiresAt || null,
+            p_require_acknowledgement: requireAcknowledgement,
         });
 
         if (rpcError) {
@@ -546,15 +549,34 @@ export function CreateAnnouncementModal({ isOpen, onClose, onCreated }: CreateAn
                     </div>
                 )}
 
-                {/* Expiration */}
-                <div>
-                    <label className="block text-sm font-medium text-body mb-1">Expires (optional)</label>
-                    <input
-                        type="datetime-local"
-                        value={expiresAt}
-                        onChange={e => setExpiresAt(e.target.value)}
-                        className="input w-full sm:w-auto text-sm"
-                    />
+                {/* Options: Acknowledgement + Expiration */}
+                <div className="space-y-3">
+                    <label className="block text-sm font-medium text-body">Options</label>
+                    <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                            type="checkbox"
+                            checked={requireAcknowledgement}
+                            onChange={e => setRequireAcknowledgement(e.target.checked)}
+                            className="text-accent-600 focus:ring-accent-500 rounded"
+                        />
+                        <div>
+                            <p className="text-sm text-heading">Require acknowledgement</p>
+                            <p className="text-xs text-muted">
+                                {requireAcknowledgement
+                                    ? 'Members must acknowledge before dismissing'
+                                    : 'Members can dismiss without acknowledging'}
+                            </p>
+                        </div>
+                    </label>
+                    <div>
+                        <label className="block text-xs text-muted mb-1">Expires (optional)</label>
+                        <input
+                            type="datetime-local"
+                            value={expiresAt}
+                            onChange={e => setExpiresAt(e.target.value)}
+                            className="input w-full sm:w-auto text-sm"
+                        />
+                    </div>
                 </div>
 
                 {/* Actions */}

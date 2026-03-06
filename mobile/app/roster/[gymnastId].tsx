@@ -269,6 +269,7 @@ export default function GymnastProfileScreen() {
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
+  const canEditData = useHubStore((state) => state.canEdit);
   const isParent = useHubStore((state) => state.isParent);
   const getPermissionScope = useHubStore((state) => state.getPermissionScope);
   const offlineStore = useOfflineMusicStore();
@@ -1219,7 +1220,7 @@ export default function GymnastProfileScreen() {
   };
 
   const cycleSkillStatus = async (skill: DetailedSkill) => {
-    if (!isStaff()) return;
+    if (!canEditData()) return;
 
     // Normalize null/unknown to 'none' for lookup
     const currentStatus = skill.status || 'none';
@@ -1447,7 +1448,7 @@ export default function GymnastProfileScreen() {
                   <Music size={18} color={isDark ? colors.purple[400] : colors.purple[600]} />
                   <Text style={[styles.sectionTitle, { color: t.text }]}>Floor Music</Text>
                 </View>
-                {isStaff() && !gymnast.floor_music_url && (
+                {canEditData() && !gymnast.floor_music_url && (
                   <TouchableOpacity
                     style={[styles.floorMusicUploadBtn, { backgroundColor: t.primary }]}
                     onPress={handleFloorMusicUpload}
@@ -1525,7 +1526,7 @@ export default function GymnastProfileScreen() {
                           <Text style={[styles.floorMusicBtnText, { color: t.textSecondary }]}>Save</Text>
                         </TouchableOpacity>
                       )}
-                      {isStaff() && (
+                      {canEditData() && (
                         <TouchableOpacity
                           style={[styles.floorMusicBtn, { backgroundColor: isDark ? colors.error[700] + '20' : colors.error[50] }]}
                           onPress={handleRemoveFloorMusic}
@@ -1534,7 +1535,7 @@ export default function GymnastProfileScreen() {
                         </TouchableOpacity>
                       )}
                     </View>
-                    {isStaff() && (
+                    {canEditData() && (
                       <TouchableOpacity
                         style={styles.floorMusicReplaceBtn}
                         onPress={handleFloorMusicUpload}
@@ -1562,7 +1563,7 @@ export default function GymnastProfileScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: t.text }]}>Guardian Information</Text>
-                  {isStaff() && (
+                  {canEditData() && (
                     <TouchableOpacity
                       style={[styles.sectionEditBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                       onPress={() => setEditingSection(editingSection === 'guardians' ? null : 'guardians')}
@@ -1735,7 +1736,7 @@ export default function GymnastProfileScreen() {
                       </View>
                     )}
                   </View>
-                ) : isStaff() && (
+                ) : canEditData() && (
                   <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                     <Text style={[styles.emptyFieldText, { color: t.textFaint }]}>No guardian info added. Tap edit to add.</Text>
                   </View>
@@ -1748,7 +1749,7 @@ export default function GymnastProfileScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: t.text }]}>Emergency Contacts</Text>
-                  {isStaff() && (
+                  {canEditData() && (
                     <TouchableOpacity
                       style={[styles.sectionEditBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                       onPress={() => setEditingSection(editingSection === 'emergency' ? null : 'emergency')}
@@ -1885,7 +1886,7 @@ export default function GymnastProfileScreen() {
                       </View>
                     )}
                   </View>
-                ) : isStaff() && (
+                ) : canEditData() && (
                   <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                     <Text style={[styles.emptyFieldText, { color: t.textFaint }]}>No emergency contacts added. Tap edit to add.</Text>
                   </View>
@@ -1898,7 +1899,7 @@ export default function GymnastProfileScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: t.text }]}>Medical Information</Text>
-                  {isStaff() && (
+                  {canEditData() && (
                     <TouchableOpacity
                       style={[styles.sectionEditBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                       onPress={() => setEditingSection(editingSection === 'medical' ? null : 'medical')}
@@ -2003,7 +2004,7 @@ export default function GymnastProfileScreen() {
                       </View>
                     )}
                   </View>
-                ) : isStaff() && (
+                ) : canEditData() && (
                   <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                     <Text style={[styles.emptyFieldText, { color: t.textFaint }]}>No medical info added. Tap edit to add.</Text>
                   </View>
@@ -2203,7 +2204,7 @@ export default function GymnastProfileScreen() {
         {activeTab === 'assessment' && (
           <View style={styles.section}>
             {/* Edit toggle for staff */}
-            {isStaff() && (
+            {canEditData() && (
               <View style={styles.assessmentHeader}>
                 <Text style={[styles.sectionTitle, { color: t.text }]}>Coach Assessment</Text>
                 <TouchableOpacity
@@ -2230,7 +2231,7 @@ export default function GymnastProfileScreen() {
               </View>
             )}
 
-            {!isStaff() && <Text style={[styles.sectionTitle, { color: t.text }]}>Coach Assessment</Text>}
+            {!canEditData() && <Text style={[styles.sectionTitle, { color: t.text }]}>Coach Assessment</Text>}
 
             {editingAssessment ? (
               // Edit Mode
@@ -2365,7 +2366,7 @@ export default function GymnastProfileScreen() {
                     <FileText size={48} color={t.textFaint} />
                     <Text style={[styles.emptyTitle, { color: t.text }]}>No Assessment Yet</Text>
                     <Text style={[styles.emptyTextCenter, { color: t.textMuted }]}>
-                      {isStaff() ? 'Tap the edit button to add an assessment' : 'No assessment has been added by coaches yet'}
+                      {canEditData() ? 'Tap the edit button to add an assessment' : 'No assessment has been added by coaches yet'}
                     </Text>
                   </View>
                 )}
@@ -2377,7 +2378,7 @@ export default function GymnastProfileScreen() {
         {activeTab === 'skills' && (
           <View style={styles.section}>
             <Text style={[styles.sectionTitle, { color: t.text }]}>Skills by Event</Text>
-            {isStaff() && (
+            {canEditData() && (
               <Text style={[styles.skillEditHint, { color: t.textMuted }]}>Tap a skill to change its status</Text>
             )}
             {skillSummary.map((summary) => {
@@ -2428,8 +2429,8 @@ export default function GymnastProfileScreen() {
                             key={skill.id}
                             style={[styles.skillItem, { borderBottomColor: t.borderSubtle }]}
                             onPress={() => cycleSkillStatus(skill)}
-                            disabled={!isStaff()}
-                            activeOpacity={isStaff() ? 0.7 : 1}
+                            disabled={!canEditData()}
+                            activeOpacity={canEditData() ? 0.7 : 1}
                           >
                             <Text style={[styles.skillName, { color: t.text }]} numberOfLines={1}>
                               {skill.name}

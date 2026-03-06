@@ -9,7 +9,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
-import { MessageSquare, Pin, PinOff, MoreHorizontal, Trash2, Send, User, ThumbsUp, Heart, PartyPopper, Eye } from 'lucide-react-native';
+import { MessageSquare, Pin, PinOff, MoreHorizontal, Trash2, Send, User, ThumbsUp, Heart, PartyPopper, Eye, Pencil } from 'lucide-react-native';
 import { colors } from '../../constants/colors';
 import { useTheme } from '../../hooks/useTheme';
 import { supabase } from '../../services/supabase';
@@ -17,6 +17,7 @@ import { formatDistanceToNow, parseISO } from 'date-fns';
 import { PollDisplay } from './PollDisplay';
 import { SignupDisplay } from './SignupDisplay';
 import { RsvpDisplay } from './RsvpDisplay';
+import { LinkifiedText } from '../ui/LinkifiedText';
 
 type ReactionType = 'like' | 'heart' | 'celebrate';
 
@@ -72,8 +73,13 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
   });
   const [userReaction, setUserReaction] = useState<ReactionType | null>(null);
   const [viewCount, setViewCount] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(post.content);
+  const [displayContent, setDisplayContent] = useState(post.content);
+  const [savingEdit, setSavingEdit] = useState(false);
 
   const canDelete = isAdmin || post.user_id === currentUserId;
+  const canEditPost = post.user_id === currentUserId;
   const canPin = isAdmin;
 
   // Fetch reactions and view count on mount
@@ -272,6 +278,36 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
     setShowMenu(false);
   };
 
+  const handleSaveEdit = async () => {
+    if (!editContent.trim() || editContent === displayContent) {
+      setIsEditing(false);
+      setEditContent(displayContent);
+      return;
+    }
+
+    setSavingEdit(true);
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .update({ content: editContent.trim() })
+        .eq('id', post.id);
+
+      if (error) throw error;
+      setDisplayContent(editContent.trim());
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating post:', error);
+      Alert.alert('Error', 'Failed to update post');
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditContent(displayContent);
+  };
+
   // Get images from attachments or legacy image_url
   const images: string[] = [];
   if (post.image_url) {
@@ -316,7 +352,7 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
           </Text>
           <Text style={[styles.timestamp, { color: t.textFaint }]}>{formatTime(post.created_at)}</Text>
         </View>
-        {(canDelete || canPin) && (
+        {(canDelete || canPin || canEditPost) && (
           <TouchableOpacity
             style={styles.menuButton}
             onPress={() => setShowMenu(!showMenu)}
@@ -361,6 +397,18 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
               )}
             </TouchableOpacity>
           )}
+          {canEditPost && (
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => {
+                setShowMenu(false);
+                setIsEditing(true);
+              }}
+            >
+              <Pencil size={16} color={t.textMuted} />
+              <Text style={[styles.menuItemText, { color: t.textSecondary }]}>Edit Post</Text>
+            </TouchableOpacity>
+          )}
           {canDelete && (
             <TouchableOpacity style={styles.menuItem} onPress={handleDelete}>
               <Trash2 size={16} color={colors.error[600]} />
@@ -371,7 +419,36 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
       )}
 
       {/* Post Content */}
-      <Text style={[styles.content, { color: t.textSecondary }]}>{post.content}</Text>
+      {isEditing ? (
+        <View style={styles.editContainer}>
+          <TextInput
+            style={[styles.editInput, { color: t.text, backgroundColor: t.background, borderColor: t.border }]}
+            value={editContent}
+            onChangeText={setEditContent}
+            multiline
+            autoFocus
+          />
+          <View style={styles.editActions}>
+            <TouchableOpacity
+              style={[styles.editButton, { backgroundColor: t.surfaceSecondary }]}
+              onPress={handleCancelEdit}
+            >
+              <Text style={[styles.editButtonText, { color: t.textSecondary }]}>Cancel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.editButton, { backgroundColor: t.primary, opacity: savingEdit || !editContent.trim() ? 0.5 : 1 }]}
+              onPress={handleSaveEdit}
+              disabled={savingEdit || !editContent.trim()}
+            >
+              <Text style={[styles.editButtonText, { color: colors.white }]}>
+                {savingEdit ? 'Saving...' : 'Save'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      ) : (
+        <LinkifiedText text={displayContent} style={[styles.content, { color: t.textSecondary }]} />
+      )}
 
       {/* Images */}
       {images.length > 0 && (
@@ -530,7 +607,7 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
                     {formatTime(comment.created_at)}
                   </Text>
                 </View>
-                <Text style={[styles.commentText, { color: t.textSecondary }]}>{comment.content}</Text>
+                <LinkifiedText text={comment.content} style={[styles.commentText, { color: t.textSecondary }]} />
               </View>
             </View>
           ))}
@@ -661,6 +738,34 @@ const styles = StyleSheet.create({
     color: colors.slate[700],
     paddingHorizontal: 16,
     paddingBottom: 12,
+  },
+  editContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 8,
+  },
+  editInput: {
+    fontSize: 15,
+    lineHeight: 22,
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    minHeight: 80,
+    textAlignVertical: 'top',
+  },
+  editActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  editButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  editButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   imageContainer: {
     flexDirection: 'row',

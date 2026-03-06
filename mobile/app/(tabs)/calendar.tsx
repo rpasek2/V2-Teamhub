@@ -30,6 +30,7 @@ interface CalendarEvent {
   rsvp_enabled?: boolean;
   is_all_day?: boolean;
   is_save_the_date?: boolean;
+  staff_only?: boolean;
 }
 
 interface Birthday {
@@ -201,7 +202,7 @@ export default function CalendarScreen() {
 
       const { data, error } = await supabase
         .from('events')
-        .select('id, title, type, start_time, end_time, location, description, rsvp_enabled, is_all_day, is_save_the_date')
+        .select('id, title, type, start_time, end_time, location, description, rsvp_enabled, is_all_day, is_save_the_date, staff_only')
         .eq('hub_id', currentHub.id)
         .gte('start_time', monthStart.toISOString())
         .lte('start_time', monthEnd.toISOString())
@@ -212,7 +213,9 @@ export default function CalendarScreen() {
         setError('Failed to load data. Pull to refresh.');
         setEvents([]);
       } else {
-        setEvents(data || []);
+        const userIsStaff = isStaff();
+        const filtered = userIsStaff ? (data || []) : (data || []).filter(e => !e.staff_only);
+        setEvents(filtered);
       }
     } catch (err) {
       console.error('Error:', err);

@@ -11,6 +11,7 @@ import {
   hasPermission as hasPermissionUtil,
   isStaffRole,
   isParentRole,
+  canEditRole,
   canManageRole,
   isTabEnabled as isTabEnabledUtil,
 } from '../lib/permissions';
@@ -116,6 +117,7 @@ interface HubState {
   getPermissionScope: (feature: string) => 'all' | 'own' | 'none';
   isStaff: () => boolean;
   isParent: () => boolean;
+  canEdit: () => boolean;
   canManage: () => boolean;
   isTabEnabled: (tabId: string) => boolean;
 }
@@ -259,6 +261,11 @@ export const useHubStore = create<HubState>()(
       isParent: () => {
         const { currentMember } = get();
         return isParentRole(currentMember?.role ?? null);
+      },
+
+      canEdit: () => {
+        const { currentMember } = get();
+        return canEditRole(currentMember?.role ?? null);
       },
 
       canManage: () => {

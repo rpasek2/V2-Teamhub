@@ -20,7 +20,7 @@ export default function MentorshipLayout() {
       <Stack.Screen
         name="index"
         options={{
-          title: 'Big/Little',
+          title: 'Mentorship',
         }}
       />
     </Stack>

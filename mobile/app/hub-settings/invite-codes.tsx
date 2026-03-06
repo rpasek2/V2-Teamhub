@@ -61,7 +61,7 @@ export default function InviteCodesScreen() {
   const [newCodeMaxUses, setNewCodeMaxUses] = useState('');
   const [newCodeExpiresIn, setNewCodeExpiresIn] = useState('7'); // days
 
-  const isAdmin = ['owner', 'director', 'admin'].includes(currentRole || '');
+  const canManageSettings = ['owner', 'director'].includes(currentRole || '');
 
   useEffect(() => {
     if (currentHub) {

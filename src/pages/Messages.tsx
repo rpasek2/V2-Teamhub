@@ -271,6 +271,10 @@ export default function Messages() {
             const defaultChannel = regularChannels.find(c => !c.group_id) || regularChannels[0] || dmChans[0];
             if (defaultChannel) {
                 setSelectedChannel(defaultChannel);
+                // Mark as read so the unread badge clears on auto-select
+                if (defaultChannel.unread_count && defaultChannel.unread_count > 0) {
+                    markChannelAsRead(defaultChannel.id);
+                }
             } else if (regularChannels.length === 0 && dmChans.length === 0) {
                 createDefaultChannel();
             }

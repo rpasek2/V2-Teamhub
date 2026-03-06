@@ -11,7 +11,7 @@ import {
   Modal,
   Pressable,
 } from 'react-native';
-import { Target, ChevronDown, Check } from 'lucide-react-native';
+import { Target, ChevronDown, Check, List } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
@@ -24,9 +24,17 @@ interface SkillEvent {
   fullName: string;
 }
 
+interface SkillList {
+  id: string;
+  hub_id: string;
+  name: string;
+  is_default: boolean;
+}
+
 interface HubEventSkill {
   id: string;
   hub_id: string;
+  skill_list_id: string;
   level: string;
   event: string;
   skill_name: string;
@@ -84,6 +92,7 @@ export default function SkillsScreen() {
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
+  const canEdit = useHubStore((state) => state.canEdit);
   const isParent = useHubStore((state) => state.isParent);
 
   const [loading, setLoading] = useState(true);
@@ -93,6 +102,9 @@ export default function SkillsScreen() {
   const [selectedEvent, setSelectedEvent] = useState<string>('');
   const [showLevelDropdown, setShowLevelDropdown] = useState(false);
   const [showEventDropdown, setShowEventDropdown] = useState(false);
+  const [showListDropdown, setShowListDropdown] = useState(false);
+  const [skillLists, setSkillLists] = useState<SkillList[]>([]);
+  const [selectedSkillListId, setSelectedSkillListId] = useState<string>('');
   const [gymnasts, setGymnasts] = useState<Gymnast[]>([]);
   const [skills, setSkills] = useState<HubEventSkill[]>([]);
   const [gymnastSkills, setGymnastSkills] = useState<GymnastSkill[]>([]);
@@ -136,6 +148,14 @@ export default function SkillsScreen() {
     }
   }, [events, selectedEvent]);
 
+  // Fetch skill lists when hub loads
+  useEffect(() => {
+    if (currentHub) {
+      setSelectedSkillListId('');
+      fetchSkillLists();
+    }
+  }, [currentHub?.id]);
+
   // Fetch gymnasts when level changes
   useEffect(() => {
     if (currentHub && selectedLevel) {
@@ -143,12 +163,12 @@ export default function SkillsScreen() {
     }
   }, [currentHub?.id, selectedLevel]);
 
-  // Fetch skills when level or event changes
+  // Fetch skills when level, event, or skill list changes
   useEffect(() => {
-    if (currentHub && selectedLevel && selectedEvent) {
+    if (currentHub && selectedLevel && selectedEvent && selectedSkillListId) {
       fetchSkills();
     }
-  }, [currentHub?.id, selectedLevel, selectedEvent]);
+  }, [currentHub?.id, selectedLevel, selectedEvent, selectedSkillListId]);
 
   // Fetch gymnast skills when skills or gymnasts change
   useEffect(() => {
@@ -184,14 +204,36 @@ export default function SkillsScreen() {
     }
   };
 
+  const fetchSkillLists = async () => {
+    if (!currentHub) return;
+
+    const { data, error } = await supabase
+      .from('skill_lists')
+      .select('id, hub_id, name, is_default')
+      .eq('hub_id', currentHub.id)
+      .order('is_default', { ascending: false })
+      .order('name');
+
+    if (error) {
+      console.error('Error fetching skill lists:', error);
+    } else {
+      setSkillLists(data || []);
+      if (data && data.length > 0) {
+        const defaultList = data.find((l) => l.is_default);
+        setSelectedSkillListId(defaultList?.id || data[0].id);
+      }
+    }
+  };
+
   const fetchSkills = async () => {
-    if (!currentHub || !selectedLevel || !selectedEvent) return;
+    if (!currentHub || !selectedLevel || !selectedEvent || !selectedSkillListId) return;
     setLoading(true);
 
     const { data, error } = await supabase
       .from('hub_event_skills')
-      .select('id, hub_id, level, event, skill_name, skill_order')
+      .select('id, hub_id, skill_list_id, level, event, skill_name, skill_order')
       .eq('hub_id', currentHub.id)
+      .eq('skill_list_id', selectedSkillListId)
       .eq('level', selectedLevel)
       .eq('event', selectedEvent)
       .order('skill_order', { ascending: true });
@@ -241,7 +283,7 @@ export default function SkillsScreen() {
   };
 
   const handleSkillTap = async (gymnastId: string, skillId: string) => {
-    if (!isStaff()) return;
+    if (!canEdit()) return;
 
     const currentStatus = getSkillStatus(gymnastId, skillId);
     const currentIndex = STATUS_CYCLE.indexOf(currentStatus);
@@ -311,8 +353,27 @@ export default function SkillsScreen() {
     );
   }
 
+  const selectedListName = skillLists.find((l) => l.id === selectedSkillListId)?.name || 'Default';
+
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>
+      {/* Skill List Picker (only shown when multiple lists exist) */}
+      {skillLists.length > 1 && (
+        <View style={[styles.listPickerContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+          <List size={16} color={t.textMuted} />
+          <Text style={[styles.listPickerLabel, { color: t.textMuted }]}>Skill List</Text>
+          <TouchableOpacity
+            style={[styles.listPickerButton, { backgroundColor: t.background, borderColor: t.border }]}
+            onPress={() => setShowListDropdown(true)}
+          >
+            <Text style={[styles.listPickerText, { color: t.text }]} numberOfLines={1}>
+              {selectedListName}
+            </Text>
+            <ChevronDown size={16} color={t.textMuted} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       {/* Filters Row */}
       <View style={[styles.filtersContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
         {/* Level Dropdown */}
@@ -427,6 +488,45 @@ export default function SkillsScreen() {
         </Pressable>
       </Modal>
 
+      {/* Skill List Picker Modal */}
+      <Modal
+        visible={showListDropdown}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowListDropdown(false)}
+      >
+        <Pressable style={[styles.pickerOverlay, { backgroundColor: t.overlay }]} onPress={() => setShowListDropdown(false)}>
+          <View style={[styles.pickerContainer, { backgroundColor: t.surface }]}>
+            <View style={[styles.pickerHeader, { borderBottomColor: t.border }]}>
+              <Text style={[styles.pickerTitle, { color: t.text }]}>Select Skill List</Text>
+            </View>
+            <ScrollView style={styles.pickerScroll}>
+              {skillLists.map((list) => (
+                <TouchableOpacity
+                  key={list.id}
+                  style={[styles.pickerItem, { borderBottomColor: t.borderSubtle }, selectedSkillListId === list.id && { backgroundColor: isDark ? `${t.primary}15` : colors.brand[50] }]}
+                  onPress={() => {
+                    setSelectedSkillListId(list.id);
+                    setShowListDropdown(false);
+                  }}
+                >
+                  <Text
+                    style={[
+                      styles.pickerItemText,
+                      { color: t.textSecondary },
+                      selectedSkillListId === list.id && { color: t.primary, fontWeight: '600' },
+                    ]}
+                  >
+                    {list.name}
+                  </Text>
+                  {selectedSkillListId === list.id && <Check size={16} color={t.primary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </Pressable>
+      </Modal>
+
       {/* Error Banner */}
       {error && (
         <View style={{ marginHorizontal: 16, marginTop: 12, padding: 12, backgroundColor: isDark ? colors.red[700] + '20' : '#FEF2F2', borderRadius: 8, borderWidth: 1, borderColor: isDark ? colors.red[700] + '40' : '#FECACA' }}>
@@ -486,15 +586,15 @@ export default function SkillsScreen() {
                 {skills.map((skill) => {
                   const status = getSkillStatus(gymnast.id, skill.id);
                   const config = getSkillStatusConfig(isDark)[status];
-                  const canEdit = isStaff();
+                  const canEditSkill = canEdit();
 
                   return (
                     <TouchableOpacity
                       key={skill.id}
                       style={[styles.skillRow, { borderBottomColor: t.borderSubtle }]}
                       onPress={() => handleSkillTap(gymnast.id, skill.id)}
-                      disabled={!canEdit}
-                      activeOpacity={canEdit ? 0.7 : 1}
+                      disabled={!canEditSkill}
+                      activeOpacity={canEditSkill ? 0.7 : 1}
                     >
                       <Text style={[styles.skillName, { color: t.textSecondary }]} numberOfLines={1}>
                         {skill.skill_name}
@@ -513,7 +613,7 @@ export default function SkillsScreen() {
           ))}
 
           {/* Footer Hint */}
-          {isStaff() && (
+          {canEdit() && (
             <Text style={[styles.footerHint, { color: t.textMuted }]}>Tap a skill status to cycle through: Not Started → Learning → Achieved → Mastered → Injured</Text>
           )}
         </ScrollView>
@@ -549,6 +649,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.slate[500],
     textAlign: 'center',
+  },
+
+  // Skill List Picker
+  listPickerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+  },
+  listPickerLabel: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  listPickerButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  listPickerText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '500',
+    marginRight: 8,
   },
 
   // Filters

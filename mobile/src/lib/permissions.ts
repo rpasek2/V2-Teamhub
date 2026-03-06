@@ -111,6 +111,15 @@ export function isParentRole(role: string | null): boolean {
 }
 
 /**
+ * Check if role can edit program data (owner, director, coach — NOT admin)
+ * Admin is view-only + communication. Mirrors web's canEdit.
+ */
+export function canEditRole(role: string | null): boolean {
+    if (!role) return false;
+    return ['owner', 'director', 'coach'].includes(normalizeRole(role));
+}
+
+/**
  * Check if role can manage (owner, director, admin)
  */
 export function canManageRole(role: string | null): boolean {

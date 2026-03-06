@@ -32,7 +32,7 @@ export default function LevelsScreen() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const isAdmin = ['owner', 'director', 'admin'].includes(currentRole || '');
+  const canManageSettings = ['owner', 'director'].includes(currentRole || '');
 
   useEffect(() => {
     if (currentHub) {
@@ -60,7 +60,7 @@ export default function LevelsScreen() {
   };
 
   const saveLevels = async (newLevels: string[]) => {
-    if (!currentHub || !isAdmin) return;
+    if (!currentHub || !canManageSettings) return;
     setSaving(true);
 
     try {

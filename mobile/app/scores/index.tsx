@@ -121,6 +121,7 @@ export default function ScoresScreen() {
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
+  const canEditData = useHubStore((state) => state.canEdit);
   const isParent = useHubStore((state) => state.isParent);
   const user = useAuthStore((state) => state.user);
 
@@ -245,7 +246,7 @@ export default function ScoresScreen() {
     currentScore: number | null,
     currentPlacement: number | null
   ) => {
-    if (!isStaff()) return;
+    if (!canEditData()) return;
 
     setEditingScore({
       gymnastId: gymnast.id,
@@ -438,7 +439,7 @@ export default function ScoresScreen() {
     return placement + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
   };
 
-  const canEdit = isStaff();
+  const canEdit = canEditData();
 
   const qualifyingScores = currentHub?.settings?.qualifyingScores;
 

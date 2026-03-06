@@ -3,17 +3,6 @@
 ## Mobile
 
 - **Schedule - Rotations Display** — Rotations section is a grid on web but just a flat list on mobile. Needs a reworked display for quickly scanning multiple groups' events.
-- **Admin Permission Restrictions** — Mirror web changes: admins should be view-only except messaging, groups, calendar events, and marketplace. Update `useHubStore` role checks.
-- **Staff-Only Calendar Events** — Filter out `staff_only` events (e.g. time off) for non-staff users on the mobile calendar.
-- **Mentorship Parent RLS** — RLS policy updated on web; mobile already fetches from `mentorship_pairs` so parents should now see data. Verify on mobile and confirm permission scope filtering works.
-- **Mentorship Icon Legend** — Add birthday/next competition icon legend to mobile mentorship pairings view (matches web).
-- **Messages Not Appearing After Send** — Sent messages sometimes don't appear until reload. Likely a realtime subscription or local state issue.
-- **Push Notification Deep Link to Message Thread** — Tapping a message push notification navigates to the overview screen instead of the specific chat thread.
-- **Unread Badge Not Clearing on Auto-Selected Thread** — When opening the Messages tab, the first thread is auto-selected. If that thread has new messages, the unread badge doesn't clear until switching to another chat and back. Badges clear correctly when manually selecting a different thread.
-- **Multiple Skill Lists** — Add skill list picker to mobile Skills page (web already supports multiple lists with create/rename/duplicate/delete). Mobile currently returns all skills across lists; needs `skill_list_id` filter + dropdown.
-- **Clickable Links in Group Posts & Comments** — Auto-detect URLs in post content and comments and render as tappable links. Web version done with `LinkifiedText` component; mobile needs equivalent with `Linking.openURL`.
-- **Edit Group Posts** — Allow post authors to edit their own posts. Web done with inline textarea + save/cancel. Mobile needs equivalent UI in PostCard.
-
 ## Web
 
 - **Rotation Builder UX Overhaul** — Rotation creation/editing needs drag-and-drop reordering and a streamlined flow.
@@ -72,3 +61,14 @@ Currently season-aware: competitions, scores. This feature would make level-base
 - ~~Multiple Skill Lists (Web)~~ — Skill lists per hub with create, rename, duplicate, delete. Dropdown picker on Skills page and gymnast profile. Default list auto-created per hub with backfill migration.
 - ~~Clickable Links in Group Posts & Comments (Web)~~ — Auto-detect URLs in post/comment text and render as clickable links via `LinkifiedText` component.
 - ~~Edit Group Posts (Web)~~ — Post authors can edit their own posts via inline textarea from the post menu.
+- ~~Admin Permission Restrictions (Mobile)~~ — Added `canEdit()` to hub store (owner/director/coach). Admin now view-only on Skills, Scores, Assignments, Roster editing, Competitions, Attendance, Mentorship. Hub Settings restricted to owner/director.
+- ~~Announcement Require Acknowledgement Toggle~~ — Announcements can be set as requiring acknowledgement (blocking) or dismissible. Dark red theme in dark mode.
+- ~~Staff-Only Calendar Events (Mobile)~~ — Non-staff users (parents/athletes) no longer see `staff_only` events on the mobile calendar.
+- ~~Mentorship Parent RLS (Mobile)~~ — Verified: RLS policy allows parents via guardian email match, mobile filters by `linkedGymnasts` with `'own'` scope. No changes needed.
+- ~~Mentorship Icon Legend (Mobile)~~ — Added birthday (cake) and next competition (trophy) icon legend below the search bar on the pairings tab.
+- ~~Multiple Skill Lists (Mobile)~~ — Added skill list picker dropdown (shown when hub has multiple lists), `skill_list_id` filter on skills query, auto-selects default list.
+- ~~Clickable Links in Group Posts & Comments (Mobile)~~ — Created `LinkifiedText` component using `Linking.openURL`, applied to post content and comment text in PostCard.
+- ~~Edit Group Posts (Mobile)~~ — Post authors can edit their own posts via "Edit Post" in the post menu. Inline TextInput with save/cancel buttons.
+- ~~Messages Not Appearing After Send (Mobile)~~ — `sendMessage` now returns the inserted row via `.select().single()` and adds it to local state optimistically. Realtime subscription INSERT handler has dedup check to prevent double messages.
+- ~~Push Notification Deep Link to Message Thread (Mobile)~~ — Notification taps now store a pending deep link instead of navigating immediately. Hub is auto-selected from notification `hub_id`, then deep link navigates after tabs mount. Handles cold start via `getLastNotificationResponseAsync` and foreground taps via reactive effect.
+- ~~Unread Badge Not Clearing on Auto-Selected Thread (Web)~~ — Auto-selected default channel now calls `markChannelAsRead` when it has unread messages, clearing the badge immediately.

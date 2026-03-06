@@ -140,8 +140,8 @@ export function ActiveAnnouncementsCard() {
 
     return (
         <div className="card overflow-hidden mb-6">
-            <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-accent-500/10 to-indigo-500/10 border-b border-line">
-                <Megaphone className="w-5 h-5 text-accent-600" />
+            <div className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-accent-500/10 to-indigo-500/10 dark:from-red-900/30 dark:to-red-800/15 border-b border-line">
+                <Megaphone className="w-5 h-5 text-accent-600 dark:text-red-400" />
                 <h3 className="text-sm font-semibold text-heading">Active Announcements</h3>
                 <span className="badge-slate text-xs">{announcements.length}</span>
             </div>
