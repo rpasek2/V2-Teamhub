@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trophy, MapPin, Calendar, Trash2, Loader2, ExternalLink, Clock, Award, Medal } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { format, parseISO, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
+import { format, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { useNotifications } from '../../context/NotificationContext';

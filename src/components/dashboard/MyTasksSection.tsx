@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Circle, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
-import { format, parseISO, isPast, isToday } from 'date-fns';
+import { format, isPast, isToday } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
 
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC

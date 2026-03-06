@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { User, Trophy, Star, Heart, Cake } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import type { GymnastProfile } from '../../types';
 
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC

@@ -244,7 +244,23 @@ export function Roster() {
         // Staff always sees everything
         if (isStaff) return true;
 
-        // If not a gymnast profile, show everything (hub members like parents don't have privacy settings)
+        // Parent hub_member row: check that parent's own privacy settings
+        if (member.type === 'hub_member' && member.role === 'parent') {
+            // A parent viewing their own row always sees their own info
+            if (member.id === user?.id) return true;
+
+            const settings = privacySettings.get(member.id);
+            if (!settings) {
+                return field === 'level'; // Default: only show level
+            }
+            switch (field) {
+                case 'email': return settings.show_email;
+                case 'phone': return settings.show_phone;
+                default: return true;
+            }
+        }
+
+        // If not a gymnast profile, show everything (non-parent hub members)
         if (member.type !== 'gymnast_profile') return true;
 
         // If this is the parent's own linked gymnast, show everything
@@ -577,7 +593,7 @@ export function Roster() {
                                                             )}
                                                         </>
                                                     ) : (
-                                                        <div>{member.email}</div>
+                                                        <div>{renderPrivateField(member, 'email', member.email)}</div>
                                                     )}
                                                 </td>
                                                 <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">

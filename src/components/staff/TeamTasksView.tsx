@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Plus, Circle, Clock, CheckCircle2, AlertCircle, Trash2 } from 'lucide-react';
-import { format, parseISO, isPast, isToday } from 'date-fns';
+import { format, isPast, isToday } from 'date-fns';
 import type { StaffWithData, Task } from '../../hooks/useStaffBulk';
 
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Loader2, Save, CalendarDays } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
