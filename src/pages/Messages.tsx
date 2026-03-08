@@ -170,6 +170,17 @@ export default function Messages() {
         }
     }, [selectedChannel]);
 
+    // Refetch messages when tab becomes visible (fallback for realtime failures)
+    useEffect(() => {
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible' && selectedChannel) {
+                fetchMessages(selectedChannel.id);
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+        return () => document.removeEventListener('visibilitychange', handleVisibility);
+    }, [selectedChannel]);
+
     useEffect(() => {
         scrollToBottom();
         // Fetch reactions whenever messages change
@@ -356,14 +367,18 @@ export default function Messages() {
                     filter: `channel_id=eq.${channelId}`,
                 },
                 async (payload) => {
+                    const newId = (payload.new as { id: string }).id;
                     const { data } = await supabase
                         .from('messages')
                         .select('*, attachments, profiles(full_name, email)')
-                        .eq('id', payload.new.id)
+                        .eq('id', newId)
                         .single();
 
                     if (data) {
-                        setMessages((prev) => [...prev, data]);
+                        setMessages((prev) => {
+                            if (prev.some(m => m.id === data.id)) return prev;
+                            return [...prev, data];
+                        });
                     }
                 }
             )
@@ -407,7 +422,10 @@ export default function Messages() {
                     fetchDmReadReceipt(channelId);
                 }
             )
-            .subscribe();
+            .subscribe((status, err) => {
+                if (err) console.error('Realtime subscription error:', err);
+                if (status === 'CHANNEL_ERROR') console.error('Realtime channel error for', channelId);
+            });
     };
 
     const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -523,7 +541,7 @@ export default function Messages() {
             setUploading(false);
         }
 
-        const { error } = await supabase
+        const { data: insertedMsg, error } = await supabase
             .from('messages')
             .insert([
                 {
@@ -532,7 +550,9 @@ export default function Messages() {
                     content: content,
                     ...(attachments.length > 0 ? { attachments } : {}),
                 },
-            ]);
+            ])
+            .select('*, attachments, profiles(full_name, email)')
+            .single();
 
         if (error) {
             console.error('Error sending message:', error);
@@ -543,6 +563,12 @@ export default function Messages() {
                 setPendingFiles(savedFiles);
                 setImagePreviews(savedPreviews);
             }
+        } else if (insertedMsg) {
+            // Add optimistically — realtime INSERT handler has dedup check
+            setMessages((prev) => {
+                if (prev.some(m => m.id === insertedMsg.id)) return prev;
+                return [...prev, insertedMsg];
+            });
         }
     };
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, memo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, Trash2, User, Pin, MoreHorizontal, Heart, ThumbsUp, PartyPopper, PinOff, Eye, Pencil, Check, X } from 'lucide-react';
+import { MessageSquare, Trash2, User, Pin, MoreHorizontal, Heart, ThumbsUp, PartyPopper, PinOff, Eye, Pencil, Check, X, Image, Paperclip, BarChart3, ListChecks, CalendarCheck } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { PollDisplay, SignupDisplay, RsvpDisplay, ImageGallery, FileList } from './attachments';
 import { LinkifiedText } from '../ui/LinkifiedText';
@@ -25,9 +25,11 @@ interface PostCardProps {
     onPinToggle?: (postId: string, isPinned: boolean) => void;
     currentUserId: string;
     isAdmin: boolean;
+    onOpenDetail?: () => void;
+    compact?: boolean;
 }
 
-export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, currentUserId, isAdmin }: PostCardProps) {
+export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, currentUserId, isAdmin, onOpenDetail, compact = false }: PostCardProps) {
     const [showComments, setShowComments] = useState(false);
     const [comments, setComments] = useState<Comment[]>([]);
     const [newComment, setNewComment] = useState('');
@@ -380,7 +382,10 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
             </div>
 
             {/* Content */}
-            <div className="px-5 py-4 space-y-4">
+            <div
+                className={`px-5 py-4 space-y-4 ${compact ? 'cursor-pointer' : ''}`}
+                onClick={compact ? onOpenDetail : undefined}
+            >
                 {/* Text content */}
                 {isEditing ? (
                     <div className="space-y-2">
@@ -409,62 +414,90 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                             </button>
                         </div>
                     </div>
+                ) : compact ? (
+                    <p className="text-heading whitespace-pre-wrap leading-relaxed line-clamp-3"><LinkifiedText text={displayContent} /></p>
                 ) : (
                     <p className="text-heading whitespace-pre-wrap leading-relaxed"><LinkifiedText text={displayContent} /></p>
                 )}
 
-                {/* Image Gallery */}
-                {allImageUrls.length > 0 && (
-                    <ImageGallery urls={allImageUrls} />
+                {compact ? (
+                    /* Compact mode: show attachment indicators */
+                    (() => {
+                        const indicators: { icon: typeof Image; label: string }[] = [];
+                        if (allImageUrls.length > 0) indicators.push({ icon: Image, label: `${allImageUrls.length} photo${allImageUrls.length > 1 ? 's' : ''}` });
+                        attachments.forEach(a => {
+                            if (a.type === 'files') indicators.push({ icon: Paperclip, label: `${a.files.length} file${a.files.length > 1 ? 's' : ''}` });
+                            if (a.type === 'poll') indicators.push({ icon: BarChart3, label: 'Poll' });
+                            if (a.type === 'signup') indicators.push({ icon: ListChecks, label: 'Sign-up' });
+                            if (a.type === 'rsvp') indicators.push({ icon: CalendarCheck, label: 'RSVP' });
+                        });
+                        return indicators.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                                {indicators.map(({ icon: Icon, label }) => (
+                                    <span key={label} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-surface-hover text-xs font-medium text-muted">
+                                        <Icon className="h-3.5 w-3.5" />
+                                        {label}
+                                    </span>
+                                ))}
+                            </div>
+                        ) : null;
+                    })()
+                ) : (
+                    <>
+                        {/* Image Gallery */}
+                        {allImageUrls.length > 0 && (
+                            <ImageGallery urls={allImageUrls} />
+                        )}
+
+                        {/* Files */}
+                        {attachments.filter(a => a.type === 'files').map((attachment) => (
+                            attachment.type === 'files' && (
+                                <FileList key={`files-${attachment.files.map(f => f.name).join('-')}`} files={attachment.files} />
+                            )
+                        ))}
+
+                        {/* Poll */}
+                        {attachments.filter(a => a.type === 'poll').map((attachment) => (
+                            attachment.type === 'poll' && (
+                                <PollDisplay
+                                    key={`poll-${attachment.question}`}
+                                    postId={post.id}
+                                    question={attachment.question}
+                                    options={attachment.options}
+                                    settings={attachment.settings}
+                                />
+                            )
+                        ))}
+
+                        {/* Sign-Up */}
+                        {attachments.filter(a => a.type === 'signup').map((attachment) => (
+                            attachment.type === 'signup' && (
+                                <SignupDisplay
+                                    key={`signup-${attachment.title}`}
+                                    postId={post.id}
+                                    title={attachment.title}
+                                    description={attachment.description}
+                                    slots={attachment.slots}
+                                    settings={attachment.settings}
+                                />
+                            )
+                        ))}
+
+                        {/* RSVP */}
+                        {attachments.filter(a => a.type === 'rsvp').map((attachment) => (
+                            attachment.type === 'rsvp' && (
+                                <RsvpDisplay
+                                    key={`rsvp-${attachment.title}`}
+                                    postId={post.id}
+                                    title={attachment.title}
+                                    date={attachment.date}
+                                    time={attachment.time}
+                                    location={attachment.location}
+                                />
+                            )
+                        ))}
+                    </>
                 )}
-
-                {/* Files */}
-                {attachments.filter(a => a.type === 'files').map((attachment) => (
-                    attachment.type === 'files' && (
-                        <FileList key={`files-${attachment.files.map(f => f.name).join('-')}`} files={attachment.files} />
-                    )
-                ))}
-
-                {/* Poll */}
-                {attachments.filter(a => a.type === 'poll').map((attachment) => (
-                    attachment.type === 'poll' && (
-                        <PollDisplay
-                            key={`poll-${attachment.question}`}
-                            postId={post.id}
-                            question={attachment.question}
-                            options={attachment.options}
-                            settings={attachment.settings}
-                        />
-                    )
-                ))}
-
-                {/* Sign-Up */}
-                {attachments.filter(a => a.type === 'signup').map((attachment) => (
-                    attachment.type === 'signup' && (
-                        <SignupDisplay
-                            key={`signup-${attachment.title}`}
-                            postId={post.id}
-                            title={attachment.title}
-                            description={attachment.description}
-                            slots={attachment.slots}
-                            settings={attachment.settings}
-                        />
-                    )
-                ))}
-
-                {/* RSVP */}
-                {attachments.filter(a => a.type === 'rsvp').map((attachment) => (
-                    attachment.type === 'rsvp' && (
-                        <RsvpDisplay
-                            key={`rsvp-${attachment.title}`}
-                            postId={post.id}
-                            title={attachment.title}
-                            date={attachment.date}
-                            time={attachment.time}
-                            location={attachment.location}
-                        />
-                    )
-                ))}
             </div>
 
             {/* Footer */}
@@ -518,9 +551,9 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                         )}
                         {/* Comments button */}
                         <button
-                            onClick={fetchComments}
+                            onClick={compact ? onOpenDetail : fetchComments}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-all ${
-                                showComments
+                                showComments && !compact
                                     ? 'bg-accent-500/15 text-accent-600 shadow-sm'
                                     : 'text-muted hover:bg-surface-hover hover:text-accent-600'
                             }`}
@@ -532,8 +565,8 @@ export const PostCard = memo(function PostCard({ post, onDelete, onPinToggle, cu
                 </div>
             </div>
 
-            {/* Comments Section */}
-            {showComments && (
+            {/* Comments Section (hidden in compact mode) */}
+            {showComments && !compact && (
                 <div className="px-5 pb-5 border-t border-line">
                     <div className="space-y-4 pt-4">
                         {comments.length === 0 ? (

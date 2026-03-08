@@ -16,6 +16,7 @@ import {
   Alert,
   Linking,
   Dimensions,
+  AppState,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
@@ -205,12 +206,25 @@ export default function ChatScreen() {
             fetchDmReadReceipt(channelId);
           }
         )
-        .subscribe();
+        .subscribe((status, err) => {
+          if (err) console.error('Realtime subscription error:', err);
+          if (status === 'CHANNEL_ERROR') console.error('Realtime channel error for', channelId);
+        });
 
       return () => {
         subscription.unsubscribe();
       };
     }
+  }, [channelId]);
+
+  // Refetch messages when app returns to foreground (fallback for realtime failures)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && channelId) {
+        fetchMessages();
+      }
+    });
+    return () => sub.remove();
   }, [channelId]);
 
   // Fetch reactions when messages change
@@ -543,10 +557,11 @@ export default function ChatScreen() {
 
             const response = await fetch(img.uri);
             const blob = await response.blob();
+            const arrayBuffer = await new Response(blob).arrayBuffer();
 
             const { error: uploadErr } = await supabase.storage
               .from('post-attachments')
-              .upload(filePath, blob, { cacheControl: '3600', contentType: img.mimeType || 'image/jpeg' });
+              .upload(filePath, arrayBuffer, { cacheControl: '3600', contentType: img.mimeType || 'image/jpeg' });
             if (uploadErr) throw uploadErr;
 
             const { data: { publicUrl } } = supabase.storage
@@ -566,10 +581,11 @@ export default function ChatScreen() {
 
             const response = await fetch(file.uri);
             const blob = await response.blob();
+            const arrayBuffer = await new Response(blob).arrayBuffer();
 
             const { error: uploadErr } = await supabase.storage
               .from('post-attachments')
-              .upload(filePath, blob, { cacheControl: '3600', contentType: file.mimeType });
+              .upload(filePath, arrayBuffer, { cacheControl: '3600', contentType: file.mimeType });
             if (uploadErr) throw uploadErr;
 
             const { data: { publicUrl } } = supabase.storage

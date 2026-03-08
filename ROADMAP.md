@@ -3,6 +3,9 @@
 ## Mobile
 
 - **Schedule - Rotations Display** — Rotations section is a grid on web but just a flat list on mobile. Needs a reworked display for quickly scanning multiple groups' events.
+- **Group Post Creation** — Add ability to create posts in groups from the mobile app (currently read/interact only).
+- **Score Metrics** — Add detailed score charts and metrics to mobile (season bests, averages, trend lines, qualifying progress) to match the web experience.
+- **Back Buttons** — Add explicit back buttons to screens that are missing them (currently relying on iOS swipe-from-left gesture).
 ## Web
 
 - **Rotation Builder UX Overhaul** — Rotation creation/editing needs drag-and-drop reordering and a streamlined flow.

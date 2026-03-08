@@ -1054,13 +1054,14 @@ export default function GymnastProfileScreen() {
       const fileName = `${Crypto.randomUUID()}.${fileExt}`;
       const storagePath = `${currentHub.id}/${gymnast.id}/${fileName}`;
 
-      // Read file and upload
+      // Read file and upload (convert to arraybuffer — blob uploads are 0-byte on RN)
       const response = await fetch(file.uri);
       const blob = await response.blob();
+      const arrayBuffer = await new Response(blob).arrayBuffer();
 
       const { error: uploadError } = await supabase.storage
         .from('floor-music')
-        .upload(storagePath, blob, {
+        .upload(storagePath, arrayBuffer, {
           contentType: file.mimeType || 'audio/mpeg',
         });
 
@@ -2750,7 +2751,7 @@ export default function GymnastProfileScreen() {
             </View>
 
             {/* Recent Assignments */}
-            <Text style={[styles.sectionTitle, { marginTop: 20 }]}>Recent Assignments</Text>
+            <Text style={[styles.sectionTitle, { marginTop: 20, color: t.text }]}>Recent Assignments</Text>
             {assignments.slice(0, 10).map((assignment) => {
               let dayTotal = 0;
               let dayCompleted = 0;

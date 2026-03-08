@@ -5,6 +5,7 @@ import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { CreatePostModal } from '../../components/groups/CreatePostModal';
 import { PostCard } from '../../components/groups/PostCard';
+import { PostDetailModal } from '../../components/groups/PostDetailModal';
 import { GroupPhotos } from '../../components/groups/GroupPhotos';
 import { GroupFiles } from '../../components/groups/GroupFiles';
 import { GroupMembers } from '../../components/groups/GroupMembers';
@@ -26,6 +27,7 @@ export default function GroupDetails() {
     const [memberCount, setMemberCount] = useState(0);
     const [activeTab, setActiveTab] = useState<TabType>('posts');
     const [highlightedPostId, setHighlightedPostId] = useState<string | null>(null);
+    const [detailPost, setDetailPost] = useState<Post | null>(null);
     const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     useEffect(() => {
@@ -354,6 +356,8 @@ export default function GroupDetails() {
                                             onPinToggle={handlePinToggle}
                                             currentUserId={user?.id || ''}
                                             isAdmin={isAdmin}
+                                            compact
+                                            onOpenDetail={() => setDetailPost(post)}
                                         />
                                     </div>
                                 ))}
@@ -402,6 +406,17 @@ export default function GroupDetails() {
                     onClose={() => setIsCreatePostOpen(false)}
                     groupId={groupId}
                     onPostCreated={fetchPosts}
+                />
+            )}
+
+            {detailPost && (
+                <PostDetailModal
+                    post={detailPost}
+                    onClose={() => setDetailPost(null)}
+                    onDelete={() => { handleDeletePost(detailPost.id); setDetailPost(null); }}
+                    onPinToggle={handlePinToggle}
+                    currentUserId={user?.id || ''}
+                    isAdmin={isAdmin}
                 />
             )}
         </div>

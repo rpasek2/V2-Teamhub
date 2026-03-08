@@ -222,14 +222,15 @@ export default function MarketplaceScreen() {
       const ext = uri.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
 
-      // Fetch the image and convert to blob
+      // Fetch the image and convert to arraybuffer (blob uploads are 0-byte on RN)
       const response = await fetch(uri);
       const blob = await response.blob();
+      const arrayBuffer = await new Response(blob).arrayBuffer();
 
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
         .from('marketplace-images')
-        .upload(fileName, blob, {
+        .upload(fileName, arrayBuffer, {
           contentType: `image/${ext}`,
         });
 
