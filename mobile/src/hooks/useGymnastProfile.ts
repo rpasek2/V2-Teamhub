@@ -87,7 +87,7 @@ export function useGymnastProfile(gymnastId: string) {
   // Floor music state
   const [uploadingMusic, setUploadingMusic] = useState(false);
   const playerStore = useMusicPlayerStore();
-  const playingMusic = playerStore.track?.gymnastId === gymnast?.id && (playerStore.isPlaying || !!playerStore.track);
+  const playingMusic = useMemo(() => playerStore.track?.gymnastId === gymnast?.id && (playerStore.isPlaying || !!playerStore.track), [playerStore.track, playerStore.isPlaying, gymnast?.id]);
 
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
@@ -152,9 +152,9 @@ export function useGymnastProfile(gymnastId: string) {
     return false;
   }, [canEditData, isOwnGymnastParent]);
 
-  const canUploadAvatar = canEditData() || isOwnGymnastParent;
+  const canUploadAvatar = useMemo(() => canEditData() || isOwnGymnastParent, [canEditData, isOwnGymnastParent]);
 
-  const canAddGoals = isStaff() || linkedGymnasts.some(g => g.id === gymnastId);
+  const canAddGoals = useMemo(() => isStaff() || linkedGymnasts.some(g => g.id === gymnastId), [isStaff, linkedGymnasts, gymnastId]);
 
   // Helpers
   const getGuardianName = (guardian: Guardian | null) => {
@@ -394,7 +394,7 @@ export function useGymnastProfile(gymnastId: string) {
       const asset = result.assets[0];
       const ext = asset.fileName?.split('.').pop() || 'jpg';
       const fileName = `gymnasts/${currentHub.id}/${gymnastId}/avatar-${Date.now()}.${ext}`;
-      const binaryString = atob(asset.base64);
+      const binaryString = atob(asset.base64!);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
       const { error: uploadError } = await supabase.storage.from('avatars').upload(fileName, bytes, { contentType: `image/${ext}`, upsert: true });

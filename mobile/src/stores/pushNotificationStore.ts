@@ -184,7 +184,7 @@ export const usePushNotificationStore = create<PushNotificationState>((set, get)
         const now = Date.now() / 1000;
         if (now - responseTime > 30) return;
 
-        const data = response.notification.request.content.data as DeepLinkData;
+        const data = response.notification.request.content.data as unknown as DeepLinkData;
         if (data?.type) {
           set({ pendingDeepLink: data });
         }
@@ -201,7 +201,7 @@ function setupListeners(
 ): () => void {
   // Handle notification tap (app in background or killed)
   const responseSubscription = NotifMod.addNotificationResponseReceivedListener((response) => {
-    const data = response.notification.request.content.data as DeepLinkData;
+    const data = response.notification.request.content.data as unknown as DeepLinkData;
     if (!data?.type) return;
     setPending(data);
   });
