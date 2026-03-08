@@ -225,7 +225,7 @@ export function GymnastProfileTab({
 
         if (avatarInputRef.current) avatarInputRef.current.value = '';
 
-        const validation = validateFile(file, 'image');
+        const validation = validateFile(file, 'avatar');
         if (!validation.valid) return;
 
         setUploadingAvatar(true);
