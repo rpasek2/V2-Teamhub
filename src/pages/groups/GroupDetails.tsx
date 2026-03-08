@@ -178,8 +178,8 @@ export default function GroupDetails() {
         }
     };
 
-    const handleDeletePost = async (postId: string) => {
-        if (!confirm('Are you sure you want to delete this post?')) return;
+    const handleDeletePost = async (postId: string): Promise<boolean> => {
+        if (!confirm('Are you sure you want to delete this post?')) return false;
         try {
             const { error } = await supabase
                 .from('posts')
@@ -188,8 +188,10 @@ export default function GroupDetails() {
 
             if (error) throw error;
             setPosts(prev => prev.filter(p => p.id !== postId));
+            return true;
         } catch (error) {
             console.error('Error deleting post:', error);
+            return false;
         }
     };
 
@@ -413,7 +415,7 @@ export default function GroupDetails() {
                 <PostDetailModal
                     post={detailPost}
                     onClose={() => setDetailPost(null)}
-                    onDelete={() => { handleDeletePost(detailPost.id); setDetailPost(null); }}
+                    onDelete={async () => { if (await handleDeletePost(detailPost.id)) setDetailPost(null); }}
                     onPinToggle={handlePinToggle}
                     currentUserId={user?.id || ''}
                     isAdmin={isAdmin}

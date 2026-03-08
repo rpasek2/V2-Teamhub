@@ -680,7 +680,8 @@ export default function ChatScreen() {
   };
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
-    const prevMessage = index > 0 ? messages[index - 1] : null;
+    // Inverted FlatList: index 0 = newest (bottom). Visual "previous" (above) = index + 1.
+    const prevMessage = index < messages.length - 1 ? messages[index + 1] : null;
     const isMe = item.user_id === user?.id;
     const showDateHeader = shouldShowDateHeader(item, prevMessage);
     const showHeader = shouldShowHeader(item, prevMessage);
