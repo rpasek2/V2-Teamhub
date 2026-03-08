@@ -140,6 +140,19 @@ export default function Messages() {
         }
     }, [hub, user]);
 
+    // Handle incoming channel selection from notification clicks (even when already on Messages page)
+    useEffect(() => {
+        const incomingChannelId = (location.state as { selectedChannelId?: string })?.selectedChannelId;
+        if (!incomingChannelId) return;
+
+        const allChans = [...channels, ...dmChannels];
+        const target = allChans.find(c => c.id === incomingChannelId);
+        if (target) {
+            setSelectedChannel(target);
+            window.history.replaceState({}, '');
+        }
+    }, [location.state]);
+
     // Fetch owner info for non-staff (to show who receives anonymous reports)
     useEffect(() => {
         if (hub && !isStaff && anonymousReportsEnabled) {

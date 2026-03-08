@@ -115,7 +115,12 @@ export function NotificationBell() {
 
         const route = getNotificationRoute(notification);
         if (route && hub) {
-            navigate(`/hub/${hub.id}/${route}`);
+            // Pass channel ID via location state so Messages page selects the right thread
+            if (notification.reference_type === 'channel' && notification.reference_id) {
+                navigate(`/hub/${hub.id}/${route}`, { state: { selectedChannelId: notification.reference_id } });
+            } else {
+                navigate(`/hub/${hub.id}/${route}`);
+            }
         }
         setIsOpen(false);
         setShowSettings(false);

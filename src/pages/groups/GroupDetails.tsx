@@ -27,7 +27,7 @@ export default function GroupDetails() {
     const [memberCount, setMemberCount] = useState(0);
     const [activeTab, setActiveTab] = useState<TabType>('posts');
     const [highlightedPostId, setHighlightedPostId] = useState<string | null>(null);
-    const [detailPost, setDetailPost] = useState<Post | null>(null);
+    const [detailPostId, setDetailPostId] = useState<string | null>(null);
     const postRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
     useEffect(() => {
@@ -359,7 +359,7 @@ export default function GroupDetails() {
                                             currentUserId={user?.id || ''}
                                             isAdmin={isAdmin}
                                             compact
-                                            onOpenDetail={() => setDetailPost(post)}
+                                            onOpenDetail={() => setDetailPostId(post.id)}
                                         />
                                     </div>
                                 ))}
@@ -411,11 +411,11 @@ export default function GroupDetails() {
                 />
             )}
 
-            {detailPost && (
+            {detailPostId && posts.find(p => p.id === detailPostId) && (
                 <PostDetailModal
-                    post={detailPost}
-                    onClose={() => setDetailPost(null)}
-                    onDelete={async () => { if (await handleDeletePost(detailPost.id)) setDetailPost(null); }}
+                    post={posts.find(p => p.id === detailPostId)!}
+                    onClose={() => setDetailPostId(null)}
+                    onDelete={async () => { if (await handleDeletePost(detailPostId)) setDetailPostId(null); }}
                     onPinToggle={handlePinToggle}
                     currentUserId={user?.id || ''}
                     isAdmin={isAdmin}

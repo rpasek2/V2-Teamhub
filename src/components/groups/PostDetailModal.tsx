@@ -48,7 +48,7 @@ export function PostDetailModal({ post, onClose, onDelete, onPinToggle, currentU
                 <div className="overflow-y-auto flex-1">
                     <PostCard
                         post={post}
-                        onDelete={() => { onDelete(); onClose(); }}
+                        onDelete={onDelete}
                         onPinToggle={onPinToggle}
                         currentUserId={currentUserId}
                         isAdmin={isAdmin}
