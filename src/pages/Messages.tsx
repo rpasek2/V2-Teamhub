@@ -289,6 +289,7 @@ export default function Messages() {
                 setSelectedChannel(target);
                 // Clear the navigation state so refreshing doesn't re-select
                 window.history.replaceState({}, '');
+                setLoadingChannels(false);
                 return;
             }
         }
