@@ -992,6 +992,7 @@ const styles = StyleSheet.create({
   messageHeader: {
     flexDirection: 'row',
     alignItems: 'baseline',
+    gap: 8,
     marginBottom: 4,
   },
   messageHeaderMe: {
@@ -1001,7 +1002,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: colors.slate[900],
-    marginRight: 8,
   },
   messageTime: {
     fontSize: 11,

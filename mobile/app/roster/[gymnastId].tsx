@@ -12,10 +12,12 @@ import {
   Alert,
   Pressable,
   Linking,
+  Image,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Crypto from 'expo-crypto';
 import * as DocumentPicker from 'expo-document-picker';
+import * as ImagePicker from 'expo-image-picker';
 import {
   Target,
   BarChart3,
@@ -44,6 +46,7 @@ import {
   Play,
   Square,
   Check,
+  Camera,
 } from 'lucide-react-native';
 import { format, differenceInYears, subMonths, startOfMonth, endOfMonth, subDays, isAfter } from 'date-fns';
 import { colors } from '../../src/constants/colors';
@@ -58,6 +61,9 @@ import { isTabEnabled } from '../../src/lib/permissions';
 
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
 const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
+
+// Sections parents can edit for their own gymnasts
+const PARENT_EDITABLE_SECTIONS = ['apparel', 'membership', 'emergency', 'medical'];
 
 interface Guardian {
   name?: string;
@@ -97,6 +103,7 @@ interface GymnastProfile {
   member_id: string | null;
   tshirt_size: string | null;
   leo_size: string | null;
+  avatar_url: string | null;
   floor_music_url: string | null;
   floor_music_name: string | null;
 }
@@ -264,6 +271,9 @@ export default function GymnastProfileScreen() {
   });
   const [savingProfile, setSavingProfile] = useState(false);
 
+  // Avatar state
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+
   // Floor music state
   const [uploadingMusic, setUploadingMusic] = useState(false);
   const playerStore = useMusicPlayerStore();
@@ -335,6 +345,19 @@ export default function GymnastProfileScreen() {
     return false;
   }, [isStaff, isParent, linkedGymnasts, gymnastId]);
 
+  // Parent viewing their own gymnast (not staff)
+  const isOwnGymnastParent = useMemo(() => {
+    return !isStaff() && isParent() && linkedGymnasts.some(g => g.id === gymnastId);
+  }, [isStaff, isParent, linkedGymnasts, gymnastId]);
+
+  const canEditSection = (section: string): boolean => {
+    if (canEditData()) return true;
+    if (isOwnGymnastParent && PARENT_EDITABLE_SECTIONS.includes(section)) return true;
+    return false;
+  };
+
+  const canUploadAvatar = canEditData() || isOwnGymnastParent;
+
   useEffect(() => {
     if (gymnastId && canAccess) {
       fetchGymnastData();
@@ -350,7 +373,7 @@ export default function GymnastProfileScreen() {
       // Fetch gymnast profile
       const { data: gymnastData, error: gymnastError } = await supabase
         .from('gymnast_profiles')
-        .select('id, first_name, last_name, level, gender, date_of_birth, schedule_group, guardian_1, guardian_2, medical_info, emergency_contact_1, emergency_contact_2, member_id, tshirt_size, leo_size, floor_music_url, floor_music_name')
+        .select('id, first_name, last_name, level, gender, date_of_birth, schedule_group, guardian_1, guardian_2, medical_info, emergency_contact_1, emergency_contact_2, member_id, tshirt_size, leo_size, avatar_url, floor_music_url, floor_music_name')
         .eq('id', gymnastId)
         .single();
 
@@ -857,6 +880,66 @@ export default function GymnastProfileScreen() {
     }
   };
 
+  // Avatar upload
+  const handleAvatarUpload = async () => {
+    if (!gymnastId || !currentHub || !canUploadAvatar) return;
+
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission Required', 'Please allow access to your photo library.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.8,
+      base64: true,
+    });
+
+    if (result.canceled || !result.assets?.[0]?.base64) return;
+
+    setUploadingAvatar(true);
+    try {
+      const asset = result.assets[0];
+      const ext = asset.fileName?.split('.').pop() || 'jpg';
+      const fileName = `gymnasts/${currentHub.id}/${gymnastId}/avatar-${Date.now()}.${ext}`;
+      const base64Data = asset.base64;
+
+      // Decode base64 for upload
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(fileName, bytes, { contentType: `image/${ext}`, upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(fileName);
+
+      const { error: updateError } = await supabase
+        .from('gymnast_profiles')
+        .update({ avatar_url: `${publicUrl}?t=${Date.now()}` })
+        .eq('id', gymnastId);
+
+      if (updateError) throw updateError;
+
+      fetchGymnastData();
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      Alert.alert('Error', 'Failed to upload photo. Please try again.');
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
   // Profile section save functions
   const saveBasicInfo = async () => {
     if (!gymnastId) return;
@@ -1310,7 +1393,9 @@ export default function GymnastProfileScreen() {
     >
       {/* Profile Header */}
       <View style={[styles.profileHeader, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
-        <View
+        <TouchableOpacity
+          activeOpacity={canUploadAvatar ? 0.7 : 1}
+          onPress={canUploadAvatar ? handleAvatarUpload : undefined}
           style={[
             styles.avatar,
             { backgroundColor: isDark
@@ -1318,17 +1403,30 @@ export default function GymnastProfileScreen() {
               : (gymnast.gender === 'Female' ? colors.pink[100] : colors.blue[100]) },
           ]}
         >
-          <Text
-            style={[
-              styles.avatarText,
-              { color: isDark
-                ? (gymnast.gender === 'Female' ? colors.pink[400] : colors.blue[400])
-                : (gymnast.gender === 'Female' ? colors.pink[600] : colors.blue[600]) },
-            ]}
-          >
-            {gymnast.first_name[0]}{gymnast.last_name[0]}
-          </Text>
-        </View>
+          {gymnast.avatar_url ? (
+            <Image source={{ uri: gymnast.avatar_url, cache: 'force-cache' }} style={styles.avatarImage} />
+          ) : (
+            <Text
+              style={[
+                styles.avatarText,
+                { color: isDark
+                  ? (gymnast.gender === 'Female' ? colors.pink[400] : colors.blue[400])
+                  : (gymnast.gender === 'Female' ? colors.pink[600] : colors.blue[600]) },
+              ]}
+            >
+              {gymnast.first_name[0]}{gymnast.last_name[0]}
+            </Text>
+          )}
+          {canUploadAvatar && (
+            <View style={styles.avatarOverlay}>
+              {uploadingAvatar ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <Camera size={16} color={colors.white} />
+              )}
+            </View>
+          )}
+        </TouchableOpacity>
         <Text style={[styles.gymnastName, { color: t.text }]}>
           {gymnast.first_name} {gymnast.last_name}
         </Text>
@@ -1753,7 +1851,7 @@ export default function GymnastProfileScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: t.text }]}>Emergency Contacts</Text>
-                  {canEditData() && (
+                  {canEditSection('emergency') && (
                     <TouchableOpacity
                       style={[styles.sectionEditBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                       onPress={() => setEditingSection(editingSection === 'emergency' ? null : 'emergency')}
@@ -1890,7 +1988,7 @@ export default function GymnastProfileScreen() {
                       </View>
                     )}
                   </View>
-                ) : canEditData() && (
+                ) : canEditSection('emergency') && (
                   <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                     <Text style={[styles.emptyFieldText, { color: t.textFaint }]}>No emergency contacts added. Tap edit to add.</Text>
                   </View>
@@ -1903,7 +2001,7 @@ export default function GymnastProfileScreen() {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <Text style={[styles.sectionTitle, { color: t.text }]}>Medical Information</Text>
-                  {canEditData() && (
+                  {canEditSection('medical') && (
                     <TouchableOpacity
                       style={[styles.sectionEditBtn, { backgroundColor: isDark ? colors.slate[700] : colors.slate[100] }]}
                       onPress={() => setEditingSection(editingSection === 'medical' ? null : 'medical')}
@@ -2008,7 +2106,7 @@ export default function GymnastProfileScreen() {
                       </View>
                     )}
                   </View>
-                ) : canEditData() && (
+                ) : canEditSection('medical') && (
                   <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
                     <Text style={[styles.emptyFieldText, { color: t.textFaint }]}>No medical info added. Tap edit to add.</Text>
                   </View>
@@ -2958,6 +3056,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  avatarOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 28,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarText: {
     fontSize: 28,

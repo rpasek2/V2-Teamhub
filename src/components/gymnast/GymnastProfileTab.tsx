@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Pencil, X, Check, Loader2, Music, Upload, Download, Trash2 } from 'lucide-react';
+import { Calendar, Mail, Phone, User, AlertCircle, Shirt, Award, CreditCard, Heart, Lock, AlertTriangle, ChevronDown, ChevronRight, Pencil, X, Check, Loader2, Music, Upload, Download, Trash2, Camera } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
@@ -15,15 +15,20 @@ import type { GymnastProfile, InjuryReport } from '../../types';
 interface GymnastProfileTabProps {
     gymnast: GymnastProfile;
     canEditProfile: boolean;
+    isOwnGymnastParent?: boolean;
     canReportInjury: boolean;
     canViewMedical: boolean;
     canManageFloorMusic: boolean;
     onGymnastUpdated: () => void;
 }
 
+// Sections parents can edit for their own gymnasts
+const PARENT_EDITABLE_SECTIONS: EditSection[] = ['apparel', 'membership', 'emergency', 'medical'];
+
 export function GymnastProfileTab({
     gymnast,
     canEditProfile,
+    isOwnGymnastParent = false,
     canReportInjury,
     canViewMedical,
     canManageFloorMusic,
@@ -41,7 +46,21 @@ export function GymnastProfileTab({
     const [musicError, setMusicError] = useState<string | null>(null);
     const floorMusicInputRef = useRef<HTMLInputElement>(null);
 
+    // Avatar state
+    const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const avatarInputRef = useRef<HTMLInputElement>(null);
+
     const { hub } = useHub();
+
+    // Can this user edit a given section?
+    const canEditSection = (section: EditSection): boolean => {
+        if (canEditProfile) return true;
+        if (isOwnGymnastParent && section && PARENT_EDITABLE_SECTIONS.includes(section)) return true;
+        return false;
+    };
+
+    // Can upload avatar (staff editors or parent of own gymnast)
+    const canUploadAvatar = canEditProfile || isOwnGymnastParent;
 
     const { formState, setField, loadSection, getUpdateData } = useGymnastEditForm();
 
@@ -199,8 +218,100 @@ export function GymnastProfileTab({
         }
     };
 
+    // Avatar upload handler
+    const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !gymnast || !hub || !canUploadAvatar) return;
+
+        if (avatarInputRef.current) avatarInputRef.current.value = '';
+
+        const validation = validateFile(file, 'image');
+        if (!validation.valid) return;
+
+        setUploadingAvatar(true);
+        try {
+            // Delete old avatar if replacing
+            if (gymnast.avatar_url) {
+                try {
+                    const oldUrl = new URL(gymnast.avatar_url);
+                    const oldPath = oldUrl.pathname.match(/\/object\/public\/avatars\/(.+)/);
+                    if (oldPath) {
+                        await supabase.storage.from('avatars').remove([oldPath[1]]);
+                    }
+                } catch { /* ignore cleanup errors */ }
+            }
+
+            const fileName = generateSecureFileName(file.name);
+            const filePath = `gymnasts/${hub.id}/${gymnast.id}/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(filePath, file, { upsert: true });
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from('gymnast_profiles')
+                .update({ avatar_url: `${publicUrl}?t=${Date.now()}` })
+                .eq('id', gymnast.id);
+
+            if (updateError) throw updateError;
+
+            onGymnastUpdated();
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+        } finally {
+            setUploadingAvatar(false);
+        }
+    };
+
     return (
         <>
+            {/* Avatar Upload */}
+            {canUploadAvatar && (
+                <div className="card overflow-hidden bg-surface-alt mb-4">
+                    <div className="flex items-center gap-4 p-4">
+                        <div className="relative group">
+                            <div className="h-20 w-20 rounded-full bg-surface-hover flex items-center justify-center overflow-hidden ring-2 ring-line">
+                                {gymnast.avatar_url ? (
+                                    <img src={gymnast.avatar_url} alt={`${gymnast.first_name} ${gymnast.last_name}`} className="h-20 w-20 object-cover" />
+                                ) : (
+                                    <span className="text-2xl font-bold text-muted">
+                                        {(gymnast.first_name || '?')[0]}{(gymnast.last_name || '?')[0]}
+                                    </span>
+                                )}
+                            </div>
+                            <button
+                                onClick={() => avatarInputRef.current?.click()}
+                                disabled={uploadingAvatar}
+                                className="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity"
+                            >
+                                {uploadingAvatar ? (
+                                    <Loader2 className="h-5 w-5 text-white animate-spin" />
+                                ) : (
+                                    <Camera className="h-5 w-5 text-white" />
+                                )}
+                            </button>
+                            <input
+                                ref={avatarInputRef}
+                                type="file"
+                                accept="image/jpeg,image/png,image/gif"
+                                onChange={handleAvatarUpload}
+                                className="hidden"
+                            />
+                        </div>
+                        <div>
+                            <p className="text-sm font-medium text-heading">Profile Photo</p>
+                            <p className="text-xs text-muted mt-0.5">Click to upload a photo. JPG, PNG or GIF, max 2MB.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Basic Information Card */}
             <div className="card overflow-hidden bg-surface-alt">
                 <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
@@ -349,7 +460,7 @@ export function GymnastProfileTab({
                 <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
                     <CreditCard className="h-4 w-4 text-muted" />
                     <h3 className="text-sm font-semibold text-heading">Membership</h3>
-                    {canEditProfile && editSection !== 'membership' && (
+                    {canEditSection('membership') && editSection !== 'membership' && (
                         <button onClick={() => startEdit('membership')} className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Edit membership"><Pencil className="h-3.5 w-3.5" /></button>
                     )}
                     {editSection === 'membership' && (
@@ -395,7 +506,7 @@ export function GymnastProfileTab({
                 <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
                     <Shirt className="h-4 w-4 text-muted" />
                     <h3 className="text-sm font-semibold text-heading">Apparel Sizes</h3>
-                    {canEditProfile && editSection !== 'apparel' && (
+                    {canEditSection('apparel') && editSection !== 'apparel' && (
                         <button onClick={() => startEdit('apparel')} className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Edit apparel sizes"><Pencil className="h-3.5 w-3.5" /></button>
                     )}
                     {editSection === 'apparel' && (
@@ -566,7 +677,7 @@ export function GymnastProfileTab({
                 <div className="flex items-center gap-2 px-4 py-3 bg-surface border-b border-line">
                     <Phone className="h-4 w-4 text-muted" />
                     <h3 className="text-sm font-semibold text-heading">Emergency Contacts</h3>
-                    {canEditProfile && editSection !== 'emergency' && (
+                    {canEditSection('emergency') && editSection !== 'emergency' && (
                         <button onClick={() => startEdit('emergency')} className="ml-auto p-1.5 rounded-md text-faint hover:text-subtle hover:bg-surface-hover transition-colors" title="Edit emergency contacts"><Pencil className="h-3.5 w-3.5" /></button>
                     )}
                     {editSection === 'emergency' && (
@@ -633,7 +744,7 @@ export function GymnastProfileTab({
                     <h3 className="text-sm font-semibold text-error-700">Medical Information</h3>
                     <div className="flex items-center gap-2 ml-auto">
                         {canReportInjury && (<button onClick={() => setIsReportInjuryOpen(true)} className="inline-flex items-center gap-1 rounded-md bg-error-500 px-2.5 py-1 text-xs font-medium text-white hover:bg-error-600 transition-colors"><AlertTriangle className="h-3 w-3" />Report Injury</button>)}
-                        {canEditProfile && canViewMedical && editSection !== 'medical' && (<button onClick={() => startEdit('medical')} className="p-1.5 rounded-md text-error-400 hover:text-error-600 hover:bg-error-100 transition-colors" title="Edit medical information"><Pencil className="h-3.5 w-3.5" /></button>)}
+                        {canEditSection('medical') && canViewMedical && editSection !== 'medical' && (<button onClick={() => startEdit('medical')} className="p-1.5 rounded-md text-error-400 hover:text-error-600 hover:bg-error-100 transition-colors" title="Edit medical information"><Pencil className="h-3.5 w-3.5" /></button>)}
                         {editSection === 'medical' && (
                             <div className="flex items-center gap-1">
                                 <button onClick={cancelEdit} disabled={saving} className="p-1.5 rounded-md text-error-400 hover:text-error-600 hover:bg-error-100 transition-colors" title="Cancel"><X className="h-3.5 w-3.5" /></button>
@@ -667,7 +778,7 @@ export function GymnastProfileTab({
                         <div className="text-center py-4">
                             <div className="h-10 w-10 rounded-full bg-success-100 flex items-center justify-center mx-auto"><svg className="h-5 w-5 text-success-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg></div>
                             <p className="text-sm text-muted mt-2">No medical concerns reported</p>
-                            {canEditProfile && (<button onClick={() => startEdit('medical')} className="mt-2 text-sm text-accent-600 hover:text-accent-700 font-medium">Add medical info</button>)}
+                            {canEditSection('medical') && (<button onClick={() => startEdit('medical')} className="mt-2 text-sm text-accent-600 hover:text-accent-700 font-medium">Add medical info</button>)}
                         </div>
                     )}
 

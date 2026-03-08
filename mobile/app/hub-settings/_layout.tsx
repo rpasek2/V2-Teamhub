@@ -13,6 +13,7 @@ export default function HubSettingsLayout() {
         headerTitleStyle: {
           fontWeight: '600',
         },
+        headerBackTitle: 'Back',
         headerShadowVisible: false,
         contentStyle: {
           backgroundColor: t.background,

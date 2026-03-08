@@ -77,6 +77,8 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
   const [editContent, setEditContent] = useState(post.content);
   const [displayContent, setDisplayContent] = useState(post.content);
   const [savingEdit, setSavingEdit] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+  const [needsTruncation, setNeedsTruncation] = useState(false);
 
   const canDelete = isAdmin || post.user_id === currentUserId;
   const canEditPost = post.user_id === currentUserId;
@@ -447,7 +449,23 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
           </View>
         </View>
       ) : (
-        <LinkifiedText text={displayContent} style={[styles.content, { color: t.textSecondary }]} />
+        <>
+          <LinkifiedText
+            text={displayContent}
+            style={[styles.content, { color: t.textSecondary }]}
+            numberOfLines={expanded ? undefined : 6}
+            onTextLayout={(e: { nativeEvent: { lines: unknown[] } }) => {
+              if (!needsTruncation && e.nativeEvent.lines.length > 6) {
+                setNeedsTruncation(true);
+              }
+            }}
+          />
+          {needsTruncation && !expanded && (
+            <TouchableOpacity onPress={() => setExpanded(true)} style={styles.seeMoreButton}>
+              <Text style={[styles.seeMoreText, { color: t.primary }]}>See more</Text>
+            </TouchableOpacity>
+          )}
+        </>
       )}
 
       {/* Images */}
@@ -738,6 +756,14 @@ const styles = StyleSheet.create({
     color: colors.slate[700],
     paddingHorizontal: 16,
     paddingBottom: 12,
+  },
+  seeMoreButton: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  seeMoreText: {
+    fontSize: 14,
+    fontWeight: '500',
   },
   editContainer: {
     paddingHorizontal: 16,

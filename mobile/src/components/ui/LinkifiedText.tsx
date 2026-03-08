@@ -11,14 +11,16 @@ function isUrl(text: string): boolean {
 interface LinkifiedTextProps {
   text: string;
   style?: StyleProp<TextStyle>;
+  numberOfLines?: number;
+  onTextLayout?: (e: { nativeEvent: { lines: unknown[] } }) => void;
 }
 
-export function LinkifiedText({ text, style }: LinkifiedTextProps) {
+export function LinkifiedText({ text, style, numberOfLines, onTextLayout }: LinkifiedTextProps) {
   const { t } = useTheme();
   const parts = text.split(URL_REGEX);
 
   return (
-    <Text style={style}>
+    <Text style={style} numberOfLines={numberOfLines} onTextLayout={onTextLayout}>
       {parts.map((part, i) => {
         if (isUrl(part)) {
           const href = part.startsWith('www.') ? `https://${part}` : part;

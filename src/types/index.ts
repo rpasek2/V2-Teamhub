@@ -414,6 +414,7 @@ export interface GymnastProfile {
     emergency_contact_1: EmergencyContact | null;
     emergency_contact_2: EmergencyContact | null;
     medical_info: MedicalInfo | null;
+    avatar_url: string | null;
     floor_music_url: string | null;
     floor_music_name: string | null;
     created_at: string;

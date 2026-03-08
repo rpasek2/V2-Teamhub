@@ -182,10 +182,14 @@ export function GymnastDetails() {
             <div className="bg-gradient-to-br from-accent-500 via-accent-600 to-accent-700 rounded-xl p-6 text-white mb-6">
                 <div className="flex items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                        <div className="h-16 w-16 rounded-full bg-surface/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30">
-                            <span className="text-2xl font-bold text-white">
-                                {(gymnast.first_name || '?')[0]}{(gymnast.last_name || '?')[0]}
-                            </span>
+                        <div className="h-16 w-16 rounded-full bg-surface/20 backdrop-blur-sm flex items-center justify-center ring-4 ring-white/30 overflow-hidden">
+                            {gymnast.avatar_url ? (
+                                <img src={gymnast.avatar_url} alt={`${gymnast.first_name} ${gymnast.last_name}`} className="h-16 w-16 object-cover" />
+                            ) : (
+                                <span className="text-2xl font-bold text-white">
+                                    {(gymnast.first_name || '?')[0]}{(gymnast.last_name || '?')[0]}
+                                </span>
+                            )}
                         </div>
                         <div>
                             <p className="text-accent-200 text-sm font-medium">ID: {gymnast.gymnast_id}</p>
@@ -364,6 +368,7 @@ export function GymnastDetails() {
                     <GymnastProfileTab
                         gymnast={gymnast}
                         canEditProfile={canEditProfile}
+                        isOwnGymnastParent={!isStaff && isOwnGymnast}
                         canReportInjury={canReportInjury}
                         canViewMedical={canViewMedical}
                         canManageFloorMusic={canManageFloorMusic}
