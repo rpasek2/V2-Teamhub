@@ -75,6 +75,7 @@ export default function Messages() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
     const [hasMoreMessages, setHasMoreMessages] = useState(false);
     const [loadingMoreMessages, setLoadingMoreMessages] = useState(false);
     const MESSAGE_PAGE_SIZE = 50;
@@ -664,7 +665,10 @@ export default function Messages() {
     };
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        const container = messagesContainerRef.current;
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
     };
 
     // Delete a channel (DM or regular)
@@ -1409,7 +1413,7 @@ export default function Messages() {
                         </div>
 
                         {/* Messages List */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface-alt">
+                        <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 bg-surface-alt">
                             {/* Load older messages button */}
                             {hasMoreMessages && (
                                 <div className="text-center">
