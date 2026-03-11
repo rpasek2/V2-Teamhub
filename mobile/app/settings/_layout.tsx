@@ -1,4 +1,6 @@
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
+import { TouchableOpacity, Platform } from 'react-native';
+import { ChevronLeft } from 'lucide-react-native';
 import { useTheme } from '../../src/hooks/useTheme';
 
 export default function SettingsLayout() {
@@ -16,6 +18,11 @@ export default function SettingsLayout() {
         headerBackVisible: true,
         headerBackTitle: 'Back',
         headerShadowVisible: false,
+        headerLeft: () => (
+          <TouchableOpacity onPress={() => router.back()} style={{ marginRight: Platform.OS === 'ios' ? 0 : 16 }}>
+            <ChevronLeft size={28} color={t.text} />
+          </TouchableOpacity>
+        ),
         contentStyle: {
           backgroundColor: t.background,
         },
