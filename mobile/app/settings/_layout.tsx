@@ -13,6 +13,7 @@ export default function SettingsLayout() {
         headerTitleStyle: {
           fontWeight: '600',
         },
+        headerBackVisible: true,
         headerBackTitle: 'Back',
         headerShadowVisible: false,
         contentStyle: {

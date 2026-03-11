@@ -450,21 +450,25 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
         </View>
       ) : (
         <>
-          <LinkifiedText
-            text={displayContent}
-            style={[styles.content, { color: t.textSecondary }]}
-            numberOfLines={expanded ? undefined : 6}
-            onTextLayout={(e: { nativeEvent: { lines: unknown[] } }) => {
-              if (!needsTruncation && e.nativeEvent.lines.length > 6) {
-                setNeedsTruncation(true);
-              }
-            }}
-          />
-          {needsTruncation && !expanded && (
-            <TouchableOpacity onPress={() => setExpanded(true)} style={styles.seeMoreButton}>
-              <Text style={[styles.seeMoreText, { color: t.primary }]}>See more</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            activeOpacity={needsTruncation && !expanded ? 0.7 : 1}
+            onPress={() => { if (needsTruncation && !expanded) setExpanded(true); }}
+            disabled={expanded || !needsTruncation}
+          >
+            <LinkifiedText
+              text={displayContent}
+              style={[styles.content, { color: t.textSecondary }]}
+              numberOfLines={expanded ? undefined : 6}
+              onTextLayout={(e: { nativeEvent: { lines: unknown[] } }) => {
+                if (!needsTruncation && e.nativeEvent.lines.length > 6) {
+                  setNeedsTruncation(true);
+                }
+              }}
+            />
+            {needsTruncation && !expanded && (
+              <Text style={[styles.seeMoreText, { color: t.primary, paddingHorizontal: 16, paddingBottom: 8 }]}>See more</Text>
+            )}
+          </TouchableOpacity>
         </>
       )}
 

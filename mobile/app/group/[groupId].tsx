@@ -57,6 +57,7 @@ export default function GroupDetailsScreen() {
   const currentHub = useHubStore((state) => state.currentHub);
   const isStaff = useHubStore((state) => state.isStaff);
   const fetchNotificationCounts = useNotificationStore((state) => state.fetchNotificationCounts);
+  const resetDebounce = useNotificationStore((state) => state.resetDebounce);
 
   const [group, setGroup] = useState<Group | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -101,8 +102,9 @@ export default function GroupDetailsScreen() {
       .eq('group_id', groupId)
       .eq('user_id', user.id);
 
-    // Refresh notification counts
+    // Reset debounce so the count refresh isn't skipped, then fetch
     if (currentHub?.id && user?.id) {
+      resetDebounce();
       fetchNotificationCounts(currentHub.id, user.id);
     }
   };
@@ -209,12 +211,18 @@ export default function GroupDetailsScreen() {
         });
       }
 
-      const postsWithCounts = (data || []).map(post => ({
-        ...post,
-        is_pinned: post.is_pinned || false,
-        attachments: post.attachments || [],
-        commentCount: commentCountMap.get(post.id) || 0,
-      }));
+      const postsWithCounts = (data || []).map(post => {
+        // Supabase FK joins return an object for many-to-one, normalize to array for PostCard
+        const rawProfiles = post.profiles;
+        const profiles = Array.isArray(rawProfiles) ? rawProfiles : rawProfiles ? [rawProfiles] : [];
+        return {
+          ...post,
+          profiles,
+          is_pinned: post.is_pinned || false,
+          attachments: post.attachments || [],
+          commentCount: commentCountMap.get(post.id) || 0,
+        };
+      });
       setPosts(postsWithCounts as Post[]);
 
       // Record post views (fire-and-forget)

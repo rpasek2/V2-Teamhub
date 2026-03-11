@@ -16,6 +16,7 @@ export default function ChatLayout() {
         },
         headerTintColor: t.text,
         headerShadowVisible: false,
+        headerBackVisible: true,
         headerBackTitle: 'Back',
       }}
     >

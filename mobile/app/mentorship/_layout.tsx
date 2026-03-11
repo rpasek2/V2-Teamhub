@@ -14,6 +14,7 @@ export default function MentorshipLayout() {
           fontWeight: '600',
         },
         headerShadowVisible: false,
+        headerBackVisible: true,
         headerBackTitle: 'Back',
       }}
     >

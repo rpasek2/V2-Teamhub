@@ -9,6 +9,7 @@ export default function ProgressReportsLayout() {
         headerStyle: { backgroundColor: t.surface },
         headerTintColor: t.text,
         headerTitleStyle: { fontWeight: '600' },
+        headerBackVisible: true,
         headerBackTitle: 'Back',
         headerShadowVisible: false,
       }}

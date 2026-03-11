@@ -49,6 +49,28 @@ const [result1, result2] = await Promise.all([
 - Fix: use a SECURITY DEFINER function (e.g., `is_user_channel_member(channel_id, user_id)`) instead of self-referencing EXISTS clauses.
 - SECURITY DEFINER functions bypass RLS — safe to call from within policies.
 
+## SECURITY DEFINER Function Rules
+
+**CRITICAL: SECURITY DEFINER functions bypass ALL RLS policies.** They run as the function owner (superuser), not the calling user. Every such function is a potential data leak if not carefully written.
+
+### Mandatory checklist before creating/modifying any SECURITY DEFINER function:
+
+1. **Must filter by user** — Every SELECT in the function MUST include a WHERE clause filtering by `auth.uid()` or a `p_user_id` parameter. Never return unfiltered rows.
+2. **Minimize usage** — Only use SECURITY DEFINER when you genuinely need to bypass RLS (e.g., upserting `channel_members` in `mark_channel_read`). For read-only queries, prefer regular functions that inherit RLS automatically.
+3. **Channel/message visibility rules** — Any function returning channels or messages must enforce:
+   - `type='public'`: user must be a hub member
+   - `type='private'`: user must have a `channel_members` row
+   - DMs (`dm_participant_ids IS NOT NULL`): user's ID must be in `dm_participant_ids`
+4. **Group visibility rules** — Any function returning groups or group posts must verify the user has a `group_members` row for that group.
+5. **Never use service_role key on frontend** — Web and mobile clients must only use the anon key. The service_role key bypasses RLS entirely and must never appear in client-side code or `.env` files accessible to the frontend.
+6. **Test with a restricted role** — After writing a SECURITY DEFINER function, mentally (or actually) test: "If I call this as a parent user, can I see another user's DMs? Another group's posts? A private channel I'm not in?" If yes, the function is broken.
+
+### Common mistakes that cause data leaks:
+- Joining `channels` or `messages` without checking membership/participant arrays
+- Using LEFT JOIN on membership tables (returns rows even without membership) — use INNER JOIN or EXISTS
+- Returning aggregate counts (unread badges) for channels/groups the user shouldn't know about
+- Forgetting that `type='private'` channels need `channel_members` check (not just "is hub member")
+
 ## Migrations
 Use the Supabase MCP `apply_migration` tool for DDL operations (CREATE TABLE, ALTER, policies, triggers). Use `execute_sql` for data queries.
 

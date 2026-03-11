@@ -16,6 +16,7 @@ export default function GroupLayout() {
         },
         headerTintColor: t.text,
         headerShadowVisible: false,
+        headerBackVisible: true,
         headerBackTitle: 'Back',
       }}
     >

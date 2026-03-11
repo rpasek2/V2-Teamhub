@@ -101,6 +101,7 @@ function RootLayoutNav() {
             headerTintColor: t.text,
             headerTitleStyle: { fontWeight: '600' },
             headerShadowVisible: false,
+            headerBackVisible: true,
             headerBackTitle: 'Back',
           }}
         >

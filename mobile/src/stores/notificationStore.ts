@@ -14,6 +14,7 @@ interface NotificationState {
 
   // Actions
   fetchNotificationCounts: (hubId: string, userId: string) => Promise<void>;
+  resetDebounce: () => void;
   clearCounts: () => void;
 }
 
@@ -25,6 +26,10 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   upcomingEvents: 0,
   hasMoreNotifications: false,
   loading: false,
+
+  resetDebounce: () => {
+    lastFetchTime = 0;
+  },
 
   fetchNotificationCounts: async (hubId: string, userId: string) => {
     // Debounce: skip if fetched within last 5 seconds

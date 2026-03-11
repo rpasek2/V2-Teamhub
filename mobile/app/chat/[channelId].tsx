@@ -82,12 +82,15 @@ export default function ChatScreen() {
   const user = useAuthStore((state) => state.user);
   const currentHub = useHubStore((state) => state.currentHub);
   const fetchNotificationCounts = useNotificationStore((state) => state.fetchNotificationCounts);
+  const resetDebounce = useNotificationStore((state) => state.resetDebounce);
   const flatListRef = useRef<FlatList>(null);
 
   const [channel, setChannel] = useState<Channel | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
   const [sending, setSending] = useState(false);
   const [pendingImages, setPendingImages] = useState<ImagePicker.ImagePickerAsset[]>([]);
   const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
@@ -294,6 +297,8 @@ export default function ChatScreen() {
     setChannel(data);
   };
 
+  const MESSAGE_PAGE_SIZE = 50;
+
   const fetchMessages = async () => {
     if (!channelId) return;
 
@@ -301,14 +306,41 @@ export default function ChatScreen() {
       .from('messages')
       .select('*, attachments, profiles(full_name, email)')
       .eq('channel_id', channelId)
-      .order('created_at', { ascending: false });
+      .order('created_at', { ascending: false })
+      .limit(MESSAGE_PAGE_SIZE);
 
     if (error) {
       console.error('Error fetching messages:', error);
     } else {
       setMessages(data || []);
+      setHasMoreMessages((data || []).length >= MESSAGE_PAGE_SIZE);
     }
     setLoading(false);
+  };
+
+  const fetchOlderMessages = async () => {
+    if (!channelId || loadingOlder || !hasMoreMessages || messages.length === 0) return;
+
+    setLoadingOlder(true);
+    const oldestMessage = messages[messages.length - 1];
+
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*, attachments, profiles(full_name, email)')
+      .eq('channel_id', channelId)
+      .lt('created_at', oldestMessage.created_at)
+      .order('created_at', { ascending: false })
+      .limit(MESSAGE_PAGE_SIZE);
+
+    if (error) {
+      console.error('Error fetching older messages:', error);
+    } else {
+      if ((data || []).length < MESSAGE_PAGE_SIZE) {
+        setHasMoreMessages(false);
+      }
+      setMessages(prev => [...prev, ...(data || [])]);
+    }
+    setLoadingOlder(false);
   };
 
   const markChannelAsRead = async () => {
@@ -322,8 +354,9 @@ export default function ChatScreen() {
       console.error('Error marking channel as read:', error);
     }
 
-    // Refresh notification counts
+    // Reset debounce so the count refresh isn't skipped, then fetch
     if (currentHub?.id && user?.id) {
+      resetDebounce();
       fetchNotificationCounts(currentHub.id, user.id);
     }
   };
@@ -830,6 +863,15 @@ export default function ChatScreen() {
         removeClippedSubviews={true}
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="interactive"
+        onEndReached={fetchOlderMessages}
+        onEndReachedThreshold={0.3}
+        ListFooterComponent={
+          loadingOlder ? (
+            <View style={{ paddingVertical: 16, alignItems: 'center' }}>
+              <ActivityIndicator size="small" color={t.textMuted} />
+            </View>
+          ) : null
+        }
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             {channel?.dm_participant_ids ? (
