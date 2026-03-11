@@ -20,8 +20,8 @@ interface FileLimits {
 
 export const FILE_LIMITS: Record<FileCategory, FileLimits> = {
     avatar: {
-        maxSize: 2 * 1024 * 1024, // 2MB
-        maxSizeLabel: '2MB',
+        maxSize: 5 * 1024 * 1024, // 5MB
+        maxSizeLabel: '5MB',
         mimeTypes: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
         extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
     },

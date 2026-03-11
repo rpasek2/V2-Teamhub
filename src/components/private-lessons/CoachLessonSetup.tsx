@@ -15,9 +15,9 @@ const EVENT_OPTIONS = [
     { value: 'rings', label: 'Rings' },
     { value: 'pbars', label: 'Parallel Bars' },
     { value: 'highbar', label: 'High Bar' },
-    { value: 'all_around', label: 'All-Around' },
-    { value: 'strength', label: 'Strength & Conditioning' },
-    { value: 'flexibility', label: 'Flexibility' },
+    { value: 'floor_choreo', label: 'Floor Choreography' },
+    { value: 'beam_choreo', label: 'Beam Choreography' },
+    { value: 'other', label: 'Other' },
 ];
 
 // Duration options in minutes

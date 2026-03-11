@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -6,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -32,6 +32,7 @@ import { useAuthStore } from '../../src/stores/authStore';
 import { useActivityFeedStore } from '../../src/stores/activityFeedStore';
 import { isTabEnabled } from '../../src/lib/permissions';
 import { supabase } from '../../src/services/supabase';
+import { SkeletonSection, SkeletonStatsRow } from '../../src/components/ui';
 import { NotificationBell } from '../../src/components/notifications/NotificationBell';
 import { MyTasksSection } from '../../src/components/dashboard/MyTasksSection';
 import { ActiveAnnouncementsCard } from '../../src/components/dashboard/ActiveAnnouncementsCard';
@@ -136,6 +137,8 @@ export default function DashboardScreen() {
   const user = useAuthStore((state) => state.user);
   const { fetchUnreadCount, fetchPreferences } = useActivityFeedStore();
 
+  const dashboardCacheKey = currentHub ? `dashboard-cache:${currentHub.id}` : null;
+
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState('');
@@ -156,6 +159,21 @@ export default function DashboardScreen() {
   // Shared data
   const [upcomingEvents, setUpcomingEvents] = useState<UpcomingEvent[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+
+  // Load cached dashboard data for instant render
+  useEffect(() => {
+    if (!dashboardCacheKey) return;
+    AsyncStorage.getItem(dashboardCacheKey).then(stored => {
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored);
+          if (cached.stats) setStats(cached.stats);
+          if (cached.upcomingEvents) setUpcomingEvents(cached.upcomingEvents);
+          if (cached.recentActivity) setRecentActivity(cached.recentActivity);
+        } catch { /* ignore */ }
+      }
+    });
+  }, [dashboardCacheKey]);
 
   const fetchUserName = useCallback(async () => {
     if (!user) return;
@@ -409,12 +427,29 @@ export default function DashboardScreen() {
 
       // Sort by timestamp
       activities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-      setRecentActivity(activities.slice(0, 6));
+      const slicedActivities = activities.slice(0, 6);
+      setRecentActivity(slicedActivities);
+
+      // Save to cache
+      if (dashboardCacheKey) {
+        AsyncStorage.setItem(dashboardCacheKey, JSON.stringify({
+          stats: {
+            totalMembers: memberCountResult.count || 0,
+            totalGymnasts: gymnastCountResult.count || 0,
+            upcomingEvents: eventsResult.count || 0,
+            nextEventDate: eventsResult.data && eventsResult.data.length > 0 ? eventsResult.data[0].start_time : null,
+            activeCompetitions: competitionsResult.count || 0,
+            nextCompetitionName: competitionsResult.data && competitionsResult.data.length > 0 ? competitionsResult.data[0].name : null,
+          },
+          upcomingEvents: (eventsResult.data || []).slice(0, 5),
+          recentActivity: slicedActivities,
+        }));
+      }
 
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     }
-  }, [currentHub, user]);
+  }, [currentHub, user, dashboardCacheKey]);
 
   const handleTaskStatusChange = useCallback(async (taskId: string, newStatus: 'pending' | 'in_progress' | 'completed') => {
     const updates: Record<string, unknown> = {
@@ -485,10 +520,13 @@ export default function DashboardScreen() {
     }
   };
 
-  if (loading) {
+  if (loading && !stats) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
+      <View style={[styles.container, { backgroundColor: t.background }]}>
+        <View style={{ padding: 16 }}>
+          <SkeletonStatsRow count={3} />
+          <SkeletonSection cards={3} cardHeight={80} />
+        </View>
       </View>
     );
   }
@@ -539,7 +577,7 @@ export default function DashboardScreen() {
               key={gymnast.id}
               style={[styles.gymnastCard, { backgroundColor: t.surface, borderColor: t.border }]}
               activeOpacity={0.7}
-              onPress={() => {/* Navigate to gymnast profile */}}
+              onPress={() => router.push(`/roster/${gymnast.id}` as any)}
             >
               <View style={styles.gymnastHeader}>
                 <View>
@@ -651,7 +689,7 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: t.text }]}>Recent Scores</Text>
-            <TouchableOpacity onPress={() => {/* Navigate to scores */}}>
+            <TouchableOpacity onPress={() => router.push('/scores' as any)}>
               <Text style={[styles.seeAllLink, { color: t.primary }]}>View All</Text>
             </TouchableOpacity>
           </View>
@@ -690,7 +728,7 @@ export default function DashboardScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: t.text }]}>Skill Updates</Text>
-            <TouchableOpacity onPress={() => {/* Navigate to skills */}}>
+            <TouchableOpacity onPress={() => router.push('/skills' as any)}>
               <Text style={[styles.seeAllLink, { color: t.primary }]}>View All</Text>
             </TouchableOpacity>
           </View>
@@ -829,12 +867,6 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
     paddingBottom: 32,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.slate[50],
   },
   headerSection: {
     marginBottom: 24,

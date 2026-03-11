@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
   TextInput,
   ScrollView,
@@ -14,7 +14,7 @@ import { router } from 'expo-router';
 import { Search, User, ChevronRight, Phone, Mail, Users, Shield, Dumbbell, Music, ClipboardCheck } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
-import { Badge } from '../../src/components/ui';
+import { Badge, SkeletonChannelList } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { QuickChecklistModal } from '../../src/components/roster/QuickChecklistModal';
@@ -79,6 +79,20 @@ export default function RosterScreen() {
   const isStaff = useHubStore((state) => state.isStaff);
 
   const levels = currentHub?.settings?.levels || [];
+  const rosterCacheKey = currentHub ? `roster-cache:${currentHub.id}` : null;
+
+  // Load cached roster on mount
+  useEffect(() => {
+    if (!rosterCacheKey) return;
+    AsyncStorage.getItem(rosterCacheKey).then(stored => {
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored) as DisplayMember[];
+          if (cached.length > 0) setMembers(cached);
+        } catch { /* ignore */ }
+      }
+    });
+  }, [rosterCacheKey]);
 
   useEffect(() => {
     fetchMembers();
@@ -150,6 +164,9 @@ export default function RosterScreen() {
       }
 
       setMembers(allMembers);
+      if (rosterCacheKey) {
+        AsyncStorage.setItem(rosterCacheKey, JSON.stringify(allMembers));
+      }
     } catch (err) {
       console.error('Error:', err);
       setMembers([]);
@@ -421,9 +438,9 @@ export default function RosterScreen() {
       )}
 
       {/* Member List */}
-      {loading ? (
-        <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-          <ActivityIndicator size="large" color={t.primary} />
+      {loading && members.length === 0 ? (
+        <View style={{ padding: 16 }}>
+          <SkeletonChannelList count={8} />
         </View>
       ) : (
         <FlatList
@@ -468,12 +485,6 @@ export default function RosterScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.slate[50],
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: colors.slate[50],
   },
   searchContainer: {

@@ -173,9 +173,9 @@ export default function SkillsScreen() {
 
       if (cancelled) return;
 
-      // Then fetch gymnast_skills (depends on both results)
+      // Then fetch gymnast_skills (pass data directly to avoid stale state)
       if (gymnastsResult && gymnastsResult.length > 0 && skillsResult && skillsResult.length > 0) {
-        await fetchGymnastSkills();
+        await fetchGymnastSkills(gymnastsResult, skillsResult);
       }
       if (!cancelled) setLoading(false);
     };
@@ -256,11 +256,13 @@ export default function SkillsScreen() {
     }
   };
 
-  const fetchGymnastSkills = async () => {
-    if (gymnasts.length === 0 || skills.length === 0) return;
+  const fetchGymnastSkills = async (gymnastData?: Gymnast[], skillData?: HubEventSkill[]) => {
+    const gymList = gymnastData || gymnasts;
+    const skillList = skillData || skills;
+    if (gymList.length === 0 || skillList.length === 0) return;
 
-    const gymnastIds = gymnasts.map((g) => g.id);
-    const skillIds = skills.map((s) => s.id);
+    const gymnastIds = gymList.map((g) => g.id);
+    const skillIds = skillList.map((s) => s.id);
 
     const { data, error } = await supabase
       .from('gymnast_skills')
@@ -279,7 +281,10 @@ export default function SkillsScreen() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchGymnasts(), fetchSkills()]);
+    const [gymnastsResult, skillsResult] = await Promise.all([fetchGymnasts(), fetchSkills()]);
+    if (gymnastsResult && gymnastsResult.length > 0 && skillsResult && skillsResult.length > 0) {
+      await fetchGymnastSkills(gymnastsResult, skillsResult);
+    }
     setRefreshing(false);
   };
 

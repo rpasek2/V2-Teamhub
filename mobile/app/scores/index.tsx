@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -22,7 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
-import { Badge } from '../../src/components/ui';
+import { Badge, SkeletonChannelList } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore, type ChampionshipType } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -131,6 +132,22 @@ export default function ScoresScreen() {
   const events: GymEvent[] = activeGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
   const levels: string[] = currentHub?.settings?.levels || [];
   const maxScore = activeGender === 'Female' ? 10.0 : 16.0;
+  const scoresCacheKey = currentHub ? `scores-comps-cache:${currentHub.id}` : null;
+
+  useEffect(() => {
+    if (!scoresCacheKey) return;
+    AsyncStorage.getItem(scoresCacheKey).then(stored => {
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored) as Competition[];
+          if (cached.length > 0) {
+            setCompetitions(cached);
+            setSelectedCompetition(cached[0]);
+          }
+        } catch { /* ignore */ }
+      }
+    });
+  }, [scoresCacheKey]);
 
   useEffect(() => {
     fetchCompetitions();
@@ -162,6 +179,9 @@ export default function ScoresScreen() {
         setCompetitions(data || []);
         if (data && data.length > 0) {
           setSelectedCompetition(data[0]);
+        }
+        if (scoresCacheKey && data) {
+          AsyncStorage.setItem(scoresCacheKey, JSON.stringify(data));
         }
       }
     } catch (err) {
@@ -574,10 +594,12 @@ export default function ScoresScreen() {
     }
   }, [sections]);
 
-  if (loading) {
+  if (loading && competitions.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
+      <View style={[styles.container, { backgroundColor: t.background }]}>
+        <View style={{ padding: 16 }}>
+          <SkeletonChannelList count={6} />
+        </View>
       </View>
     );
   }

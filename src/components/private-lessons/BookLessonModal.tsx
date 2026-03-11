@@ -20,9 +20,9 @@ const EVENT_LABELS: Record<string, string> = {
     rings: 'Rings',
     pbars: 'Parallel Bars',
     highbar: 'High Bar',
-    all_around: 'All-Around',
-    strength: 'Strength',
-    flexibility: 'Flexibility',
+    floor_choreo: 'Floor Choreography',
+    beam_choreo: 'Beam Choreography',
+    other: 'Other',
 };
 
 interface BookLessonModalProps {

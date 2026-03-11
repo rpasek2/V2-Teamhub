@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -13,7 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Users, Lock, ChevronRight } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
-import { NotificationBadge, MobileTabGuard } from '../../src/components/ui';
+import { NotificationBadge, MobileTabGuard, SkeletonChannelList } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -87,6 +87,21 @@ export default function GroupsScreen() {
   const currentHub = useHubStore((state) => state.currentHub);
   const user = useAuthStore((state) => state.user);
 
+  const groupsCacheKey = currentHub ? `groups-cache:${currentHub.id}` : null;
+
+  // Load cached groups on mount for instant render
+  useEffect(() => {
+    if (!groupsCacheKey) return;
+    AsyncStorage.getItem(groupsCacheKey).then(stored => {
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored) as Group[];
+          if (cached.length > 0) setGroups(cached);
+        } catch { /* ignore */ }
+      }
+    });
+  }, [groupsCacheKey]);
+
   const fetchGroups = async () => {
     if (!currentHub || !user) {
       setGroups([]);
@@ -96,103 +111,25 @@ export default function GroupsScreen() {
 
     setError(null);
     try {
-      // Fetch groups for this hub that the user is a member of
-      const { data: memberGroups, error: memberError } = await supabase
-        .from('group_members')
-        .select('group_id, last_viewed_at')
-        .eq('user_id', user.id);
+      // Single RPC returns groups with member count, last activity, and unread count
+      const { data: summaryData, error: summaryError } = await supabase
+        .rpc('get_groups_summary', { p_hub_id: currentHub.id });
 
-      if (memberError) {
-        console.error('Error fetching group memberships:', memberError);
-      }
-
-      const memberGroupIds = memberGroups?.map(m => m.group_id) || [];
-      const lastViewedMap = new Map(memberGroups?.map(m => [m.group_id, m.last_viewed_at]) || []);
-
-      // Fetch all groups for this hub
-      const { data: groupData, error } = await supabase
-        .from('groups')
-        .select('id, name, description, type')
-        .eq('hub_id', currentHub.id)
-        .order('name', { ascending: true });
-
-      if (error) {
-        console.error('Error fetching groups:', error);
+      if (summaryError) {
+        console.error('Error fetching groups summary:', summaryError);
         setError('Failed to load data. Pull to refresh.');
         setGroups([]);
         return;
       }
 
-      // Batch queries: 3 total instead of 3 per group
-      const allGroupIds = (groupData || []).map(g => g.id);
-      if (allGroupIds.length === 0) {
-        setGroups([]);
-        return;
-      }
-
-      // Find the oldest last_viewed_at for unread filtering
-      const memberEntries = memberGroups?.filter(m => allGroupIds.includes(m.group_id)) || [];
-      const oldestLastViewed = memberEntries.length > 0
-        ? memberEntries.reduce((oldest, m) => {
-            const val = m.last_viewed_at || '1970-01-01';
-            return val < oldest ? val : oldest;
-          }, memberEntries[0].last_viewed_at || '1970-01-01')
-        : '1970-01-01';
-
-      const [allMembersResult, allPostsResult, allUnreadResult] = await Promise.all([
-        // 1. All group_members rows for these groups (just group_id column)
-        supabase
-          .from('group_members')
-          .select('group_id')
-          .in('group_id', allGroupIds),
-
-        // 2. Recent posts for all groups (to find last activity per group)
-        supabase
-          .from('posts')
-          .select('group_id, created_at')
-          .in('group_id', allGroupIds)
-          .order('created_at', { ascending: false }),
-
-        // 3. Unread posts for member groups (excluding own posts, after oldest last_viewed)
-        memberGroupIds.length > 0
-          ? supabase
-              .from('posts')
-              .select('group_id, created_at')
-              .in('group_id', memberGroupIds)
-              .gt('created_at', oldestLastViewed)
-              .neq('user_id', user.id)
-          : Promise.resolve({ data: [] as { group_id: string; created_at: string }[] }),
-      ]);
-
-      // Build maps client-side
-      const memberCountMap = new Map<string, number>();
-      (allMembersResult.data || []).forEach(r => {
-        memberCountMap.set(r.group_id, (memberCountMap.get(r.group_id) || 0) + 1);
-      });
-
-      const lastActivityMap = new Map<string, string>();
-      (allPostsResult.data || []).forEach(r => {
-        if (!lastActivityMap.has(r.group_id)) {
-          lastActivityMap.set(r.group_id, r.created_at); // Already sorted desc, first = latest
-        }
-      });
-
-      const unreadCountMap = new Map<string, number>();
-      (allUnreadResult.data || []).forEach((r: { group_id: string; created_at: string }) => {
-        const groupLastViewed = lastViewedMap.get(r.group_id) || '1970-01-01';
-        if (r.created_at > groupLastViewed) {
-          unreadCountMap.set(r.group_id, (unreadCountMap.get(r.group_id) || 0) + 1);
-        }
-      });
-
-      const processedGroups: Group[] = (groupData || []).map(g => ({
-        id: g.id,
-        name: g.name,
-        description: g.description,
+      const processedGroups: Group[] = (summaryData || []).map((g: Record<string, unknown>) => ({
+        id: g.id as string,
+        name: g.name as string,
+        description: g.description as string | null,
         type: g.type as 'public' | 'private',
-        memberCount: memberCountMap.get(g.id) || 0,
-        unreadPosts: unreadCountMap.get(g.id) || 0,
-        lastActivity: lastActivityMap.get(g.id) || null,
+        memberCount: Number(g.member_count) || 0,
+        unreadPosts: Number(g.unread_posts) || 0,
+        lastActivity: (g.last_activity as string) || null,
       }));
 
       // Sort by unread first, then by last activity
@@ -206,6 +143,11 @@ export default function GroupsScreen() {
       });
 
       setGroups(processedGroups);
+
+      // Cache for instant render on next visit
+      if (groupsCacheKey) {
+        AsyncStorage.setItem(groupsCacheKey, JSON.stringify(processedGroups));
+      }
     } catch (err) {
       console.error('Error:', err);
       setError('Failed to load data. Pull to refresh.');
@@ -234,11 +176,26 @@ export default function GroupsScreen() {
 
   const totalUnread = groups.reduce((sum, g) => sum + g.unreadPosts, 0);
 
-  if (loading) {
+  if (loading && groups.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
-      </View>
+      <MobileTabGuard tabId="groups">
+        <View style={[styles.container, { backgroundColor: t.background }]}>
+          <View style={[styles.statsBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: t.text }]}>-</Text>
+              <Text style={[styles.statLabel, { color: t.textMuted }]}>Groups</Text>
+            </View>
+            <View style={[styles.statDivider, { backgroundColor: t.border }]} />
+            <View style={styles.statItem}>
+              <Text style={[styles.statValue, { color: t.text }]}>-</Text>
+              <Text style={[styles.statLabel, { color: t.textMuted }]}>Unread</Text>
+            </View>
+          </View>
+          <View style={{ padding: 16 }}>
+            <SkeletonChannelList count={6} />
+          </View>
+        </View>
+      </MobileTabGuard>
     );
   }
 
@@ -300,12 +257,6 @@ export default function GroupsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.slate[50],
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: colors.slate[50],
   },
   statsBar: {

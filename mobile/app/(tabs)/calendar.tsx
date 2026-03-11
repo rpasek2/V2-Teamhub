@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -180,6 +181,23 @@ export default function CalendarScreen() {
   const canAddEvents = isStaff();
   const showBirthdays = currentHub?.settings?.showBirthdays === true;
 
+  const calendarCacheKey = currentHub
+    ? `calendar-cache:${currentHub.id}:${currentDate.getFullYear()}-${currentDate.getMonth()}`
+    : null;
+
+  // Load cached events on mount/month change
+  useEffect(() => {
+    if (!calendarCacheKey) return;
+    AsyncStorage.getItem(calendarCacheKey).then(stored => {
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored) as CalendarEvent[];
+          if (cached.length > 0) setEvents(cached);
+        } catch { /* ignore */ }
+      }
+    });
+  }, [calendarCacheKey]);
+
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',
     'July', 'August', 'September', 'October', 'November', 'December'
@@ -216,6 +234,9 @@ export default function CalendarScreen() {
         const userIsStaff = isStaff();
         const filtered = userIsStaff ? (data || []) : (data || []).filter(e => !e.staff_only);
         setEvents(filtered);
+        if (calendarCacheKey) {
+          AsyncStorage.setItem(calendarCacheKey, JSON.stringify(filtered));
+        }
       }
     } catch (err) {
       console.error('Error:', err);
@@ -637,7 +658,7 @@ export default function CalendarScreen() {
 
       {/* Calendar Grid */}
       <View style={[styles.calendarGrid, { backgroundColor: t.surface }]}>
-        {loading ? (
+        {loading && events.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={t.primary} />
           </View>

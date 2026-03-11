@@ -34,6 +34,8 @@ import {
   Building2,
   Mail,
   Bug,
+  Calendar,
+  MessageCircle,
 } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
@@ -54,6 +56,30 @@ interface MenuItem {
 }
 
 const FEATURE_ITEMS: MenuItem[] = [
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    icon: Calendar,
+    route: '/calendar',
+    requiresPermission: 'calendar',
+    color: colors.brand[600],
+  },
+  {
+    id: 'messages',
+    label: 'Messages',
+    icon: MessageCircle,
+    route: '/messages',
+    requiresPermission: 'messages',
+    color: colors.blue[600],
+  },
+  {
+    id: 'groups',
+    label: 'Groups',
+    icon: Users,
+    route: '/groups',
+    requiresPermission: 'groups',
+    color: colors.emerald[600],
+  },
   {
     id: 'roster',
     label: 'Roster',

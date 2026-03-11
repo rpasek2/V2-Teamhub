@@ -200,9 +200,9 @@ export function UserSettings() {
             return;
         }
 
-        // Validate file size (max 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            setMessage({ type: 'error', text: 'Image must be less than 2MB.' });
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            setMessage({ type: 'error', text: 'Image must be less than 5MB.' });
             return;
         }
 
@@ -316,7 +316,7 @@ export function UserSettings() {
 
                     <div>
                         <p className="text-sm text-body font-medium">Click to upload a new photo</p>
-                        <p className="text-xs text-muted mt-1">JPG, PNG or GIF. Max 2MB.</p>
+                        <p className="text-xs text-muted mt-1">JPG, PNG or GIF. Max 5MB.</p>
                     </div>
                 </div>
             </div>

@@ -7,14 +7,13 @@ import {
   FlatList,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { router, useFocusEffect } from 'expo-router';
 import { Search, Edit, Users, User, Hash, ShieldAlert, ChevronRight, Plus } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
-import { NotificationBadge, MobileTabGuard } from '../../src/components/ui';
+import { NotificationBadge, MobileTabGuard, SkeletonChannelList } from '../../src/components/ui';
 import { NewDMModal, AnonymousReportModal, CreateChannelModal } from '../../src/components/messages';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
@@ -151,6 +150,21 @@ export default function MessagesScreen() {
     });
   }, [recentlyReadStorageKey]);
 
+  const channelCacheKey = currentHub ? `channels-cache:${currentHub.id}` : null;
+
+  // Load cached channel list on mount for instant render
+  useEffect(() => {
+    if (!channelCacheKey) return;
+    AsyncStorage.getItem(channelCacheKey).then(stored => {
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored) as Channel[];
+          if (cached.length > 0) setChannels(cached);
+        } catch { /* ignore */ }
+      }
+    });
+  }, [channelCacheKey]);
+
   const fetchChannels = async () => {
     if (!currentHub || !user) {
       setChannels([]);
@@ -160,23 +174,20 @@ export default function MessagesScreen() {
 
     setError(null);
     try {
-      // Fetch channels for this hub
-      const { data: channelData, error } = await supabase
-        .from('channels')
-        .select('id, name, type, description, group_id, dm_participant_ids')
-        .eq('hub_id', currentHub.id)
-        .order('created_at', { ascending: false });
+      // Single RPC returns channels with last message + unread count (server-side)
+      const { data: summaryData, error: summaryError } = await supabase
+        .rpc('get_channels_summary', { p_hub_id: currentHub.id });
 
-      if (error) {
-        console.error('Error fetching channels:', error);
+      if (summaryError) {
+        console.error('Error fetching channels summary:', summaryError);
         setError('Failed to load data. Pull to refresh.');
         setChannels([]);
         return;
       }
 
-      // Collect all DM user IDs to batch fetch profiles
+      // Collect DM user IDs for profile name resolution
       const dmUserIds = new Set<string>();
-      for (const ch of channelData || []) {
+      for (const ch of summaryData || []) {
         if (ch.dm_participant_ids && ch.dm_participant_ids.length > 0) {
           ch.dm_participant_ids.forEach((id: string) => {
             if (id !== user.id) dmUserIds.add(id);
@@ -184,105 +195,61 @@ export default function MessagesScreen() {
         }
       }
 
-      // Batch fetch all DM profiles at once
+      // Fetch DM profiles (only query besides the RPC)
       const profileMap = new Map<string, string>();
       if (dmUserIds.size > 0) {
         const { data: profiles } = await supabase
           .from('profiles')
           .select('id, full_name')
           .in('id', Array.from(dmUserIds));
-        for (const profile of profiles || []) {
-          profileMap.set(profile.id, profile.full_name || 'Unknown User');
+        for (const p of profiles || []) {
+          profileMap.set(p.id, p.full_name || 'Unknown User');
         }
       }
 
-      // Process all channels in parallel
-      const processedChannels = await Promise.all(
-        (channelData || []).map(async (ch) => {
-          // Run all queries for this channel in parallel
-          const [lastMsgResult, memberDataResult, unreadResult] = await Promise.all([
-            // Get last message
-            supabase
-              .from('messages')
-              .select('content, created_at')
-              .eq('channel_id', ch.id)
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle(),
-            // Get member's last read time
-            supabase
-              .from('channel_members')
-              .select('last_read_at')
-              .eq('channel_id', ch.id)
-              .eq('user_id', user.id)
-              .maybeSingle(),
-            // Get unread count - we'll use a default last_read if no membership
-            (async () => {
-              const { data: member } = await supabase
-                .from('channel_members')
-                .select('last_read_at')
-                .eq('channel_id', ch.id)
-                .eq('user_id', user.id)
-                .maybeSingle();
-              const lastRead = member?.last_read_at || '1970-01-01';
-              return supabase
-                .from('messages')
-                .select('id', { count: 'exact', head: true })
-                .eq('channel_id', ch.id)
-                .gt('created_at', lastRead)
-                .neq('user_id', user.id);
-            })(),
-          ]);
+      // Process channels (RPC already sorted by last_message_time DESC)
+      const processedChannels: Channel[] = (summaryData || []).map((ch: Record<string, unknown>) => {
+        let channelType: 'public' | 'private' | 'dm' = ch.type as 'public' | 'private';
+        let channelName = ch.name as string;
 
-          const lastMsg = lastMsgResult.data;
+        if (ch.dm_participant_ids && (ch.dm_participant_ids as string[]).length > 0) {
+          channelType = 'dm';
+          const otherIds = (ch.dm_participant_ids as string[]).filter((id: string) => id !== user.id);
+          const names = otherIds
+            .map((id: string) => profileMap.get(id) || 'Unknown User')
+            .join(', ');
+          channelName = names || 'Unknown User';
+        }
 
-          // Determine channel type and name for DMs
-          let channelType: 'public' | 'private' | 'dm' = ch.type as 'public' | 'private';
-          let channelName = ch.name;
+        // Apply recently-read override for badge suppression
+        const dbUnread = Number(ch.unread_count) || 0;
+        const wasRecentlyRead = recentlyReadChannelIds.current.has(ch.id as string);
+        const unreadCount = wasRecentlyRead ? 0 : dbUnread;
 
-          if (ch.dm_participant_ids && ch.dm_participant_ids.length > 0) {
-            channelType = 'dm';
-            const otherIds = ch.dm_participant_ids.filter((id: string) => id !== user.id);
-            const names = otherIds
-              .map((id: string) => profileMap.get(id) || 'Unknown User')
-              .join(', ');
-            channelName = names || 'Unknown User';
+        if (wasRecentlyRead && dbUnread === 0) {
+          recentlyReadChannelIds.current.delete(ch.id as string);
+          if (recentlyReadStorageKey) {
+            AsyncStorage.setItem(recentlyReadStorageKey, JSON.stringify([...recentlyReadChannelIds.current]));
           }
+        }
 
-          // If this channel was recently opened, force unread to 0
-          // (the mark_channel_read RPC may not have completed before this re-fetch)
-          const dbUnread = unreadResult.count || 0;
-          const wasRecentlyRead = recentlyReadChannelIds.current.has(ch.id);
-          const unreadCount = wasRecentlyRead ? 0 : dbUnread;
-
-          // If DB confirms 0, remove from recently-read set (no longer needed)
-          if (wasRecentlyRead && dbUnread === 0) {
-            recentlyReadChannelIds.current.delete(ch.id);
-            if (recentlyReadStorageKey) {
-              AsyncStorage.setItem(recentlyReadStorageKey, JSON.stringify([...recentlyReadChannelIds.current]));
-            }
-          }
-
-          return {
-            id: ch.id,
-            name: channelName,
-            type: channelType,
-            description: ch.description,
-            lastMessage: lastMsg?.content || null,
-            lastMessageTime: lastMsg?.created_at || null,
-            unreadCount,
-          };
-        })
-      );
-
-      // Sort by last message time
-      processedChannels.sort((a, b) => {
-        if (!a.lastMessageTime) return 1;
-        if (!b.lastMessageTime) return -1;
-        return new Date(b.lastMessageTime).getTime() - new Date(a.lastMessageTime).getTime();
+        return {
+          id: ch.id as string,
+          name: channelName,
+          type: channelType,
+          description: ch.description as string | null,
+          lastMessage: (ch.last_message_content as string) || null,
+          lastMessageTime: (ch.last_message_time as string) || null,
+          unreadCount,
+        };
       });
 
       setChannels(processedChannels);
+
+      // Cache for instant render on next visit
+      if (channelCacheKey) {
+        AsyncStorage.setItem(channelCacheKey, JSON.stringify(processedChannels));
+      }
     } catch (err) {
       console.error('Error:', err);
       setError('Failed to load data. Pull to refresh.');
@@ -401,11 +368,25 @@ export default function MessagesScreen() {
     router.push(`/chat/${channel.id}`);
   };
 
-  if (loading) {
+  // Show skeleton on first load (when no cached data), otherwise show cached channels immediately
+  if (loading && channels.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
-      </View>
+      <MobileTabGuard tabId="messages">
+        <View style={[styles.container, { backgroundColor: t.background }]}>
+          <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
+            <View style={[styles.searchBar, { backgroundColor: t.surfaceSecondary }]}>
+              <Search size={20} color={t.textFaint} />
+              <TextInput
+                style={[styles.searchInput, { color: t.text }]}
+                placeholder="Search messages..."
+                placeholderTextColor={t.textFaint}
+                editable={false}
+              />
+            </View>
+          </View>
+          <SkeletonChannelList count={8} />
+        </View>
+      </MobileTabGuard>
     );
   }
 
@@ -589,12 +570,6 @@ export default function MessagesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.slate[50],
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: colors.slate[50],
   },
   searchContainer: {

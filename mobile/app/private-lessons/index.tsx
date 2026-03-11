@@ -28,6 +28,21 @@ import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
 
+// Event label mapping
+const EVENT_LABELS: Record<string, string> = {
+  vault: 'Vault',
+  bars: 'Bars',
+  beam: 'Beam',
+  floor: 'Floor',
+  pommel: 'Pommel Horse',
+  rings: 'Rings',
+  pbars: 'Parallel Bars',
+  highbar: 'High Bar',
+  floor_choreo: 'Floor Choreography',
+  beam_choreo: 'Beam Choreography',
+  other: 'Other',
+};
+
 interface CoachLessonProfile {
   id: string;
   hub_id: string;
@@ -321,7 +336,7 @@ export default function PrivateLessonsScreen() {
                         <View style={styles.tagsWrap}>
                           {coach.events.slice(0, 4).map((event) => (
                             <View key={event} style={[styles.tag, { backgroundColor: isDark ? colors.violet[700] + '30' : colors.violet[100] }]}>
-                              <Text style={[styles.tagText, { color: isDark ? colors.violet[500] : colors.violet[700] }]}>{event}</Text>
+                              <Text style={[styles.tagText, { color: isDark ? colors.violet[500] : colors.violet[700] }]}>{EVENT_LABELS[event] || event}</Text>
                             </View>
                           ))}
                           {coach.events.length > 4 && (

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -16,7 +16,7 @@ import { colors } from '../../src/constants/colors';
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
 const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { useTheme } from '../../src/hooks/useTheme';
-import { Badge } from '../../src/components/ui';
+import { Badge, SkeletonChannelList } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 
@@ -48,6 +48,19 @@ export default function CompetitionsScreen() {
   const [activeFilter, setActiveFilter] = useState<FilterTab>('upcoming');
 
   const currentHub = useHubStore((state) => state.currentHub);
+  const compsCacheKey = currentHub ? `competitions-cache:${currentHub.id}` : null;
+
+  useEffect(() => {
+    if (!compsCacheKey) return;
+    AsyncStorage.getItem(compsCacheKey).then(stored => {
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored) as Competition[];
+          if (cached.length > 0) setCompetitions(cached);
+        } catch { /* ignore */ }
+      }
+    });
+  }, [compsCacheKey]);
 
   useEffect(() => {
     fetchCompetitions();
@@ -91,6 +104,9 @@ export default function CompetitionsScreen() {
           gymnast_count: c.competition_gymnasts?.[0]?.count || 0,
         }));
         setCompetitions(mapped);
+        if (compsCacheKey) {
+          AsyncStorage.setItem(compsCacheKey, JSON.stringify(mapped));
+        }
       }
     } catch (err) {
       console.error('Error:', err);
@@ -178,10 +194,12 @@ export default function CompetitionsScreen() {
     );
   };
 
-  if (loading) {
+  if (loading && competitions.length === 0) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
+      <View style={[styles.container, { backgroundColor: t.background }]}>
+        <View style={{ padding: 16 }}>
+          <SkeletonChannelList count={6} />
+        </View>
       </View>
     );
   }
@@ -257,12 +275,6 @@ export default function CompetitionsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.slate[50],
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
     backgroundColor: colors.slate[50],
   },
   filterContainer: {

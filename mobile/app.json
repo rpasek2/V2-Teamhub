@@ -2,7 +2,7 @@
   "expo": {
     "name": "Gym TeamHub",
     "slug": "teamhub",
-    "version": "1.0.0",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mobile",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "bundleIdentifier": "com.twotrees.gymteamhub",
-      "buildNumber": "2",
+      "buildNumber": "14",
       "supportsTablet": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "TeamHub needs access to your photo library to upload images for posts, profiles, and marketplace listings.",

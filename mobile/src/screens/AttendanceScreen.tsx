@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -94,6 +95,25 @@ export function AttendanceScreen() {
 
   const canManage = canEditData();
   const selectedDayOfWeek = parseISO(selectedDate).getDay();
+  const attendanceCacheKey = currentHub ? `attendance-cache:${currentHub.id}` : null;
+
+  // Load cached schedules/gymnasts on mount
+  useEffect(() => {
+    if (!attendanceCacheKey) return;
+    AsyncStorage.getItem(attendanceCacheKey).then(stored => {
+      if (stored) {
+        try {
+          const cached = JSON.parse(stored) as { schedules: PracticeSchedule[]; gymnasts: GymnastProfile[] };
+          if (cached.schedules?.length > 0) setPracticeSchedules(cached.schedules);
+          if (cached.gymnasts?.length > 0) {
+            setGymnasts(cached.gymnasts);
+            const levels = new Set(cached.gymnasts.map(g => g.level).filter(Boolean) as string[]);
+            setExpandedLevels(levels);
+          }
+        } catch { /* ignore */ }
+      }
+    });
+  }, [attendanceCacheKey]);
 
   useEffect(() => {
     fetchData();
@@ -133,6 +153,14 @@ export function AttendanceScreen() {
       setGymnasts(gymnastsResult.data);
       const levels = new Set(gymnastsResult.data.map((g) => g.level).filter(Boolean) as string[]);
       setExpandedLevels(levels);
+    }
+
+    // Cache schedules + gymnasts for instant render
+    if (attendanceCacheKey && schedulesResult.data && gymnastsResult.data) {
+      AsyncStorage.setItem(attendanceCacheKey, JSON.stringify({
+        schedules: schedulesResult.data,
+        gymnasts: gymnastsResult.data,
+      }));
     }
 
     await fetchAttendance();
@@ -441,7 +469,7 @@ export function AttendanceScreen() {
     );
   };
 
-  if (loading) {
+  if (loading && gymnasts.length === 0) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
         <ActivityIndicator size="large" color={t.primary} />
