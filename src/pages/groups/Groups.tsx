@@ -16,9 +16,10 @@ interface Group extends GroupType {
 }
 
 export default function Groups() {
-    const { hub, currentRole } = useHub();
+    const { hub, currentRole, getPermissionScope } = useHub();
     const { user } = useAuth();
     const { markAsViewed } = useNotifications();
+    const groupsScope = getPermissionScope('groups');
     const [groups, setGroups] = useState<Group[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -35,22 +36,46 @@ export default function Groups() {
         if (hub) {
             fetchGroups();
         }
-    }, [hub]);
+    }, [hub, groupsScope]);
 
     const fetchGroups = async () => {
         if (!hub?.id || !user?.id) return;
         setLoading(true);
         try {
+            // For 'own' scope, first get the groups the user is a member of
+            let memberGroupIds: string[] | null = null;
+            if (groupsScope === 'own') {
+                const { data: memberRows } = await supabase
+                    .from('group_members')
+                    .select('group_id')
+                    .eq('user_id', user.id);
+                memberGroupIds = (memberRows || []).map(r => r.group_id);
+            }
+
+            // Build groups query
+            let groupsQuery = supabase
+                .from('groups')
+                .select(`
+                    *,
+                    members:group_members(count)
+                `)
+                .eq('hub_id', hub.id)
+                .order('created_at', { ascending: false });
+
+            // Filter to member-only groups for 'own' scope
+            if (memberGroupIds !== null) {
+                if (memberGroupIds.length === 0) {
+                    // User is not a member of any groups
+                    setGroups([]);
+                    setLoading(false);
+                    return;
+                }
+                groupsQuery = groupsQuery.in('id', memberGroupIds);
+            }
+
             // Fetch groups and unread counts in parallel
             const [groupsResult, unreadResult] = await Promise.all([
-                supabase
-                    .from('groups')
-                    .select(`
-                        *,
-                        members:group_members(count)
-                    `)
-                    .eq('hub_id', hub.id)
-                    .order('created_at', { ascending: false }),
+                groupsQuery,
                 supabase.rpc('get_group_unread_counts', {
                     p_user_id: user.id,
                     p_hub_id: hub.id

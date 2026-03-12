@@ -5,11 +5,13 @@ import { supabase } from '../../lib/supabase';
 import { useHub } from '../../context/HubContext';
 import { DAYS_OF_WEEK_SHORT } from '../../types';
 import type { PracticeSchedule } from '../../types';
+import type { ScheduleFilter } from '../../pages/Schedule';
 import { AddPracticeModal } from './AddPracticeModal';
 import { ScheduleGroupManager } from './ScheduleGroupManager';
 
 interface WeeklyScheduleTabProps {
     canManage: boolean;
+    scheduleFilters?: ScheduleFilter[] | null;
 }
 
 interface LevelGroup {
@@ -19,7 +21,7 @@ interface LevelGroup {
     schedules: PracticeSchedule[];
 }
 
-export function WeeklyScheduleTab({ canManage }: WeeklyScheduleTabProps) {
+export function WeeklyScheduleTab({ canManage, scheduleFilters }: WeeklyScheduleTabProps) {
     const { hubId } = useParams();
     const { hub } = useHub();
 
@@ -103,8 +105,20 @@ export function WeeklyScheduleTab({ canManage }: WeeklyScheduleTabProps) {
             return a.schedule_group.localeCompare(b.schedule_group);
         });
 
+        // Filter to only the user's level/group when 'own' scope is active
+        // null = no filtering (show all), [] = show nothing, [...] = filter to matches
+        if (scheduleFilters !== null && scheduleFilters !== undefined) {
+            if (scheduleFilters.length === 0) return [];
+            return groups.filter(g =>
+                scheduleFilters.some(f =>
+                    f.level === g.level &&
+                    (f.schedule_group === null || f.schedule_group === g.schedule_group)
+                )
+            );
+        }
+
         return groups;
-    }, [schedules, levels]);
+    }, [schedules, levels, scheduleFilters]);
 
     // Get unique external group names for autocomplete suggestions
     const externalGroups = useMemo(() => {

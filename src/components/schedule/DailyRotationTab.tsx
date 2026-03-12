@@ -7,6 +7,7 @@ import { useHub } from '../../context/HubContext';
 import { useAuth } from '../../context/AuthContext';
 import { DEFAULT_ROTATION_EVENTS, DAYS_OF_WEEK } from '../../types';
 import type { PracticeSchedule, RotationEvent, RotationBlock } from '../../types';
+import type { ScheduleFilter } from '../../pages/Schedule';
 import { RotationGrid } from './RotationGrid';
 import { EventPalette } from './EventPalette';
 import { CustomEventModal } from './CustomEventModal';
@@ -24,6 +25,7 @@ interface RotationGridSettings {
 
 interface DailyRotationTabProps {
     canManage: boolean;
+    scheduleFilters?: ScheduleFilter[] | null;
 }
 
 interface Coach {
@@ -31,7 +33,7 @@ interface Coach {
     full_name: string;
 }
 
-export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
+export function DailyRotationTab({ canManage, scheduleFilters }: DailyRotationTabProps) {
     const { hubId } = useParams();
     useHub(); // For context access
     const { user } = useAuth();
@@ -271,15 +273,28 @@ export function DailyRotationTab({ canManage }: DailyRotationTabProps) {
             }, new Map<string, { level: string; schedule_group: string; start_time: string; end_time: string; is_external_group: boolean }>());
 
         // Sort: roster levels first, then external groups
-        const result = Array.from(levelsWithPractice.values());
+        let result = Array.from(levelsWithPractice.values());
         result.sort((a, b) => {
             if (a.is_external_group !== b.is_external_group) {
                 return a.is_external_group ? 1 : -1;
             }
             return a.level.localeCompare(b.level);
         });
+
+        // Filter to only the user's level/group when 'own' scope is active
+        // null = no filtering (show all), [] = show nothing, [...] = filter to matches
+        if (scheduleFilters !== null && scheduleFilters !== undefined) {
+            if (scheduleFilters.length === 0) return [];
+            result = result.filter(item =>
+                scheduleFilters.some(f =>
+                    f.level === item.level &&
+                    (f.schedule_group === null || f.schedule_group === item.schedule_group)
+                )
+            );
+        }
+
         return result;
-    }, [practiceSchedules, selectedDayOfWeek]);
+    }, [practiceSchedules, selectedDayOfWeek, scheduleFilters]);
 
     // Validate and reset column order when active levels change
     useEffect(() => {

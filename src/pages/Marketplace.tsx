@@ -136,6 +136,9 @@ export default function Marketplace() {
         return ['owner', 'director'].includes(currentRole || '');
     }, [currentRole]);
 
+    const isAthlete = currentRole === 'athlete' || currentRole === 'gymnast';
+    const canListItem = !isAthlete;
+
     const handleItemUpdated = () => {
         fetchItems();
         setSelectedItem(null);
@@ -161,13 +164,15 @@ export default function Marketplace() {
                                 Buy and sell gear with your team community
                             </p>
                         </div>
-                        <button
-                            onClick={() => setIsCreateModalOpen(true)}
-                            className="btn-primary"
-                        >
-                            <Plus className="mr-2 h-4 w-4" />
-                            List an Item
-                        </button>
+                        {canListItem && (
+                            <button
+                                onClick={() => setIsCreateModalOpen(true)}
+                                className="btn-primary"
+                            >
+                                <Plus className="mr-2 h-4 w-4" />
+                                List an Item
+                            </button>
+                        )}
                     </div>
 
                     {/* Search and Filters */}
@@ -347,7 +352,7 @@ export default function Marketplace() {
                                 ? 'Try adjusting your search or filters'
                                 : 'Be the first to list an item for sale!'}
                         </p>
-                        {!searchQuery && selectedCategory === 'all' && (
+                        {canListItem && !searchQuery && selectedCategory === 'all' && (
                             <button
                                 onClick={() => setIsCreateModalOpen(true)}
                                 className="btn-primary mt-6"

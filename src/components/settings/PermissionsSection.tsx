@@ -175,7 +175,7 @@ export function PermissionsSection({ permissions, setPermissions, bare }: Permis
                                             >
                                                 <option value="none">No Access</option>
                                                 <option value="all">View All</option>
-                                                {role === 'parent' && (
+                                                {(role === 'parent' || role === 'athlete') && (
                                                     <option value="own">View Own</option>
                                                 )}
                                             </select>

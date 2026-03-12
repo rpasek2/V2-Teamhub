@@ -1,16 +1,62 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Calendar, Grid3X3 } from 'lucide-react';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { useHub } from '../context/HubContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import { WeeklyScheduleTab } from '../components/schedule/WeeklyScheduleTab';
 import { DailyRotationTab } from '../components/schedule/DailyRotationTab';
+import type { GymnastProfile } from '../types';
 
 type ScheduleTab = 'weekly' | 'rotation';
 
+export interface ScheduleFilter {
+    level: string;
+    schedule_group: string | null;
+}
+
 export function Schedule() {
-    const { canManage } = useRoleChecks();
-    const { getPermissionScope } = useHub();
+    const { canManage, isAthlete, isParent } = useRoleChecks();
+    const { getPermissionScope, linkedGymnasts, hub, currentRole } = useHub();
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<ScheduleTab>('weekly');
+    const [athleteProfile, setAthleteProfile] = useState<GymnastProfile | null>(null);
+    const [athleteProfileLoaded, setAthleteProfileLoaded] = useState(false);
+
+    const scheduleScope = getPermissionScope('schedule');
+
+    // For athletes with 'own' scope, fetch their gymnast profile
+    useEffect(() => {
+        if (scheduleScope === 'own' && isAthlete && user && hub) {
+            setAthleteProfileLoaded(false);
+            supabase
+                .from('gymnast_profiles')
+                .select('*')
+                .eq('hub_id', hub.id)
+                .eq('user_id', user.id)
+                .maybeSingle()
+                .then(({ data }) => {
+                    setAthleteProfile(data);
+                    setAthleteProfileLoaded(true);
+                });
+        }
+    }, [scheduleScope, isAthlete, user, hub]);
+
+    // Build schedule filter for 'own' scope
+    // null = no filtering (staff with 'all'), array = filter to these level/groups
+    const scheduleFilters = useMemo((): ScheduleFilter[] | null => {
+        if (scheduleScope !== 'own') return null;
+
+        if (isParent) {
+            return linkedGymnasts.map(g => ({ level: g.level, schedule_group: g.schedule_group }));
+        }
+        if (isAthlete) {
+            if (!athleteProfileLoaded) return []; // still loading — show nothing until resolved
+            if (!athleteProfile) return [];       // no profile found — show nothing
+            return [{ level: athleteProfile.level, schedule_group: athleteProfile.schedule_group }];
+        }
+        return [];
+    }, [scheduleScope, isParent, isAthlete, linkedGymnasts, athleteProfile, athleteProfileLoaded]);
 
     if (getPermissionScope('schedule') === 'none') {
         return (
@@ -70,7 +116,7 @@ export function Schedule() {
                             : 'opacity-0 absolute inset-0 pointer-events-none -translate-y-2'
                     }`}
                 >
-                    <WeeklyScheduleTab canManage={canManage} />
+                    <WeeklyScheduleTab canManage={canManage} scheduleFilters={scheduleFilters} />
                 </div>
 
                 <div
@@ -80,7 +126,7 @@ export function Schedule() {
                             : 'opacity-0 absolute inset-0 pointer-events-none -translate-y-2'
                     }`}
                 >
-                    <DailyRotationTab canManage={canManage} />
+                    <DailyRotationTab canManage={canManage} scheduleFilters={scheduleFilters} />
                 </div>
             </div>
         </div>

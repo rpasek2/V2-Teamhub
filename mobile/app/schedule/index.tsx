@@ -14,6 +14,7 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { Badge } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { useAuthStore } from '../../src/stores/authStore';
 
 // Days of week
 const DAYS_OF_WEEK = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -279,6 +280,11 @@ function RotationsTab({
   );
 }
 
+interface ScheduleFilter {
+  level: string;
+  schedule_group: string | null;
+}
+
 export default function ScheduleScreen() {
   const { t, isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<ScheduleTab>('hours');
@@ -288,9 +294,52 @@ export default function ScheduleScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDay, setSelectedDay] = useState(new Date().getDay());
+  const [athleteProfile, setAthleteProfile] = useState<{ level: string; schedule_group: string | null } | null>(null);
+  const [athleteProfileLoaded, setAthleteProfileLoaded] = useState(false);
 
   const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
+  const getPermissionScope = useHubStore((state) => state.getPermissionScope);
+  const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
+  const user = useAuthStore((state) => state.user);
   const levels = currentHub?.settings?.levels || [];
+
+  const scheduleScope = getPermissionScope('schedule');
+  const isParent = currentMember?.role === 'parent';
+  const isAthlete = currentMember?.role === 'athlete' || currentMember?.role === 'gymnast';
+
+  // For athletes with 'own' scope, fetch their gymnast profile
+  useEffect(() => {
+    if (scheduleScope === 'own' && isAthlete && user && currentHub) {
+      setAthleteProfileLoaded(false);
+      supabase
+        .from('gymnast_profiles')
+        .select('level, schedule_group')
+        .eq('hub_id', currentHub.id)
+        .eq('user_id', user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          setAthleteProfile(data);
+          setAthleteProfileLoaded(true);
+        });
+    }
+  }, [scheduleScope, isAthlete, user, currentHub]);
+
+  // Build schedule filter for 'own' scope
+  // null = no filtering (staff with 'all'), array = filter to these level/groups
+  const scheduleFilters = useMemo((): ScheduleFilter[] | null => {
+    if (scheduleScope !== 'own') return null;
+
+    if (isParent) {
+      return linkedGymnasts.map(g => ({ level: g.level, schedule_group: g.schedule_group }));
+    }
+    if (isAthlete) {
+      if (!athleteProfileLoaded) return []; // still loading — show nothing until resolved
+      if (!athleteProfile) return [];       // no profile found — show nothing
+      return [{ level: athleteProfile.level, schedule_group: athleteProfile.schedule_group }];
+    }
+    return [];
+  }, [scheduleScope, isParent, isAthlete, linkedGymnasts, athleteProfile, athleteProfileLoaded]);
 
   useEffect(() => {
     fetchSchedules();
@@ -421,14 +470,26 @@ export default function ScheduleScreen() {
       return a.schedule_group.localeCompare(b.schedule_group);
     });
 
+    // Filter to only the user's level/group when 'own' scope is active
+    // null = no filtering (show all), [] = show nothing, [...] = filter to matches
+    if (scheduleFilters !== null && scheduleFilters !== undefined) {
+      if (scheduleFilters.length === 0) return [];
+      return groups.filter(g =>
+        scheduleFilters.some(f =>
+          f.level === g.level &&
+          (f.schedule_group === null || f.schedule_group === g.schedule_group)
+        )
+      );
+    }
+
     return groups;
-  }, [schedules, levels]);
+  }, [schedules, levels, scheduleFilters]);
 
   // Get levels that have practice on the selected day (for rotations)
   // Apply grid settings: column order, hidden columns, custom display names
   const combinedLevelsForDay = useMemo((): CombinedLevel[] => {
     // Get all levels with practice on this day
-    const levelsWithPractice = schedules
+    let levelsWithPractice = schedules
       .filter((s) => s.day_of_week === selectedDay)
       .map((schedule) => ({
         level: schedule.level,
@@ -436,6 +497,18 @@ export default function ScheduleScreen() {
         start_time: schedule.start_time,
         end_time: schedule.end_time,
       }));
+
+    // Filter to only the user's level/group when 'own' scope is active
+    // null = no filtering (show all), [] = show nothing, [...] = filter to matches
+    if (scheduleFilters !== null && scheduleFilters !== undefined) {
+      if (scheduleFilters.length === 0) return [];
+      levelsWithPractice = levelsWithPractice.filter(item =>
+        scheduleFilters.some(f =>
+          f.level === item.level &&
+          (f.schedule_group === null || f.schedule_group === item.schedule_group)
+        )
+      );
+    }
 
     if (levelsWithPractice.length === 0) return [];
 
@@ -491,7 +564,7 @@ export default function ScheduleScreen() {
           blocks,
         };
       });
-  }, [schedules, selectedDay, rotationBlocks, gridSettings]);
+  }, [schedules, selectedDay, rotationBlocks, gridSettings, scheduleFilters]);
 
   return (
     <View style={[styles.container, { backgroundColor: t.background }]}>

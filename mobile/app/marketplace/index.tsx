@@ -123,6 +123,8 @@ export default function MarketplaceScreen() {
   });
 
   const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
+  const isAthlete = currentMember?.role === 'athlete' || currentMember?.role === 'gymnast';
 
   useEffect(() => {
     if (currentHub?.id) {
@@ -553,14 +555,16 @@ export default function MarketplaceScreen() {
         )}
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <TouchableOpacity
-        style={[styles.fab, { backgroundColor: t.primary }]}
-        onPress={() => setShowCreateModal(true)}
-        activeOpacity={0.8}
-      >
-        <Plus size={24} color={colors.white} />
-      </TouchableOpacity>
+      {/* Floating Action Button — hidden for athletes (view only) */}
+      {!isAthlete && (
+        <TouchableOpacity
+          style={[styles.fab, { backgroundColor: t.primary }]}
+          onPress={() => setShowCreateModal(true)}
+          activeOpacity={0.8}
+        >
+          <Plus size={24} color={colors.white} />
+        </TouchableOpacity>
+      )}
 
       {/* Create Item Modal */}
       <Modal
