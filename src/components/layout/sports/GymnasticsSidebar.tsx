@@ -137,6 +137,9 @@ export function GymnasticsSidebar() {
         if (item.name === 'Progress Reports') {
             return ['owner', 'director', 'admin', 'coach', 'parent'].includes(currentRole || '');
         }
+        if (item.name === 'Messages' && (currentRole === 'athlete' || currentRole === 'gymnast') && hub?.settings?.allowAthleteMessaging === false) {
+            return false;
+        }
         if (!isTabEnabled(item.tabId)) return false;
         return hasPermission(item.permission);
     });

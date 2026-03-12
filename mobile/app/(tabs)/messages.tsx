@@ -368,6 +368,20 @@ export default function MessagesScreen() {
     router.push(`/chat/${channel.id}`);
   };
 
+  const isAthleteUser = currentMember?.role === 'athlete' || currentMember?.role === 'gymnast';
+
+  // Block athletes when athlete messaging is disabled
+  if (isAthleteUser && currentHub?.settings?.allowAthleteMessaging === false) {
+    return (
+      <MobileTabGuard tabId="messages">
+        <View style={[styles.container, { backgroundColor: t.background, justifyContent: 'center', alignItems: 'center' }]}>
+          <Text style={{ fontSize: 18, fontWeight: '600', color: t.text, marginBottom: 8 }}>Messaging Disabled</Text>
+          <Text style={{ fontSize: 14, color: t.textMuted, textAlign: 'center', paddingHorizontal: 32 }}>Your hub administrator has disabled athlete messaging.</Text>
+        </View>
+      </MobileTabGuard>
+    );
+  }
+
   // Show skeleton on first load (when no cached data), otherwise show cached channels immediately
   if (loading && channels.length === 0) {
     return (

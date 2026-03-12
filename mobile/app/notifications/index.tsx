@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import {
     ArrowLeft, CheckCheck, Bell, MessageCircle, Users,
     CalendarDays, Trophy, Medal, Sparkles, ClipboardCheck,
-    ShoppingBag, FolderOpen, BellOff, Briefcase, CalendarOff, GraduationCap
+    ShoppingBag, FolderOpen, BellOff, Briefcase, CalendarOff, GraduationCap, FileText
 } from 'lucide-react-native';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { colors } from '../../src/constants/colors';
@@ -35,6 +35,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, typeof MessageCircle> = {
     staff_task: Briefcase,
     staff_time_off: CalendarOff,
     private_lesson: GraduationCap,
+    progress_report: FileText,
 };
 
 const NOTIFICATION_COLORS: Record<NotificationType, { bg: string; text: string }> = {
@@ -50,6 +51,7 @@ const NOTIFICATION_COLORS: Record<NotificationType, { bg: string; text: string }
     staff_task: { bg: colors.blue[50], text: colors.blue[600] },
     staff_time_off: { bg: colors.amber[50], text: colors.amber[600] },
     private_lesson: { bg: colors.brand[50], text: colors.brand[600] },
+    progress_report: { bg: colors.brand[50], text: colors.brand[600] },
 };
 
 function navigateToNotification(notification: ActivityNotification) {
@@ -84,6 +86,13 @@ function navigateToNotification(notification: ActivityNotification) {
             break;
         case 'lesson_booking':
             router.push('/private-lessons/' as never);
+            break;
+        case 'progress_report':
+            if (notification.reference_id) {
+                router.push(`/progress-reports/${notification.reference_id}` as never);
+            } else {
+                router.push('/progress-reports' as never);
+            }
             break;
     }
 }

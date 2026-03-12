@@ -26,10 +26,10 @@ interface StaffMember {
 interface StaffCardProps {
     member: StaffMember;
     getRoleBadgeColor: (role: string) => string;
-    isParentView?: boolean;
+    isPublicView?: boolean;
 }
 
-export function StaffCard({ member, getRoleBadgeColor, isParentView }: StaffCardProps) {
+export function StaffCard({ member, getRoleBadgeColor, isPublicView }: StaffCardProps) {
     const navigate = useNavigate();
     const { hubId } = useParams();
 
@@ -81,6 +81,11 @@ export function StaffCard({ member, getRoleBadgeColor, isParentView }: StaffCard
                 </div>
             </div>
 
+            {/* Bio (public view) */}
+            {member.staff_profile?.bio && (
+                <p className="text-sm text-subtle line-clamp-2 mb-3">{member.staff_profile.bio}</p>
+            )}
+
             {/* Contact Info */}
             <div className="space-y-2 mb-4">
                 {contactEmail && (
@@ -98,7 +103,7 @@ export function StaffCard({ member, getRoleBadgeColor, isParentView }: StaffCard
             </div>
 
             {/* Status Badges (staff only) */}
-            {!isParentView && (
+            {!isPublicView && (
                 <div className="flex items-center gap-3 pt-3 border-t border-line">
                     {member.pending_tasks > 0 && (
                         <div className="flex items-center gap-1.5 text-xs">

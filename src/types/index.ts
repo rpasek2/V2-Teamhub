@@ -100,6 +100,7 @@ export interface HubSettings {
     allowParentToggle?: boolean;
     allowGymnastToggle?: boolean;
     showBirthdays?: boolean;
+    allowAthleteMessaging?: boolean;
     anonymous_reports_enabled?: boolean;
     seasonConfig?: SeasonConfig;
     skillEvents?: SkillEventsConfig;
@@ -969,7 +970,8 @@ export type NotificationType =
     | 'assignment'
     | 'marketplace_item'
     | 'resource'
-    | 'staff_task';
+    | 'staff_task'
+    | 'progress_report';
 
 export interface ActivityNotification {
     id: string;
@@ -1016,6 +1018,7 @@ export const NOTIFICATION_TYPE_TO_PREF: Record<NotificationType, keyof Omit<User
     marketplace_item: 'marketplace_enabled',
     resource: 'resources_enabled',
     staff_task: 'staff_tasks_enabled',
+    progress_report: 'messages_enabled',
 };
 
 export const NOTIFICATION_TYPE_TO_FEATURE: Record<NotificationType, NotificationFeature> = {
@@ -1029,6 +1032,7 @@ export const NOTIFICATION_TYPE_TO_FEATURE: Record<NotificationType, Notification
     marketplace_item: 'marketplace',
     resource: 'resources',
     staff_task: 'staff_tasks',
+    progress_report: 'messages',
 };
 
 // ============================================

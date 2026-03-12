@@ -1,8 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FileText, Plus, Eye, Trash2, Send } from 'lucide-react';
 import { format } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
+import { useAuth } from '../context/AuthContext';
 import { useRoleChecks } from '../hooks/useRoleChecks';
 import { CreateReportModal } from '../components/progress-reports/CreateReportModal';
 import { ReportPreview } from '../components/progress-reports/ReportPreview';
@@ -25,7 +27,9 @@ interface ProgressReport {
 
 export function ProgressReports() {
     const { hub, linkedGymnasts } = useHub();
+    const { user } = useAuth();
     const { isParent, canEdit } = useRoleChecks();
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [reports, setReports] = useState<ProgressReport[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,6 +40,18 @@ export function ProgressReports() {
     useEffect(() => {
         if (hub) fetchReports();
     }, [hub]);
+
+    // Auto-open report from URL param (e.g. ?view=reportId)
+    useEffect(() => {
+        const viewId = searchParams.get('view');
+        if (viewId && reports.length > 0 && !viewingReport) {
+            const report = reports.find(r => r.id === viewId);
+            if (report) {
+                setViewingReport(report);
+                setSearchParams({}, { replace: true });
+            }
+        }
+    }, [searchParams, reports]);
 
     const fetchReports = async () => {
         if (!hub) return;
@@ -69,11 +85,55 @@ export function ProgressReports() {
     };
 
     const handlePublish = async (report: ProgressReport) => {
+        if (!hub || !user) return;
         const { error } = await supabase
             .from('progress_reports')
             .update({ status: 'published', published_at: new Date().toISOString() })
             .eq('id', report.id);
-        if (!error) fetchReports();
+        if (error) return;
+
+        // Notify parents linked to this gymnast
+        const gymnastName = report.gymnast_profiles
+            ? `${report.gymnast_profiles.first_name} ${report.gymnast_profiles.last_name}`
+            : 'your gymnast';
+
+        // Find parent users linked via guardian email
+        const { data: gymnast } = await supabase
+            .from('gymnast_profiles')
+            .select('guardian_1, guardian_2')
+            .eq('id', report.gymnast_profile_id)
+            .single();
+
+        if (gymnast) {
+            const guardianEmails: string[] = [];
+            if (gymnast.guardian_1?.email) guardianEmails.push(gymnast.guardian_1.email.toLowerCase());
+            if (gymnast.guardian_2?.email) guardianEmails.push(gymnast.guardian_2.email.toLowerCase());
+
+            if (guardianEmails.length > 0) {
+                // Find user IDs for these guardian emails
+                const { data: parentProfiles } = await supabase
+                    .from('profiles')
+                    .select('id, email')
+                    .in('email', guardianEmails);
+
+                if (parentProfiles && parentProfiles.length > 0) {
+                    const notifications = parentProfiles.map(p => ({
+                        hub_id: hub.id,
+                        user_id: p.id,
+                        type: 'progress_report',
+                        title: `Progress report for ${gymnastName}`,
+                        body: report.title,
+                        actor_id: user.id,
+                        reference_id: report.id,
+                        reference_type: 'progress_report',
+                        is_read: false,
+                    }));
+                    await supabase.from('notifications').insert(notifications);
+                }
+            }
+        }
+
+        fetchReports();
     };
 
     const filteredReports = useMemo(() => {

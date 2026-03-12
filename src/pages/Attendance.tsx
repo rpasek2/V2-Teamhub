@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { UserCheck, BarChart3 } from 'lucide-react';
 import { useRoleChecks } from '../hooks/useRoleChecks';
+import { useHub } from '../context/HubContext';
 import { DailyAttendanceTab } from '../components/attendance/DailyAttendanceTab';
 import { AttendanceMetricsTab } from '../components/attendance/AttendanceMetricsTab';
 
 type AttendanceTab = 'daily' | 'metrics';
 
 export function Attendance() {
-    const { isStaff, canManage } = useRoleChecks();
+    const { canManage } = useRoleChecks();
+    const { getPermissionScope } = useHub();
     const [activeTab, setActiveTab] = useState<AttendanceTab>('daily');
 
-    if (!isStaff) {
+    if (getPermissionScope('attendance') === 'none') {
         return (
             <div className="flex items-center justify-center h-64">
                 <p className="text-faint">You don't have permission to view this page.</p>

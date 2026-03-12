@@ -94,6 +94,8 @@ export default function SkillsScreen() {
   const isStaff = useHubStore((state) => state.isStaff);
   const canEdit = useHubStore((state) => state.canEdit);
   const isParent = useHubStore((state) => state.isParent);
+  const getPermissionScope = useHubStore((state) => state.getPermissionScope);
+  const skillsScope = getPermissionScope('skills');
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export default function SkillsScreen() {
   useEffect(() => {
     if (levels.length > 0 && !selectedLevel) {
       // For parents, use their linked gymnast's level
-      if (isParent() && linkedGymnasts.length > 0 && linkedGymnasts[0].level) {
+      if (isParent() && skillsScope === 'own' && linkedGymnasts.length > 0 && linkedGymnasts[0].level) {
         setSelectedLevel(linkedGymnasts[0].level);
       } else {
         setSelectedLevel(levels[0]);
@@ -193,8 +195,8 @@ export default function SkillsScreen() {
       .eq('hub_id', currentHub.id)
       .eq('level', selectedLevel);
 
-    // Parents only see linked gymnasts
-    if (isParent() && linkedGymnasts.length > 0) {
+    // Parents with 'own' scope only see linked gymnasts
+    if (skillsScope === 'own' && isParent() && linkedGymnasts.length > 0) {
       const linkedIds = linkedGymnasts.map((g) => g.id);
       query = query.in('id', linkedIds);
     }

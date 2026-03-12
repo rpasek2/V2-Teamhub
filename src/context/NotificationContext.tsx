@@ -180,7 +180,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
                 if (disabledTypes.length > 0) {
                     // Filter out disabled types - use NOT IN by filtering for enabled types
-                    const allTypes = ['message', 'post', 'event', 'competition', 'score', 'skill', 'assignment', 'marketplace_item', 'resource'];
+                    const allTypes = ['message', 'post', 'event', 'competition', 'score', 'skill', 'assignment', 'marketplace_item', 'resource', 'staff_task', 'staff_time_off', 'private_lesson', 'progress_report'];
                     const enabledTypes = allTypes.filter(t => !disabledTypes.includes(t));
                     if (enabledTypes.length > 0) {
                         query = query.in('type', enabledTypes);

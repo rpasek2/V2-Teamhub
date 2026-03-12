@@ -7,7 +7,7 @@ import { NotificationSettings } from './NotificationSettings';
 import {
     Bell, MessageCircle, Users, CalendarDays, Trophy, Medal,
     Sparkles, ClipboardCheck, ShoppingBag, FolderOpen, Settings,
-    CheckCheck, Loader2, BellOff, ListTodo
+    CheckCheck, Loader2, BellOff, ListTodo, FileText
 } from 'lucide-react';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import type { ActivityNotification, NotificationType } from '../../types';
@@ -23,6 +23,7 @@ const NOTIFICATION_ICONS: Record<NotificationType, typeof MessageCircle> = {
     marketplace_item: ShoppingBag,
     resource: FolderOpen,
     staff_task: ListTodo,
+    progress_report: FileText,
 };
 
 const NOTIFICATION_COLORS: Record<NotificationType, string> = {
@@ -36,6 +37,7 @@ const NOTIFICATION_COLORS: Record<NotificationType, string> = {
     marketplace_item: 'bg-orange-50 text-orange-600',
     resource: 'bg-surface-hover text-subtle',
     staff_task: 'bg-teal-50 text-teal-600',
+    progress_report: 'bg-accent-50 text-accent-600',
 };
 
 function getNotificationRoute(notification: ActivityNotification): string {
@@ -49,6 +51,7 @@ function getNotificationRoute(notification: ActivityNotification): string {
         case 'marketplace_item': return 'marketplace';
         case 'resource': return 'resources';
         case 'staff_task': return 'staff';
+        case 'progress_report': return `progress-reports?view=${notification.reference_id}`;
         default: return '';
     }
 }

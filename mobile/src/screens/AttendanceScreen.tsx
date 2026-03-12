@@ -91,6 +91,7 @@ export function AttendanceScreen() {
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const canEditData = useHubStore((state) => state.canEdit);
   const isParent = useHubStore((state) => state.isParent);
+  const getPermissionScope = useHubStore((state) => state.getPermissionScope);
   const user = useAuthStore((state) => state.user);
 
   const canManage = canEditData();
@@ -185,7 +186,8 @@ export function AttendanceScreen() {
     const result: GymnastWithAttendance[] = [];
     const todaysSchedules = practiceSchedules.filter((s) => s.day_of_week === selectedDayOfWeek);
 
-    const relevantGymnasts = isParent() && linkedGymnasts.length > 0
+    const attendanceScope = getPermissionScope('attendance');
+    const relevantGymnasts = attendanceScope === 'own' && isParent() && linkedGymnasts.length > 0
       ? gymnasts.filter((g) => linkedGymnasts.some((lg) => lg.id === g.id))
       : gymnasts;
 

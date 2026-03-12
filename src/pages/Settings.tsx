@@ -8,7 +8,7 @@ import {
     Loader2, Trash2, MessageSquare, UserPlus, Building2, User, Info, Users,
     AlertTriangle, Cake, ShieldAlert, Bug, MessageSquarePlus,
     Send, Palette, LayoutGrid, ListOrdered, CalendarDays, Trophy,
-    Link2, Shield, Award, SlidersHorizontal, Megaphone
+    Link2, Shield, Award, SlidersHorizontal, Megaphone, MessageCircleOff
 } from 'lucide-react';
 import type { HubPermissions, HubFeatureTab, SeasonConfig } from '../types';
 import { HUB_FEATURE_TABS } from '../types';
@@ -66,6 +66,7 @@ export function Settings() {
 
     // Messaging settings state
     const [anonymousReportsEnabled, setAnonymousReportsEnabled] = useState(true);
+    const [allowAthleteMessaging, setAllowAthleteMessaging] = useState(true);
     const [savingMessagingSettings, setSavingMessagingSettings] = useState(false);
     const [messagingSettingsMessage, setMessagingSettingsMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -120,6 +121,12 @@ export function Settings() {
             setAnonymousReportsEnabled(hub.settings.anonymous_reports_enabled);
         } else {
             setAnonymousReportsEnabled(true);
+        }
+
+        if (hub?.settings?.allowAthleteMessaging !== undefined) {
+            setAllowAthleteMessaging(hub.settings.allowAthleteMessaging);
+        } else {
+            setAllowAthleteMessaging(true);
         }
 
         if (hub?.settings?.seasonConfig) {
@@ -222,6 +229,37 @@ export function Settings() {
             setAnonymousReportsEnabled(newValue);
             await refreshHub();
             setMessagingSettingsMessage({ type: 'success', text: `Anonymous reports ${newValue ? 'enabled' : 'disabled'}.` });
+        } catch (err: unknown) {
+            console.error('Error saving messaging settings:', err);
+            setMessagingSettingsMessage({ type: 'error', text: 'Failed to save messaging settings.' });
+        } finally {
+            setSavingMessagingSettings(false);
+        }
+    };
+
+    const handleToggleAthleteMessaging = async () => {
+        if (!hub) return;
+        setSavingMessagingSettings(true);
+        setMessagingSettingsMessage(null);
+
+        const newValue = !allowAthleteMessaging;
+
+        try {
+            const updatedSettings = {
+                ...hub.settings,
+                allowAthleteMessaging: newValue
+            };
+
+            const { error } = await supabase
+                .from('hubs')
+                .update({ settings: updatedSettings })
+                .eq('id', hub.id);
+
+            if (error) throw error;
+
+            setAllowAthleteMessaging(newValue);
+            await refreshHub();
+            setMessagingSettingsMessage({ type: 'success', text: `Athlete messaging ${newValue ? 'enabled' : 'disabled'}.` });
         } catch (err: unknown) {
             console.error('Error saving messaging settings:', err);
             setMessagingSettingsMessage({ type: 'error', text: 'Failed to save messaging settings.' });
@@ -643,6 +681,35 @@ export function Settings() {
                                     <span
                                         className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
                                             anonymousReportsEnabled ? 'translate-x-5' : 'translate-x-0'
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+
+                            {/* Athlete Messaging Toggle */}
+                            <div className="flex items-center justify-between p-4 bg-surface-alt rounded-xl border border-line">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-blue-500/10 rounded-lg">
+                                        <MessageCircleOff className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-medium text-heading">Athlete Messaging</p>
+                                        <p className="text-xs text-muted">Allow athletes to send and receive messages</p>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    role="switch"
+                                    aria-checked={allowAthleteMessaging}
+                                    onClick={handleToggleAthleteMessaging}
+                                    disabled={savingMessagingSettings}
+                                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 disabled:opacity-50 ${
+                                        allowAthleteMessaging ? 'bg-accent-600' : 'bg-surface-active'
+                                    }`}
+                                >
+                                    <span
+                                        className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-surface shadow ring-0 transition duration-200 ease-in-out ${
+                                            allowAthleteMessaging ? 'translate-x-5' : 'translate-x-0'
                                         }`}
                                     />
                                 </button>

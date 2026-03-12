@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { format } from 'date-fns';
 import { useHub } from '../../context/HubContext';
 import { useAssignmentsByGymnasts } from '../../hooks/useAssignments';
+import { supabase } from '../../lib/supabase';
 import { DateNavigator } from './DateNavigator';
 import { AssignmentCard } from './AssignmentCard';
 import { ProgressBar, ProgressRing } from './ProgressBar';
@@ -13,11 +14,27 @@ interface ParentDashboardProps {
 }
 
 export function ParentDashboard({ onAssignmentClick }: ParentDashboardProps) {
-    const { linkedGymnasts } = useHub();
+    const { hub, linkedGymnasts, getPermissionScope } = useHub();
+    const assignmentsScope = getPermissionScope('assignments');
     const [date, setDate] = useState(new Date());
+    const [allGymnastIds, setAllGymnastIds] = useState<string[]>([]);
+
+    // When scope is 'all', fetch all gymnast IDs in the hub
+    useEffect(() => {
+        if (assignmentsScope === 'all' && hub?.id) {
+            supabase
+                .from('gymnast_profiles')
+                .select('id')
+                .eq('hub_id', hub.id)
+                .then(({ data }) => {
+                    setAllGymnastIds(data?.map(g => g.id) || []);
+                });
+        }
+    }, [assignmentsScope, hub?.id]);
 
     const dateString = format(date, 'yyyy-MM-dd');
-    const gymnastIds = useMemo(() => linkedGymnasts.map(g => g.id), [linkedGymnasts]);
+    const linkedGymnastIds = useMemo(() => linkedGymnasts.map(g => g.id), [linkedGymnasts]);
+    const gymnastIds = assignmentsScope === 'all' ? allGymnastIds : linkedGymnastIds;
 
     const { assignments, loading } = useAssignmentsByGymnasts({
         gymnastIds,

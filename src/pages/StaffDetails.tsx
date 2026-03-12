@@ -83,7 +83,9 @@ export function StaffDetails() {
         return currentRole ? staffRoles.includes(currentRole) : false;
     }, [currentRole]);
 
-    const isParentView = !isStaff;
+    // Public view: non-staff or admin (admin sees profile + certifications only)
+    const canManage = ['owner', 'director'].includes(currentRole || '');
+    const isPublicView = !canManage;
     const showMessageButton = !isSelf && staffMember?.user_id;
 
     const handleMessageClick = async () => {
@@ -244,7 +246,7 @@ export function StaffDetails() {
     const enabledTabsList = hub?.settings?.enabledTabs;
     const parentVisibleTabs: TabType[] = ['profile', 'certifications'];
     const visibleTabs = tabs.filter(tab => {
-        if (isParentView) return parentVisibleTabs.includes(tab.id);
+        if (isPublicView) return parentVisibleTabs.includes(tab.id);
         if (tab.ownerOnly && !isOwner) return false;
         if (tab.id === 'schedule' && !isTabEnabled('schedule', enabledTabsList)) return false;
         return true;
@@ -561,7 +563,7 @@ export function StaffDetails() {
                                     </div>
 
                                     {/* Birthday & Hire Date (staff only) */}
-                                    {!isParentView && (staffMember.profile?.date_of_birth || staffMember.staff_profile?.hire_date) && (
+                                    {!isPublicView && (staffMember.profile?.date_of_birth || staffMember.staff_profile?.hire_date) && (
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {staffMember.profile?.date_of_birth && (
                                                 <div>
@@ -590,7 +592,7 @@ export function StaffDetails() {
                                     )}
 
                                     {/* Emergency Contact (staff only) */}
-                                    {!isParentView && (
+                                    {!isPublicView && (
                                         <div className="pt-4 border-t border-line">
                                             <div className="flex items-center gap-2 mb-3">
                                                 <AlertCircle className="w-4 h-4 text-red-500" />

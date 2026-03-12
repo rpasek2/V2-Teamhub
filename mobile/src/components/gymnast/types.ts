@@ -119,7 +119,7 @@ export interface Assessment {
   injuries: string | null;
 }
 
-export type Tab = 'overview' | 'goals' | 'assessment' | 'skills' | 'scores' | 'attendance' | 'assignments';
+export type Tab = 'overview' | 'goals' | 'assessment' | 'skills' | 'scores' | 'attendance' | 'assignments' | 'progress_reports';
 
 export interface AttendanceStats {
   present: number;

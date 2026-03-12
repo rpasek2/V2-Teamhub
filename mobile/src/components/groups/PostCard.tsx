@@ -52,11 +52,13 @@ interface PostCardProps {
   onDeleted: () => void;
   onCommentAdded: () => void;
   onPinToggle?: (postId: string, isPinned: boolean) => void;
+  expanded?: boolean;
+  onPress?: () => void;
 }
 
-export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCommentAdded, onPinToggle }: PostCardProps) {
+export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCommentAdded, onPinToggle, expanded: forceExpanded, onPress }: PostCardProps) {
   const { t, isDark } = useTheme();
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(!!forceExpanded);
   const [comments, setComments] = useState<Comment[]>([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [newComment, setNewComment] = useState('');
@@ -88,6 +90,9 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
   useEffect(() => {
     fetchReactions();
     fetchViewCount();
+    if (forceExpanded) {
+      handleToggleComments();
+    }
   }, [post.id]);
 
   const fetchViewCount = async () => {
@@ -448,12 +453,27 @@ export function PostCard({ post, currentUserId, isAdmin = false, onDeleted, onCo
             </TouchableOpacity>
           </View>
         </View>
+      ) : forceExpanded ? (
+        <LinkifiedText
+          text={displayContent}
+          style={[styles.content, { color: t.textSecondary }]}
+        />
       ) : (
         <>
           <TouchableOpacity
-            activeOpacity={needsTruncation && !expanded ? 0.7 : 1}
-            onPress={() => { if (needsTruncation && !expanded) setExpanded(true); }}
-            disabled={expanded || !needsTruncation}
+            activeOpacity={0.7}
+            onPress={() => {
+              if (needsTruncation && !expanded) {
+                // Navigate to detail instead of expanding inline
+                if (onPress) {
+                  onPress();
+                } else {
+                  setExpanded(true);
+                }
+              } else if (onPress) {
+                onPress();
+              }
+            }}
           >
             <LinkifiedText
               text={displayContent}

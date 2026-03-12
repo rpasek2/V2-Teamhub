@@ -124,9 +124,10 @@ export default function ScoresScreen() {
 
   const currentHub = useHubStore((state) => state.currentHub);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
-  const isStaff = useHubStore((state) => state.isStaff);
   const canEditData = useHubStore((state) => state.canEdit);
   const isParent = useHubStore((state) => state.isParent);
+  const getPermissionScope = useHubStore((state) => state.getPermissionScope);
+  const scoresScope = getPermissionScope('scores');
   const user = useAuthStore((state) => state.user);
 
   const events: GymEvent[] = activeGender === 'Female' ? WAG_EVENTS : MAG_EVENTS;
@@ -248,14 +249,14 @@ export default function ScoresScreen() {
   const filteredGymnasts = useMemo(() => {
     let result = gymnasts.filter((g) => g.gender === activeGender);
 
-    // For parents, filter to only linked gymnasts
-    if (isParent() && !isStaff() && linkedGymnasts.length > 0) {
+    // For 'own' scope, filter to only linked gymnasts
+    if (scoresScope === 'own' && isParent() && linkedGymnasts.length > 0) {
       const linkedIds = linkedGymnasts.map((lg) => lg.id);
       result = result.filter((g) => linkedIds.includes(g.id));
     }
 
     return result;
-  }, [gymnasts, activeGender, isParent, isStaff, linkedGymnasts]);
+  }, [gymnasts, activeGender, scoresScope, isParent, linkedGymnasts]);
 
   // Get score for a gymnast and event
   const getScore = (gymnastId: string, event: string) => {

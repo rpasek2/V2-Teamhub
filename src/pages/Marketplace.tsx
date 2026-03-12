@@ -133,8 +133,7 @@ export default function Marketplace() {
     const hasLinkedHubs = linkedHubIds.length > 0;
 
     const canModerate = useMemo(() => {
-        const staffRoles = ['owner', 'director', 'admin', 'coach'];
-        return currentRole ? staffRoles.includes(currentRole) : false;
+        return ['owner', 'director'].includes(currentRole || '');
     }, [currentRole]);
 
     const handleItemUpdated = () => {

@@ -107,6 +107,14 @@ export const usePushNotificationStore = create<PushNotificationState>((set, get)
 
       set({ expoPushToken: token });
 
+      // Deactivate old tokens for this user+platform before upserting new one
+      await supabase
+        .from('user_push_tokens')
+        .update({ is_active: false, updated_at: new Date().toISOString() })
+        .eq('user_id', userId)
+        .eq('platform', Platform.OS)
+        .neq('token', token);
+
       // Upsert token to Supabase
       const { error } = await supabase
         .from('user_push_tokens')
@@ -254,6 +262,13 @@ export function navigateToDeepLink(data: DeepLinkData) {
       break;
     case 'private_lesson':
       router.push('/private-lessons/' as never);
+      break;
+    case 'progress_report':
+      if (data.reference_id) {
+        router.push(`/progress-reports/${data.reference_id}` as never);
+      } else {
+        router.push('/progress-reports' as never);
+      }
       break;
     default:
       router.push('/(tabs)/' as never);

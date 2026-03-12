@@ -32,6 +32,7 @@ interface Group {
   name: string;
   description: string | null;
   type: 'public' | 'private';
+  created_by: string | null;
 }
 
 interface Post {
@@ -56,6 +57,7 @@ export default function GroupDetailsScreen() {
   const user = useAuthStore((state) => state.user);
   const currentHub = useHubStore((state) => state.currentHub);
   const isStaff = useHubStore((state) => state.isStaff);
+  const currentMember = useHubStore((state) => state.currentMember);
   const fetchNotificationCounts = useNotificationStore((state) => state.fetchNotificationCounts);
   const resetDebounce = useNotificationStore((state) => state.resetDebounce);
 
@@ -115,7 +117,7 @@ export default function GroupDetailsScreen() {
 
     const { data, error } = await supabase
       .from('groups')
-      .select('id, name, description, type')
+      .select('id, name, description, type, created_by')
       .eq('id', groupId)
       .single();
 
@@ -155,10 +157,24 @@ export default function GroupDetailsScreen() {
       setIsGroupAdmin(data.role === 'admin');
     }
 
-    if (isStaff()) {
-      // Staff can always post and access admin features
+    const role = currentMember?.role;
+    if (['owner', 'director'].includes(role || '')) {
+      // Owner/Director: admin of all groups
       setIsMember(true);
       setIsGroupAdmin(true);
+    } else if (role === 'admin') {
+      setIsMember(true);
+      // Check if this admin created the group
+      const { data: groupData } = await supabase
+        .from('groups')
+        .select('created_by')
+        .eq('id', groupId)
+        .single();
+      if (groupData?.created_by === user.id) {
+        setIsGroupAdmin(true);
+      }
+    } else if (role === 'coach') {
+      setIsMember(true);
     }
   };
 
@@ -361,13 +377,19 @@ export default function GroupDetailsScreen() {
     <PostCard
       post={item}
       currentUserId={user?.id || ''}
-      isAdmin={isStaff()}
+      isAdmin={isGroupAdmin}
       onDeleted={() => handlePostDeleted(item.id)}
       onCommentAdded={() => {
         // Refresh to get updated comment count
         fetchPosts();
       }}
       onPinToggle={handlePinToggle}
+      onPress={() => {
+        router.push({
+          pathname: '/group/post-detail' as any,
+          params: { postId: item.id, groupId: groupId as string },
+        });
+      }}
     />
   );
 

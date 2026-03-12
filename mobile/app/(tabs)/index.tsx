@@ -97,6 +97,13 @@ interface RecentSkillChange {
   updatedAt: string;
 }
 
+interface RecentProgressReport {
+  id: string;
+  title: string;
+  gymnastName: string;
+  publishedAt: string;
+}
+
 // Get time-based greeting
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -134,6 +141,7 @@ export default function DashboardScreen() {
   const currentMember = useHubStore((state) => state.currentMember);
   const linkedGymnasts = useHubStore((state) => state.linkedGymnasts);
   const isStaff = useHubStore((state) => state.isStaff);
+  const hasPermission = useHubStore((state) => state.hasPermission);
   const user = useAuthStore((state) => state.user);
   const { fetchUnreadCount, fetchPreferences } = useActivityFeedStore();
 
@@ -152,6 +160,7 @@ export default function DashboardScreen() {
   const [linkedGymnastInfo, setLinkedGymnastInfo] = useState<LinkedGymnastInfo[]>([]);
   const [recentScores, setRecentScores] = useState<RecentScore[]>([]);
   const [recentSkillChanges, setRecentSkillChanges] = useState<RecentSkillChange[]>([]);
+  const [recentProgressReports, setRecentProgressReports] = useState<RecentProgressReport[]>([]);
 
   // Staff tasks
   const [myTasks, setMyTasks] = useState<{ id: string; title: string; description: string | null; due_date: string | null; priority: 'low' | 'medium' | 'high' | 'urgent'; status: 'pending' | 'in_progress' | 'completed'; assigned_by: string | null; created_at: string }[]>([]);
@@ -262,8 +271,8 @@ export default function DashboardScreen() {
     const gymnastIds = linkedGymnasts.map(g => g.id);
     const sevenDaysAgo = subDays(new Date(), 7).toISOString();
 
-    // Fetch scores and skills in parallel
-    const [scoresResult, skillsResult] = await Promise.all([
+    // Fetch scores, skills, and progress reports in parallel
+    const [scoresResult, skillsResult, reportsResult] = await Promise.all([
       supabase
         .from('competition_scores')
         .select(`
@@ -286,6 +295,17 @@ export default function DashboardScreen() {
         .gte('updated_at', sevenDaysAgo)
         .order('updated_at', { ascending: false })
         .limit(5),
+      supabase
+        .from('progress_reports')
+        .select(`
+          id, title, published_at,
+          gymnast_profiles!gymnast_profile_id(first_name, last_name)
+        `)
+        .eq('hub_id', currentHub.id)
+        .eq('status', 'published')
+        .in('gymnast_profile_id', gymnastIds)
+        .order('published_at', { ascending: false })
+        .limit(3),
     ]);
 
     if (scoresResult.data) {
@@ -311,6 +331,19 @@ export default function DashboardScreen() {
         updatedAt: s.updated_at,
       }));
       setRecentSkillChanges(skills);
+    }
+
+    if (reportsResult.data) {
+      const reports: RecentProgressReport[] = reportsResult.data.map((r: any) => {
+        const gymnast = Array.isArray(r.gymnast_profiles) ? r.gymnast_profiles[0] : r.gymnast_profiles;
+        return {
+          id: r.id,
+          title: r.title,
+          gymnastName: gymnast ? `${gymnast.first_name} ${gymnast.last_name}` : '',
+          publishedAt: r.published_at,
+        };
+      });
+      setRecentProgressReports(reports);
     }
   }, [currentHub, user, linkedGymnasts]);
 
@@ -636,6 +669,38 @@ export default function DashboardScreen() {
         </View>
       )}
 
+      {/* Parent: Recent Progress Reports */}
+      {isParentRole && recentProgressReports.length > 0 && (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: t.text }]}>Progress Reports</Text>
+            <TouchableOpacity onPress={() => router.push('/progress-reports' as any)}>
+              <Text style={[styles.seeAllLink, { color: t.primary }]}>View All</Text>
+            </TouchableOpacity>
+          </View>
+          {recentProgressReports.map((report) => (
+            <TouchableOpacity
+              key={report.id}
+              style={[styles.reportCard, { backgroundColor: t.surface, borderColor: t.border }]}
+              activeOpacity={0.7}
+              onPress={() => router.push(`/progress-reports/${report.id}` as any)}
+            >
+              <View style={[styles.reportCardIcon, { backgroundColor: `${t.primary}15` }]}>
+                <FileText size={20} color={t.primary} />
+              </View>
+              <View style={styles.reportCardInfo}>
+                <Text style={[styles.reportCardTitle, { color: t.text }]} numberOfLines={1}>{report.title}</Text>
+                <Text style={[styles.reportCardMeta, { color: t.textMuted }]}>
+                  {linkedGymnastInfo.length > 1 ? `${report.gymnastName} · ` : ''}
+                  {report.publishedAt ? format(parseISO(report.publishedAt), 'MMM d, yyyy') : ''}
+                </Text>
+              </View>
+              <ChevronRight size={18} color={t.textFaint} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+
       {/* Staff: Active Announcements */}
       {isStaff() && <ActiveAnnouncementsCard key={announcementKey} />}
 
@@ -685,7 +750,7 @@ export default function DashboardScreen() {
       )}
 
       {/* Parent: Recent Scores */}
-      {isParentRole && recentScores.length > 0 && isTabEnabled('scores', currentHub?.settings?.enabledTabs) && (
+      {isParentRole && recentScores.length > 0 && isTabEnabled('scores', currentHub?.settings?.enabledTabs) && hasPermission('scores') && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: t.text }]}>Recent Scores</Text>
@@ -724,7 +789,7 @@ export default function DashboardScreen() {
       )}
 
       {/* Parent: Skill Updates */}
-      {isParentRole && recentSkillChanges.length > 0 && isTabEnabled('skills', currentHub?.settings?.enabledTabs) && (
+      {isParentRole && recentSkillChanges.length > 0 && isTabEnabled('skills', currentHub?.settings?.enabledTabs) && hasPermission('skills') && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: t.text }]}>Skill Updates</Text>
@@ -1154,5 +1219,33 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.slate[400],
     marginTop: 12,
+  },
+  // Progress Report Card
+  reportCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 12,
+    borderWidth: 1,
+    padding: 14,
+    marginBottom: 8,
+  },
+  reportCardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reportCardInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  reportCardTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  reportCardMeta: {
+    fontSize: 13,
+    marginTop: 2,
   },
 });

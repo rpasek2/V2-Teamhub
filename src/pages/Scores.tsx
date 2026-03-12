@@ -18,9 +18,10 @@ interface CompetitionWithGymnasts extends Competition {
 }
 
 export function Scores() {
-    const { hub, linkedGymnasts } = useHub();
+    const { hub, linkedGymnasts, getPermissionScope } = useHub();
     const { markAsViewed } = useNotifications();
-    const { isStaff, isParent, canEdit } = useRoleChecks();
+    const { canEdit } = useRoleChecks();
+    const scoresScope = getPermissionScope('scores');
     const [competitions, setCompetitions] = useState<CompetitionWithGymnasts[]>([]);
     const [selectedCompetition, setSelectedCompetition] = useState<CompetitionWithGymnasts | null>(null);
     const [activeGender, setActiveGender] = useState<'Female' | 'Male'>('Female');
@@ -242,7 +243,7 @@ export function Scores() {
                                 hubId={hub.id}
                                 seasonId={selectedSeasonId}
                                 gender={activeGender}
-                                isParent={isParent}
+                                scoresScope={scoresScope}
                                 linkedGymnasts={linkedGymnasts}
                                 levels={getLevels()}
                                 genderGymnastIds={genderGymnastIds}
@@ -333,9 +334,8 @@ export function Scores() {
                                 teamPlacements={teamPlacements}
                                 levels={getLevels()}
                                 gender={activeGender}
-                                isStaff={isStaff}
+                                scoresScope={scoresScope}
                                 canEdit={canEdit}
-                                isParent={isParent}
                                 userGymnastIds={userGymnastIds}
                                 ageGroupMap={ageGroupMap}
                                 onScoresUpdated={fetchScores}

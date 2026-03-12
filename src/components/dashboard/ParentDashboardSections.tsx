@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Trophy, Sparkles, MessageSquare, ShoppingBag } from 'lucide-react';
+import { Trophy, Sparkles, MessageSquare, ShoppingBag, FileText } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
@@ -53,14 +53,23 @@ interface AssignmentProgress {
     completedItems: number;
 }
 
+interface RecentProgressReport {
+    id: string;
+    title: string;
+    gymnastName: string;
+    publishedAt: string;
+}
+
 interface ParentDashboardSectionsProps {
     assignmentProgress: AssignmentProgress[];
     recentScores: RecentScore[];
     recentSkillChanges: RecentSkillChange[];
     recentGroupPosts: RecentGroupPost[];
     recentMarketplaceItems: RecentMarketplaceItem[];
+    recentProgressReports: RecentProgressReport[];
     linkedGymnastCount: number;
     enabledTabs: string[] | undefined;
+    hasPermission: (feature: string) => boolean;
 }
 
 // Gymnastics event label helper
@@ -83,13 +92,51 @@ export function ParentDashboardSections({
     recentSkillChanges,
     recentGroupPosts,
     recentMarketplaceItems,
+    recentProgressReports,
     linkedGymnastCount,
     enabledTabs,
+    hasPermission,
 }: ParentDashboardSectionsProps) {
     return (
         <>
+            {/* Progress Reports */}
+            {recentProgressReports.length > 0 && (
+                <div className="mb-6">
+                    <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-lg font-semibold text-heading">Progress Reports</h2>
+                        <Link to="progress-reports" className="text-sm text-accent-600 hover:text-accent-700">
+                            View All
+                        </Link>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {recentProgressReports.map((report) => (
+                            <Link
+                                key={report.id}
+                                to={`progress-reports?view=${report.id}`}
+                                className="card p-4 hover:border-accent-500/50 transition-colors group"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent-500/10 flex-shrink-0">
+                                        <FileText className="h-5 w-5 text-accent-600" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold text-heading group-hover:text-accent-600 transition-colors truncate">
+                                            {report.title}
+                                        </p>
+                                        <p className="text-xs text-muted mt-0.5">
+                                            {linkedGymnastCount > 1 ? `${report.gymnastName} · ` : ''}
+                                            {format(parseISO(report.publishedAt), 'MMM d, yyyy')}
+                                        </p>
+                                    </div>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Today's Assignment Progress */}
-            {assignmentProgress.length > 0 && isTabEnabled('assignments', enabledTabs) && (
+            {assignmentProgress.length > 0 && isTabEnabled('assignments', enabledTabs) && hasPermission('assignments') && (
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-heading">Today's Assignments</h2>
@@ -135,7 +182,7 @@ export function ParentDashboardSections({
             )}
 
             {/* Recent Scores */}
-            {recentScores.length > 0 && isTabEnabled('scores', enabledTabs) && (
+            {recentScores.length > 0 && isTabEnabled('scores', enabledTabs) && hasPermission('scores') && (
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-heading">Recent Scores</h2>
@@ -175,7 +222,7 @@ export function ParentDashboardSections({
             )}
 
             {/* Recent Skill Changes */}
-            {recentSkillChanges.length > 0 && isTabEnabled('skills', enabledTabs) && (
+            {recentSkillChanges.length > 0 && isTabEnabled('skills', enabledTabs) && hasPermission('skills') && (
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-heading">Skill Updates</h2>
@@ -221,7 +268,7 @@ export function ParentDashboardSections({
 
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 mb-6">
                 {/* Recent Group Posts */}
-                {recentGroupPosts.length > 0 && isTabEnabled('groups', enabledTabs) && (
+                {recentGroupPosts.length > 0 && isTabEnabled('groups', enabledTabs) && hasPermission('groups') && (
                     <div className="card">
                         <div className="px-6 py-4 border-b border-line flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-heading">Group Posts</h2>
@@ -260,7 +307,7 @@ export function ParentDashboardSections({
                 )}
 
                 {/* Recent Marketplace Items */}
-                {recentMarketplaceItems.length > 0 && isTabEnabled('marketplace', enabledTabs) && (
+                {recentMarketplaceItems.length > 0 && isTabEnabled('marketplace', enabledTabs) && hasPermission('marketplace') && (
                     <div className="card">
                         <div className="px-6 py-4 border-b border-line flex items-center justify-between">
                             <h2 className="text-lg font-semibold text-heading">New in Marketplace</h2>

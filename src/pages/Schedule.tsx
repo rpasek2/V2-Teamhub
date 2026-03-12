@@ -1,16 +1,18 @@
 import { useState } from 'react';
 import { Calendar, Grid3X3 } from 'lucide-react';
 import { useRoleChecks } from '../hooks/useRoleChecks';
+import { useHub } from '../context/HubContext';
 import { WeeklyScheduleTab } from '../components/schedule/WeeklyScheduleTab';
 import { DailyRotationTab } from '../components/schedule/DailyRotationTab';
 
 type ScheduleTab = 'weekly' | 'rotation';
 
 export function Schedule() {
-    const { isStaff, canManage } = useRoleChecks();
+    const { canManage } = useRoleChecks();
+    const { getPermissionScope } = useHub();
     const [activeTab, setActiveTab] = useState<ScheduleTab>('weekly');
 
-    if (!isStaff) {
+    if (getPermissionScope('schedule') === 'none') {
         return (
             <div className="flex items-center justify-center h-64">
                 <p className="text-faint">You don't have permission to view this page.</p>

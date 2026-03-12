@@ -19,12 +19,12 @@ export const DEFAULT_PERMISSIONS: Record<string, Record<HubRole, PermissionScope
     skills: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', athlete: 'own' },
     scores: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', athlete: 'own' },
     competitions: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', athlete: 'own' },
-    schedule: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'none', athlete: 'none' },
-    staff: { owner: 'all', director: 'all', admin: 'all', coach: 'own', parent: 'none', athlete: 'none' },
+    schedule: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', athlete: 'all' },
+    staff: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', athlete: 'all' },
     marketplace: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', athlete: 'all' },
     mentorship: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', athlete: 'own' },
     resources: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', athlete: 'all' },
-    settings: { owner: 'all', director: 'all', admin: 'all', coach: 'none', parent: 'none', athlete: 'none' },
+    settings: { owner: 'all', director: 'all', admin: 'none', coach: 'none', parent: 'none', athlete: 'none' },
     privateLessons: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', athlete: 'none' },
 };
 

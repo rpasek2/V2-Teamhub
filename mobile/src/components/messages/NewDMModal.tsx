@@ -39,7 +39,9 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
   const [creating, setCreating] = useState(false);
 
   const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
   const user = useAuthStore((state) => state.user);
+  const isAthlete = currentMember?.role === 'athlete' || currentMember?.role === 'gymnast';
 
   useEffect(() => {
     if (isOpen) {
@@ -53,10 +55,11 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
     setLoading(true);
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('hub_members')
         .select(`
           user_id,
+          role,
           profile:profiles (
             full_name,
             email
@@ -64,6 +67,18 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
         `)
         .eq('hub_id', currentHub.id)
         .neq('user_id', user.id);
+
+      // Filter out athletes when athlete messaging is disabled
+      if (currentHub.settings?.allowAthleteMessaging === false) {
+        query = query.neq('role', 'athlete').neq('role', 'gymnast');
+      }
+
+      // Athletes can only DM other athletes and coaches
+      if (isAthlete) {
+        query = query.in('role', ['athlete', 'gymnast', 'coach']);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching members:', error);

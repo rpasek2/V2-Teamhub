@@ -34,12 +34,12 @@ export function Skills() {
     const [selectedSkillListId, setSelectedSkillListId] = useState<string>('');
     const levels = hub?.settings?.levels || [];
 
-    // Auto-select first gymnast for parents with multiple kids
+    // Auto-select first gymnast for parents in 'own' scope with multiple kids
     useEffect(() => {
-        if (isParent && linkedGymnasts.length > 0 && !selectedGymnastId) {
+        if (isParent && skillsScope === 'own' && linkedGymnasts.length > 0 && !selectedGymnastId) {
             setSelectedGymnastId(linkedGymnasts[0].id);
         }
-    }, [isParent, linkedGymnasts, selectedGymnastId]);
+    }, [isParent, skillsScope, linkedGymnasts, selectedGymnastId]);
 
     // Get events from hub settings or use defaults
     const getEventsForGender = (gender: 'Female' | 'Male'): SkillEvent[] => {
@@ -55,8 +55,9 @@ export function Skills() {
     // Get permission scope for skills
     const skillsScope = getPermissionScope('skills');
 
-    // For parents, get the selected linked gymnast's info
-    const linkedGymnast = isParent && linkedGymnasts.length > 0
+    // For parents in 'own' scope, get the selected linked gymnast's info
+    const isParentOwnScope = isParent && skillsScope === 'own';
+    const linkedGymnast = isParentOwnScope && linkedGymnasts.length > 0
         ? linkedGymnasts.find(g => g.id === selectedGymnastId) || linkedGymnasts[0]
         : null;
     const parentGender = linkedGymnast?.gender || 'Female';
@@ -66,7 +67,7 @@ export function Skills() {
     // Filter gymnasts based on permission scope
     const gymnasts = useMemo(() => {
         if (skillsScope === 'none') return [];
-        if (skillsScope === 'own' || isParent) {
+        if (skillsScope === 'own') {
             // Only show linked gymnasts
             const linkedIds = linkedGymnasts.map(g => g.id);
             return allGymnasts.filter(g => linkedIds.includes(g.id));
@@ -82,20 +83,20 @@ export function Skills() {
         }
     }, [hub, markAsViewed]);
 
-    // Set default level when hub loads (staff only)
+    // Set default level when hub loads (staff or parents with 'all' scope)
     useEffect(() => {
-        if (!isParent && levels.length > 0 && !selectedLevel) {
+        if (!isParentOwnScope && levels.length > 0 && !selectedLevel) {
             setSelectedLevel(levels[0]);
         }
-    }, [levels, selectedLevel, isParent]);
+    }, [levels, selectedLevel, isParentOwnScope]);
 
-    // For parents, use their gymnast's level
+    // For parents in 'own' scope, use their gymnast's level
     useEffect(() => {
-        if (isParent && parentLevel) {
+        if (isParentOwnScope && parentLevel) {
             setSelectedLevel(parentLevel);
             setActiveGender(parentGender as 'Female' | 'Male');
         }
-    }, [isParent, parentLevel, parentGender]);
+    }, [isParentOwnScope, parentLevel, parentGender]);
 
     // Set default event when gender changes
     useEffect(() => {
@@ -105,12 +106,12 @@ export function Skills() {
         }
     }, [activeGender, selectedEvent, hub?.settings?.skillEvents]);
 
-    // For parents, set default event based on their gymnast's gender
+    // For parents in 'own' scope, set default event based on their gymnast's gender
     useEffect(() => {
-        if (isParent && parentEvents.length > 0 && !selectedEvent) {
+        if (isParentOwnScope && parentEvents.length > 0 && !selectedEvent) {
             setSelectedEvent(parentEvents[0].id);
         }
-    }, [isParent, parentEvents, selectedEvent]);
+    }, [isParentOwnScope, parentEvents, selectedEvent]);
 
     // Fetch skill lists when hub loads (reset on hub change)
     useEffect(() => {
@@ -354,8 +355,8 @@ export function Skills() {
         );
     }
 
-    // Parent view - simplified with just gymnast name and event tabs
-    if (isParent) {
+    // Parent 'own' scope view - simplified with just gymnast name and event tabs
+    if (isParentOwnScope) {
         return (
             <div className="h-full flex flex-col">
                 <header className="flex items-center justify-between border-b border-line bg-surface px-6 py-4 rounded-t-xl">

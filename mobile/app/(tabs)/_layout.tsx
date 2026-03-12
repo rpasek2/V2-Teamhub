@@ -69,6 +69,7 @@ function TabBarIcon({
 
 export default function TabLayout() {
   const currentHub = useHubStore((state) => state.currentHub);
+  const currentMember = useHubStore((state) => state.currentMember);
   const user = useAuthStore((state) => state.user);
   const insets = useSafeAreaInsets();
   const unreadMessages = useNotificationStore((state) => state.unreadMessages);
@@ -167,6 +168,10 @@ export default function TabLayout() {
   const enabledTabsList = currentHub?.settings?.enabledTabs;
   const isTabVisible = (tabId: TabId): boolean => {
     if (!selectedTabs.includes(tabId)) return false;
+    // Hide messages for athletes when athlete messaging is disabled
+    if (tabId === 'messages' && (currentMember?.role === 'athlete' || currentMember?.role === 'gymnast') && currentHub?.settings?.allowAthleteMessaging === false) {
+      return false;
+    }
     // Also enforce hub-level enabledTabs
     return isTabEnabled(tabId, enabledTabsList);
   };

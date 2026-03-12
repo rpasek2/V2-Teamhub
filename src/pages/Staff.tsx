@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Users, Search, Loader2, LayoutGrid, UsersRound, UserPlus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useRoleChecks } from '../hooks/useRoleChecks';
+import { useHub } from '../context/HubContext';
 import { useNotificationsSafe } from '../context/NotificationContext';
 import { StaffCard } from '../components/staff/StaffCard';
 import { AddMemberModal } from '../components/hubs/AddMemberModal';
@@ -37,7 +38,9 @@ type ViewTab = 'individual' | 'team';
 export function Staff() {
     const { hubId } = useParams();
     const { isOwner, isStaff, canManage } = useRoleChecks();
+    const { getPermissionScope } = useHub();
     const notifications = useNotificationsSafe();
+    const staffScope = getPermissionScope('staff');
 
     // Mark staff_tasks as viewed when page loads
     useEffect(() => {
@@ -174,7 +177,16 @@ export function Staff() {
         }
     };
 
-    const isParentView = !isStaff;
+    // Public view: non-staff users OR admin (admin sees public profiles only, no tasks/time-off)
+    const isPublicView = !canManage;
+
+    if (staffScope === 'none') {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-faint">You don't have permission to view this page.</p>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -192,7 +204,7 @@ export function Staff() {
 
                 <div className="flex items-center gap-3">
                     {/* View Toggle - only for managers (staff only) */}
-                    {canManage && !isParentView && (
+                    {canManage && !isPublicView && (
                         <div className="flex bg-surface-hover rounded-lg p-1">
                             <button
                                 onClick={() => setActiveTab('individual')}
@@ -258,7 +270,7 @@ export function Staff() {
                         </div>
 
                         {/* Role Filter (staff only) */}
-                        {!isParentView && <div className="flex gap-2 overflow-x-auto pb-1">
+                        {!isPublicView && <div className="flex gap-2 overflow-x-auto pb-1">
                             {(['all', 'owner', 'director', 'admin', 'coach'] as RoleFilter[]).map((role) => (
                                 <button
                                     key={role}
@@ -297,7 +309,7 @@ export function Staff() {
                                     key={member.user_id}
                                     member={member}
                                     getRoleBadgeColor={getRoleBadgeColor}
-                                    isParentView={isParentView}
+                                    isPublicView={isPublicView}
                                 />
                             ))}
                         </div>

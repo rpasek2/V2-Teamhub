@@ -16,6 +16,7 @@ import { SkillsTab } from '../../src/components/gymnast/SkillsTab';
 import { ScoresTab } from '../../src/components/gymnast/ScoresTab';
 import { AttendanceTab } from '../../src/components/gymnast/AttendanceTab';
 import { AssignmentsTab } from '../../src/components/gymnast/AssignmentsTab';
+import { ProgressReportsTab } from '../../src/components/gymnast/ProgressReportsTab';
 import type { Tab } from '../../src/components/gymnast/types';
 
 export default function GymnastProfileScreen() {
@@ -58,6 +59,7 @@ export default function GymnastProfileScreen() {
   if (isTabEnabled('scores', hubEnabledTabs)) availableTabs.push({ key: 'scores', label: 'Scores' });
   if (hook.canViewAttendance && isTabEnabled('attendance', hubEnabledTabs)) availableTabs.push({ key: 'attendance', label: 'Attendance' });
   if (hook.canViewAssignments && isTabEnabled('assignments', hubEnabledTabs)) availableTabs.push({ key: 'assignments', label: 'Assignments' });
+  availableTabs.push({ key: 'progress_reports', label: 'Reports' });
 
   return (
     <ScrollView
@@ -191,6 +193,10 @@ export default function GymnastProfileScreen() {
             assignmentStats={hook.assignmentStats}
             isDark={isDark}
           />
+        )}
+
+        {hook.activeTab === 'progress_reports' && hook.gymnastId && (
+          <ProgressReportsTab gymnastProfileId={hook.gymnastId} />
         )}
       </View>
 

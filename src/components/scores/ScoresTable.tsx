@@ -21,9 +21,8 @@ interface ScoresTableProps {
     teamPlacements: CompetitionTeamPlacement[];
     levels: string[];
     gender: 'Female' | 'Male';
-    isStaff: boolean;
+    scoresScope: 'all' | 'own' | 'none';
     canEdit: boolean;
-    isParent: boolean;
     userGymnastIds: string[];
     ageGroupMap?: Record<string, string>;
     onScoresUpdated: () => void;
@@ -52,9 +51,8 @@ export function ScoresTable({
     teamPlacements,
     levels,
     gender,
-    isStaff,
+    scoresScope,
     canEdit,
-    isParent,
     userGymnastIds,
     ageGroupMap = {},
     onScoresUpdated,
@@ -233,9 +231,9 @@ export function ScoresTable({
     };
 
     const shouldShowGymnast = (gymnast: GymnastProfile): boolean => {
-        if (isStaff) return true;
-        if (isParent) return userGymnastIds.includes(gymnast.id);
-        return true;
+        if (scoresScope === 'all') return true;
+        if (scoresScope === 'own') return userGymnastIds.includes(gymnast.id);
+        return false;
     };
 
     if (gymnasts.length === 0) {
@@ -254,7 +252,7 @@ export function ScoresTable({
                 const teamScores = calculateTeamScores(level, levelGymnasts);
                 const countingScores = getCountingScores(level, levelGymnasts);
                 const visibleGymnasts = levelGymnasts.filter(shouldShowGymnast);
-                const showTeamOnly = isParent && visibleGymnasts.length === 0;
+                const showTeamOnly = scoresScope === 'own' && visibleGymnasts.length === 0;
 
                 return (
                     <div key={level} className="overflow-hidden rounded-lg border border-line bg-surface shadow-sm">

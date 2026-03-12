@@ -23,6 +23,7 @@ import {
   Palette,
   Check,
   Loader2,
+  MessageCircleOff,
 } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
@@ -33,6 +34,7 @@ import { useHubStore } from '../../src/stores/hubStore';
 interface HubSettings {
   showBirthdays?: boolean;
   allowAnonymousReports?: boolean;
+  allowAthleteMessaging?: boolean;
   levels?: string[];
 }
 
@@ -311,7 +313,7 @@ export default function HubSettingsScreen() {
               />
             </View>
 
-            <View style={[styles.toggleItem, { borderBottomWidth: 0 }]}>
+            <View style={styles.toggleItem}>
               <View style={[styles.navIcon, { backgroundColor: colors.purple[50] }]}>
                 <AlertCircle size={20} color={colors.purple[600]} />
               </View>
@@ -324,6 +326,23 @@ export default function HubSettingsScreen() {
                 onValueChange={(value) => updateSetting('allowAnonymousReports', value)}
                 trackColor={{ false: isDark ? colors.slate[600] : colors.slate[200], true: `${t.primary}60` }}
                 thumbColor={settings.allowAnonymousReports ? t.primary : t.textFaint}
+                disabled={saving}
+              />
+            </View>
+
+            <View style={[styles.toggleItem, { borderBottomWidth: 0 }]}>
+              <View style={[styles.navIcon, { backgroundColor: colors.blue[50] }]}>
+                <MessageCircleOff size={20} color={colors.blue[600]} />
+              </View>
+              <View style={styles.toggleContent}>
+                <Text style={[styles.toggleLabel, { color: t.text }]}>Athlete Messaging</Text>
+                <Text style={[styles.toggleDescription, { color: t.textMuted }]}>Allow athletes to send and receive messages</Text>
+              </View>
+              <Switch
+                value={settings.allowAthleteMessaging ?? true}
+                onValueChange={(value) => updateSetting('allowAthleteMessaging', value)}
+                trackColor={{ false: isDark ? colors.slate[600] : colors.slate[200], true: `${t.primary}60` }}
+                thumbColor={settings.allowAthleteMessaging !== false ? t.primary : t.textFaint}
                 disabled={saving}
               />
             </View>

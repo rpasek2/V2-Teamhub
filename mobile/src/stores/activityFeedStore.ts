@@ -13,7 +13,8 @@ export type NotificationType =
     | 'resource'
     | 'staff_task'
     | 'staff_time_off'
-    | 'private_lesson';
+    | 'private_lesson'
+    | 'progress_report';
 
 export interface ActivityNotification {
     id: string;
@@ -89,7 +90,7 @@ export const useActivityFeedStore = create<ActivityFeedState>((set, get) => ({
         try {
             // Build query with preference filtering
             const prefs = state.preferences;
-            const allTypes = ['message', 'post', 'event', 'competition', 'score', 'skill', 'assignment', 'marketplace_item', 'resource', 'staff_task'];
+            const allTypes = ['message', 'post', 'event', 'competition', 'score', 'skill', 'assignment', 'marketplace_item', 'resource', 'staff_task', 'staff_time_off', 'private_lesson', 'progress_report'];
             const enabledTypes = allTypes.filter(t => {
                 if (!prefs) return true;
                 const prefMap: Record<string, keyof UserNotificationPreferences> = {

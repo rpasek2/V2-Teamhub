@@ -112,7 +112,7 @@ function getGreeting(): string {
 }
 
 export function Dashboard() {
-    const { hub, loading, user, linkedGymnasts } = useHub();
+    const { hub, loading, user, linkedGymnasts, hasPermission } = useHub();
     const { isStaff, isParent, isOwner } = useRoleChecks();
     const enabledTabs = hub?.settings?.enabledTabs;
     const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -133,6 +133,7 @@ export function Dashboard() {
     const [recentMarketplaceItems, setRecentMarketplaceItems] = useState<RecentMarketplaceItem[]>([]);
     const [recentGroupPosts, setRecentGroupPosts] = useState<RecentGroupPost[]>([]);
     const [assignmentProgress, setAssignmentProgress] = useState<AssignmentProgress[]>([]);
+    const [recentProgressReports, setRecentProgressReports] = useState<{ id: string; title: string; gymnastName: string; publishedAt: string }[]>([]);
     const [, setLoadingParentData] = useState(false);
 
     // Staff-specific data
@@ -231,7 +232,7 @@ export function Dashboard() {
 
         try {
             // Fetch all parent-specific data in parallel
-            const [scoresResult, skillsResult, marketplaceResult, groupsResult, assignmentsResult] = await Promise.all([
+            const [scoresResult, skillsResult, marketplaceResult, groupsResult, assignmentsResult, progressReportsResult] = await Promise.all([
                 // 1. Recent scores for linked gymnasts
                 supabase
                     .from('competition_scores')
@@ -301,7 +302,17 @@ export function Dashboard() {
                     `)
                     .in('gymnast_profile_id', gymnastIds)
                     .eq('date', todayStr)
-                    .limit(50)
+                    .limit(50),
+
+                // 6. Recent published progress reports for linked gymnasts
+                supabase
+                    .from('progress_reports')
+                    .select('id, title, published_at, gymnast_profiles!gymnast_profile_id(first_name, last_name)')
+                    .eq('hub_id', hub.id)
+                    .eq('status', 'published')
+                    .in('gymnast_profile_id', gymnastIds)
+                    .order('published_at', { ascending: false })
+                    .limit(5)
             ]);
 
             // Process scores
@@ -422,6 +433,20 @@ export function Dashboard() {
                 });
 
                 setAssignmentProgress(progress);
+            }
+
+            // Process progress reports
+            if (progressReportsResult.data) {
+                const reports = progressReportsResult.data.map((r: { id: string; title: string; published_at: string; gymnast_profiles: { first_name?: string; last_name?: string } | { first_name?: string; last_name?: string }[] }) => {
+                    const gymnast = Array.isArray(r.gymnast_profiles) ? r.gymnast_profiles[0] : r.gymnast_profiles;
+                    return {
+                        id: r.id,
+                        title: r.title,
+                        gymnastName: `${gymnast?.first_name || ''} ${gymnast?.last_name || ''}`.trim(),
+                        publishedAt: r.published_at
+                    };
+                });
+                setRecentProgressReports(reports);
             }
 
         } catch (error) {
@@ -868,8 +893,10 @@ export function Dashboard() {
                     recentSkillChanges={recentSkillChanges}
                     recentGroupPosts={recentGroupPosts}
                     recentMarketplaceItems={recentMarketplaceItems}
+                    recentProgressReports={recentProgressReports}
                     linkedGymnastCount={linkedGymnastInfo.length}
                     enabledTabs={enabledTabs}
+                    hasPermission={hasPermission}
                 />
             )}
 

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Award, Target, ClipboardList, ListChecks, Sparkles, Trophy, UserCheck, MessageCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, User, Award, Target, ClipboardList, ListChecks, Sparkles, Trophy, UserCheck, MessageCircle, Loader2, FileText } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { isTabEnabled } from '../lib/permissions';
 import { useHub } from '../context/HubContext';
@@ -12,14 +12,15 @@ import { GymnastAssignmentStats } from '../components/gymnast/GymnastAssignmentS
 import { GymnastSkillsTab } from '../components/gymnast/GymnastSkillsTab';
 import { GymnastScoresTab } from '../components/gymnast/GymnastScoresTab';
 import { GymnastAttendanceTab } from '../components/gymnast/GymnastAttendanceTab';
+import { GymnastProgressReportsTab } from '../components/gymnast/GymnastProgressReportsTab';
 import type { GymnastProfile } from '../types';
 
-type PageTab = 'profile' | 'goals' | 'assessment' | 'assignments' | 'skills' | 'scores' | 'attendance';
+type PageTab = 'profile' | 'goals' | 'assessment' | 'assignments' | 'skills' | 'scores' | 'attendance' | 'progress_reports';
 
 export function GymnastDetails() {
     const { gymnastId } = useParams<{ gymnastId: string }>();
     const navigate = useNavigate();
-    const { hub, linkedGymnasts, currentRole } = useHub();
+    const { hub, linkedGymnasts, currentRole, hasPermission } = useHub();
     const { user } = useAuth();
 
     const [gymnast, setGymnast] = useState<GymnastProfile | null>(null);
@@ -126,14 +127,14 @@ export function GymnastDetails() {
 
     const enabledTabs = hub?.settings?.enabledTabs;
 
-    // Reset active tab to 'profile' if the current tab becomes disabled
+    // Reset active tab to 'profile' if the current tab becomes disabled or user lacks permission
     useEffect(() => {
-        if (activeTab !== 'profile' && activeTab !== 'goals' && activeTab !== 'assessment') {
-            if (!isTabEnabled(activeTab, enabledTabs)) {
+        if (activeTab !== 'profile' && activeTab !== 'goals' && activeTab !== 'assessment' && activeTab !== 'progress_reports') {
+            if (!isTabEnabled(activeTab, enabledTabs) || !hasPermission(activeTab)) {
                 setActiveTab('profile');
             }
         }
-    }, [enabledTabs, activeTab]);
+    }, [enabledTabs, activeTab, hasPermission]);
 
     if (loading) {
         return (
@@ -259,7 +260,7 @@ export function GymnastDetails() {
                     <ClipboardList className="h-4 w-4" />
                     Assessment
                 </button>
-                {isTabEnabled('assignments', enabledTabs) && (
+                {isTabEnabled('assignments', enabledTabs) && hasPermission('assignments') && (
                 <button
                     onClick={() => setActiveTab('assignments')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -272,7 +273,7 @@ export function GymnastDetails() {
                     Assignments
                 </button>
                 )}
-                {isTabEnabled('skills', enabledTabs) && (
+                {isTabEnabled('skills', enabledTabs) && hasPermission('skills') && (
                 <button
                     onClick={() => setActiveTab('skills')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -285,7 +286,7 @@ export function GymnastDetails() {
                     Skills
                 </button>
                 )}
-                {isTabEnabled('scores', enabledTabs) && (
+                {isTabEnabled('scores', enabledTabs) && hasPermission('scores') && (
                 <button
                     onClick={() => setActiveTab('scores')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -298,7 +299,7 @@ export function GymnastDetails() {
                     Scores
                 </button>
                 )}
-                {isTabEnabled('attendance', enabledTabs) && (
+                {isTabEnabled('attendance', enabledTabs) && hasPermission('attendance') && (
                 <button
                     onClick={() => setActiveTab('attendance')}
                     className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
@@ -311,6 +312,17 @@ export function GymnastDetails() {
                     Attendance
                 </button>
                 )}
+                <button
+                    onClick={() => setActiveTab('progress_reports')}
+                    className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+                        activeTab === 'progress_reports'
+                            ? 'border-accent-500 text-accent-600'
+                            : 'border-transparent text-muted hover:text-heading'
+                    }`}
+                >
+                    <FileText className="h-4 w-4" />
+                    Progress Reports
+                </button>
             </div>
 
             {/* Content */}
@@ -332,12 +344,12 @@ export function GymnastDetails() {
                 )}
 
                 {/* Assignments Tab */}
-                {activeTab === 'assignments' && isTabEnabled('assignments', enabledTabs) && (
+                {activeTab === 'assignments' && isTabEnabled('assignments', enabledTabs) && hasPermission('assignments') && (
                     <GymnastAssignmentStats gymnastProfileId={gymnast.id} />
                 )}
 
                 {/* Skills Tab */}
-                {activeTab === 'skills' && isTabEnabled('skills', enabledTabs) && (
+                {activeTab === 'skills' && isTabEnabled('skills', enabledTabs) && hasPermission('skills') && (
                     <GymnastSkillsTab
                         gymnastId={gymnast.id}
                         gymnastLevel={gymnast.level}
@@ -346,7 +358,7 @@ export function GymnastDetails() {
                 )}
 
                 {/* Scores Tab */}
-                {activeTab === 'scores' && isTabEnabled('scores', enabledTabs) && (
+                {activeTab === 'scores' && isTabEnabled('scores', enabledTabs) && hasPermission('scores') && (
                     <GymnastScoresTab
                         gymnastId={gymnast.id}
                         gymnastGender={gymnast.gender as 'Male' | 'Female' | null}
@@ -355,12 +367,17 @@ export function GymnastDetails() {
                 )}
 
                 {/* Attendance Tab */}
-                {activeTab === 'attendance' && isTabEnabled('attendance', enabledTabs) && (
+                {activeTab === 'attendance' && isTabEnabled('attendance', enabledTabs) && hasPermission('attendance') && (
                     <GymnastAttendanceTab
                         gymnastId={gymnast.id}
                         gymnastLevel={gymnast.level}
                         scheduleGroup={gymnast.schedule_group || undefined}
                     />
+                )}
+
+                {/* Progress Reports Tab */}
+                {activeTab === 'progress_reports' && (
+                    <GymnastProgressReportsTab gymnastProfileId={gymnast.id} />
                 )}
 
                 {/* Profile Tab */}

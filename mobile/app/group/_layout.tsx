@@ -40,6 +40,12 @@ export default function GroupLayout() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen
+        name="post-detail"
+        options={{
+          title: 'Post',
+        }}
+      />
     </Stack>
   );
 }

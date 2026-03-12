@@ -28,7 +28,7 @@ export function useRoleChecks(): RoleChecks {
         isAdmin: currentRole === 'admin',
         isCoach: currentRole === 'coach',
         isParent: currentRole === 'parent',
-        isAthlete: currentRole === 'athlete',
+        isAthlete: currentRole === 'athlete' || currentRole === 'gymnast',
         // Staff includes owner, director, admin, and coach
         isStaff: ['owner', 'director', 'admin', 'coach'].includes(currentRole || ''),
         // Can manage includes owner and director (admin is view-only + messaging/groups/calendar/marketplace)

@@ -111,10 +111,25 @@ export default function GroupDetails() {
             setIsMember(true);
             setIsAdmin(data.role === 'admin');
         } else {
-            // Check if hub staff (owner/admin/director/coach) - they are effectively admins
-            if (['owner', 'admin', 'director', 'coach'].includes(currentRole || '')) {
+            // Owner/Director: admin of all groups
+            // Admin: admin only of groups they created
+            // Coach: standard member (can post, not admin)
+            if (['owner', 'director'].includes(currentRole || '')) {
                 setIsAdmin(true);
-                setIsMember(true); // Staff can see everything
+                setIsMember(true);
+            } else if (currentRole === 'admin') {
+                setIsMember(true);
+                // Check if this admin created the group
+                const { data: groupData } = await supabase
+                    .from('groups')
+                    .select('created_by')
+                    .eq('id', groupId)
+                    .single();
+                if (groupData?.created_by === user.id) {
+                    setIsAdmin(true);
+                }
+            } else if (currentRole === 'coach') {
+                setIsMember(true);
             }
         }
     };

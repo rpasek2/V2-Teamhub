@@ -62,6 +62,7 @@ export interface HubSettings {
   enabledTabs?: string[];
   permissions?: Record<string, Record<HubRole, 'all' | 'own' | 'none'>>;
   showBirthdays?: boolean;
+  allowAthleteMessaging?: boolean;
   anonymous_reports_enabled?: boolean;
   allowParentToggle?: boolean;
   accentColor?: string;

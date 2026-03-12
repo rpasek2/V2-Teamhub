@@ -21,7 +21,7 @@ interface ScoreMetricsProps {
     hubId: string;
     seasonId: string;
     gender: 'Female' | 'Male';
-    isParent: boolean;
+    scoresScope: 'all' | 'own' | 'none';
     linkedGymnasts: GymnastProfile[];
     levels: string[];
     genderGymnastIds: Set<string>;
@@ -53,7 +53,8 @@ const EVENT_COLORS: Record<string, string> = {
     all_around: 'var(--th-text-heading)',
 };
 
-export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts, levels, genderGymnastIds }: ScoreMetricsProps) {
+export function ScoreMetrics({ hubId, seasonId, gender, scoresScope, linkedGymnasts, levels, genderGymnastIds }: ScoreMetricsProps) {
+    const isOwnScope = scoresScope === 'own';
     const [rawScores, setRawScores] = useState<RawScore[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedGymnastId, setSelectedGymnastId] = useState<string | null>(null);
@@ -69,17 +70,17 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
 
     // Auto-select first linked gymnast for parents
     useEffect(() => {
-        if (isParent && linkedGymnasts.length > 0 && !selectedGymnastId) {
+        if (isOwnScope && linkedGymnasts.length > 0 && !selectedGymnastId) {
             setSelectedGymnastId(linkedGymnasts[0].id);
         }
-    }, [isParent, linkedGymnasts, selectedGymnastId]);
+    }, [isOwnScope, linkedGymnasts, selectedGymnastId]);
 
     // Auto-select first level for coaches
     useEffect(() => {
-        if (!isParent && levels.length > 0 && !selectedLevel) {
+        if (!isOwnScope && levels.length > 0 && !selectedLevel) {
             setSelectedLevel(levels[0]);
         }
-    }, [isParent, levels, selectedLevel]);
+    }, [isOwnScope, levels, selectedLevel]);
 
     // Fetch all scores for the season
     useEffect(() => {
@@ -124,7 +125,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
 
     // For parents: filter to selected gymnast and build chart data
     const individualChartData = useMemo(() => {
-        if (!isParent || !selectedGymnastId) return [];
+        if (!isOwnScope || !selectedGymnastId) return [];
 
         const gymnastScores = rawScores.filter(s => s.gymnast_profile_id === selectedGymnastId);
 
@@ -164,11 +165,11 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                 point['all_around'] = aaCount === events.length ? Number(aaTotal.toFixed(3)) : null;
                 return point;
             });
-    }, [isParent, selectedGymnastId, rawScores, events]);
+    }, [isOwnScope, selectedGymnastId, rawScores, events]);
 
     // For coaches: filter to selected level + gender and build team score chart data
     const teamChartData = useMemo(() => {
-        if (isParent || !selectedLevel) return [];
+        if (isOwnScope || !selectedLevel) return [];
 
         const levelScores = rawScores.filter(s => s.gymnast_level === selectedLevel && genderGymnastIds.has(s.gymnast_profile_id));
 
@@ -211,9 +212,9 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                 point['all_around'] = teamAA > 0 ? Number(teamAA.toFixed(3)) : null;
                 return point;
             });
-    }, [isParent, selectedLevel, rawScores, events, genderGymnastIds]);
+    }, [isOwnScope, selectedLevel, rawScores, events, genderGymnastIds]);
 
-    const chartData = isParent ? individualChartData : teamChartData;
+    const chartData = isOwnScope ? individualChartData : teamChartData;
 
     // Compute summary stats
     const summaryStats = useMemo(() => {
@@ -283,7 +284,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                 </div>
                 <h3 className="mt-4 text-lg font-semibold text-heading">No Score Data</h3>
                 <p className="mt-2 text-sm text-muted">
-                    {isParent
+                    {isOwnScope
                         ? 'No competition scores found for this gymnast in the selected season.'
                         : 'No competition scores found for this level in the selected season.'}
                 </p>
@@ -295,7 +296,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
         <div className="space-y-6">
             {/* Selectors */}
             <div className="flex flex-wrap items-center gap-4">
-                {isParent && linkedGymnasts.length > 1 && (
+                {isOwnScope && linkedGymnasts.length > 1 && (
                     <div className="relative">
                         <select
                             value={selectedGymnastId || ''}
@@ -312,7 +313,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
                     </div>
                 )}
 
-                {!isParent && levels.length > 0 && (
+                {!isOwnScope && levels.length > 0 && (
                     <div className="relative">
                         <select
                             value={selectedLevel || ''}
@@ -331,7 +332,7 @@ export function ScoreMetrics({ hubId, seasonId, gender, isParent, linkedGymnasts
             {/* Chart */}
             <div className="card p-6">
                 <h3 className="text-sm font-semibold text-heading mb-4">
-                    {isParent ? 'Score History' : 'Team Score History'}
+                    {isOwnScope ? 'Score History' : 'Team Score History'}
                 </h3>
                 <div className="h-72" style={{ minWidth: 0 }}>
                     <ResponsiveContainer width="100%" height="100%" minWidth={0}>

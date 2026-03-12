@@ -113,6 +113,7 @@ export default function Messages() {
     const [creatingChannel, setCreatingChannel] = useState(false);
     const [channelMemberSearch, setChannelMemberSearch] = useState('');
     const [selectedMemberIds, setSelectedMemberIds] = useState<Set<string>>(new Set());
+    const [isPrivateChannel, setIsPrivateChannel] = useState(false);
 
     // Manage members modal state
     const [showManageMembersModal, setShowManageMembersModal] = useState(false);
@@ -715,28 +716,22 @@ export default function Messages() {
             setCreatingChannel(false);
             return;
         }
-        const isPrivate = selectedMemberIds.size > 0;
         const { data, error } = await supabase
             .from('channels')
-            .insert([{ hub_id: hub.id, name, created_by: user.id, type: isPrivate ? 'private' : 'public' }])
+            .insert([{ hub_id: hub.id, name, created_by: user.id, type: isPrivateChannel ? 'private' : 'public' }])
             .select()
             .single();
 
         if (error) {
             console.error('Error creating channel:', error);
         } else if (data) {
-            // Add members if private
-            if (isPrivate) {
-                const now = new Date().toISOString();
-                const memberRows = [user.id, ...selectedMemberIds].map(uid => ({
-                    channel_id: data.id,
-                    user_id: uid,
-                    added_at: now,
-                    last_read_at: now
-                }));
-                const { error: membersError } = await supabase
-                    .from('channel_members')
-                    .insert(memberRows);
+            // Add creator + selected members for private channels
+            if (isPrivateChannel) {
+                const memberIds = [user.id, ...Array.from(selectedMemberIds)];
+                const { error: membersError } = await supabase.rpc('add_channel_members', {
+                    p_channel_id: data.id,
+                    p_user_ids: memberIds
+                });
                 if (membersError) console.error('Error adding channel members:', membersError);
             }
             setChannels(prev => [...prev, data]);
@@ -748,20 +743,15 @@ export default function Messages() {
         setShowNewChannelModal(false);
         setNewChannelName('');
         setSelectedMemberIds(new Set());
+        setIsPrivateChannel(false);
     };
 
     // Add members to an existing channel
     const addMembersToChannel = async (channelId: string, memberIds: string[]) => {
-        const now = new Date().toISOString();
-        const memberRows = memberIds.map(uid => ({
-            channel_id: channelId,
-            user_id: uid,
-            added_at: now,
-            last_read_at: now
-        }));
-        const { error } = await supabase
-            .from('channel_members')
-            .upsert(memberRows, { onConflict: 'channel_id,user_id' });
+        const { error } = await supabase.rpc('add_channel_members', {
+            p_channel_id: channelId,
+            p_user_ids: memberIds
+        });
         if (error) console.error('Error adding members:', error);
     };
 
@@ -932,10 +922,11 @@ export default function Messages() {
         if (!hub || !user) return;
         setLoadingMembers(true);
 
-        const { data, error } = await supabase
+        let query = supabase
             .from('hub_members')
             .select(`
                 user_id,
+                role,
                 profile:profiles (
                     full_name,
                     email
@@ -943,6 +934,18 @@ export default function Messages() {
             `)
             .eq('hub_id', hub.id)
             .neq('user_id', user.id);
+
+        // Filter out athletes when athlete messaging is disabled
+        if (hub.settings?.allowAthleteMessaging === false) {
+            query = query.neq('role', 'athlete').neq('role', 'gymnast');
+        }
+
+        // Athletes can only DM other athletes and coaches
+        if (isAthlete) {
+            query = query.in('role', ['athlete', 'gymnast', 'coach']);
+        }
+
+        const { data, error } = await query;
 
         if (error) {
             console.error('Error fetching hub members:', error);
@@ -1020,6 +1023,19 @@ export default function Messages() {
         m.email.toLowerCase().includes(dmSearchTerm.toLowerCase())
     );
 
+    // Block athletes when athlete messaging is disabled
+    if (isAthlete && hub?.settings?.allowAthleteMessaging === false) {
+        return (
+            <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-surface shadow-sm ring-1 ring-line sm:rounded-xl">
+                <div className="text-center">
+                    <MessageSquare className="mx-auto h-12 w-12 text-faint" />
+                    <h3 className="mt-4 text-lg font-medium text-heading">Messaging Disabled</h3>
+                    <p className="mt-2 text-sm text-muted">Your hub administrator has disabled athlete messaging.</p>
+                </div>
+            </div>
+        );
+    }
+
     if (loadingChannels) {
         return (
             <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-surface shadow-sm ring-1 ring-line sm:rounded-xl">
@@ -1044,6 +1060,7 @@ export default function Messages() {
                                 onClick={() => {
                                     setShowNewChannelModal(true);
                                     setNewChannelName('');
+                                    setIsPrivateChannel(false);
                                     setSelectedMemberIds(new Set());
                                     setChannelMemberSearch('');
                                     fetchHubMembers();
@@ -1784,83 +1801,117 @@ export default function Messages() {
                                 </div>
                             </div>
 
+                            {/* Private toggle */}
                             <div>
-                                <label className="block text-sm font-medium text-body mb-1">
-                                    Add members <span className="text-faint font-normal">(optional)</span>
-                                </label>
-                                <p className="text-xs text-muted mb-2">
-                                    Leave empty for a hub-wide channel visible to everyone, or select members for a private channel.
-                                </p>
-
-                                {/* Selected members chips */}
-                                {selectedMemberIds.size > 0 && (
-                                    <div className="flex flex-wrap gap-1.5 mb-2">
-                                        {Array.from(selectedMemberIds).map(id => {
-                                            const member = hubMemberMap.get(id);
-                                            if (!member) return null;
-                                            return (
-                                                <span
-                                                    key={id}
-                                                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-accent-100 text-accent-700"
-                                                >
-                                                    {member.full_name}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => toggleMemberSelection(id)}
-                                                        className="hover:text-accent-900"
-                                                    >
-                                                        <X className="h-3 w-3" />
-                                                    </button>
-                                                </span>
-                                            );
-                                        })}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setIsPrivateChannel(!isPrivateChannel);
+                                        if (isPrivateChannel) {
+                                            setSelectedMemberIds(new Set());
+                                            setChannelMemberSearch('');
+                                        }
+                                    }}
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-colors ${
+                                        isPrivateChannel
+                                            ? 'border-accent-500 bg-accent-500/10'
+                                            : 'border-line hover:bg-surface-hover'
+                                    }`}
+                                >
+                                    <Lock className={`h-4 w-4 flex-shrink-0 ${isPrivateChannel ? 'text-accent-600 dark:text-accent-400' : 'text-faint'}`} />
+                                    <div className="flex-1 text-left">
+                                        <p className="text-sm font-medium text-heading">Private channel</p>
+                                        <p className="text-xs text-muted">Only selected members can view and send messages</p>
                                     </div>
-                                )}
-
-                                {/* Search */}
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
-                                    <input
-                                        type="text"
-                                        value={channelMemberSearch}
-                                        onChange={(e) => setChannelMemberSearch(e.target.value)}
-                                        placeholder="Search members..."
-                                        className="input w-full pl-10"
-                                    />
-                                </div>
-
-                                {/* Member list */}
-                                <div className="mt-2 max-h-48 overflow-y-auto border border-line rounded-lg divide-y divide-line">
-                                    {hubMembers
-                                        .filter(m =>
-                                            m.full_name.toLowerCase().includes(channelMemberSearch.toLowerCase()) ||
-                                            m.email.toLowerCase().includes(channelMemberSearch.toLowerCase())
-                                        )
-                                        .map((member) => {
-                                            const isSelected = selectedMemberIds.has(member.user_id);
-                                            return (
-                                                <button
-                                                    key={member.user_id}
-                                                    type="button"
-                                                    onClick={() => toggleMemberSelection(member.user_id)}
-                                                    className={`w-full flex items-center px-3 py-2 text-left transition-colors ${
-                                                        isSelected ? 'bg-accent-50' : 'hover:bg-surface-hover'
-                                                    }`}
-                                                >
-                                                    <div className="h-7 w-7 rounded-full bg-surface-active flex items-center justify-center text-xs font-medium text-subtle mr-2.5 flex-shrink-0">
-                                                        {member.full_name[0]}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <p className="text-sm font-medium text-heading truncate">{member.full_name}</p>
-                                                    </div>
-                                                    {isSelected && (
-                                                        <Check className="h-4 w-4 text-accent-600 flex-shrink-0" />
-                                                    )}
-                                                </button>
-                                            );
-                                        })}
-                                </div>
+                                    <div className={`h-5 w-9 rounded-full transition-colors flex items-center ${
+                                        isPrivateChannel ? 'bg-accent-500 justify-end' : 'bg-surface-active justify-start'
+                                    }`}>
+                                        <div className="h-4 w-4 rounded-full bg-white shadow-sm mx-0.5" />
+                                    </div>
+                                </button>
                             </div>
+
+                            {/* Member picker (only when private) */}
+                            {isPrivateChannel && (
+                                <div>
+                                    <label className="block text-sm font-medium text-body mb-1">
+                                        Add members
+                                    </label>
+                                    <p className="text-xs text-muted mb-2">
+                                        You will be added automatically as a member.
+                                    </p>
+
+                                    {/* Selected members chips */}
+                                    {selectedMemberIds.size > 0 && (
+                                        <div className="flex flex-wrap gap-1.5 mb-2">
+                                            {Array.from(selectedMemberIds).map(id => {
+                                                const member = hubMemberMap.get(id);
+                                                if (!member) return null;
+                                                return (
+                                                    <span
+                                                        key={id}
+                                                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-accent-500/15 text-accent-600 dark:text-accent-400"
+                                                    >
+                                                        {member.full_name}
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => toggleMemberSelection(id)}
+                                                            className="hover:text-accent-900 dark:hover:text-accent-300"
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+
+                                    {/* Search */}
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-faint" />
+                                        <input
+                                            type="text"
+                                            value={channelMemberSearch}
+                                            onChange={(e) => setChannelMemberSearch(e.target.value)}
+                                            placeholder="Search members..."
+                                            className="input w-full pl-10"
+                                        />
+                                    </div>
+
+                                    {/* Member list */}
+                                    <div className="mt-2 max-h-48 overflow-y-auto border border-line rounded-lg divide-y divide-line">
+                                        {hubMembers
+                                            .filter(m =>
+                                                m.user_id !== user?.id &&
+                                                (m.full_name.toLowerCase().includes(channelMemberSearch.toLowerCase()) ||
+                                                m.email.toLowerCase().includes(channelMemberSearch.toLowerCase()))
+                                            )
+                                            .map((member) => {
+                                                const isSelected = selectedMemberIds.has(member.user_id);
+                                                return (
+                                                    <button
+                                                        key={member.user_id}
+                                                        type="button"
+                                                        onClick={() => toggleMemberSelection(member.user_id)}
+                                                        className={`w-full flex items-center px-3 py-2 text-left transition-colors ${
+                                                            isSelected ? 'bg-accent-500/10' : 'hover:bg-surface-hover'
+                                                        }`}
+                                                    >
+                                                        <div className="h-7 w-7 rounded-full bg-surface-active flex items-center justify-center text-xs font-medium text-subtle mr-2.5 flex-shrink-0">
+                                                            {member.full_name[0]}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className="text-sm font-medium text-heading truncate">{member.full_name}</p>
+                                                        </div>
+                                                        {isSelected && (
+                                                            <Check className="h-4 w-4 text-accent-600 flex-shrink-0" />
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="flex justify-end gap-2">
                                 <button
@@ -1875,7 +1926,7 @@ export default function Messages() {
                                     disabled={!newChannelName.trim() || creatingChannel}
                                     className="btn-primary disabled:opacity-50"
                                 >
-                                    {creatingChannel ? 'Creating...' : selectedMemberIds.size > 0 ? 'Create Private Channel' : 'Create Channel'}
+                                    {creatingChannel ? 'Creating...' : isPrivateChannel ? 'Create Private Channel' : 'Create Channel'}
                                 </button>
                             </div>
                         </form>
@@ -1924,7 +1975,7 @@ export default function Messages() {
                                             {member.user_id !== user?.id && (
                                                 <button
                                                     onClick={() => removeMemberFromChannel(selectedChannel.id, member.user_id)}
-                                                    className="p-1 rounded text-faint hover:text-red-500 hover:bg-red-50 transition-colors"
+                                                    className="p-1 rounded text-faint hover:text-red-500 hover:bg-red-500/10 transition-colors"
                                                     title="Remove member"
                                                 >
                                                     <X className="h-3.5 w-3.5" />
