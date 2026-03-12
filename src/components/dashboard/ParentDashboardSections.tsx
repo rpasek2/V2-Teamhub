@@ -100,7 +100,7 @@ export function ParentDashboardSections({
     return (
         <>
             {/* Progress Reports */}
-            {recentProgressReports.length > 0 && (
+            {recentProgressReports.length > 0 && hasPermission('progressReports') && (
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-heading">Progress Reports</h2>

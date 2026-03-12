@@ -16,6 +16,7 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
+import { MobileTabGuard } from '../../src/components/ui';
 
 interface ProgressReport {
   id: string;
@@ -82,13 +83,16 @@ export default function ProgressReportsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
-      </View>
+      <MobileTabGuard tabId="progress_reports">
+        <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+          <ActivityIndicator size="large" color={t.primary} />
+        </View>
+      </MobileTabGuard>
     );
   }
 
   return (
+    <MobileTabGuard tabId="progress_reports">
     <View style={[styles.container, { backgroundColor: t.background }]}>
       <FlatList
         data={reports}
@@ -133,6 +137,7 @@ export default function ProgressReportsScreen() {
         }}
       />
     </View>
+    </MobileTabGuard>
   );
 }
 

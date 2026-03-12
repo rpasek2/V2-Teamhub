@@ -28,6 +28,7 @@ export const DEFAULT_PERMISSIONS: Record<string, Record<HubRole, PermissionScope
     resources: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', athlete: 'all' },
     settings: { owner: 'all', director: 'all', admin: 'none', coach: 'none', parent: 'none', athlete: 'none' },
     privateLessons: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'all', athlete: 'none' },
+    progressReports: { owner: 'all', director: 'all', admin: 'all', coach: 'all', parent: 'own', athlete: 'none' },
 };
 
 /**

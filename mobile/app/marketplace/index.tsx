@@ -33,6 +33,7 @@ import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { MobileTabGuard } from '../../src/components/ui';
 
 interface MarketplaceItem {
   id: string;
@@ -124,7 +125,7 @@ export default function MarketplaceScreen() {
 
   const currentHub = useHubStore((state) => state.currentHub);
   const currentMember = useHubStore((state) => state.currentMember);
-  const isAthlete = currentMember?.role === 'athlete' || currentMember?.role === 'gymnast';
+  const isAthlete = currentMember?.role === 'athlete';
 
   useEffect(() => {
     if (currentHub?.id) {
@@ -367,13 +368,16 @@ export default function MarketplaceScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
-      </View>
+      <MobileTabGuard tabId="marketplace">
+        <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+          <ActivityIndicator size="large" color={t.primary} />
+        </View>
+      </MobileTabGuard>
     );
   }
 
   return (
+    <MobileTabGuard tabId="marketplace">
     <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar */}
       <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
@@ -811,6 +815,7 @@ export default function MarketplaceScreen() {
         </KeyboardAvoidingView>
       </Modal>
     </View>
+    </MobileTabGuard>
   );
 }
 

@@ -41,7 +41,7 @@ export function NewDMModal({ isOpen, onClose, onDMCreated }: NewDMModalProps) {
   const currentHub = useHubStore((state) => state.currentHub);
   const currentMember = useHubStore((state) => state.currentMember);
   const user = useAuthStore((state) => state.user);
-  const isAthlete = currentMember?.role === 'athlete' || currentMember?.role === 'gymnast';
+  const isAthlete = currentMember?.role === 'athlete';
 
   useEffect(() => {
     if (isOpen) {

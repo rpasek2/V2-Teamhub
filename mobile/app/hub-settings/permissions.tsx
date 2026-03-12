@@ -167,7 +167,7 @@ export default function PermissionsScreen() {
     // Only parent and athlete can have 'own' scope
     const availableScopes = (role === 'parent' || role === 'athlete')
       ? SCOPES
-      : SCOPES.filter(s => s !== 'own');
+      : SCOPES.filter((s): s is typeof SCOPES[number] => s !== 'own');
     const currentIndex = availableScopes.indexOf(currentScope as typeof SCOPES[number]);
     const nextIndex = (currentIndex + 1) % availableScopes.length;
     updatePermission(role, feature, availableScopes[nextIndex]);

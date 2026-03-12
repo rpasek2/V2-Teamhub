@@ -27,6 +27,7 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
+import { MobileTabGuard } from '../../src/components/ui';
 
 // Event label mapping
 const EVENT_LABELS: Record<string, string> = {
@@ -227,13 +228,16 @@ export default function PrivateLessonsScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={colors.violet[500]} />
-      </View>
+      <MobileTabGuard tabId="private_lessons">
+        <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+          <ActivityIndicator size="large" color={colors.violet[500]} />
+        </View>
+      </MobileTabGuard>
     );
   }
 
   return (
+    <MobileTabGuard tabId="private_lessons">
     <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Tab Navigation */}
       <View style={[styles.tabContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
@@ -524,6 +528,7 @@ export default function PrivateLessonsScreen() {
         </ScrollView>
       )}
     </View>
+    </MobileTabGuard>
   );
 }
 

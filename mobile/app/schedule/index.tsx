@@ -11,7 +11,7 @@ import {
 import { Clock, Grid3X3, Calendar, Users } from 'lucide-react-native';
 import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
-import { Badge } from '../../src/components/ui';
+import { Badge, MobileTabGuard } from '../../src/components/ui';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
 import { useAuthStore } from '../../src/stores/authStore';
@@ -306,7 +306,7 @@ export default function ScheduleScreen() {
 
   const scheduleScope = getPermissionScope('schedule');
   const isParent = currentMember?.role === 'parent';
-  const isAthlete = currentMember?.role === 'athlete' || currentMember?.role === 'gymnast';
+  const isAthlete = currentMember?.role === 'athlete';
 
   // For athletes with 'own' scope, fetch their gymnast profile
   useEffect(() => {
@@ -331,7 +331,9 @@ export default function ScheduleScreen() {
     if (scheduleScope !== 'own') return null;
 
     if (isParent) {
-      return linkedGymnasts.map(g => ({ level: g.level, schedule_group: g.schedule_group }));
+      return linkedGymnasts
+        .filter(g => g.level !== null)
+        .map(g => ({ level: g.level!, schedule_group: g.schedule_group }));
     }
     if (isAthlete) {
       if (!athleteProfileLoaded) return []; // still loading — show nothing until resolved
@@ -567,6 +569,7 @@ export default function ScheduleScreen() {
   }, [schedules, selectedDay, rotationBlocks, gridSettings, scheduleFilters]);
 
   return (
+    <MobileTabGuard tabId="schedule">
     <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Tab Navigation */}
       <View style={[styles.tabBar, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
@@ -609,6 +612,7 @@ export default function ScheduleScreen() {
         />
       )}
     </View>
+    </MobileTabGuard>
   );
 }
 

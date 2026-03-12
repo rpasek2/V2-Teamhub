@@ -26,6 +26,7 @@ import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { MobileTabGuard } from '../../src/components/ui';
 
 interface HubResource {
   id: string;
@@ -180,13 +181,16 @@ export default function ResourcesScreen() {
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
-      </View>
+      <MobileTabGuard tabId="resources">
+        <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+          <ActivityIndicator size="large" color={t.primary} />
+        </View>
+      </MobileTabGuard>
     );
   }
 
   return (
+    <MobileTabGuard tabId="resources">
     <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar */}
       <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
@@ -346,6 +350,7 @@ export default function ResourcesScreen() {
         )}
       </ScrollView>
     </View>
+    </MobileTabGuard>
   );
 }
 

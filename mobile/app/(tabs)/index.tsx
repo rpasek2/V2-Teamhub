@@ -670,7 +670,7 @@ export default function DashboardScreen() {
       )}
 
       {/* Parent: Recent Progress Reports */}
-      {isParentRole && recentProgressReports.length > 0 && (
+      {isParentRole && recentProgressReports.length > 0 && hasPermission('progressReports') && (
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: t.text }]}>Progress Reports</Text>
@@ -728,7 +728,7 @@ export default function DashboardScreen() {
               </Text>
             </View>
 
-            {isTabEnabled('competitions', currentHub?.settings?.enabledTabs) && (
+            {isTabEnabled('competitions', currentHub?.settings?.enabledTabs) && hasPermission('competitions') && (
             <View style={[styles.statCard, { backgroundColor: t.surface, borderColor: t.border }]}>
               <View style={styles.statCardHeader}>
                 <Text style={[styles.statCardLabel, { color: t.textMuted }]}>Meets</Text>

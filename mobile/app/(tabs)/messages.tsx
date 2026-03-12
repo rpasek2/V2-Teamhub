@@ -368,7 +368,7 @@ export default function MessagesScreen() {
     router.push(`/chat/${channel.id}`);
   };
 
-  const isAthleteUser = currentMember?.role === 'athlete' || currentMember?.role === 'gymnast';
+  const isAthleteUser = currentMember?.role === 'athlete';
 
   // Block athletes when athlete messaging is disabled
   if (isAthleteUser && currentHub?.settings?.allowAthleteMessaging === false) {

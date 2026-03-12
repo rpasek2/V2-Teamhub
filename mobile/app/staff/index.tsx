@@ -16,6 +16,7 @@ import { colors } from '../../src/constants/colors';
 import { useTheme } from '../../src/hooks/useTheme';
 import { supabase } from '../../src/services/supabase';
 import { useHubStore } from '../../src/stores/hubStore';
+import { MobileTabGuard } from '../../src/components/ui';
 
 interface StaffMember {
   user_id: string;
@@ -221,22 +222,27 @@ export default function StaffScreen() {
 
   if (!isStaff) {
     return (
-      <View style={[styles.permissionContainer, { backgroundColor: t.background }]}>
-        <Users size={48} color={t.textFaint} />
-        <Text style={[styles.permissionText, { color: t.textFaint }]}>You don't have permission to view this page.</Text>
-      </View>
+      <MobileTabGuard tabId="staff">
+        <View style={[styles.permissionContainer, { backgroundColor: t.background }]}>
+          <Users size={48} color={t.textFaint} />
+          <Text style={[styles.permissionText, { color: t.textFaint }]}>You don't have permission to view this page.</Text>
+        </View>
+      </MobileTabGuard>
     );
   }
 
   if (loading) {
     return (
-      <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
-        <ActivityIndicator size="large" color={t.primary} />
-      </View>
+      <MobileTabGuard tabId="staff">
+        <View style={[styles.loadingContainer, { backgroundColor: t.background }]}>
+          <ActivityIndicator size="large" color={t.primary} />
+        </View>
+      </MobileTabGuard>
     );
   }
 
   return (
+    <MobileTabGuard tabId="staff">
     <View style={[styles.container, { backgroundColor: t.background }]}>
       {/* Search Bar */}
       <View style={[styles.searchContainer, { backgroundColor: t.surface, borderBottomColor: t.border }]}>
@@ -389,6 +395,7 @@ export default function StaffScreen() {
         )}
       </ScrollView>
     </View>
+    </MobileTabGuard>
   );
 }
 

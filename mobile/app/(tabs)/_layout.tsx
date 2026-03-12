@@ -70,6 +70,7 @@ function TabBarIcon({
 export default function TabLayout() {
   const currentHub = useHubStore((state) => state.currentHub);
   const currentMember = useHubStore((state) => state.currentMember);
+  const hasPermission = useHubStore((state) => state.hasPermission);
   const user = useAuthStore((state) => state.user);
   const insets = useSafeAreaInsets();
   const unreadMessages = useNotificationStore((state) => state.unreadMessages);
@@ -164,14 +165,20 @@ export default function TabLayout() {
     }
   };
 
-  // Check if a tab should be visible (in the selected 3 AND enabled by hub)
+  // Map tab IDs to permission feature names where they differ
+  const TAB_TO_FEATURE: Record<string, string> = { private_lessons: 'privateLessons', progress_reports: 'progressReports' };
+
+  // Check if a tab should be visible (in the selected 3 AND enabled by hub AND has permission)
   const enabledTabsList = currentHub?.settings?.enabledTabs;
   const isTabVisible = (tabId: TabId): boolean => {
     if (!selectedTabs.includes(tabId)) return false;
     // Hide messages for athletes when athlete messaging is disabled
-    if (tabId === 'messages' && (currentMember?.role === 'athlete' || currentMember?.role === 'gymnast') && currentHub?.settings?.allowAthleteMessaging === false) {
+    if (tabId === 'messages' && currentMember?.role === 'athlete' && currentHub?.settings?.allowAthleteMessaging === false) {
       return false;
     }
+    // Hide tabs where user's role has 'none' permission scope
+    const featureName = TAB_TO_FEATURE[tabId] || tabId;
+    if (!hasPermission(featureName)) return false;
     // Also enforce hub-level enabledTabs
     return isTabEnabled(tabId, enabledTabsList);
   };
