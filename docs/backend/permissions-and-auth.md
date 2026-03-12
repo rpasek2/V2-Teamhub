@@ -36,6 +36,35 @@ const canManage = ['owner', 'director', 'admin'].includes(currentRole || '');
 const isStaff = ['owner', 'director', 'admin', 'coach'].includes(currentRole || '');
 ```
 
+## Route Guards
+
+### Web: TabGuard
+Wraps feature pages to redirect users with `'none'` scope or disabled tabs:
+```tsx
+<TabGuard tabId="scores">{children}</TabGuard>
+```
+- Checks both `isTabEnabled()` (hub feature toggle) and `hasPermission()` (role scope)
+- Redirects to hub dashboard if either fails
+- Uses `TAB_TO_FEATURE` mapping for mismatched IDs: `private_lessons` → `privateLessons`, `progress_reports` → `progressReports`
+
+### Mobile: MobileTabGuard
+Same concept, shows a blocked message instead of redirecting:
+```tsx
+<MobileTabGuard tabId="scores">{children}</MobileTabGuard>
+```
+- Passes through children while hub is loading (avoids false blocks)
+- Shows distinct messages for disabled tabs vs permission blocks
+- Applied to all feature routes: marketplace, resources, mentorship, private-lessons, progress-reports, staff, schedule
+
+### Mobile Tab Bar
+`isTabVisible()` in `(tabs)/_layout.tsx` hides tabs when `hasPermission()` returns false.
+
+### Dashboard Sections
+Both web (`ParentDashboardSections`) and mobile (`(tabs)/index`) gate widgets with `hasPermission()` checks for their respective features.
+
+## Default Permissions
+Defined in `src/lib/permissions.ts` and `mobile/src/lib/permissions.ts`. Features: `roster`, `calendar`, `messages`, `groups`, `assignments`, `attendance`, `skills`, `scores`, `competitions`, `schedule`, `staff`, `marketplace`, `mentorship`, `resources`, `settings`, `privateLessons`, `progressReports`.
+
 ## Auth State
 
 ### Web (React Context)
