@@ -157,6 +157,10 @@ export default function TabLayout() {
       case 'calendar':
         return upcomingEvents > 0 ? upcomingEvents : undefined;
       case 'messages':
+        // Suppress badge when athlete messaging is disabled
+        if (currentMember?.role === 'athlete' && currentHub?.settings?.allowAthleteMessaging === false) {
+          return undefined;
+        }
         return unreadMessages > 0 ? unreadMessages : undefined;
       case 'groups':
         return unreadGroups > 0 ? unreadGroups : undefined;

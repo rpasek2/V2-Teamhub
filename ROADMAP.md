@@ -30,6 +30,7 @@ Currently season-aware: competitions, scores. This feature would make level-base
 - **Add Comments to In-Progress Tasks** — Allow staff to add notes on tasks that are in progress.
 - **Stale Assignments / Skills Indicator** — Surface assignments or skills that haven't been practiced in a while.
 - **Progress Reports Enhancements** — Scheduled auto-reports, bulk generation per level, PDF export, per-section toggle during creation.
+- **Import Athletes Between Hubs** — Allow importing athletes from one hub to another, so coaches managing multiple teams/locations can transfer roster data without re-entering it manually.
 
 ---
 

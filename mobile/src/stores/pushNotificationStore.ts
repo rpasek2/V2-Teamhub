@@ -108,12 +108,16 @@ export const usePushNotificationStore = create<PushNotificationState>((set, get)
       set({ expoPushToken: token });
 
       // Deactivate old tokens for this user+platform before upserting new one
-      await supabase
+      const { error: deactivateError } = await supabase
         .from('user_push_tokens')
         .update({ is_active: false, updated_at: new Date().toISOString() })
         .eq('user_id', userId)
         .eq('platform', Platform.OS)
         .neq('token', token);
+
+      if (deactivateError) {
+        console.error('[Push] Error deactivating old tokens:', deactivateError);
+      }
 
       // Upsert token to Supabase
       const { error } = await supabase
@@ -187,10 +191,11 @@ export const usePushNotificationStore = create<PushNotificationState>((set, get)
       const NotifMod = await loadNotificationsModule();
       const response = await NotifMod.getLastNotificationResponseAsync();
       if (response) {
-        // Only act on recent notifications (within 30s) to avoid stale deep links
+        // Only act on recent notifications (within 120s) to avoid stale deep links
+        // 120s accommodates cold start on slower devices
         const responseTime = response.notification.date; // epoch seconds
         const now = Date.now() / 1000;
-        if (now - responseTime > 30) return;
+        if (now - responseTime > 120) return;
 
         const data = response.notification.request.content.data as unknown as DeepLinkData;
         if (data?.type) {

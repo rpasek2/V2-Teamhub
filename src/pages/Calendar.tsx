@@ -197,9 +197,9 @@ export function Calendar() {
                 .select('id, name, start_date, end_date')
                 .eq('hub_id', hub.id)
                 .eq('is_current', true)
-                .single();
+                .maybeSingle();
 
-            if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows returned
+            if (error) throw error;
             setCurrentSeason(data || null);
         } catch (err) {
             console.error('Error fetching current season:', err);

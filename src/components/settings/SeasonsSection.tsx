@@ -6,7 +6,7 @@ import { supabase } from '../../lib/supabase';
 // Parse date-only strings (YYYY-MM-DD) as local dates, not UTC
 const parseLocalDate = (dateStr: string) => new Date(dateStr + 'T00:00:00');
 import { useHub } from '../../context/HubContext';
-import { fetchSeasonsForHub, getMonthName } from '../../lib/seasons';
+import { fetchSeasonsForHub, getMonthName, getOrCreateCurrentSeason } from '../../lib/seasons';
 import { CollapsibleSection } from '../ui/CollapsibleSection';
 import type { Season, SeasonConfig } from '../../types';
 
@@ -55,7 +55,11 @@ export function SeasonsSection({ seasonConfig, setSeasonConfig, bare }: SeasonsS
 
             if (error) throw error;
 
+            // Create the current season row if it doesn't exist yet
+            await getOrCreateCurrentSeason(hub.id, seasonConfig);
+
             await refreshHub();
+            await loadSeasons();
             setSeasonMessage({ type: 'success', text: 'Season settings saved!' });
         } catch (err: unknown) {
             console.error('Error saving season settings:', err);

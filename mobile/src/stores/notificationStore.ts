@@ -52,12 +52,12 @@ export const useNotificationStore = create<NotificationState>((set) => ({
 
       const counts = data || { unread_messages: 0, unread_groups: 0, upcoming_events: 0 };
 
-      // Apply preference filters
+      // Apply preference filters (if preferences haven't loaded yet, show raw counts)
       const prefs = useActivityFeedStore.getState().preferences;
       set({
-        unreadMessages: prefs && !prefs.messages_enabled ? 0 : counts.unread_messages,
-        unreadGroups: prefs && !prefs.groups_enabled ? 0 : counts.unread_groups,
-        upcomingEvents: prefs && !prefs.calendar_enabled ? 0 : counts.upcoming_events,
+        unreadMessages: prefs?.messages_enabled === false ? 0 : counts.unread_messages,
+        unreadGroups: prefs?.groups_enabled === false ? 0 : counts.unread_groups,
+        upcomingEvents: prefs?.calendar_enabled === false ? 0 : counts.upcoming_events,
         hasMoreNotifications: false,
         loading: false,
       });
