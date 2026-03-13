@@ -34,6 +34,9 @@ export function Skills() {
     const [selectedSkillListId, setSelectedSkillListId] = useState<string>('');
     const levels = hub?.settings?.levels || [];
 
+    // Get permission scope for skills
+    const skillsScope = getPermissionScope('skills');
+
     // Auto-select first gymnast for parents in 'own' scope with multiple kids
     useEffect(() => {
         if (isParent && skillsScope === 'own' && linkedGymnasts.length > 0 && !selectedGymnastId) {
@@ -51,9 +54,6 @@ export function Skills() {
     };
 
     const events = getEventsForGender(activeGender);
-
-    // Get permission scope for skills
-    const skillsScope = getPermissionScope('skills');
 
     // For parents in 'own' scope, get the selected linked gymnast's info
     const isParentOwnScope = isParent && skillsScope === 'own';

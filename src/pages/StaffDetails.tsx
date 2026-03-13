@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, User, Calendar, ClipboardList, CheckSquare, Award,
@@ -77,11 +77,6 @@ export function StaffDetails() {
     const isOwner = currentRole === 'owner';
     const isSelf = user?.id === staffUserId;
     const canEdit = isOwner || isSelf;
-
-    const isStaff = useMemo(() => {
-        const staffRoles = ['owner', 'director', 'admin', 'coach'];
-        return currentRole ? staffRoles.includes(currentRole) : false;
-    }, [currentRole]);
 
     // Public view: non-staff or admin (admin sees profile + certifications only)
     const canManage = ['owner', 'director'].includes(currentRole || '');

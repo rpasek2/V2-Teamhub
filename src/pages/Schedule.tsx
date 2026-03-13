@@ -17,7 +17,7 @@ export interface ScheduleFilter {
 
 export function Schedule() {
     const { canManage, isAthlete, isParent } = useRoleChecks();
-    const { getPermissionScope, linkedGymnasts, hub, currentRole } = useHub();
+    const { getPermissionScope, linkedGymnasts, hub } = useHub();
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<ScheduleTab>('weekly');
     const [athleteProfile, setAthleteProfile] = useState<GymnastProfile | null>(null);

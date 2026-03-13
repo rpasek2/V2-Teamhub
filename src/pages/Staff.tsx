@@ -37,7 +37,7 @@ type ViewTab = 'individual' | 'team';
 
 export function Staff() {
     const { hubId } = useParams();
-    const { isOwner, isStaff, canManage } = useRoleChecks();
+    const { isOwner, canManage } = useRoleChecks();
     const { getPermissionScope } = useHub();
     const notifications = useNotificationsSafe();
     const staffScope = getPermissionScope('staff');
