@@ -5,7 +5,7 @@
 - **Schedule - Rotations Display** — Rotations section is a grid on web but just a flat list on mobile. Needs a reworked display for quickly scanning multiple groups' events.
 - **Group Post Creation** — Add ability to create posts in groups from the mobile app (currently read/interact only).
 - **Score Metrics** — Add detailed score charts and metrics to mobile (season bests, averages, trend lines, qualifying progress) to match the web experience.
-- **Back Buttons** — Add explicit back buttons to screens that are missing them (currently relying on iOS swipe-from-left gesture).
+- ~~Back Buttons~~ — Added explicit back buttons to screens (commit 181aa77).
 ## Web
 
 - **Rotation Builder UX Overhaul** — Rotation creation/editing needs drag-and-drop reordering and a streamlined flow.
@@ -75,3 +75,8 @@ Currently season-aware: competitions, scores. This feature would make level-base
 - ~~Messages Not Appearing After Send (Mobile)~~ — `sendMessage` now returns the inserted row via `.select().single()` and adds it to local state optimistically. Realtime subscription INSERT handler has dedup check to prevent double messages.
 - ~~Push Notification Deep Link to Message Thread (Mobile)~~ — Notification taps now store a pending deep link instead of navigating immediately. Hub is auto-selected from notification `hub_id`, then deep link navigates after tabs mount. Handles cold start via `getLastNotificationResponseAsync` and foreground taps via reactive effect.
 - ~~Unread Badge Not Clearing on Auto-Selected Thread (Web)~~ — Auto-selected default channel now calls `markChannelAsRead` when it has unread messages, clearing the badge immediately.
+- ~~Permission Overhaul: "View Own" Scope~~ — Groups filtered to member-only for 'own' scope, marketplace blocks athlete listing, schedule filtered to own level/group for parents and athletes. Web + mobile.
+- ~~Permission Overhaul: "No Access" (None) Scope~~ — TabGuard (web) and MobileTabGuard (mobile) now enforce permission scope at the route level. Tabs hidden from nav, dashboard sections gated, MobileTabGuard added to all unguarded routes. Added `progressReports` to DEFAULT_PERMISSIONS.
+- ~~Legacy 'gymnast' Role Cleanup~~ — Removed dead `=== 'gymnast'` checks across mobile codebase. DB already enforces valid roles via `hub_role` enum (no 'gymnast' value).
+- ~~DM Conversations Sorted by Recent (Web)~~ — DM channels now sorted by most recent message. Real-time re-sort when new messages arrive.
+- ~~Message Date Separators (Web)~~ — Day boundary separators ("Today", "Yesterday", or full date) between messages from different days.

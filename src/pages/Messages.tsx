@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { Send, Hash, MessageSquare, Users, Plus, X, Search, ShieldAlert, Check, Trash2, Loader2, UserPlus, Lock, Paperclip, Image, FileText, ThumbsUp, Heart, PartyPopper } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, isToday, isYesterday, isSameDay } from 'date-fns';
 import { supabase } from '../lib/supabase';
 import { useHub } from '../context/HubContext';
 import { useAuth } from '../context/AuthContext';
@@ -43,6 +43,7 @@ interface Channel {
     dm_other_users?: DmUserInfo[];
     created_by?: string | null;
     unread_count?: number;
+    last_message_at?: string | null;
 }
 
 interface HubMemberOption {
@@ -278,6 +279,37 @@ export default function Messages() {
             }
         }
 
+        // Fetch latest message timestamp per DM channel and sort by most recent
+        if (dmChans.length > 0) {
+            const dmIds = dmChans.map(c => c.id);
+            const { data: latestMessages } = await supabase
+                .from('messages')
+                .select('channel_id, created_at')
+                .in('channel_id', dmIds)
+                .order('created_at', { ascending: false });
+
+            if (latestMessages) {
+                // Build map of channel_id -> most recent message timestamp
+                const latestMap = new Map<string, string>();
+                latestMessages.forEach(m => {
+                    if (!latestMap.has(m.channel_id)) {
+                        latestMap.set(m.channel_id, m.created_at);
+                    }
+                });
+                dmChans.forEach(c => {
+                    c.last_message_at = latestMap.get(c.id) || null;
+                });
+            }
+
+            // Sort: most recent message first, channels with no messages last
+            dmChans.sort((a, b) => {
+                if (!a.last_message_at && !b.last_message_at) return 0;
+                if (!a.last_message_at) return 1;
+                if (!b.last_message_at) return -1;
+                return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+            });
+        }
+
         setChannels(regularChannels);
         setDmChannels(dmChans);
 
@@ -394,6 +426,20 @@ export default function Messages() {
                         setMessages((prev) => {
                             if (prev.some(m => m.id === data.id)) return prev;
                             return [...prev, data];
+                        });
+                        // Bubble this DM channel to the top of the list
+                        setDmChannels(prev => {
+                            const idx = prev.findIndex(c => c.id === channelId);
+                            if (idx <= 0) return prev; // already first or not a DM
+                            const updated = [...prev];
+                            updated[idx] = { ...updated[idx], last_message_at: data.created_at };
+                            updated.sort((a, b) => {
+                                if (!a.last_message_at && !b.last_message_at) return 0;
+                                if (!a.last_message_at) return 1;
+                                if (!b.last_message_at) return -1;
+                                return new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime();
+                            });
+                            return updated;
                         });
                     }
                 }
@@ -1462,10 +1508,27 @@ export default function Messages() {
                             ) : (
                                 messages.map((message, index) => {
                                     const isMe = message.user_id === user?.id;
-                                    const showHeader = index === 0 || messages[index - 1].user_id !== message.user_id;
+                                    const msgDate = new Date(message.created_at);
+                                    const prevDate = index > 0 ? new Date(messages[index - 1].created_at) : null;
+                                    const showDateSeparator = index === 0 || (prevDate && !isSameDay(msgDate, prevDate));
+                                    const showHeader = index === 0 || messages[index - 1].user_id !== message.user_id || showDateSeparator;
+
+                                    const dateSeparatorLabel = isToday(msgDate)
+                                        ? 'Today'
+                                        : isYesterday(msgDate)
+                                            ? 'Yesterday'
+                                            : format(msgDate, 'EEEE, MMMM d, yyyy');
 
                                     return (
-                                        <div key={message.id} className={`group/msg flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                        <React.Fragment key={message.id}>
+                                        {showDateSeparator && (
+                                            <div className="flex items-center gap-3 my-4">
+                                                <div className="flex-1 border-t border-line" />
+                                                <span className="text-xs font-medium text-faint px-2">{dateSeparatorLabel}</span>
+                                                <div className="flex-1 border-t border-line" />
+                                            </div>
+                                        )}
+                                        <div className={`group/msg flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                             <div className={`flex max-w-[80%] ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
                                                 <div className={`flex-shrink-0 ${isMe ? 'ml-3' : 'mr-3'}`}>
                                                     {showHeader && (
@@ -1577,6 +1640,7 @@ export default function Messages() {
                                                 </div>
                                             </div>
                                         </div>
+                                        </React.Fragment>
                                     );
                                 })
                             )}
